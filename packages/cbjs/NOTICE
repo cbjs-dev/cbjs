@@ -1,0 +1,8 @@
+Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+Copyright (c) 2013-Present Couchbase Inc.
+
+This software contains code derived from the work of Couchbase, Inc. (https://www.couchbase.com/).
+This software includes new work and several improvements on various part of the original work.
+
+A lot of effort has been put to introduce type safety for KV operations: it offers typed input and output for all operations (including sub-document operation) but also path autocompletion for sub-document operations.
+Some modifications have been made to offer type guard to callbacks and several function overloads have been written to reflect the actual behaviour of the function.

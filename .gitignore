@@ -1,43 +1,23 @@
-# Local test configuration
-config.json
+node_modules/
+dist
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-
-# Compiled Dynamic libraries
-*.so
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-
-# The original file after running astyle:
-*.orig
+# Platform-specific binary
+couchbase-native*.node
 
 # Ignore some IDE-specific folder
 /.idea
+/.run
 /.vscode
 
-# User folders
-*~
-
-# Build stuff
-/.lock-wscript
-/build/
-/node_modules/
-/docs/
-/test/CouchbaseMock.jar
-/builderror.log
-/configcache.txt
-/coverage/
-/benchmarks/
-/.nyc_output/
-/prebuilds/
-/deps/couchbase-cxx-cache
+# Dev stuff
+/coverage
 *.tar.gz
+.loadEnv.sh
+*.log
 
-# Extra stuff
-/dist/
+### Couchbase Plugin ###
+.cbcache/
+
+### Docs ###
+/docs/.vitepress/cache
+/docs/.vitepress/build

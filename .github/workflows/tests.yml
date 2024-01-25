@@ -1,0 +1,39 @@
+name: Tests
+on:
+  push:
+    branches:
+      - main
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: >
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, 'skip ci')) ||
+      (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun')
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-m
+    services:
+      couchbase:
+        image: couchbase
+        ports:
+          - 8091:8091
+          - 8092:8092
+          - 8093:8093
+          - 8096:8096
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run all tests
+        run: npm run test

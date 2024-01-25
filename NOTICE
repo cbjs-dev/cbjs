@@ -1,0 +1,21 @@
+Copyright 2023-Present Jonathan MASSUCHETTI.
+
+This code includes entire new packages and features, along with several improvements on various fronts.
+This software contains code derived from the work of Couchbase, Inc. (https://www.couchbase.com/).
+
+Below is a non-exhaustive list of the changes that have been made.
+
+TypeScript :
+A lot of effort has been put to introduce type safety for KV operations: it offers typed input and output for all operations (including sub-document operation) but also path autocompletion for sub-document operations.
+Some modifications have been made to offer type guard to callbacks and several function overloads have been written to reflect the actual behaviour of the function.
+
+HTTP Client :
+A HTTP client has been created in order to support operations that are not offered by the native implementation.
+It also support lightweight environment where loading 10+ MB of binary is not optimal.
+The initial reason of its creation is deployment automation.
+
+Tests :
+All the tests have been fixed, improved, reworked, completed and migrated to vitest.
+They also aim to run against the actual database instead of mocks.
+Also, many fixtures are made available for those who use vitest and want to setup their database accordingly.
+

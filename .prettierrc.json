@@ -1,0 +1,21 @@
+{
+  "arrowParens": "always",
+  "bracketSameLine": false,
+  "bracketSpacing": true,
+  "embeddedLanguageFormatting": "auto",
+  "insertPragma": false,
+  "jsxSingleQuote": false,
+  "printWidth": 90,
+  "proseWrap": "preserve",
+  "quoteProps": "consistent",
+  "requirePragma": false,
+  "semi": true,
+  "singleAttributePerLine": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "useTabs": false,
+  "importOrder": ["^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
+}

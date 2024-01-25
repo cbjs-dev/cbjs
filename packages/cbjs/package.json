@@ -1,0 +1,67 @@
+{
+  "name": "@cbjs/cbjs",
+  "version": "1.0.0",
+  "description": "Type safe client for Couchbase",
+  "keywords": ["couchbase", "typescript", "database", "memcached", "nosql", "json", "document"],
+  "author": "Jonathan Massuchetti <jonathan.massuchetti@dappit.fr>",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cbjs-dev/cbjs.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "bugs": {
+    "url": "https://github.com/cbjs-dev/cbjs/issues"
+  },
+  "scripts": {
+    "install": "node ./scripts/install.mjs 4.2.8",
+    "build": "tsup && cp couchbase-native.node dist/couchbase-native.node",
+    "test": "vitest --run",
+    "ts-check": "tsc --noEmit"
+  },
+  "type": "module",
+  "main": "dist/cbjs.cjs",
+  "module": "dist/cbjs.js",
+  "exports": {
+    ".": {
+      "require": {
+        "default": "./dist/cbjs.cjs",
+        "types": "./dist/cbjs.d.cts"
+      },
+      "import": {
+        "default": "./dist/cbjs.js",
+        "types": "./dist/cbjs.d.ts"
+      }
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "scripts/*.mjs",
+    "../../README.md",
+    "../../LICENSE",
+    "../../NOTICE"
+  ],
+  "dependencies": {
+    "cmake-js": "^7.2.1",
+    "node-addon-api": "^7.0.0"
+  },
+  "devDependencies": {
+    "segfault-handler": "^1.3.0",
+    "tar": "^6.2.0",
+    "typescript": "5.2.2",
+    "vitest": "^1.2.1"
+  },
+  "config": {
+    "native": false
+  },
+  "binary": {
+    "napi_versions": [
+      6
+    ]
+  }
+}

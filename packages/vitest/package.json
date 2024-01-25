@@ -1,0 +1,47 @@
+{
+  "name": "@cbjs/vitest",
+  "version": "1.0.0",
+  "description": "Vitest extended tests and fixtures for your tests with Couchbase",
+  "keywords": ["couchbase", "vitest", "fixture", "test"],
+  "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cbjs-dev/cbjs.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "bugs": {
+    "url": "https://github.com/cbjs-dev/cbjs/issues"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch src",
+    "ts-check": "tsc --noEmit",
+    "test": "vitest --run"
+  },
+  "type": "module",
+  "main": "dist/vitest.cjs",
+  "module": "dist/vitest.js",
+  "exports": {
+    ".": {
+      "require": {
+        "default": "./dist/vitest.cjs",
+        "types": "./dist/vitest.d.cts"
+      },
+      "import": {
+        "default": "./dist/vitest.js",
+        "types": "./dist/vitest.d.ts"
+      }
+    }
+  },
+  "dependencies": {
+    "@cbjs/cbjs": "*",
+    "@cbjs/http-client": "*",
+    "vitest": "^1.2.0"
+  }
+}

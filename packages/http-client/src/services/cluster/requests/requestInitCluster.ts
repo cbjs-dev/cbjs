@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { ServiceName } from '@cbjs/shared';
+import { CouchbaseApiConfig } from '../../../types';
+import { MANAGEMENT_PORT } from '../../../utils/ports';
+
+export type InitClusterParams = {
+  username: string;
+  password: string;
+
+  /**
+   * The IP address or domain name that will be the name of the node established as a single-node cluster.
+   *
+   * @default 127.0.0.1
+   */
+  hostname?: string;
+  data_path?: string;
+  index_path?: string;
+  cbas_path?: string;
+  eventing_path?: string;
+  java_home?: string;
+  sendStats?: boolean;
+  clusterName?: string;
+
+  /**
+   * List of services to be hosted on this cluster.
+   */
+  services: [ServiceName, ...ServiceName[]];
+  memoryQuota?: number;
+  indexMemoryQuota?: number;
+  eventingMemoryQuota?: number;
+  ftsMemoryQuota?: number;
+  cbasMemoryQuota?: number;
+  afamily?: 'ipv4' | 'ipv6';
+  afamilyOnly?: boolean;
+  nodeEncryption?: 'on' | 'off';
+  indexerStorageMode?: 'plasma' | 'magma';
+  port?: 'SAME' | number;
+
+  /**
+   * Comma separated list of hosts allowed to join the cluster.
+   *
+   * @since 7.1.1
+   * @example *.mysubnet.org,192.168.0.0/16
+   */
+  allowedHosts?: string; // =<list-of-naming-conventions>
+};
+
+export function requestInitCluster({ hostname, secure }: Pick<CouchbaseApiConfig, 'hostname' | 'secure'>, initClusterParams: InitClusterParams) {
+  const protocol = secure ? 'https' : 'http';
+  const url = `${protocol}://${hostname}:${MANAGEMENT_PORT}/clusterInit`;
+
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      port: 'SAME',
+      sendStats: false,
+      ...initClusterParams
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}

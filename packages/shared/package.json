@@ -1,0 +1,36 @@
+{
+  "name": "@cbjs/shared",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Shared utils between packages",
+  "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "require": {
+        "default": "./dist/shared.cjs",
+        "types": "./dist/shared.d.cts"
+      },
+      "import": {
+        "default": "./dist/shared.js",
+        "types": "./dist/shared.d.ts"
+      }
+    }
+  },
+  "main": "dist/shared.cjs",
+  "module": "dist/shared.js",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "vitest": "^1.2.1"
+  }
+}

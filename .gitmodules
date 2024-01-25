@@ -1,3 +1,0 @@
-[submodule "deps/couchbase-cxx-client"]
-	path = deps/couchbase-cxx-client
-	url = https://github.com/couchbaselabs/couchbase-cxx-client.git
