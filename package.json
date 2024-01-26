@@ -30,7 +30,6 @@
     "prettier": "2.8.8",
     "tsup": "^8.0.1",
     "typescript": "5.2.2",
-    "vitepress": "^1.0.0-rc.36",
     "vitest": "^1.2.1"
   }
 }
