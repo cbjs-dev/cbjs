@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../../types';
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 
 export async function requestGetEventingFunctions(
-  apiParams: Omit<CouchbaseApiConfig, 'poolNodes'>
+  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
 ) {
   return apiGET(apiParams, '/api/v1/functions', 8096);
 }

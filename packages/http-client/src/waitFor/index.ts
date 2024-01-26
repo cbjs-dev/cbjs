@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+export * from './types';
 export * from './waitForBucket';
 export * from './waitForScope';
 export * from './waitForCollection';

@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { InitClusterParams, requestInitCluster } from './requests/requestInitCluster';
 
 export class ClusterAlreadyInitializedError extends Error {}
 
-export async function initCluster(apiConfig: CouchbaseApiConfig, initClusterParams: InitClusterParams) {
+export async function initCluster(
+  apiConfig: CouchbaseHttpApiConfig,
+  initClusterParams: InitClusterParams
+) {
   const response = await requestInitCluster(apiConfig, initClusterParams);
 
   if (response.status === 401) {
-    throw new ClusterAlreadyInitializedError('Cluster already initialized.', { cause: response });
+    throw new ClusterAlreadyInitializedError('Cluster already initialized.', {
+      cause: response,
+    });
   }
 
   if (!response.ok) {

@@ -15,12 +15,13 @@
  */
 import promiseRetry from 'promise-retry';
 
-import { getStatistics } from '../services/stats/getStatistics';
-import { CouchbaseApiConfig, WaitForOptions } from '../types';
+import { getStatistics } from '../services';
+import { CouchbaseHttpApiConfig } from '../types';
 import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { WaitForOptions } from './types';
 
 export async function waitForSearchIndex(
-  apiConfig: CouchbaseApiConfig,
+  apiConfig: CouchbaseHttpApiConfig,
   indexName: string,
   options: WaitForOptions = { timeout: 10_000 }
 ): Promise<void> {

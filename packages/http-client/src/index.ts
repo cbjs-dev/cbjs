@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-export type { CouchbaseApiConfig, WaitForOptions } from './types';
-
 export * from './waitFor';
 export * from './services';
+export { CouchbaseHttpApiConfig } from './types';

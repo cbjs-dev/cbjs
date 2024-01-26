@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../../types';
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 import { MANAGEMENT_PORT } from '../../../utils/ports';
 
-export async function requestGetUsers(
-  params: CouchbaseApiConfig
-) {
-  return apiGET(
-    { ...params },
-    `/settings/rbac/users`,
-    MANAGEMENT_PORT
-  );
+export async function requestGetUsers(params: CouchbaseHttpApiConfig) {
+  return apiGET({ ...params }, `/settings/rbac/users`, MANAGEMENT_PORT);
 }

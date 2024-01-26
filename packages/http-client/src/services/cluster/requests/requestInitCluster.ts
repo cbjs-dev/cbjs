@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ServiceName } from '@cbjs/shared';
-import { CouchbaseApiConfig } from '../../../types';
+
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { MANAGEMENT_PORT } from '../../../utils/ports';
 
 export type InitClusterParams = {
@@ -60,7 +60,10 @@ export type InitClusterParams = {
   allowedHosts?: string; // =<list-of-naming-conventions>
 };
 
-export function requestInitCluster({ hostname, secure }: Pick<CouchbaseApiConfig, 'hostname' | 'secure'>, initClusterParams: InitClusterParams) {
+export function requestInitCluster(
+  { hostname, secure }: Pick<CouchbaseHttpApiConfig, 'hostname' | 'secure'>,
+  initClusterParams: InitClusterParams
+) {
   const protocol = secure ? 'https' : 'http';
   const url = `${protocol}://${hostname}:${MANAGEMENT_PORT}/clusterInit`;
 
@@ -69,7 +72,7 @@ export function requestInitCluster({ hostname, secure }: Pick<CouchbaseApiConfig
     body: JSON.stringify({
       port: 'SAME',
       sendStats: false,
-      ...initClusterParams
+      ...initClusterParams,
     }),
     headers: {
       'Content-Type': 'application/json',

@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import promiseRetry from 'promise-retry';
 
-import { getPoolNodes } from '../services/cluster/getPoolNodes';
-import { getViewDesignDocuments } from '../services/view/getViewDesignDocuments';
-import { CouchbaseApiConfig, WaitForOptions } from '../types';
+import { getPoolNodes, getViewDesignDocuments } from '../services';
+import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
 import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { WaitForOptions } from './types';
 
 export async function waitForViewDesignDocument(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   bucketName: string,
   designDocumentName: string,
   options: WaitForOptions = { timeout: 10_000 }

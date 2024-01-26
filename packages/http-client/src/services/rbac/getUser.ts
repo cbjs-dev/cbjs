@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiUser } from '../../types/Api/ApiUser';
-
 import { requestGetUser } from './requests/requestGetUser';
 
-export async function getUser(apiConfig: CouchbaseApiConfig, username: string, domain = 'local') {
+export async function getUser(
+  apiConfig: CouchbaseHttpApiConfig,
+  username: string,
+  domain = 'local'
+) {
   const response = await requestGetUser(apiConfig, username, domain);
 
   if (response.status !== 200) {

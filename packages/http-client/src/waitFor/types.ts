@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { requestExecuteStatement } from './requestExecuteStatement';
 
-export async function requestGetQueryIndexes(params: CouchbaseHttpApiConfig) {
-  return requestExecuteStatement(params, 'SELECT RAW indexes FROM system:indexes');
-}
+export type WaitForOptions = {
+  timeout?: number;
+  expectMissing?: boolean;
+};

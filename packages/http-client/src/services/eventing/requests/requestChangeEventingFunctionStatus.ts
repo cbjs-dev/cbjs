@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import type { EventingFunctionScope } from '@cbjs/cbjs';
-import type { CouchbaseApiConfig } from '../../../types';
+
+import type { CouchbaseHttpApiConfig } from '../../../types';
 import { apiPOST } from '../../../utils/apiPOST';
 import { EVENTING_PORT } from '../../../utils/ports';
 
 export async function requestChangeEventingFunctionStatus(
-  apiParams: Omit<CouchbaseApiConfig, 'poolNodes'>,
+  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
   name: string,
   scope: EventingFunctionScope = { bucket: '*', scope: '*' },
   status: 'deploy' | 'undeploy' | 'pause' | 'resume'

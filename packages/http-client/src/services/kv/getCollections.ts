@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiBucketScopes } from '../../types/Api/ApiBucketScopes';
 import { requestGetBucketScopes } from './requests/requestGetBucketScopes';
 
 export async function getCollections(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   bucketName: string,
   scopeName: string
 ) {

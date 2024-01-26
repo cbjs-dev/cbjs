@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
 import { requestExecuteStatement } from './requests/requestExecuteStatement';
 
 export async function executeStatement<Result>(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   statement: string
 ) {
   const response = await requestExecuteStatement(params, statement);

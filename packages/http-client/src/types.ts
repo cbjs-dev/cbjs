@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseApiConfig } from '@cbjs/shared';
 
 import { ApiPoolNodes } from './types/Api/ApiPoolNodes';
 
-export type CouchbaseApiConfig = {
-  hostname: string;
-  secure: boolean;
+export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
   poolNodes?: ApiPoolNodes;
-  credentials: {
-    username: string;
-    password: string;
-  };
-};
-
-export type WaitForOptions = {
-  timeout?: number;
-  expectMissing?: boolean;
 };
 
 export type URLSearchParamsConstructor =
@@ -36,5 +26,4 @@ export type URLSearchParamsConstructor =
   | string
   | Record<string, string | ReadonlyArray<string>>
   | Iterable<[string, string]>
-  | ReadonlyArray<[string, string]>
-;
+  | ReadonlyArray<[string, string]>;

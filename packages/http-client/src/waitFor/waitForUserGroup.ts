@@ -15,14 +15,15 @@
  */
 import promiseRetry from 'promise-retry';
 
-import { getPoolNodes } from '../services/cluster/getPoolNodes';
+import { getPoolNodes } from '../services';
 import { requestGetUserGroup } from '../services/rbac/requests/requestGetUserGroup';
-import { CouchbaseApiConfig, WaitForOptions } from '../types';
+import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
 import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { WaitForOptions } from './types';
 
 export async function waitForUserGroup(
-  apiConfig: CouchbaseApiConfig,
+  apiConfig: CouchbaseHttpApiConfig,
   name: string,
   options: WaitForOptions = { timeout: 10_000 }
 ): Promise<void> {

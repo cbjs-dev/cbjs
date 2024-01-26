@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import {
   StatisticDefinition,
   StatisticsResult,
@@ -21,7 +21,7 @@ import {
 } from './requests/requestStatistics';
 
 export async function getStatistics(
-  apiConfig: CouchbaseApiConfig,
+  apiConfig: CouchbaseHttpApiConfig,
   stats: [StatisticDefinition, ...StatisticDefinition[]]
 ) {
   const response = await requestStatistics(apiConfig, stats);

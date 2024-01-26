@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import type { CouchbaseApiConfig } from '@cbjs/http-client';
 import { getConnectionParams } from './getConnectionParams';
+
+export type CouchbaseApiConfig = {
+  hostname: string;
+  secure: boolean;
+  credentials: {
+    username: string;
+    password: string;
+  };
+};
 
 export function getApiConfig() {
   const params = getConnectionParams();

@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiUserGroup } from '../../types/Api/ApiUserGroup';
-
 import { requestGetUserGroup } from './requests/requestGetUserGroup';
 
-export async function getUserGroup(apiConfig: CouchbaseApiConfig, name: string) {
+export async function getUserGroup(apiConfig: CouchbaseHttpApiConfig, name: string) {
   const response = await requestGetUserGroup(apiConfig, name);
 
   if (response.status !== 200) {

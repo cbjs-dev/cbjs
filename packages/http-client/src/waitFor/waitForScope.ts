@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import promiseRetry from 'promise-retry';
 
 import { getPoolNodes } from '../services/cluster/getPoolNodes';
 import { getScopes } from '../services/kv/getScopes';
-import { CouchbaseApiConfig, WaitForOptions } from '../types';
+import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
 import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { WaitForOptions } from './types';
 
 export async function waitForScope(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   bucketName: string,
   scopeName: string,
   options: WaitForOptions = { timeout: 10_000 }

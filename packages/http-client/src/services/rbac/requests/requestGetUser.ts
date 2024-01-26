@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../../types';
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 import { MANAGEMENT_PORT } from '../../../utils/ports';
 
 export async function requestGetUser(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   username: string,
   domain = 'local'
 ) {

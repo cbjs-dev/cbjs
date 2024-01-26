@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { hasOwn } from '@cbjs/shared';
-import { CouchbaseApiConfig } from '../../types';
+
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryIndex } from '../../types/Api/ApiQueryIndex';
 import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
 import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryInex';
 import { requestGetQueryIndexes } from './requests/requestGetQueryIndexes';
 
-export async function getQueryIndexes(params: CouchbaseApiConfig) {
+export async function getQueryIndexes(params: CouchbaseHttpApiConfig) {
   const response = await requestGetQueryIndexes(params);
 
   if (response.status !== 200) {

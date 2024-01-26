@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiPool } from '../../types/Api/ApiPool';
 import { requestGetPool } from './requests/requestGetPool';
 
 export async function getPool(
-  params: Omit<CouchbaseApiConfig, 'poolNodes'>,
+  params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
   poolName = 'default'
 ) {
   const response = await requestGetPool(params, poolName);

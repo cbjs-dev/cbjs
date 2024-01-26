@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import promiseRetry from 'promise-retry';
-import { getHttpClientLogger } from '../logger';
 
-import { getPoolNodes } from '../services/cluster/getPoolNodes';
-import { getCollections } from '../services/kv/getCollections';
-import { CouchbaseApiConfig, WaitForOptions } from '../types';
+import { getHttpClientLogger } from '../logger';
+import { getPoolNodes } from '../services';
+import { getCollections } from '../services';
+import { CouchbaseHttpApiConfig } from '../types';
 import { ApiCollection } from '../types/Api/ApiCollection';
 import { mapNodes } from '../utils/mapNodes';
 import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { WaitForOptions } from './types';
 
 export async function waitForCollection(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   bucketName: string,
   scopeName: string,
   collectionName: string,

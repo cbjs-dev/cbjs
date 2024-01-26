@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { CouchbaseApiConfig } from '@cbjs/http-client';
+import type { CouchbaseApiConfig } from '@cbjs/shared';
 import { type PromiseValue, getApiConfig } from '@cbjs/shared';
 import type { TaskContext } from 'vitest';
 

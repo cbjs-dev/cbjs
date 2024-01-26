@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../../types';
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 import { pathname } from '../../../utils/pathname';
 import { MANAGEMENT_PORT } from '../../../utils/ports';
 import { getPoolNodes } from '../../cluster/getPoolNodes';
 
-export async function requestGetBucket(params: CouchbaseApiConfig, bucketName: string) {
+export async function requestGetBucket(
+  params: CouchbaseHttpApiConfig,
+  bucketName: string
+) {
   const poolNodes = params.poolNodes ?? (await getPoolNodes(params));
 
   return apiGET(

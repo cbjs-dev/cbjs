@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../../types';
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 
 export async function requestGetPool(
-  apiParams: Omit<CouchbaseApiConfig, 'poolNodes'>,
+  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
   poolName = 'default'
 ) {
   return apiGET(apiParams, `/pools/${poolName}`, 8091);

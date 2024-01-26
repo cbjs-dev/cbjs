@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiEventingFunction } from '../../types/Api/ApiEventingFunction';
 import { requestGetEventingFunctions } from './requests/requestGetEventingFunctions';
 
 export async function getEventingFunctions(
-  params: Omit<CouchbaseApiConfig, 'poolNodes'>
+  params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
 ) {
   const response = await requestGetEventingFunctions(params);
 

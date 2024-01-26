@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { getPoolNodes } from './getPoolNodes';
 
 export type ClusterReleaseFlavor = 'community' | 'enterprise';
@@ -26,10 +25,12 @@ export type ClusterRelease = {
 
 let clusterInfoPromise = undefined as Promise<ClusterRelease> | undefined;
 
-export async function getClusterRelease(apiConfig: CouchbaseApiConfig): Promise<ClusterRelease> {
+export async function getClusterRelease(
+  apiConfig: CouchbaseHttpApiConfig
+): Promise<ClusterRelease> {
   if (clusterInfoPromise === undefined) {
     clusterInfoPromise = (async () => {
-      const poolNodes = apiConfig.poolNodes ?? await getPoolNodes(apiConfig);
+      const poolNodes = apiConfig.poolNodes ?? (await getPoolNodes(apiConfig));
       const [version, build, flavor] = poolNodes.nodes[0].version.split('-');
       return {
         version,

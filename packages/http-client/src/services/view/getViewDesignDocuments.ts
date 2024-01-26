@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiViewDesignDocuments } from '../../types/Api/ApiViewDesignDocument';
 import { requestGetViewDesignDocuments } from './requests/requestGetViewDesignDocuments';
 
 export async function getViewDesignDocuments(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   bucketName: string
 ) {
   const response = await requestGetViewDesignDocuments(params, bucketName);

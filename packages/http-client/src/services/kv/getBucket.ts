@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiBucket } from '../../types/Api/ApiBucket';
 import { requestGetBucket } from './requests/requestGetBucket';
 
-export async function getBucket(params: CouchbaseApiConfig, bucketName: string) {
+export async function getBucket(params: CouchbaseHttpApiConfig, bucketName: string) {
   const response = await requestGetBucket(params, bucketName);
 
   if (response.status !== 200) {

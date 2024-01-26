@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import type { EventingFunctionScope } from '@cbjs/cbjs';
-import { CouchbaseApiConfig } from '../../../types';
+
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiDELETE } from '../../../utils/apiDELETE';
 
 export async function requestDeleteEventingFunction(
-  apiParams: Omit<CouchbaseApiConfig, 'poolNodes'>,
+  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
   name: string,
   scope: EventingFunctionScope = { bucket: '*', scope: '*' }
 ) {

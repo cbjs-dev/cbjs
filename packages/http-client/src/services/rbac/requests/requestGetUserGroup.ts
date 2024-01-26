@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../../types';
+import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 import { MANAGEMENT_PORT } from '../../../utils/ports';
 
-export async function requestGetUserGroup(params: CouchbaseApiConfig, name: string) {
+export async function requestGetUserGroup(params: CouchbaseHttpApiConfig, name: string) {
   return apiGET({ ...params }, `/settings/rbac/groups/${name}`, MANAGEMENT_PORT);
 }

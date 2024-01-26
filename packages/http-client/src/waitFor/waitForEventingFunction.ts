@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { EventingFunctionStatusName } from '@cbjs/shared';
 import promiseRetry from 'promise-retry';
 
-import { getPoolNodes, getEventingFunctionStatus } from '../services';
-import { CouchbaseApiConfig, WaitForOptions } from '../types';
+import { getEventingFunctionStatus, getPoolNodes } from '../services';
+import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
 import { getFastRetryProfile } from '../utils/retryProfiles';
+import { WaitForOptions } from './types';
 
 export async function waitForEventingFunction(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   functionName: string,
   status: Extract<EventingFunctionStatusName, 'deployed' | 'undeployed' | 'paused'>,
   options?: WaitForOptions
 ): Promise<void>;
 export async function waitForEventingFunction(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   functionName: string,
   options?: WaitForOptions
 ): Promise<void>;
 export async function waitForEventingFunction(
-  params: CouchbaseApiConfig,
+  params: CouchbaseHttpApiConfig,
   functionName: string,
   expectedStatus?:
     | Extract<EventingFunctionStatusName, 'deployed' | 'undeployed' | 'paused'>

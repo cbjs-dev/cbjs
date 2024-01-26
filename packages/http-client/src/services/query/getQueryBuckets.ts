@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '../../types';
+import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
 import { requestExecuteStatement } from './requests/requestExecuteStatement';
 
 /**
  * Return the list of buckets visible from the Query service.
  */
-export async function getQueryBuckets(params: CouchbaseApiConfig): Promise<string[]> {
+export async function getQueryBuckets(params: CouchbaseHttpApiConfig): Promise<string[]> {
   const response = await requestExecuteStatement(
     params,
     'SELECT RAW name FROM system:keyspaces'
