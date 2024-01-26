@@ -16,7 +16,9 @@ jobs:
       (github.event_name == 'push' && !contains(github.event.head_commit.message, 'skip ci')) ||
       (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun')
     timeout-minutes: 15
-    runs-on: ubuntu-latest-m
+    runs-on:
+      group: couchbase-runners
+      labels: ubuntu-latest-m
     services:
       couchbase:
         image: couchbase
