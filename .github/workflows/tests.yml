@@ -6,16 +6,12 @@ on:
   issue_comment:
     types: [created]
 
-concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test:
     if: >
       (github.event_name == 'push' && !contains(github.event.head_commit.message, 'skip ci')) ||
       (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun')
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on:
       group: couchbase-runners
       labels: ubuntu-latest-m
@@ -28,8 +24,8 @@ jobs:
           - 8093:8093
           - 8096:8096
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
