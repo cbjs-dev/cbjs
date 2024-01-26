@@ -30,6 +30,6 @@
     "prettier": "2.8.8",
     "tsup": "^8.0.1",
     "typescript": "5.2.2",
-    "vitest": "^1.2.1"
+    "vitest": "^1.2.2"
   }
 }

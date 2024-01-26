@@ -22,6 +22,7 @@ export default mergeConfig(
   defineProject({
     test: {
       name: 'package:cbjs',
+      pool: 'forks',
     },
   })
 );
