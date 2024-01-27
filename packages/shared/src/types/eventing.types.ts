@@ -29,3 +29,11 @@ export type EventingFunctionStatusName =
   | 'deploying'
   | 'undeploying'
   | 'pausing';
+
+/**
+ * A bucket.scope combination used for identifying functions belonging to the same group.
+ */
+export type EventingFunctionScope = {
+  bucket: '*' | (string & NonNullable<unknown>);
+  scope: '*' | (string & NonNullable<unknown>);
+};

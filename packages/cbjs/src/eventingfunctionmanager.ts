@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { EventingFunctionScope } from '@cbjs/shared';
 
 import { Cluster } from './cluster';
 import {
@@ -29,14 +30,6 @@ import {
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import { QueryScanConsistency } from './querytypes';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
-
-/**
- * A bucket.scope combination used for identifying functions belonging to the same group.
- */
-export type EventingFunctionScope = {
-  bucket: '*' | (string & NonNullable<unknown>);
-  scope: '*' | (string & NonNullable<unknown>);
-};
 
 /**
  * Represents the various dcp boundary options for eventing functions.
