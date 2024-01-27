@@ -20,7 +20,8 @@
   },
   "scripts": {
     "install": "node ./scripts/install.mjs 4.2.8",
-    "build": "tsup && cp couchbase-native.node dist/couchbase-native.node",
+    "build": "tsup",
+    "build:dev": "tsup && cp couchbase-native.node dist/couchbase-native.node",
     "test": "vitest --run",
     "ts-check": "tsc --noEmit"
   },
