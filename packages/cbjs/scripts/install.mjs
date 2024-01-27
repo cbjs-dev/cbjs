@@ -16,15 +16,17 @@ const sslType = 'boringssl';
 const binaryPackageName = `couchbase-${platform}-${arch}-napi`;
 const binaryPackageVersion = process.env.COUCHBASE_BINARY_VERSION || process.argv[2];
 const binarySourcePath = `package/couchbase-v${binaryPackageVersion}-napi-v6-${platform}-${arch}-${sslType}.node`;
-const binaryDestinationPath = isProjectDev ?
-  path.resolve(packageAbsolutePath, `src/couchbase-native.node`) :
-  path.resolve(packageAbsolutePath, 'dist/couchbase-native.node');
+const binaryDestinationPaths = [path.resolve(packageAbsolutePath, packageRelative, 'dist/couchbase-native.node')];
 
-if (fs.existsSync(binaryDestinationPath)) {
-  console.info(`Couchbase binary is already installed in ${binaryDestinationPath}`)
+if (isProjectDev) {
+  binaryDestinationPaths.push(path.resolve(packageAbsolutePath, packageRelative, 'src/couchbase-native.node'));
+}
+
+if (binaryDestinationPaths.every(path => fs.existsSync(path))) {
+  console.info(`Couchbase binary is already installed.`);
   process.exit(0);
 }
 
-downloadBinary(binaryPackageName, binaryPackageVersion, binarySourcePath, binaryDestinationPath)
-.then(() => console.info(`Couchbase binary has been installed in ${binaryDestinationPath}`))
+downloadBinary(binaryPackageName, binaryPackageVersion, binarySourcePath, binaryDestinationPaths)
+.then(() => console.info(`Couchbase binary has been installed.`))
 .catch((err) => console.error(err))

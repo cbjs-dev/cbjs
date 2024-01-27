@@ -2,13 +2,22 @@ import https from 'node:https';
 import fs from 'node:fs';
 import tar from 'tar';
 
-export function downloadBinary(packageName, packageVersion, binarySourcePath, binaryDestinationPath) {
+/**
+ *
+ * @param packageName {string}
+ * @param packageVersion {string}
+ * @param binarySourcePath {string}
+ * @param binaryDestinationPaths {string[]}
+ * @returns {Promise<void>}
+ */
+export async function downloadBinary(packageName, packageVersion, binarySourcePath, binaryDestinationPaths) {
   const url = `https://registry.npmjs.org/@couchbase/${packageName}/-/${packageName}-${packageVersion}.tgz`;
 
   console.info('Downloading Couchbase binary', url);
 
-  return new Promise((resolve, reject) => {
+  const [binaryDestinationPath, ...copyToPaths] = binaryDestinationPaths;
 
+  const download = new Promise((resolve, reject) => {
     https.get(url, response => {
       const extractor = new tar.Parse({
         onentry: entry => {
@@ -27,4 +36,10 @@ export function downloadBinary(packageName, packageVersion, binarySourcePath, bi
       response.pipe(extractor);
     }).on('error', reject);
   });
+
+  await download;
+
+  copyToPaths.forEach(path => {
+    fs.copyFileSync(binaryDestinationPath, path);
+  })
 }
