@@ -10,10 +10,7 @@
   ],
   "scripts": {
     "build": "npm run build -workspaces --if-present",
-    "test": "vitest --run",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "test": "vitest --run"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.1.0",

@@ -18,8 +18,12 @@ features:
   - title: Autocompletion
     details: Your IDE will autocomplete document keys and document path for sub-document operations.
   - title: Typed return values
+    icon:
+      src: /typescript-logo.svg
     details: Cluster connections are typed so you know what you are getting back.
-  - title: 100% Compatible
+  - title: 100% Compatible  
+    icon: 
+        src: /couchbase-logo.svg  
     details: Drop-in replacement for the official library.
 ---
 
