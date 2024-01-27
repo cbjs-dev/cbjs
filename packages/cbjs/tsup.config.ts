@@ -7,6 +7,6 @@ export default defineConfig(() => ({
   format: ['cjs', 'esm'],
   dts: true,
   sourcemap: true,
-  clean: true,
+  clean: false,
   platform: 'node',
 }));

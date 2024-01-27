@@ -16,10 +16,17 @@ const sslType = 'boringssl';
 const binaryPackageName = `couchbase-${platform}-${arch}-napi`;
 const binaryPackageVersion = process.env.COUCHBASE_BINARY_VERSION || process.argv[2];
 const binarySourcePath = `package/couchbase-v${binaryPackageVersion}-napi-v6-${platform}-${arch}-${sslType}.node`;
-const binaryDestinationPaths = [path.resolve(packageAbsolutePath, packageRelative, 'dist/couchbase-native.node')];
+
+const buildOutputDirectory = path.resolve(packageAbsolutePath, 'dist');
+
+if (!fs.existsSync(buildOutputDirectory)) {
+  fs.mkdirSync(buildOutputDirectory);
+}
+
+const binaryDestinationPaths = [path.resolve(packageAbsolutePath, 'dist/couchbase-native.node')];
 
 if (isProjectDev) {
-  binaryDestinationPaths.push(path.resolve(packageAbsolutePath, packageRelative, 'src/couchbase-native.node'));
+  binaryDestinationPaths.push(path.resolve(packageAbsolutePath, 'src/couchbase-native.node'));
 }
 
 if (binaryDestinationPaths.every(path => fs.existsSync(path))) {
