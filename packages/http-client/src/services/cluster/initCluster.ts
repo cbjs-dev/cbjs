@@ -31,6 +31,8 @@ export async function initCluster(
   }
 
   if (!response.ok) {
-    throw new Error(await response.text());
+    throw new Error(await response.text(), {
+      cause: response,
+    });
   }
 }

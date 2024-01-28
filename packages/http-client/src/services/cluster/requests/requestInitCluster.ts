@@ -67,15 +67,28 @@ export function requestInitCluster(
   const protocol = secure ? 'https' : 'http';
   const url = `${protocol}://${hostname}:${MANAGEMENT_PORT}/clusterInit`;
 
+  const services = initClusterParams.services.join(',');
+
+  const body = {
+    port: 'SAME',
+    sendStats: false,
+    ...initClusterParams,
+    services,
+  };
+
+  const stringifiedBody = Object.fromEntries(
+    Object.entries(body).map(([key, value]) => {
+      return [key, value.toString()];
+    })
+  );
+
+  const payload = new URLSearchParams(stringifiedBody);
+
   return fetch(url, {
     method: 'POST',
-    body: JSON.stringify({
-      port: 'SAME',
-      sendStats: false,
-      ...initClusterParams,
-    }),
+    body: payload,
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
   });
 }
