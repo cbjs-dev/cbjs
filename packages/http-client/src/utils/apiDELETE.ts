@@ -31,7 +31,7 @@ export async function apiDELETE(
   { hostname, credentials, secure }: CouchbaseHttpApiConfig,
   pathname: string,
   port?: number,
-  query?: URLSearchParamsConstructor
+  query?: Record<string, string> | URLSearchParams
 ) {
   const base64Credentials = Buffer.from(
     `${credentials.username}:${credentials.password}`

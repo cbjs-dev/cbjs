@@ -34,7 +34,7 @@ export async function apiPOST(
   pathname: string,
   body?: RequestInit['body'],
   port?: number,
-  query?: URLSearchParamsConstructor,
+  query?: Record<string, string> | URLSearchParams,
   headers: Record<string, string> = {}
 ) {
   const base64Credentials = Buffer.from(

@@ -21,9 +21,4 @@ export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
   poolNodes?: ApiPoolNodes;
 };
 
-export type URLSearchParamsConstructor =
-  | URLSearchParams
-  | string
-  | Record<string, string | string[]>
-  | Iterable<[string, string]>
-  | ReadonlyArray<[string, string]>;
+export type URLSearchParamsConstructor = ConstructorParameters<typeof URLSearchParams>;
