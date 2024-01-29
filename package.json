@@ -6,7 +6,10 @@
     "packages/shared",
     "packages/http-client",
     "packages/cbjs",
-    "packages/vitest"
+    "packages/vitest",
+    "tests/cbjs",
+    "tests/http-client",
+    "tests/v8-optimization"
   ],
   "scripts": {
     "build": "npm run build -workspaces --if-present",
@@ -25,7 +28,6 @@
     "lerna": "^8.0.2",
     "pino": "^8.17.2",
     "prettier": "2.8.8",
-    "rollup-plugin-sourcemaps": "^0.6.3",
     "tsup": "^8.0.1",
     "typescript": "5.2.2",
     "vite": "^5.0.12",

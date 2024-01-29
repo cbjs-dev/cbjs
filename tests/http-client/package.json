@@ -1,8 +1,8 @@
 {
-  "name": "project-http-client",
+  "name": "test-project-http-client",
   "private": true,
   "version": "1.0.0",
-  "description": "Test project for Cbjs",
+  "description": "Test project for @cbjs/http-client",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -15,7 +15,6 @@
     "@cbjs/vitest": "*",
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
-    "semver": "^7.5.4",
-    "vitest": "^1.2.1"
+    "semver": "^7.5.4"
   }
 }
