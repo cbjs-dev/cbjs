@@ -8,7 +8,7 @@
   "scripts": {
     "test": "vitest --run"
   },
-  "devDependencies": {
+  "dependencies": {
     "@cbjs/cbjs": "*",
     "@cbjs/http-client": "*",
     "@cbjs/shared": "*",

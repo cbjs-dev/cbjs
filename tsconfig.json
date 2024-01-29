@@ -9,8 +9,8 @@
     "noImplicitOverride": true,
     "moduleResolution": "bundler",
     "module": "esnext",
-    "outDir": "dist",
     "declaration": true,
-    "resolveJsonModule": true,
+    "sourceMap": true,
+    "resolveJsonModule": true
   },
 }

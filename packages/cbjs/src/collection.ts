@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import type { If, IsAny } from '@cbjs/shared';
-import { hasOwn, invariant, Keyspace, keyspacePath } from '@cbjs/shared';
+import { Keyspace, hasOwn, invariant, keyspacePath } from '@cbjs/shared';
 import { promisify } from 'node:util';
 
 import {
@@ -53,10 +53,17 @@ import {
   storeSemanticToCpp,
 } from './bindingutilities';
 import { Cluster } from './cluster';
-import { AnyCollection, BucketName, CollectionName, DefaultClusterTypes, DocDef, ScopeName } from './clusterTypes';
 import {
-  CouchbaseClusterTypes,
+  AnyCollection,
+  BucketName,
+  CollectionName,
+  DefaultClusterTypes,
+  DocDef,
+  ScopeName,
+} from './clusterTypes';
+import {
   CollectionDocumentBag,
+  CouchbaseClusterTypes,
   ExtractBodyByKey,
   ExtractDefByBody,
   ExtractDefByKey,
@@ -93,7 +100,12 @@ import {
   MutationResult,
   ScanResult,
 } from './crudoptypes';
-import { CouchbaseList, CouchbaseMap, CouchbaseQueue, CouchbaseSet } from './datastructures';
+import {
+  CouchbaseList,
+  CouchbaseMap,
+  CouchbaseQueue,
+  CouchbaseSet,
+} from './datastructures';
 import { InvalidArgumentError } from './errors';
 import { DurabilityLevel, StoreSemantics } from './generaltypes';
 import { MutationState } from './mutationstate';
@@ -105,8 +117,13 @@ import { SdUtils } from './sdutils';
 import { LookupSpecs, MutationSpecs } from './specBuilders';
 import { StreamableReplicasPromise, StreamableScanPromise } from './streamablepromises';
 import { Transcoder } from './transcoders';
-import { Cas, getDocId, NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
-
+import {
+  Cas,
+  NodeCallback,
+  PromiseHelper,
+  VoidNodeCallback,
+  getDocId,
+} from './utilities';
 
 /**
  * @category Key-Value
@@ -430,7 +447,8 @@ export class Collection<
   out CT extends CollectionDocumentBag<
     PickCollectionDocument<T, B, S, C>
   > = CollectionDocumentBag<PickCollectionDocument<T, B, S, C>>
-> implements Collection<T, B, S, C, CT> {
+> implements Collection<T, B, S, C, CT>
+{
   /**
    * @internal
    */
@@ -714,16 +732,22 @@ export class Collection<
    * Checks whether a specific document exists or not.
    *
    * @param key The document key to check for existence.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  async exists<Key extends CT['Key']>(
+    key: Key,
+    callback?: NodeCallback<ExistsResult>
+  ): Promise<ExistsResult>;
+  /**
+   * Checks whether a specific document exists or not.
+   *
+   * @param key The document key to check for existence.
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async exists<Key extends CT['Key']>(
     key: Key,
     options: ExistsOptions,
-    callback?: NodeCallback<ExistsResult>
-  ): Promise<ExistsResult>;
-  async exists<Key extends CT['Key']>(
-    key: Key,
     callback?: NodeCallback<ExistsResult>
   ): Promise<ExistsResult>;
   async exists<Key extends CT['Key']>(
@@ -2369,10 +2393,18 @@ export class Collection<
    * Returns a BinaryCollection object reference, allowing access to various
    * binary operations possible against a collection.
    */
-  binary(): IfCollectionContains<BinaryCollection<Collection<T, B, S, C, CT>>, Collection<T, B, S, C, CT>, string | number> {
+  binary(): IfCollectionContains<
+    BinaryCollection<Collection<T, B, S, C, CT>>,
+    Collection<T, B, S, C, CT>,
+    string | number
+  > {
     return new BinaryCollection(
       this as ValidateCollectionContainsAny<this, string | number>
-    ) as IfCollectionContains<BinaryCollection<Collection<T, B, S, C, CT>>, Collection<T, B, S, C, CT>, string | number>;
+    ) as IfCollectionContains<
+      BinaryCollection<Collection<T, B, S, C, CT>>,
+      Collection<T, B, S, C, CT>,
+      string | number
+    >;
   }
 
   /**

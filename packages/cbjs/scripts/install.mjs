@@ -17,13 +17,13 @@ const binaryPackageName = `couchbase-${platform}-${arch}-napi`;
 const binaryPackageVersion = process.env.COUCHBASE_BINARY_VERSION || process.argv[2];
 const binarySourcePath = `package/couchbase-v${binaryPackageVersion}-napi-v6-${platform}-${arch}-${sslType}.node`;
 
-const buildOutputDirectory = path.resolve(packageAbsolutePath, 'dist');
+const buildOutputDirectory = path.resolve(packageAbsolutePath, 'dist/src');
 
 if (!fs.existsSync(buildOutputDirectory)) {
   fs.mkdirSync(buildOutputDirectory);
 }
 
-const binaryDestinationPaths = [path.resolve(packageAbsolutePath, 'dist/couchbase-native.node')];
+const binaryDestinationPaths = [path.resolve(buildOutputDirectory, 'couchbase-native.node')];
 
 if (isProjectDev) {
   binaryDestinationPaths.push(path.resolve(packageAbsolutePath, 'src/couchbase-native.node'));

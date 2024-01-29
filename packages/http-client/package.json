@@ -6,25 +6,17 @@
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
   "type": "module",
-  "exports": {
-    ".": {
-      "require": {
-        "default": "./dist/http-client.cjs",
-        "types": "./dist/http-client.d.cts"
-      },
-      "import": {
-        "default": "./dist/http-client.js",
-        "types": "./dist/http-client.d.ts"
-      }
-    },
-    "./package.json": "./package.json"
-  },
-  "main": "dist/http-client.cjs",
-  "module": "dist/http-client.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsup",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest --run --passWithNoTests"
   },
+  "files": [
+    "dist/**/*",
+    "LICENSE",
+    "NOTICE"
+  ],
   "dependencies": {
     "promise-retry": "^2.0.1",
     "cross-fetch": "^4.0.0"

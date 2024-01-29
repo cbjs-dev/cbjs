@@ -3467,6 +3467,5 @@ export interface CppBinding extends CppBindingAutogen {
   };
 }
 
-const isoRequire = import.meta?.url ? createRequire(import.meta.url) : require;
-const binding: CppBinding = isoRequire('./couchbase-native.node');
+const binding: CppBinding = createRequire(import.meta.url)('./couchbase-native.node');
 export default binding;

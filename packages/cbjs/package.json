@@ -1,7 +1,7 @@
 {
   "name": "@cbjs/cbjs",
   "version": "1.0.0",
-  "description": "Type safe client for Couchbase",
+  "description": "Modern Couchbase client for JS runtimes.",
   "keywords": ["couchbase", "typescript", "database", "memcached", "nosql", "json", "document"],
   "author": "Jonathan Massuchetti <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
@@ -20,34 +20,20 @@
   },
   "scripts": {
     "install": "node ./scripts/install.mjs 4.2.8",
-    "build": "tsup",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest --run",
     "ts-check": "tsc --noEmit"
   },
   "type": "module",
-  "main": "dist/cbjs.cjs",
-  "module": "dist/cbjs.js",
-  "exports": {
-    ".": {
-      "require": {
-        "default": "./dist/cbjs.cjs",
-        "types": "./dist/cbjs.d.cts"
-      },
-      "import": {
-        "default": "./dist/cbjs.js",
-        "types": "./dist/cbjs.d.ts"
-      }
-    }
-  },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "files": [
     "dist/**/*",
     "scripts/*.mjs",
-    "../../README.md",
-    "../../LICENSE",
-    "../../NOTICE"
+    "LICENSE",
+    "NOTICE"
   ],
   "dependencies": {
-    "cmake-js": "^7.2.1",
     "node-addon-api": "^7.0.0"
   },
   "devDependencies": {

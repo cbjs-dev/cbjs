@@ -1,0 +1,4 @@
+Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+
+This software aims to provide an easy way to communicate with a Couchbase cluster.
+Some of the descriptions of object properties are inspired and/or copied from the official documentation written by Couchbase Inc. (https://www.couchbase.com/).

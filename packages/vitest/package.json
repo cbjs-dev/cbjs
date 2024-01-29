@@ -19,26 +19,19 @@
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "scripts": {
-    "build": "tsup",
-    "build:watch": "tsup --watch src",
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc --watch",
     "ts-check": "tsc --noEmit",
     "test": "vitest --run"
   },
   "type": "module",
-  "main": "dist/vitest.cjs",
-  "module": "dist/vitest.js",
-  "exports": {
-    ".": {
-      "require": {
-        "default": "./dist/vitest.cjs",
-        "types": "./dist/vitest.d.cts"
-      },
-      "import": {
-        "default": "./dist/vitest.js",
-        "types": "./dist/vitest.d.ts"
-      }
-    }
-  },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.js",
+  "files": [
+    "dist/**/*",
+    "LICENSE",
+    "NOTICE"
+  ],
   "dependencies": {
     "@cbjs/cbjs": "*",
     "@cbjs/http-client": "*",
