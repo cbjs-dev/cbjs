@@ -17,7 +17,7 @@ import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
 import { pathname } from '../../../utils/pathname';
 import { MANAGEMENT_PORT } from '../../../utils/ports';
-import { getPoolNodes } from '../../cluster/getPoolNodes';
+import { getPoolNodes } from '../../cluster';
 
 export async function requestGetViewDesignDocuments(
   params: CouchbaseHttpApiConfig,
@@ -25,7 +25,7 @@ export async function requestGetViewDesignDocuments(
 ) {
   const poolNodes = params.poolNodes ?? (await getPoolNodes(params));
 
-  return apiGET(
+  return await apiGET(
     { ...params },
     `${pathname(poolNodes.buckets.uri)}/${bucketName}/ddocs`,
     MANAGEMENT_PORT

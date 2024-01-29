@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import {
-  StatisticDefinition,
-  StatisticsResult,
-  requestStatistics,
-} from './requests/requestStatistics';
+import promiseRetry from 'promise-retry';
 
-export async function getStatistics(
+import { getAnalyticsClusterStatus } from '../services';
+import { CouchbaseHttpApiConfig } from '../types';
+import { getStandardRetryProfile } from '../utils/retryProfiles';
+
+export async function waitForAnalyticsCluster(
   apiConfig: CouchbaseHttpApiConfig,
-  stats: [StatisticDefinition, ...StatisticDefinition[]]
-) {
-  const response = await requestStatistics(apiConfig, stats);
+  options: { timeout: number } = { timeout: 10_000 }
+): Promise<void> {
+  const timeout = options.timeout || 10_000;
+  const retryProfile = getStandardRetryProfile({ timeout });
 
-  if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
-  }
+  return await promiseRetry(retryProfile, async (retry) => {
+    const clusterStatus = await getAnalyticsClusterStatus(apiConfig);
 
-  return (await response.json()) as [StatisticsResult, ...StatisticsResult[]];
+    if (clusterStatus.state !== 'ACTIVE') {
+      retry('Indexer is not ready yet');
+    }
+  });
 }

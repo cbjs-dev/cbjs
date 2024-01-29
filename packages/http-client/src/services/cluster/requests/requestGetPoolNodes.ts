@@ -19,5 +19,5 @@ import { apiGET } from '../../../utils/apiGET';
 export async function requestGetPoolNodes(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
 ) {
-  return apiGET(apiParams, '/pools/nodes', 8091);
+  return await apiGET(apiParams, '/pools/nodes', 8091);
 }

@@ -31,6 +31,6 @@ export async function undeployEventingFunction(
   );
 
   if (!response.ok) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 }

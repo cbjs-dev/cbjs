@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { EventingFunctionScope } from '@cbjs/cbjs';
+import type { EventingFunctionScope } from '@cbjs/shared';
 
 import type { CouchbaseHttpApiConfig } from '../../../types';
 import { apiPOST } from '../../../utils/apiPOST';
@@ -27,7 +27,7 @@ export async function requestChangeEventingFunctionStatus(
 ) {
   if (name === '') throw new Error('A function name must be provided');
 
-  return apiPOST(
+  return await apiPOST(
     apiParams,
     `/api/v1/functions/${name}/${status}`,
     JSON.stringify({

@@ -25,7 +25,7 @@ export async function requestGetBucket(
 ) {
   const poolNodes = params.poolNodes ?? (await getPoolNodes(params));
 
-  return apiGET(
+  return await apiGET(
     { ...params },
     `${pathname(poolNodes.buckets.uri)}/${bucketName}`,
     MANAGEMENT_PORT

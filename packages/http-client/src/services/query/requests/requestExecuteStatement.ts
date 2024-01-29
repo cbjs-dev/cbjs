@@ -21,7 +21,7 @@ export async function requestExecuteStatement(
   params: CouchbaseHttpApiConfig,
   statement: string
 ) {
-  return apiPOST(
+  return await apiPOST(
     { ...params },
     `/query/service`,
     JSON.stringify({

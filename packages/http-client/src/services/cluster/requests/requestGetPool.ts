@@ -20,5 +20,5 @@ export async function requestGetPool(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
   poolName = 'default'
 ) {
-  return apiGET(apiParams, `/pools/${poolName}`, 8091);
+  return await apiGET(apiParams, `/pools/${poolName}`, 8091);
 }

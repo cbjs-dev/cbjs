@@ -26,6 +26,6 @@ export async function dropEventingFunction(
   const response = await requestDeleteEventingFunction(params, name, scope);
 
   if (!response.ok) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 }

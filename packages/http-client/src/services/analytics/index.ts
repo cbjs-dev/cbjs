@@ -13,11 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiGET } from '../../../utils/apiGET';
 
-export async function requestGetEventingFunctions(
-  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
-) {
-  return await apiGET(apiParams, '/api/v1/functions', 8096);
-}
+export * from './getAnalyticsClusterStatus';

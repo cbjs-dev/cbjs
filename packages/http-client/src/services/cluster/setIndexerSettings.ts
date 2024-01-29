@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../types';
+import {
+  CouchbaseIndexerSettings,
+  requestSetIndexerSettings,
+} from './requests/requestSetIndexerSettings';
 
-import { defineConfig } from 'tsup';
+export async function setIndexerSettings(
+  apiConfig: CouchbaseHttpApiConfig,
+  settings: CouchbaseIndexerSettings
+) {
+  const response = await requestSetIndexerSettings(apiConfig, settings);
 
-export default defineConfig((options) => ({
-  entry: { 'http-client': 'src/index.ts' },
-  splitting: false,
-  minify: false,
-  format: ['cjs', 'esm'],
-  dts: {
-    resolve: true,
-  },
-  sourcemap: true,
-  clean: true,
-  platform: 'neutral',
-}));
+  if (!response.ok) {
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+  }
+}

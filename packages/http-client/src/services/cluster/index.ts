@@ -18,3 +18,4 @@ export * from './getPool';
 export * from './getPoolNodes';
 export * from './initCluster';
 export * from './getClusterRelease';
+export * from './setIndexerSettings';

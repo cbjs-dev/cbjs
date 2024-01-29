@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { EventingFunctionScope } from '@cbjs/cbjs';
+import type { EventingFunctionScope } from '@cbjs/shared';
 
 import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiDELETE } from '../../../utils/apiDELETE';
@@ -25,7 +25,7 @@ export async function requestDeleteEventingFunction(
 ) {
   if (name === '') throw new Error('A function name must be provided');
 
-  return apiDELETE(apiParams, `/api/v1/functions/${name}`, 8096, {
+  return await apiDELETE(apiParams, `/api/v1/functions/${name}`, 8096, {
     bucket: scope.bucket,
     scope: scope.scope,
   });

@@ -23,3 +23,5 @@ export * from './waitForUserGroup';
 export * from './waitForSearchIndex';
 export * from './waitForEventingFunction';
 export * from './waitForViewDesignDocument';
+export * from './waitForIndexer';
+export * from './waitForAnalyticsCluster';

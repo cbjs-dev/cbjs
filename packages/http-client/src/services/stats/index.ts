@@ -15,3 +15,4 @@
  */
 
 export * from './getStatistics';
+export * from './getIndexerStatistics';

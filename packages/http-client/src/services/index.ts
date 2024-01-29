@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+export * from './analytics';
 export * from './cluster';
 export * from './eventing';
 export * from './kv';

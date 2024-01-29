@@ -15,9 +15,15 @@
  */
 import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiGET } from '../../../utils/apiGET';
+import { INDEX_STATISTICS } from '../../../utils/ports';
 
-export async function requestGetEventingFunctions(
-  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
+export async function requestIndexerStatistics(
+  apiConfig: CouchbaseHttpApiConfig,
+  skipEmpty = true
 ) {
-  return await apiGET(apiParams, '/api/v1/functions', 8096);
+  const payload = new URLSearchParams({
+    skipEmpty: skipEmpty.toString(),
+  });
+
+  return await apiGET(apiConfig, `/api/v1/stats`, INDEX_STATISTICS, payload);
 }

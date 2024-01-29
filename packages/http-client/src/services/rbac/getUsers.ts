@@ -21,7 +21,7 @@ export async function getUsers(apiConfig: CouchbaseHttpApiConfig) {
   const response = await requestGetUsers(apiConfig);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
   return (await response.json()) as ApiUser[];

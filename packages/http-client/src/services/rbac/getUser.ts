@@ -25,7 +25,7 @@ export async function getUser(
   const response = await requestGetUser(apiConfig, username, domain);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
   return (await response.json()) as ApiUser;

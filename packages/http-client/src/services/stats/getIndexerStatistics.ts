@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiPoolNodes } from '../../types/Api/ApiPoolNodes';
-import { requestGetPoolNodes } from './requests/requestGetPoolNodes';
+import { requestIndexerStatistics } from './requests/requestIndexerStatistics';
 
-export async function getPoolNodes(params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>) {
-  const response = await requestGetPoolNodes(params);
+export type IndexerStatistics = {
+  indexer: {
+    indexer_state: 'Active' | 'Pause' | 'Warmup';
+    memory_quota: number;
+    memory_total_storage?: number;
+    memory_used?: number;
+    total_indexer_gc_pause_ns?: number;
+  };
+};
+
+export async function getIndexerStatistics(
+  apiConfig: CouchbaseHttpApiConfig,
+  skipEmpty = true
+) {
+  const response = await requestIndexerStatistics(apiConfig, skipEmpty);
+
+  const stats = (await response.json()) as IndexerStatistics;
 
   if (response.status !== 200) {
     throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
-  return (await response.json()) as Promise<ApiPoolNodes>;
+  return stats['indexer'];
 }

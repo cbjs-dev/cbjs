@@ -23,8 +23,8 @@ export async function getEventingFunctionStatus(
   const response = await requestGetEventingFunctionStatus(params);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
-  return response.json() as Promise<ApiEventingFunctionStatus>;
+  return (await response.json()) as Promise<ApiEventingFunctionStatus>;
 }

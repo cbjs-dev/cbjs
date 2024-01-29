@@ -24,6 +24,6 @@ export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
 export type URLSearchParamsConstructor =
   | URLSearchParams
   | string
-  | Record<string, string | ReadonlyArray<string>>
+  | Record<string, string | string[]>
   | Iterable<[string, string]>
   | ReadonlyArray<[string, string]>;

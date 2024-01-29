@@ -19,5 +19,5 @@ import { apiGET } from '../../../utils/apiGET';
 export async function requestGetEventingFunctionStatus(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
 ) {
-  return apiGET(apiParams, '/api/v1/status', 8096);
+  return await apiGET(apiParams, '/api/v1/status', 8096);
 }

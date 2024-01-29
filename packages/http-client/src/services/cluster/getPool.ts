@@ -24,8 +24,8 @@ export async function getPool(
   const response = await requestGetPool(params, poolName);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
-  return response.json() as Promise<ApiPool>;
+  return (await response.json()) as Promise<ApiPool>;
 }

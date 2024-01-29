@@ -21,7 +21,7 @@ export async function getUserGroup(apiConfig: CouchbaseHttpApiConfig, name: stri
   const response = await requestGetUserGroup(apiConfig, name);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
   return (await response.json()) as ApiUserGroup;

@@ -16,11 +16,11 @@
 import { CouchbaseHttpApiConfig } from '../../../types';
 import { apiPOST } from '../../../utils/apiPOST';
 
-export function requestStatistics(
+export async function requestStatistics(
   apiConfig: CouchbaseHttpApiConfig,
   stats: [StatisticDefinition, ...StatisticDefinition[]]
 ) {
-  return apiPOST(apiConfig, '/pools/default/stats/range', JSON.stringify(stats));
+  return await apiPOST(apiConfig, '/pools/default/stats/range', JSON.stringify(stats));
 }
 
 type CouchbaseLabel = 'bucket' | 'scope' | 'collection' | 'index' | 'connection_type';

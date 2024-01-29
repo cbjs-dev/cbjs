@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ServiceName } from '@cbjs/shared';
+import { ServiceName, jsonToUrlSearchParams } from '@cbjs/shared';
 import fetch from 'cross-fetch';
 
 import { CouchbaseHttpApiConfig } from '../../../types';
@@ -61,7 +61,7 @@ export type InitClusterParams = {
   allowedHosts?: string; // =<list-of-naming-conventions>
 };
 
-export function requestInitCluster(
+export async function requestInitCluster(
   { hostname, secure }: Pick<CouchbaseHttpApiConfig, 'hostname' | 'secure'>,
   initClusterParams: InitClusterParams
 ) {
@@ -77,15 +77,9 @@ export function requestInitCluster(
     services,
   };
 
-  const stringifiedBody = Object.fromEntries(
-    Object.entries(body).map(([key, value]) => {
-      return [key, value.toString()];
-    })
-  );
+  const payload = jsonToUrlSearchParams(body);
 
-  const payload = new URLSearchParams(stringifiedBody);
-
-  return fetch(url, {
+  return await fetch(url, {
     method: 'POST',
     body: payload,
     headers: {
