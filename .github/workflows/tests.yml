@@ -22,7 +22,14 @@ jobs:
           - 8091:8091
           - 8092:8092
           - 8093:8093
+          - 8094:8094
+          - 8095:8095
           - 8096:8096
+          - 8097:8097
+          - 9102:9102
+          - 9123:9123
+          - 11210:11210
+          - 11280:11280
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,4 +45,4 @@ jobs:
         run: npm run build
 
       - name: Run all tests
-        run: CB_CONNECTION_STRING=couchbase://couchbase npm run test -- --bail 5
+        run: npm run test -- --bail 5
