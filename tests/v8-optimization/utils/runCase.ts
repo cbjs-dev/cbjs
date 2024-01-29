@@ -1,29 +1,37 @@
 import { spawn } from 'child_process';
 import { resolve } from 'path';
 
+import { rootDir } from '../constants';
+
 export async function runCase(casePath: string, ...args: string[]) {
   return await new Promise((res, rej) => {
-    const resolvedPath = resolve('tests/cases', casePath);
+    const resolvedPath = resolve(rootDir, 'tests/cases', casePath);
     const nodeProcess = spawn(
-      'node',
-      ['--allow-natives-syntax', '--no-warnings', '--loader tsx', resolvedPath, ...args],
+      'npx',
+      ['tsx', '--allow-natives-syntax', '--no-warnings', resolvedPath, ...args],
       {
         shell: true,
         timeout: 10_000,
+        env: process.env,
       }
     );
 
     let result = '';
+    let error = '';
 
     nodeProcess.stdout.on('data', (data) => {
       result += data.toString();
+    });
+
+    nodeProcess.stderr.on('data', (data) => {
+      error += data.toString();
     });
 
     nodeProcess.on('close', (code) => {
       if (code === 0) {
         res(result.trim() === 'true');
       } else {
-        rej(new Error(`Code execution threw an error: ${code}`));
+        rej(new Error(`Code execution threw an error: ${error}`));
       }
     });
 

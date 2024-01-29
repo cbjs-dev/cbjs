@@ -15,24 +15,24 @@
  */
 import { createCouchbaseTest } from '@cbjs/vitest';
 import { glob } from 'glob';
+import { resolve } from 'path';
 import { describe } from 'vitest';
 
+import { rootDir } from '../constants';
 import { runCase } from '../utils/runCase';
 
 describe('optimization', async () => {
   const test = await createCouchbaseTest();
-  const pathToCases = 'tests/cases/';
+  const pathToCases = resolve(rootDir, 'tests/cases');
   const cases = await glob(`${pathToCases}/**/*`);
 
   for (const caseFilePath of cases) {
-    test(`${caseFilePath.substring(pathToCases.length)} should be optimized`, async ({
+    const localFilePath = caseFilePath.substring(pathToCases.length + 1);
+    test(`${localFilePath} should be optimized`, async ({
       expect,
       serverTestContext,
     }) => {
-      const isOptimized = await runCase(
-        caseFilePath.substring(pathToCases.length),
-        serverTestContext.bucket.name
-      );
+      const isOptimized = await runCase(localFilePath, serverTestContext.bucket.name);
       expect(isOptimized).toBe(true);
     });
   }
