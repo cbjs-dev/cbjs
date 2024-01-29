@@ -12,17 +12,18 @@ jobs:
       (github.event_name == 'push' && !contains(github.event.head_commit.message, 'skip ci')) ||
       (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun')
     timeout-minutes: 20
-    runs-on:
-      group: couchbase-runners
-      labels: ubuntu-latest-m
-    services:
-      couchbase:
-        image: couchbase
-        ports:
-          - 8091:8091
-          - 8092:8092
-          - 8093:8093
-          - 8096:8096
+    runs-on: ubuntu-latest
+#    runs-on:
+#      group: couchbase-runners
+#      labels: ubuntu-latest-m
+#    services:
+#      couchbase:
+#        image: couchbase
+#        ports:
+#          - 8091:8091
+#          - 8092:8092
+#          - 8093:8093
+#          - 8096:8096
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,4 +39,4 @@ jobs:
         run: npm run build
 
       - name: Run all tests
-        run: npm run test
+        run: CB_CONNECTION_STRING=couchbase://couchbase npm run test -- --bail 5
