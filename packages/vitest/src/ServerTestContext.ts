@@ -49,6 +49,8 @@ export class ServerTestContext {
   private readonly connections: Cluster[] = [];
   public readonly logger: CouchbaseLogger | undefined;
 
+  private static readonly setupActions: Array<() => Promise<void> | void> = [];
+
   constructor() {
     this.contextNamespace = getRandomId();
     this.keyCounter = 0;
@@ -87,9 +89,16 @@ export class ServerTestContext {
     return cluster;
   }
 
+  public static appendSetupAction(action: () => void) {
+    ServerTestContext.setupActions.push(action);
+  }
+
   async start() {
     if (!this.setupPromise) {
-      this.setupPromise = this.setup();
+      this.setupPromise = Promise.all([
+        ...ServerTestContext.setupActions.map((action) => action()),
+        this.setup(),
+      ]).then(() => this);
     }
 
     return this.setupPromise;

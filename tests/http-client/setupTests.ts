@@ -1,5 +1,6 @@
 import { getApiConfig, getConnectionParams, hasOwn } from '@cbjs/shared';
 import {
+  ServerTestContext,
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
   setTestLogger,
@@ -14,10 +15,11 @@ setTestLogger(testLogger);
 export const connectionParams = getConnectionParams();
 export const apiConfig = getApiConfig();
 
+ServerTestContext.appendSetupAction(initTestCluster);
+
 beforeAll(async ({ filepath }) => {
   testLogger.info(`Executing test file: ${filepath}`);
-  await initTestCluster();
-}, 60_000);
+});
 
 beforeEach(({ task, onTestFailed }) => {
   onTestFailed((taskResult) => {

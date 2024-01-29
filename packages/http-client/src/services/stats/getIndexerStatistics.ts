@@ -32,11 +32,11 @@ export async function getIndexerStatistics(
 ) {
   const response = await requestIndexerStatistics(apiConfig, skipEmpty);
 
-  const stats = (await response.json()) as IndexerStatistics;
-
   if (response.status !== 200) {
     throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
+
+  const stats = (await response.json()) as IndexerStatistics;
 
   return stats['indexer'];
 }

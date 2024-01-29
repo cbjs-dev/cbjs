@@ -45,4 +45,10 @@ jobs:
         run: npm run build
 
       - name: Run all tests
-        run: npm run test -- --bail 5
+        run: npm run test -- --bail 5 --reporter default --reporter html
+
+      - name: Upload Tests Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: tests-report
+          path: html
