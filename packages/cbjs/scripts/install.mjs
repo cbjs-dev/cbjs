@@ -20,7 +20,7 @@ const binarySourcePath = `package/couchbase-v${binaryPackageVersion}-napi-v6-${p
 const buildOutputDirectory = path.resolve(packageAbsolutePath, 'dist/src');
 
 if (!fs.existsSync(buildOutputDirectory)) {
-  fs.mkdirSync(buildOutputDirectory);
+  fs.mkdirSync(buildOutputDirectory, { recursive: true });
 }
 
 const binaryDestinationPaths = [path.resolve(buildOutputDirectory, 'couchbase-native.node')];
