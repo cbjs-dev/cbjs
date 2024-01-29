@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { getClusterRelease } from '@cbjs/http-client';
 import { getApiConfig } from '@cbjs/shared';
 
-export const clusterRelease = await getClusterRelease(getApiConfig());
+import { initTestCluster } from './initTestCluster';
+
+export const clusterRelease = await initTestCluster().then(() =>
+  getClusterRelease(getApiConfig())
+);

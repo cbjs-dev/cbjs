@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {
+  AnyCollection,
   Bucket,
   Cluster,
   Collection,
@@ -210,12 +210,12 @@ export class ServerTestContext {
     return this.contextKeyspace.scope;
   }
 
-  get collection() {
+  get collection(): AnyCollection {
     invariant(this.contextKeyspace.collection, 'Collection should already be set');
     return this.contextKeyspace.collection;
   }
 
-  get co() {
+  get co(): AnyCollection {
     invariant(this.contextKeyspace.collection, 'Collection should already be set');
     return this.contextKeyspace.collection;
   }

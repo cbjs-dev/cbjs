@@ -75,6 +75,8 @@ export const createCouchbaseTest = makeCreateTest(async () => {
   const apiConfig = getApiConfig();
   const serverTestContext = getDefaultServerTestContext();
 
+  await serverTestContext.start();
+
   return {
     fixtureContext: {
       serverTestContext,
@@ -82,10 +84,7 @@ export const createCouchbaseTest = makeCreateTest(async () => {
     },
     creatorFixtures: {
       ...couchbaseTestFixtures,
-      serverTestContext: couchbaseFixture(async ({}, use) => {
-        await use(await serverTestContext.start());
-        return serverTestContext;
-      }),
+      serverTestContext,
       apiConfig,
     },
   };

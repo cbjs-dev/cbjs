@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { getApiConfig, getConnectionParams, hasOwn } from '@cbjs/shared';
+import {
+  cleanupCouchbaseAfterAll,
+  cleanupCouchbaseAfterEach,
+  setTestLogger,
+} from '@cbjs/vitest';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
-import { hasOwn, getApiConfig, getConnectionParams } from '@cbjs/shared';
 import { testLogger } from './setupLogger';
-import {
-  setTestLogger,
-  cleanupCouchbaseAfterEach,
-  cleanupCouchbaseAfterAll,
-} from '@cbjs/vitest';
+import { initTestCluster } from './utils/initTestCluster';
 
 setTestLogger(testLogger);
 
@@ -32,7 +32,8 @@ export const apiConfig = getApiConfig();
 
 beforeAll(async ({ filepath }) => {
   testLogger.info(`Executing test file: ${filepath}`);
-});
+  await initTestCluster();
+}, 60_000);
 
 beforeEach(({ task, onTestFailed }) => {
   onTestFailed((taskResult) => {

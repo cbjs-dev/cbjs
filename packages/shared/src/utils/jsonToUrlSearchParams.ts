@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import { defineConfig } from 'tsup';
+export function jsonToUrlSearchParams(body: Record<string, { toString(): string }>) {
+  const entries = Object.fromEntries(
+    Object.entries(body).map(([key, value]) => {
+      return [key, value.toString()];
+    })
+  );
 
-export default defineConfig((options) => ({
-  entry: { shared: 'src/index.ts' },
-  splitting: false,
-  minify: false,
-  format: ['cjs', 'esm'],
-  dts: true,
-  sourcemap: true,
-  clean: true,
-  platform: 'neutral',
-}));
+  return new URLSearchParams(entries);
+}

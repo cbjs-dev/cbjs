@@ -24,3 +24,4 @@ export * from './waitFor';
 
 export * from './getApiConfig';
 export * from './getConnectionParams';
+export * from './jsonToUrlSearchParams';

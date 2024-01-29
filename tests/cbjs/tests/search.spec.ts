@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
-
 import {
   HighlightStyle,
   HttpErrorContext,
@@ -23,8 +21,10 @@ import {
   SearchQuery,
 } from '@cbjs/cbjs';
 import { invariant, sleep } from '@cbjs/shared';
-import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { createCouchbaseTest } from '@cbjs/vitest';
+import { describe } from 'vitest';
+
+import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
@@ -32,7 +32,7 @@ describe
   .runIf(serverSupportsFeatures(ServerFeatures.Search))
   .shuffle('search', async () => {
     const test = await createCouchbaseTest({
-      useSampleData
+      useSampleData,
     });
 
     test('should successfully create & drop an index', async ({
@@ -254,12 +254,11 @@ describe
             },
             sourceParams: {},
           },
-          { waitSearchIndexTimeout: 20_000 }
+          { waitSearchIndexTimeout: 40_000 }
         );
 
         const result = await serverTestContext.cluster.searchQuery(
           searchIndexName,
-          // SearchQuery.match('database').analyzer('en').field('title'),
           new SearchQuery({
             match: 'database scale',
             fields: ['title', 'description'],
@@ -306,7 +305,7 @@ describe
           });
         });
       },
-      { timeout: 40_000 }
+      { timeout: 60_000 }
     );
 
     test('should throw a SearchIndexNotFoundError when dropping a missing index', async ({

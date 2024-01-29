@@ -1,4 +1,4 @@
-import { hasOwn } from '@cbjs/shared';
+import { getApiConfig, hasOwn } from '@cbjs/shared';
 import {
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
@@ -7,12 +7,16 @@ import {
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { testLogger } from './setupLogger';
+import { initTestCluster } from './utils/initTestCluster';
 
 setTestLogger(testLogger);
 
+export const apiConfig = getApiConfig();
+
 beforeAll(async ({ filepath }) => {
   testLogger.info(`Executing test file: ${filepath}`);
-});
+  await initTestCluster();
+}, 60_000);
 
 beforeEach(({ task, onTestFailed }) => {
   onTestFailed((taskResult) => {
