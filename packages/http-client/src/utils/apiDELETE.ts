@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import fetch from 'cross-fetch';
 
-import { CouchbaseApiConfig, URLSearchParamsConstructor } from '../types';
+import { CouchbaseHttpApiConfig, URLSearchParamsConstructor } from '../types';
 import { MANAGEMENT_PORT } from './ports';
 
 /**
@@ -27,7 +28,7 @@ import { MANAGEMENT_PORT } from './ports';
  * @param query ?pretty=1
  */
 export async function apiDELETE(
-  { hostname, credentials, secure }: CouchbaseApiConfig,
+  { hostname, credentials, secure }: CouchbaseHttpApiConfig,
   pathname: string,
   port?: number,
   query?: URLSearchParamsConstructor
@@ -41,7 +42,7 @@ export async function apiDELETE(
   const queryString = query ? `?${new URLSearchParams(query).toString()}` : '';
   const url = `${protocol}://${hostname}:${port}${pathname}${queryString}`;
 
-  return fetch(url, {
+  return await fetch(url, {
     method: 'DELETE',
     headers: {
       'Authorization': `Basic ${base64Credentials}`,

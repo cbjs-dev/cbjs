@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ServiceName } from '@cbjs/shared';
+import fetch from 'cross-fetch';
 
 import { CouchbaseHttpApiConfig } from '../../../types';
 import { MANAGEMENT_PORT } from '../../../utils/ports';

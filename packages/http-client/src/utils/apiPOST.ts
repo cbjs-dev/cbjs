@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig, URLSearchParamsConstructor } from '../types';
+import fetch from 'cross-fetch';
+
+import { CouchbaseHttpApiConfig, URLSearchParamsConstructor } from '../types';
 import { MANAGEMENT_PORT } from './ports';
 
 /**
@@ -28,7 +30,7 @@ import { MANAGEMENT_PORT } from './ports';
  * @param headers
  */
 export async function apiPOST(
-  { hostname, credentials, secure }: CouchbaseApiConfig,
+  { hostname, credentials, secure }: CouchbaseHttpApiConfig,
   pathname: string,
   body?: RequestInit['body'],
   port?: number,
@@ -44,7 +46,7 @@ export async function apiPOST(
   const queryString = query ? `?${new URLSearchParams(query).toString()}` : '';
   const url = `${protocol}://${hostname}:${port}${pathname}${queryString}`;
 
-  return fetch(url, {
+  return await fetch(url, {
     method: 'POST',
     body,
     headers: {
