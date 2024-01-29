@@ -7,9 +7,10 @@
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/src/index.js",
+  "module": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && cp package.json dist/package.json",
     "test": "vitest --run --passWithNoTests"
   },
   "files": [

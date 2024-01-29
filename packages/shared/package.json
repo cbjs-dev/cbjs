@@ -9,13 +9,17 @@
     "node": ">=18"
   },
   "type": "module",
-  "main": "dist/src/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && cp package.json dist/package.json",
     "test": "vitest --run"
   },
+  "main": "dist/src/index.js",
+  "module": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "LICENSE",
+    "NOTICE"
   ],
   "dependencies": {
     "zod": "^3.22.4"

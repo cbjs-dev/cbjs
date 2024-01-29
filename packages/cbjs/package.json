@@ -20,12 +20,13 @@
   },
   "scripts": {
     "install": "node ./scripts/install.mjs 4.2.8",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && cp package.json dist/package.json",
     "test": "vitest --run",
     "ts-check": "tsc --noEmit"
   },
   "type": "module",
   "main": "dist/src/index.js",
+  "module": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "files": [
     "dist/**/*",
