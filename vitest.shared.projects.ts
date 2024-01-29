@@ -23,7 +23,6 @@ export default defineProject({
     testTimeout: 5_000,
     hookTimeout: 30_000,
     slowTestThreshold: 5_000,
-    teardownTimeout: 60_000,
     restoreMocks: true,
     mockReset: true,
     unstubGlobals: true,
@@ -33,19 +32,7 @@ export default defineProject({
       hooks: 'stack',
     },
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: false,
-        minForks: 1,
-        maxForks: 1,
-      },
-    },
-    env: {
-      CONNECTION_STRING: 'couchbase://localhost',
-      USER: 'Administrator',
-      PASSWORD: 'password',
-      DEBUG: '1',
-      LOG_LEVEL: 'info',
-    },
+    minWorkers: 1,
+    maxWorkers: 1,
   },
 });

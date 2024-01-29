@@ -23,6 +23,8 @@ export default mergeConfig(
     test: {
       name: 'package:cbjs',
       pool: 'forks',
+      minWorkers: 1,
+      maxWorkers: 1,
     },
   })
 );

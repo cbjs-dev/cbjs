@@ -21,7 +21,10 @@ export default mergeConfig(
   sharedProjectConfig,
   defineProject({
     test: {
-      name: 'project:@cbjsdev/v8-optimization',
+      name: 'project:@cbjs/v8-optimization',
+      pool: 'forks',
+      minWorkers: 1,
+      maxWorkers: 1,
     },
   })
 );

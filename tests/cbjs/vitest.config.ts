@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { defineProject, mergeConfig } from 'vitest/config';
+import { defineConfig, defineProject, mergeConfig } from 'vitest/config';
 
 import sharedProjectConfig from '../../vitest.shared.projects';
 
@@ -24,6 +23,9 @@ export default mergeConfig(
   defineProject({
     test: {
       name: 'project:cbjs',
+      pool: 'forks',
+      minWorkers: 1,
+      maxWorkers: 1,
     },
   })
 );
