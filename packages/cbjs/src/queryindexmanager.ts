@@ -19,10 +19,20 @@ import { promisify } from 'node:util';
 import { CppError, CppQueryContext } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
-import { BucketName, CouchbaseClusterTypes, CollectionName, ScopeName } from './clusterTypes';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  ScopeName,
+} from './clusterTypes';
 import { Collection } from './collection';
 import { CouchbaseError, IndexNotFoundError } from './errors';
-import { CompoundTimeout, NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+import {
+  CompoundTimeout,
+  NodeCallback,
+  PromiseHelper,
+  VoidNodeCallback,
+} from './utilities';
 
 /**
  * Contains a specific index configuration for the query service.
@@ -633,7 +643,6 @@ export class CollectionQueryIndexManager<
    *
    * @param indexName The name of the new index.
    * @param fields The fields which this index should cover.
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async createIndex(
@@ -641,16 +650,26 @@ export class CollectionQueryIndexManager<
     fields: string[],
     callback?: VoidNodeCallback
   ): Promise<void>;
+  /**
+   * Creates a new query index.
+   *
+   * @param indexName The name of the new index.
+   * @param fields The fields which this index should cover.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async createIndex(
     indexName: string,
     fields: string[],
-    options: CreateQueryIndexOptions,
+    options: Omit<CreateQueryIndexOptions, 'collectionName' | 'scopeName'>,
     callback?: VoidNodeCallback
   ): Promise<void>;
   async createIndex(
     indexName: string,
     fields: string[],
-    options?: CreateQueryIndexOptions | VoidNodeCallback,
+    options?:
+      | Omit<CreateQueryIndexOptions, 'collectionName' | 'scopeName'>
+      | VoidNodeCallback,
     callback?: VoidNodeCallback
   ): Promise<void> {
     if (options instanceof Function) {
@@ -681,16 +700,23 @@ export class CollectionQueryIndexManager<
   /**
    * Creates a new primary query index.
    *
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async createPrimaryIndex(callback?: VoidNodeCallback): Promise<void>;
+  /**
+   * Creates a new primary query index.
+   *
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async createPrimaryIndex(
-    options: CreatePrimaryQueryIndexOptions,
+    options: Omit<CreatePrimaryQueryIndexOptions, 'collectionName' | 'scopeName'>,
     callback?: VoidNodeCallback
   ): Promise<void>;
   async createPrimaryIndex(
-    options?: CreatePrimaryQueryIndexOptions | VoidNodeCallback,
+    options?:
+      | Omit<CreatePrimaryQueryIndexOptions, 'collectionName' | 'scopeName'>
+      | VoidNodeCallback,
     callback?: VoidNodeCallback
   ): Promise<void> {
     if (options instanceof Function) {
