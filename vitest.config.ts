@@ -7,9 +7,9 @@ export default defineConfig({
     minWorkers: 1,
     maxWorkers: 1,
     env: {
-      CONNECTION_STRING: process.env.CB_CONNECTION_STRING || 'couchbase://localhost',
-      USER: process.env.CB_USER || 'Administrator',
-      PASSWORD: process.env.CB_PASSWORD || 'password',
+      CB_CONNECTION_STRING: process.env.CB_CONNECTION_STRING || 'couchbase://localhost',
+      CB_USER: process.env.CB_USER || 'Administrator',
+      CB_PASSWORD: process.env.CB_PASSWORD || 'password',
       DEBUG: '1',
       LOG_LEVEL: 'info',
     },
