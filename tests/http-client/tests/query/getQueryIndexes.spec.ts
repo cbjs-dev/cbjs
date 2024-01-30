@@ -46,33 +46,34 @@ describe('getQueryIndexes', async () => {
     );
   });
 
-  test(
-    'cluster level secondary index',
-    async ({ expect, useIndex, serverTestContext, apiConfig }) => {
-      const name = await useIndex({
-        bucketName: serverTestContext.bucket.name,
-        fields: ['name'],
-      });
+  test('cluster level secondary index', async ({
+    expect,
+    useIndex,
+    serverTestContext,
+    apiConfig,
+  }) => {
+    const name = await useIndex({
+      bucketName: serverTestContext.bucket.name,
+      fields: ['name'],
+    });
 
-      await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
-        expect.arrayContaining([
-          {
-            id: expect.any(String),
-            name,
-            bucketName: serverTestContext.bucket.name,
-            isPrimary: false,
-            fields: ['name'],
-            node: 'http://127.0.0.1:8091',
-            numReplicas: 0,
-            namespace: 'default',
-            state: 'online',
-            using: 'gsi',
-          },
-        ])
-      );
-    },
-    { timeout: 10_000 }
-  );
+    await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
+      expect.arrayContaining([
+        {
+          id: expect.any(String),
+          name,
+          bucketName: serverTestContext.bucket.name,
+          isPrimary: false,
+          fields: ['name'],
+          node: 'http://127.0.0.1:8091',
+          numReplicas: 0,
+          namespace: 'default',
+          state: 'online',
+          using: 'gsi',
+        },
+      ])
+    );
+  });
 
   test('collection level primary index', async ({
     expect,
@@ -106,36 +107,35 @@ describe('getQueryIndexes', async () => {
     );
   });
 
-  test('collection level secondary index', async ({
-    expect,
-    useIndex,
-    serverTestContext,
-    apiConfig,
-  }) => {
-    const name = await useIndex({
-      bucketName: serverTestContext.bucket.name,
-      scopeName: serverTestContext.scope.name,
-      collectionName: serverTestContext.collection.name,
-      fields: ['name'],
-    });
+  test(
+    'collection level secondary index',
+    async ({ expect, useIndex, serverTestContext, apiConfig }) => {
+      const name = await useIndex({
+        bucketName: serverTestContext.bucket.name,
+        scopeName: serverTestContext.scope.name,
+        collectionName: serverTestContext.collection.name,
+        fields: ['name'],
+      });
 
-    await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
-      expect.arrayContaining([
-        {
-          id: expect.any(String),
-          name,
-          bucketName: serverTestContext.bucket.name,
-          scopeName: serverTestContext.scope.name,
-          collectionName: serverTestContext.collection.name,
-          isPrimary: false,
-          fields: ['name'],
-          node: 'http://127.0.0.1:8091',
-          numReplicas: 0,
-          namespace: 'default',
-          state: 'online',
-          using: 'gsi',
-        },
-      ])
-    );
-  });
+      await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
+        expect.arrayContaining([
+          {
+            id: expect.any(String),
+            name,
+            bucketName: serverTestContext.bucket.name,
+            scopeName: serverTestContext.scope.name,
+            collectionName: serverTestContext.collection.name,
+            isPrimary: false,
+            fields: ['name'],
+            node: 'http://127.0.0.1:8091',
+            numReplicas: 0,
+            namespace: 'default',
+            state: 'online',
+            using: 'gsi',
+          },
+        ])
+      );
+    },
+    { timeout: 10_000 }
+  );
 });
