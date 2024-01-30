@@ -89,23 +89,16 @@ export class ServerTestContext {
     return cluster;
   }
 
-  public static appendSetupAction(action: () => void) {
-    ServerTestContext.setupActions.push(action);
-  }
-
   async start() {
     if (!this.setupPromise) {
-      this.setupPromise = Promise.all([
-        ...ServerTestContext.setupActions.map((action) => action()),
-        this.setup(),
-      ]).then(() => this);
+      this.setupPromise = this.setup();
     }
 
     return this.setupPromise;
   }
 
   private async setup() {
-    this.logger?.trace(`setup of '${this.contextNamespace}' started`);
+    this.logger?.debug(`setup of '${this.contextNamespace}' started`);
     const apiConfig = getApiConfig();
     const cluster = await this.newConnection();
     const bucketName = this.contextNamespace;

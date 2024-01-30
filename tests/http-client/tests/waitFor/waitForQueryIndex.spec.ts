@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { getQueryIndexes, waitForQueryIndex } from '@cbjs/http-client';
+import { sleep } from '@cbjs/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjs/vitest';
 import { describe } from 'vitest';
 
@@ -26,33 +27,38 @@ describe('waitForQueryIndex', async () => {
     apiConfig,
   }) => {
     await expect(
-      waitForQueryIndex(apiConfig, 'missingIndex', {
-        bucket: serverTestContext.bucket.name,
-        scope: serverTestContext.scope.name,
-        collection: serverTestContext.collection.name,
-      })
-    ).rejects.toBeUndefined();
-  });
-
-  test('wait for the index to be created', async ({
-    expect,
-    serverTestContext,
-    apiConfig,
-  }) => {
-    const indexName = getRandomId();
-    await serverTestContext.collection.queryIndexes().createIndex(indexName, ['name']);
-
-    await expect(
       waitForQueryIndex(
         apiConfig,
-        indexName,
+        'missingIndex',
         {
           bucket: serverTestContext.bucket.name,
-          scope: serverTestContext.bucket.scope.name,
-          collection: serverTestContext.bucket.collection.name,
+          scope: serverTestContext.scope.name,
+          collection: serverTestContext.collection.name,
         },
-        { awaitMutations: false }
+        { timeout: 1000, delay: 200 }
       )
-    ).resolves.toBeUndefined();
+    ).rejects.toThrowError();
   });
+
+  test(
+    'wait for the index to be created',
+    async ({ expect, serverTestContext, apiConfig }) => {
+      const indexName = getRandomId();
+      await serverTestContext.collection.queryIndexes().createIndex(indexName, ['name']);
+
+      await expect(
+        waitForQueryIndex(
+          apiConfig,
+          indexName,
+          {
+            bucket: serverTestContext.bucket.name,
+            scope: serverTestContext.scope.name,
+            collection: serverTestContext.collection.name,
+          },
+          { awaitMutations: false }
+        )
+      ).resolves.toBeUndefined();
+    },
+    { timeout: 10_000 }
+  );
 });
