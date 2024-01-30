@@ -86,10 +86,7 @@ export class IndexFixture extends FixtureFunctionValue<
     return this.params.name;
   }
 
-  override async cleanup({
-    serverTestContext,
-    logger,
-  }: FixtureContext<CouchbaseTestContext>) {
+  override async cleanup({ serverTestContext }: FixtureContext<CouchbaseTestContext>) {
     if (!this.params) return;
     const { bucketName, name, ...opts } = this.params;
 

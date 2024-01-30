@@ -21,36 +21,31 @@ import {
   waitForAnalyticsCluster,
   waitForIndexer,
 } from '@cbjs/http-client';
+import { getApiConfig, sleep } from '@cbjs/shared';
 
-import { testLogger } from '../setupLogger';
-import { apiConfig } from '../setupTests';
+const apiConfig = getApiConfig();
 
-let clusterInitialized = false;
+console.info('Initializing Couchbase cluster');
 
-export async function initTestCluster() {
-  if (clusterInitialized) return Promise.resolve();
-  testLogger.info('Initializing the cluster');
-
+try {
   await initCluster(apiConfig, {
     username: apiConfig.credentials.username,
     password: apiConfig.credentials.password,
     services: ['kv', 'fts', 'cbas', 'n1ql', 'index', 'eventing'],
-  }).catch((err) => {
-    if (err instanceof ClusterAlreadyInitializedError) {
-      testLogger.debug(err.message);
-      return;
-    }
-
-    testLogger.error('Failed to initialize the cluster', err);
-    throw err;
   });
+} catch (err) {
+  if (err instanceof ClusterAlreadyInitializedError) {
+    console.debug(err.message);
+    process.exit(0);
+  }
 
-  await setIndexerSettings(apiConfig, {
-    storageMode: 'plasma',
-  });
-
-  await waitForIndexer(apiConfig);
-  await waitForAnalyticsCluster(apiConfig);
-
-  clusterInitialized = true;
+  console.error('Failed to initialize the cluster', err);
+  throw err;
 }
+
+await setIndexerSettings(apiConfig, {
+  storageMode: 'plasma',
+});
+
+await waitForIndexer(apiConfig);
+await waitForAnalyticsCluster(apiConfig);

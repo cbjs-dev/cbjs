@@ -16,7 +16,6 @@
  */
 import { getApiConfig, getConnectionParams, hasOwn } from '@cbjs/shared';
 import {
-  ServerTestContext,
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
   setTestLogger,
@@ -24,14 +23,11 @@ import {
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { testLogger } from './setupLogger';
-import { initTestCluster } from './utils/initTestCluster';
 
 setTestLogger(testLogger);
 
 export const connectionParams = getConnectionParams();
 export const apiConfig = getApiConfig();
-
-ServerTestContext.appendSetupAction(initTestCluster);
 
 beforeAll(async ({ filepath }) => {
   testLogger.info(`Executing test file: ${filepath}`);

@@ -30,6 +30,10 @@ jobs:
           - 9123:9123
           - 11210:11210
           - 11280:11280
+    env:
+      CB_CONNECTION_STRING: couchbase://localhost
+      CB_USER: Administrator
+      CB_PASSWORD: password
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,10 +48,14 @@ jobs:
       - name: Build packages
         run: npm run build
 
+      - name: Initialize Couchbase cluster
+        run: npx tsx tests/scripts/initTestCluster.ts
+
       - name: Run all tests
         run: npm run test -- --bail 5 --reporter default --reporter html
 
       - name: Upload Tests Report
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: tests-report

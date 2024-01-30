@@ -11,6 +11,7 @@ couchbase-native*.node
 
 # Dev stuff
 /coverage
+/html
 *.tar.gz
 .loadEnv.sh
 *.log

@@ -63,7 +63,6 @@ export class BucketFixture extends FixtureFunctionValue<
   override async cleanup({
     serverTestContext,
     apiConfig,
-    logger,
   }: FixtureContext<CouchbaseTestContext>) {
     if (!this.bucketName) return;
     await serverTestContext.c.buckets().dropBucket(this.bucketName);

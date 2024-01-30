@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { z } from 'zod';
 
 const zConnectionParams = z.object({
   connectionString: z.string({
-    required_error: 'Missing env connection string (CONNECTION_STRING)',
+    required_error: 'Missing env connection string (CB_CONNECTION_STRING)',
   }),
   credentials: z.object({
-    username: z.string({ required_error: 'Missing env username (USER)' }),
-    password: z.string({ required_error: 'Missing env password (PASSWORD)' }),
+    username: z.string({ required_error: 'Missing env username (CB_USER)' }),
+    password: z.string({ required_error: 'Missing env password (CB_PASSWORD)' }),
   }),
 });
 
@@ -30,10 +29,10 @@ export type ConnectionParams = z.output<typeof zConnectionParams>;
 
 export function getConnectionParams(): ConnectionParams {
   const env = {
-    connectionString: process.env.CONNECTION_STRING as string,
+    connectionString: process.env.CB_CONNECTION_STRING as string,
     credentials: {
-      username: process.env.USER,
-      password: process.env.PASSWORD,
+      username: process.env.CB_USER,
+      password: process.env.CB_PASSWORD,
     },
   };
 
