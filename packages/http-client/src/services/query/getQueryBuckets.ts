@@ -15,6 +15,7 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestExecuteStatement } from './requests/requestExecuteStatement';
 
 /**
@@ -27,7 +28,7 @@ export async function getQueryBuckets(params: CouchbaseHttpApiConfig): Promise<s
   );
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   const body = (await response.json()) as ApiQueryResponseBody<string[]>;

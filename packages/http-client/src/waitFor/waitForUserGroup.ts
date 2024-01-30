@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
 import { getPoolNodes } from '../services';
 import { requestGetUserGroup } from '../services/rbac/requests/requestGetUserGroup';
 import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 export async function waitForUserGroup(
   apiConfig: CouchbaseHttpApiConfig,
   name: string,
-  options: WaitForOptions = { timeout: 10_000 }
+  options?: WaitForOptions
 ): Promise<void> {
-  const timeout = options.timeout || 10_000;
-  const expectMissing = options.expectMissing || false;
-  const retryProfile = getStandardRetryProfile({ timeout });
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return promiseRetry(retryProfile, async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return retry(async () => {
     const poolNodes = apiConfig.poolNodes ?? (await getPoolNodes(apiConfig));
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
@@ -41,7 +44,7 @@ export async function waitForUserGroup(
     const responses = await Promise.all(requests);
     const visible = responses.every((r) => r.status === 200);
 
-    if (!expectMissing && !visible) retry('UserGroup is not visible yet');
-    if (expectMissing && visible) retry('UserGroup is still visible');
-  });
+    if (!expectMissing && !visible) throw new Error('UserGroup is not visible yet');
+    if (expectMissing && visible) throw new Error('UserGroup is still visible');
+  }, resolvedOptions);
 }

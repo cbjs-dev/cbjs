@@ -16,20 +16,18 @@
 import fetch from 'cross-fetch';
 
 import { getHttpClientLogger } from '../logger';
-import { CouchbaseHttpApiConfig, URLSearchParamsConstructor } from '../types';
+import { CouchbaseHttpApiConfig } from '../types';
 import { MANAGEMENT_PORT } from './ports';
 
 /**
  *
- * @param hostname i.e. localhost
- * @param credentials used for authentication
- * @param secure use TLS
+ * @param apiConfig CouchbaseHttpApiConfig
  * @param pathname with a leading slash '/'.
  * @param port duh
  * @param query ?pretty=1
  */
 export async function apiGET(
-  { hostname, credentials, secure }: CouchbaseHttpApiConfig,
+  { hostname, credentials, secure, timeout }: CouchbaseHttpApiConfig,
   pathname: string,
   port?: number,
   query?: Record<string, string> | URLSearchParams
@@ -45,8 +43,15 @@ export async function apiGET(
 
   getHttpClientLogger()?.trace(`GET ${url}`);
 
+  const abortController = new AbortController();
+
+  if (timeout) {
+    setTimeout(() => abortController.abort('Client timeout'), timeout);
+  }
+
   return await fetch(url, {
     method: 'GET',
+    signal: abortController.signal,
     headers: {
       Authorization: `Basic ${base64Credentials}`,
     },

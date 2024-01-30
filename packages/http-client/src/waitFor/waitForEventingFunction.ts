@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { EventingFunctionStatusName } from '@cbjs/shared';
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
 import { getEventingFunctionStatus, getPoolNodes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
-import { getFastRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 export async function waitForEventingFunction(
@@ -39,16 +39,16 @@ export async function waitForEventingFunction(
   expectedStatus?:
     | Extract<EventingFunctionStatusName, 'deployed' | 'undeployed' | 'paused'>
     | WaitForOptions,
-  options: WaitForOptions = {}
+  options?: WaitForOptions
 ): Promise<void> {
-  if (typeof expectedStatus === 'object') {
-    options = expectedStatus;
-    expectedStatus = undefined;
-  }
-  const timeout = options.timeout || 30_000;
-  const expectMissing = options.expectMissing || false;
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return promiseRetry(getFastRetryProfile({ timeout }), async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return await retry(async () => {
     const poolNodes = await getPoolNodes(params);
 
     const requests = mapNodes(poolNodes, 'eventing', ({ hostname }) =>
@@ -63,11 +63,11 @@ export async function waitForEventingFunction(
     const functionVisibleOnAllNodes = functionOnNodes.length === responses.length;
 
     if (!functionVisibleOnAllNodes && !expectMissing) {
-      retry('The function is not visible on all nodes yet');
+      throw new Error('The function is not visible on all nodes yet');
     }
 
     if (functionOnNodes.length > 0 && expectMissing)
-      retry('The function is still visible on some nodes');
+      throw new Error('The function is still visible on some nodes');
 
     if (expectedStatus === undefined) return;
 
@@ -76,8 +76,8 @@ export async function waitForEventingFunction(
     );
 
     if (!expectMissing && statusMatching.length !== responses.length)
-      retry(`The eventing function is not ${expectedStatus} on all nodes yet`);
+      throw new Error(`The eventing function is not ${expectedStatus} on all nodes yet`);
     if (expectMissing && statusMatching.length > 0)
-      retry(`The eventing function is still ${expectedStatus} on some nodes`);
-  });
+      throw new Error(`The eventing function is still ${expectedStatus} on some nodes`);
+  }, resolvedOptions);
 }

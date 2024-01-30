@@ -15,6 +15,7 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiPool } from '../../types/Api/ApiPool';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetPool } from './requests/requestGetPool';
 
 export async function getPool(
@@ -24,7 +25,7 @@ export async function getPool(
   const response = await requestGetPool(params, poolName);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as Promise<ApiPool>;

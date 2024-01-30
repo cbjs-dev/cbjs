@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import { InitClusterParams, requestInitCluster } from './requests/requestInitCluster';
 
 export class ClusterAlreadyInitializedError extends Error {}
@@ -31,8 +32,6 @@ export async function initCluster(
   }
 
   if (!response.ok) {
-    throw new Error(await response.text(), {
-      cause: response,
-    });
+    throw createHttpError('POST', response);
   }
 }

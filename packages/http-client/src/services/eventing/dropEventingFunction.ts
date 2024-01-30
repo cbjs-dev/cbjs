@@ -16,6 +16,7 @@
 import type { EventingFunctionScope } from '@cbjs/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestDeleteEventingFunction } from './requests/requestDeleteEventingFunction';
 
 export async function dropEventingFunction(
@@ -26,6 +27,6 @@ export async function dropEventingFunction(
   const response = await requestDeleteEventingFunction(params, name, scope);
 
   if (!response.ok) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('POST', response);
   }
 }

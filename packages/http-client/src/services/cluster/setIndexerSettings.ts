@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import {
   CouchbaseIndexerSettings,
   requestSetIndexerSettings,
@@ -26,6 +27,6 @@ export async function setIndexerSettings(
   const response = await requestSetIndexerSettings(apiConfig, settings);
 
   if (!response.ok) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('POST', response);
   }
 }

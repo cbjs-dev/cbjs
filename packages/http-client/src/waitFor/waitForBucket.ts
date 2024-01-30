@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
-import { getHttpClientLogger } from '../logger';
 import { getPoolNodes, getQueryBuckets } from '../services';
 import { requestGetBucket } from '../services/kv/requests/requestGetBucket';
 import { CouchbaseHttpApiConfig } from '../types';
 import { ApiBucket } from '../types/Api/ApiBucket';
 import { mapNodes } from '../utils/mapNodes';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 export async function waitForBucket(
   apiConfig: CouchbaseHttpApiConfig,
   bucketName: string,
-  options: WaitForOptions = { timeout: 10_000 }
+  options?: WaitForOptions
 ): Promise<void> {
-  const timeout = options.timeout || 10_000;
-  const expectMissing = options.expectMissing || false;
-  const retryProfile = getStandardRetryProfile({ timeout });
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return await promiseRetry(retryProfile, async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return await retry(async () => {
     const poolNodes = apiConfig.poolNodes ?? (await getPoolNodes(apiConfig));
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
@@ -45,7 +47,8 @@ export async function waitForBucket(
       responses.filter((r) => r.status === 200).map((r) => r.json() as Promise<ApiBucket>)
     );
 
-    if (!expectMissing && bodies.length === 0) retry('Bucket is not visible yet');
+    if (!expectMissing && bodies.length === 0)
+      throw new Error('Bucket is not visible yet');
     if (expectMissing && bodies.length < requests.length) return;
 
     const ready = bodies.every(
@@ -57,24 +60,20 @@ export async function waitForBucket(
     );
 
     if (!expectMissing && !ready) {
-      getHttpClientLogger()?.trace('Bucket is not ready yet');
-      retry('Bucket is not ready yet');
+      throw new Error('Bucket is not ready yet');
     }
     if (expectMissing && ready) {
-      getHttpClientLogger()?.trace('Bucket is still visible');
-      retry('Bucket is still visible');
+      throw new Error('Bucket is still visible');
     }
 
     const queryBuckets = await getQueryBuckets(apiConfig);
     const bucketQueryVisible = queryBuckets.includes(bucketName);
 
     if (!expectMissing && !bucketQueryVisible) {
-      getHttpClientLogger()?.trace('Bucket is not visible by the query service yet');
-      retry('Bucket is not visible by the query service yet');
+      throw new Error('Bucket is not visible by the query service yet');
     }
     if (expectMissing && bucketQueryVisible) {
-      getHttpClientLogger()?.trace('Bucket is still visible by the query service');
-      retry('Bucket is still visible by the query service');
+      throw new Error('Bucket is still visible by the query service');
     }
-  });
+  }, resolvedOptions);
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Keyspace } from '@cbjs/shared';
 import { retry } from 'ts-retry-promise';
 
 import { getStatistics } from '../services';
@@ -20,15 +21,17 @@ import { CouchbaseHttpApiConfig } from '../types';
 import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
-type WaitForSearchIndexOptions = WaitForOptions & { awaitMutations?: boolean };
+type WaitForQueryIndexOptions = WaitForOptions & { awaitMutations?: boolean };
 
-export async function waitForSearchIndex(
+export async function waitForQueryIndex(
   apiConfig: CouchbaseHttpApiConfig,
   indexName: string,
-  options?: WaitForSearchIndexOptions
+  keyspace: Keyspace,
+  options?: WaitForQueryIndexOptions
 ): Promise<void> {
   const resolvedOptions = {
     ...waitOptionsModerate,
+    awaitMutations: true,
     ...options,
   };
 
@@ -38,8 +41,12 @@ export async function waitForSearchIndex(
     const stats = await getStatistics(apiConfig, [
       {
         metric: [
-          { label: 'name', value: 'fts_num_mutations_to_index' },
+          { label: 'name', value: 'index_num_docs_pending' },
           { label: 'index', value: indexName },
+          ...Object.entries(keyspace).map(([label, value]) => ({
+            label,
+            value,
+          })),
         ],
         step: 1,
         start: -10,
@@ -49,11 +56,11 @@ export async function waitForSearchIndex(
     // Index not found
     if (stats[0].data.length === 0) {
       if (expectMissing) return;
-      throw new Error('Search index is not visible yet');
+      throw new Error('Query index is not visible yet');
     }
 
     if (expectMissing) {
-      throw new Error('Search index still exists');
+      throw new Error('Query index still exists');
     }
 
     if (!awaitMutations) {
@@ -64,7 +71,7 @@ export async function waitForSearchIndex(
     const remainingMutations = values[values.length - 1][1];
 
     if (!expectMissing && remainingMutations !== '0') {
-      throw new Error('Search index has pending mutations');
+      throw new Error('Query index has pending mutations');
     }
   }, resolvedOptions);
 }

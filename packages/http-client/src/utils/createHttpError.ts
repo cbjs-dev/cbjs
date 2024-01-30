@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// import { Response } from 'cross-fetch';
 
-import { OperationOptions } from 'retry';
+export async function createHttpError(
+  method: 'GET' | 'POST' | 'DELETE' | 'PATCH',
+  response: Response
+) {
+  const err = new Error(
+    `HTTP Request failed - ${method} ${response.url}
+    ${response.statusText}: ${await response.text()}`,
+    {
+      cause: response,
+    }
+  );
 
-export function getStandardRetryProfile({ timeout }: { timeout: number }) {
-  const delayBetweenCalls = 1000;
-  const retries = Math.floor(timeout / delayBetweenCalls);
-  return {
-    factor: 1,
-    minTimeout: delayBetweenCalls,
-    retries,
-  } satisfies OperationOptions;
-}
+  Error.captureStackTrace(err, createHttpError);
 
-export function getFastRetryProfile({ timeout }: { timeout: number }) {
-  const delayBetweenCalls = 200;
-  const retries = Math.floor(timeout / delayBetweenCalls);
-  return {
-    factor: 1,
-    minTimeout: delayBetweenCalls,
-    retries,
-  } satisfies OperationOptions;
+  return err;
 }

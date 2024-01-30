@@ -15,6 +15,7 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestExecuteStatement } from './requests/requestExecuteStatement';
 
 export async function executeStatement<Result>(
@@ -24,7 +25,7 @@ export async function executeStatement<Result>(
   const response = await requestExecuteStatement(params, statement);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('POST', response);
   }
 
   return (await response.json()) as ApiQueryResponseBody<Result>;

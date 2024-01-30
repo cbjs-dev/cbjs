@@ -19,13 +19,14 @@ import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryIndex } from '../../types/Api/ApiQueryIndex';
 import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
 import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryInex';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetQueryIndexes } from './requests/requestGetQueryIndexes';
 
 export async function getQueryIndexes(params: CouchbaseHttpApiConfig) {
   const response = await requestGetQueryIndexes(params);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   const body = (await response.json()) as ApiQueryResponseBody<ApiQueryIndex[]>;

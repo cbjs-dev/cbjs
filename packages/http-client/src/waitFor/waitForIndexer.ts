@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
 import { getIndexerStatistics } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
+import { WaitForOptions } from './types';
 
 export async function waitForIndexer(
   apiConfig: CouchbaseHttpApiConfig,
-  options: { timeout: number } = { timeout: 10_000 }
+  options?: Omit<WaitForOptions, 'expectMissing'>
 ): Promise<void> {
-  const timeout = options.timeout || 10_000;
-  const retryProfile = getStandardRetryProfile({ timeout });
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return await promiseRetry(retryProfile, async (retry) => {
-    const stats = await getIndexerStatistics(apiConfig, true);
+  return await retry(async () => {
+    const stats = await getIndexerStatistics(
+      {
+        ...apiConfig,
+        timeout: 200,
+      },
+      true
+    );
 
     if (stats.indexer_state !== 'Active') {
-      retry('Indexer is not ready yet');
+      throw new Error('Indexer is not ready yet');
     }
-  });
+  }, resolvedOptions);
 }

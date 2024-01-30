@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
 import { getPoolNodes, getViewDesignDocuments } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 export async function waitForViewDesignDocument(
   params: CouchbaseHttpApiConfig,
   bucketName: string,
   designDocumentName: string,
-  options: WaitForOptions = { timeout: 10_000 }
+  options?: WaitForOptions
 ) {
-  const timeout = options.timeout || 10_000;
-  const expectMissing = options.expectMissing || false;
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return promiseRetry(getStandardRetryProfile({ timeout }), async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return retry(async () => {
     const poolNodes = await getPoolNodes(params);
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
@@ -42,7 +46,7 @@ export async function waitForViewDesignDocument(
       r.rows.find((r) => r.doc.meta.id === `_design/${designDocumentName}`)
     );
 
-    if (!expectMissing && !visible) retry('Design document is not visible yet');
-    if (expectMissing && visible) retry('Design document is still visible');
-  });
+    if (!expectMissing && !visible) throw new Error('Design document is not visible yet');
+    if (expectMissing && visible) throw new Error('Design document is still visible');
+  }, resolvedOptions);
 }

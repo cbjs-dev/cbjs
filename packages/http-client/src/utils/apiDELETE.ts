@@ -28,7 +28,7 @@ import { MANAGEMENT_PORT } from './ports';
  * @param query ?pretty=1
  */
 export async function apiDELETE(
-  { hostname, credentials, secure }: CouchbaseHttpApiConfig,
+  { hostname, credentials, secure, timeout }: CouchbaseHttpApiConfig,
   pathname: string,
   port?: number,
   query?: Record<string, string> | URLSearchParams
@@ -42,8 +42,15 @@ export async function apiDELETE(
   const queryString = query ? `?${new URLSearchParams(query).toString()}` : '';
   const url = `${protocol}://${hostname}:${port}${pathname}${queryString}`;
 
+  const abortController = new AbortController();
+
+  if (timeout) {
+    setTimeout(() => abortController.abort('Client timeout'), timeout);
+  }
+
   return await fetch(url, {
     method: 'DELETE',
+    signal: abortController.signal,
     headers: {
       'Authorization': `Basic ${base64Credentials}`,
       'Content-Type': 'application/x-www-form-urlencoded',

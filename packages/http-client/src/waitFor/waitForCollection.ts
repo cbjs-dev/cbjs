@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
 import { getHttpClientLogger } from '../logger';
-import { getPoolNodes } from '../services';
-import { getCollections } from '../services';
+import { getCollections, getPoolNodes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { ApiCollection } from '../types/Api/ApiCollection';
 import { mapNodes } from '../utils/mapNodes';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 export async function waitForCollection(
@@ -29,12 +28,16 @@ export async function waitForCollection(
   bucketName: string,
   scopeName: string,
   collectionName: string,
-  options: WaitForOptions = { timeout: 10_000 }
+  options?: WaitForOptions
 ) {
-  const timeout = options.timeout || 10_000;
-  const expectMissing = options.expectMissing || false;
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return promiseRetry(getStandardRetryProfile({ timeout }), async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return await retry(async () => {
     const poolNodes = await getPoolNodes(params);
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
@@ -49,13 +52,11 @@ export async function waitForCollection(
     });
 
     if (!expectMissing && !visible) {
-      getHttpClientLogger()?.trace('Collection is not visible yet');
-      retry('Collection is not visible yet');
+      throw new Error('Collection is not visible yet');
     }
 
     if (expectMissing && visible) {
-      getHttpClientLogger()?.trace('Collection is still visible');
-      retry('Collection is still visible');
+      throw new Error('Collection is still visible');
     }
-  });
+  }, resolvedOptions);
 }

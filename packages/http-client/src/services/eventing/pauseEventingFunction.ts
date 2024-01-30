@@ -16,6 +16,7 @@
 import type { EventingFunctionScope } from '@cbjs/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestChangeEventingFunctionStatus } from './requests/requestChangeEventingFunctionStatus';
 
 export async function pauseEventingFunction(
@@ -31,6 +32,6 @@ export async function pauseEventingFunction(
   );
 
   if (!response.ok) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('POST', response);
   }
 }

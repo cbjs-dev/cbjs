@@ -2,7 +2,12 @@
   "name": "@cbjs/http-client",
   "version": "0.1.0",
   "description": "A type safe HTTP client for Couchbase.",
-  "keywords": ["couchbase", "client", "http", "typescript"],
+  "keywords": [
+    "couchbase",
+    "client",
+    "http",
+    "typescript"
+  ],
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
   "type": "module",
@@ -19,8 +24,8 @@
     "NOTICE"
   ],
   "dependencies": {
-    "promise-retry": "^2.0.1",
-    "cross-fetch": "^4.0.0"
+    "cross-fetch": "^4.0.0",
+    "ts-retry-promise": "^0.8.0"
   },
   "devDependencies": {
     "@types/promise-retry": "^1.1.6"

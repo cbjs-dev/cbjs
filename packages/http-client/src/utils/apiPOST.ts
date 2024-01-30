@@ -30,7 +30,7 @@ import { MANAGEMENT_PORT } from './ports';
  * @param headers
  */
 export async function apiPOST(
-  { hostname, credentials, secure }: CouchbaseHttpApiConfig,
+  { hostname, credentials, secure, timeout }: CouchbaseHttpApiConfig,
   pathname: string,
   body?: RequestInit['body'],
   port?: number,
@@ -46,8 +46,15 @@ export async function apiPOST(
   const queryString = query ? `?${new URLSearchParams(query).toString()}` : '';
   const url = `${protocol}://${hostname}:${port}${pathname}${queryString}`;
 
+  const abortController = new AbortController();
+
+  if (timeout) {
+    setTimeout(() => abortController.abort('Client timeout'), timeout);
+  }
+
   return await fetch(url, {
     method: 'POST',
+    signal: abortController.signal,
     body,
     headers: {
       'Authorization': `Basic ${base64Credentials}`,

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestAnalyticsClusterStatus } from './requests/requestAnalyticsClusterStatus';
 
 export async function getAnalyticsClusterStatus(apiConfig: CouchbaseHttpApiConfig) {
   const response = await requestAnalyticsClusterStatus(apiConfig);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as AnalyticsClusterStatus;

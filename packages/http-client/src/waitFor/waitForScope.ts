@@ -13,25 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
-import { getPoolNodes } from '../services/cluster/getPoolNodes';
-import { getScopes } from '../services/kv/getScopes';
+import { getHttpClientLogger } from '../logger';
+import { getPoolNodes } from '../services';
+import { getScopes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 export async function waitForScope(
   params: CouchbaseHttpApiConfig,
   bucketName: string,
   scopeName: string,
-  options: WaitForOptions = { timeout: 10_000 }
+  options?: WaitForOptions
 ) {
-  const timeout = options.timeout || 10_000;
-  const expectMissing = options.expectMissing || false;
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return promiseRetry(getStandardRetryProfile({ timeout }), async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return await retry(async () => {
     const poolNodes = await getPoolNodes(params);
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
@@ -41,7 +46,7 @@ export async function waitForScope(
     const responses = await Promise.all(requests);
     const visible = responses.every((r) => r.scopes.find((s) => s.name === scopeName));
 
-    if (!expectMissing && !visible) retry('Scope is not visible yet');
-    if (expectMissing && visible) retry('Scope is still visible');
-  });
+    if (!expectMissing && !visible) throw new Error('Scope is not visible yet');
+    if (expectMissing && visible) throw new Error('Scope is still visible');
+  }, resolvedOptions);
 }

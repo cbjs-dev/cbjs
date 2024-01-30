@@ -15,6 +15,7 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiUser } from '../../types/Api/ApiUser';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetUser } from './requests/requestGetUser';
 
 export async function getUser(
@@ -25,7 +26,7 @@ export async function getUser(
   const response = await requestGetUser(apiConfig, username, domain);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as ApiUser;

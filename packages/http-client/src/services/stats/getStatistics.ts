@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import {
   StatisticDefinition,
   StatisticsResult,
@@ -27,7 +28,7 @@ export async function getStatistics(
   const response = await requestStatistics(apiConfig, stats);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as [StatisticsResult, ...StatisticsResult[]];

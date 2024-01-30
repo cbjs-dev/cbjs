@@ -13,26 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
+import { getHttpClientLogger } from '../logger';
 import { getPoolNodes } from '../services';
 import { requestGetUser } from '../services/rbac/requests/requestGetUser';
 import { CouchbaseHttpApiConfig } from '../types';
 import { mapNodes } from '../utils/mapNodes';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
 import { WaitForOptions } from './types';
 
 export async function waitForUser(
   apiConfig: CouchbaseHttpApiConfig,
   username: string,
   domain = 'local',
-  options: WaitForOptions = { timeout: 10_000 }
+  options?: WaitForOptions
 ): Promise<void> {
-  const timeout = options.timeout || 10_000;
-  const expectMissing = options.expectMissing || false;
-  const retryProfile = getStandardRetryProfile({ timeout });
+  const defaultOptions: WaitForOptions = {
+    timeout: 10_000,
+    expectMissing: false,
+    logger: (msg) => getHttpClientLogger()?.trace(msg),
+  };
 
-  return promiseRetry(retryProfile, async (retry) => {
+  const resolvedOptions = {
+    ...defaultOptions,
+    ...options,
+  };
+
+  const { expectMissing } = resolvedOptions;
+
+  return retry(async () => {
     const poolNodes = apiConfig.poolNodes ?? (await getPoolNodes(apiConfig));
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
@@ -42,7 +51,7 @@ export async function waitForUser(
     const responses = await Promise.all(requests);
     const visible = responses.every((r) => r.status === 200);
 
-    if (!expectMissing && !visible) retry('User is not visible yet');
-    if (expectMissing && visible) retry('User is still visible');
-  });
+    if (!expectMissing && !visible) throw new Error('User is not visible yet');
+    if (expectMissing && visible) throw new Error('User is still visible');
+  }, resolvedOptions);
 }

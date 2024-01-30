@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiUser } from '../../types/Api/ApiUser';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetUsers } from './requests/requestGetUsers';
+import { getHttpClientLogger } from '../logger';
+import { WaitForOptions } from './types';
 
-export async function getUsers(apiConfig: CouchbaseHttpApiConfig) {
-  const response = await requestGetUsers(apiConfig);
-
-  if (response.status !== 200) {
-    throw await createHttpError('GET', response);
-  }
-
-  return (await response.json()) as ApiUser[];
-}
+export const waitOptionsModerate = {
+  timeout: 10_000,
+  delay: 500,
+  retries: 'INFINITELY',
+  expectMissing: false,
+  logger: (msg) => getHttpClientLogger()?.trace(msg),
+} as const satisfies WaitForOptions;

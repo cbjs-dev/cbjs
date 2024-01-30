@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestIndexerStatistics } from './requests/requestIndexerStatistics';
 
 export type IndexerStatistics = {
@@ -33,7 +34,7 @@ export async function getIndexerStatistics(
   const response = await requestIndexerStatistics(apiConfig, skipEmpty);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   const stats = (await response.json()) as IndexerStatistics;

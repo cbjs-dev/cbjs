@@ -19,6 +19,11 @@ import { ApiPoolNodes } from './types/Api/ApiPoolNodes';
 
 export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
   poolNodes?: ApiPoolNodes;
+
+  /**
+   * Client timeout in milliseconds.
+   */
+  timeout?: number;
 };
 
 export type URLSearchParamsConstructor = ConstructorParameters<typeof URLSearchParams>;

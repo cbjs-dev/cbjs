@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { RetryConfig } from 'ts-retry-promise';
 
-export type WaitForOptions = {
-  timeout?: number;
+export type WaitForOptions = Partial<RetryConfig> & {
   expectMissing?: boolean;
 };

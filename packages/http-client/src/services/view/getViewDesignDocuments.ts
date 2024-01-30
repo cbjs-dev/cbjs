@@ -15,6 +15,7 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiViewDesignDocuments } from '../../types/Api/ApiViewDesignDocument';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetViewDesignDocuments } from './requests/requestGetViewDesignDocuments';
 
 export async function getViewDesignDocuments(
@@ -24,7 +25,7 @@ export async function getViewDesignDocuments(
   const response = await requestGetViewDesignDocuments(params, bucketName);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as Promise<ApiViewDesignDocuments>;

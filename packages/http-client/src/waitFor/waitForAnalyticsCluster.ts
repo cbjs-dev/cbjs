@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import promiseRetry from 'promise-retry';
+import { retry } from 'ts-retry-promise';
 
 import { getAnalyticsClusterStatus } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
-import { getStandardRetryProfile } from '../utils/retryProfiles';
+import { waitOptionsModerate } from './options';
+import { WaitForOptions } from './types';
 
 export async function waitForAnalyticsCluster(
   apiConfig: CouchbaseHttpApiConfig,
-  options: { timeout: number } = { timeout: 10_000 }
+  options?: WaitForOptions
 ): Promise<void> {
-  const timeout = options.timeout || 10_000;
-  const retryProfile = getStandardRetryProfile({ timeout });
+  const resolvedOptions = {
+    ...waitOptionsModerate,
+    ...options,
+  };
 
-  return await promiseRetry(retryProfile, async (retry) => {
+  const { expectMissing } = resolvedOptions;
+
+  return await retry(async () => {
     const clusterStatus = await getAnalyticsClusterStatus(apiConfig);
 
-    if (clusterStatus.state !== 'ACTIVE') {
-      retry('Indexer is not ready yet');
+    if (clusterStatus.state !== 'ACTIVE' && !expectMissing) {
+      throw new Error('Analytics cluster is not ready yet');
     }
-  });
+
+    if (clusterStatus.state === 'ACTIVE' && expectMissing) {
+      throw new Error('Analytics cluster is still running');
+    }
+  }, resolvedOptions);
 }

@@ -15,13 +15,14 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiPoolNodes } from '../../types/Api/ApiPoolNodes';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetPoolNodes } from './requests/requestGetPoolNodes';
 
 export async function getPoolNodes(params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>) {
   const response = await requestGetPoolNodes(params);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as Promise<ApiPoolNodes>;

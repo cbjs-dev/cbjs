@@ -15,6 +15,7 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiEventingFunctionStatus } from '../../types/Api/ApiEventingFunctionStatus';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetEventingFunctionStatus } from './requests/requestGetEventingFunctionStatus';
 
 export async function getEventingFunctionStatus(
@@ -23,7 +24,7 @@ export async function getEventingFunctionStatus(
   const response = await requestGetEventingFunctionStatus(params);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as Promise<ApiEventingFunctionStatus>;

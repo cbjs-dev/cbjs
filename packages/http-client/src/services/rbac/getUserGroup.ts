@@ -15,13 +15,14 @@
  */
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiUserGroup } from '../../types/Api/ApiUserGroup';
+import { createHttpError } from '../../utils/createHttpError';
 import { requestGetUserGroup } from './requests/requestGetUserGroup';
 
 export async function getUserGroup(apiConfig: CouchbaseHttpApiConfig, name: string) {
   const response = await requestGetUserGroup(apiConfig, name);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
+    throw await createHttpError('GET', response);
   }
 
   return (await response.json()) as ApiUserGroup;
