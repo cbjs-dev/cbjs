@@ -22,31 +22,54 @@ import { mapNodes } from '../utils/mapNodes';
 import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
+type ExpectableStatus = Extract<
+  EventingFunctionStatusName,
+  'deployed' | 'undeployed' | 'paused'
+>;
+
 export async function waitForEventingFunction(
   params: CouchbaseHttpApiConfig,
   functionName: string,
-  status: Extract<EventingFunctionStatusName, 'deployed' | 'undeployed' | 'paused'>,
   options?: WaitForOptions
 ): Promise<void>;
+
 export async function waitForEventingFunction(
   params: CouchbaseHttpApiConfig,
   functionName: string,
+  status: ExpectableStatus,
   options?: WaitForOptions
 ): Promise<void>;
+
 export async function waitForEventingFunction(
   params: CouchbaseHttpApiConfig,
   functionName: string,
-  expectedStatus?:
-    | Extract<EventingFunctionStatusName, 'deployed' | 'undeployed' | 'paused'>
-    | WaitForOptions,
-  options?: WaitForOptions
+  ...optionalArgs: [ExpectableStatus, WaitForOptions?] | [WaitForOptions?]
 ): Promise<void> {
+  const resolvedOptionalArgs = {
+    expectedStatus: undefined as ExpectableStatus | undefined,
+    options: {} as WaitForOptions,
+  };
+
+  if (optionalArgs.length === 2) {
+    resolvedOptionalArgs.expectedStatus = optionalArgs[0];
+    resolvedOptionalArgs.options = optionalArgs[1] || {};
+  }
+
+  if (optionalArgs.length === 1 && typeof optionalArgs[0] === 'string') {
+    resolvedOptionalArgs.expectedStatus = optionalArgs[0];
+  }
+
+  if (optionalArgs.length === 1 && typeof optionalArgs[0] === 'object') {
+    resolvedOptionalArgs.options = optionalArgs[0];
+  }
+
   const resolvedOptions = {
     ...waitOptionsModerate,
-    ...options,
+    ...resolvedOptionalArgs.options,
   };
 
   const { expectMissing } = resolvedOptions;
+  const { expectedStatus } = resolvedOptionalArgs;
 
   return await retry(async () => {
     const poolNodes = await getPoolNodes(params);

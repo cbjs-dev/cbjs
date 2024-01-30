@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getRandomId } from '@cbjs/vitest';
-import { describe } from 'vitest';
-
 import {
   EventingFunction,
   EventingFunctionBucketAccess,
@@ -28,9 +25,11 @@ import {
   Scope,
 } from '@cbjs/cbjs';
 import { waitForEventingFunction } from '@cbjs/http-client';
-import { createCouchbaseTest } from '@cbjs/vitest';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { sleep } from '@cbjs/shared';
+import { createCouchbaseTest, getRandomId } from '@cbjs/vitest';
+import { describe } from 'vitest';
+
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';
 
 describe
@@ -40,20 +39,18 @@ describe
     async function () {
       const eventingFunctionName = getRandomId();
 
-      const test = await createCouchbaseTest(
-        async ({ useBucket, useCollection }) => {
-          const metadataBucket = await useBucket().get();
-          const metadataCollection = await useCollection({
-            bucketName: metadataBucket,
-          }).get();
+      const test = await createCouchbaseTest(async ({ useBucket, useCollection }) => {
+        const metadataBucket = await useBucket().get();
+        const metadataCollection = await useCollection({
+          bucketName: metadataBucket,
+        }).get();
 
-          return {
-            metadataBucket,
-            metadataCollection,
-            testFnName: eventingFunctionName,
-          };
-        }
-      );
+        return {
+          metadataBucket,
+          metadataCollection,
+          testFnName: eventingFunctionName,
+        };
+      });
 
       test(
         'should upsert a function successfully',
@@ -172,7 +169,9 @@ describe
         testFnName,
       }) {
         await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'undeployed', { timeout: 30_000 })
+          waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
+            timeout: 30_000,
+          })
         ).resolves.toBeUndefined();
       });
 
@@ -220,7 +219,9 @@ describe
       }) {
         await serverTestContext.cluster.eventingFunctions().undeployFunction(testFnName);
         await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'undeployed', { timeout: 30_000 })
+          waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
+            timeout: 30_000,
+          })
         ).resolves.toBeUndefined();
       });
 
