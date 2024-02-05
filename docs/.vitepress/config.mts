@@ -13,31 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { defineConfig } from 'vitepress'
+import { defineConfig } from 'vitepress';
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Cbjs",
-  description: "Amazing TypeScript clients & utils for Couchbase",
+  title: 'Cbjs',
+  description: 'Modern Couchbase client for JS runtimes',
+  lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: 'Guide', link: '/getting-started' },
-    ],
+    search: {
+      provider: 'local',
+    },
+    nav: [{ text: 'Guide', link: '/getting-started' }],
 
-    sidebar: [
-      {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
-        ]
-      }
-    ],
+    sidebar: {
+      '/': [
+        {
+          text: 'Guide',
+          items: [
+            {
+              text: 'Why Cbjs',
+              link: '/guide/why',
+            },
+            {
+              text: 'Getting Started',
+              link: '/guide/',
+            },
+            {
+              text: 'Features',
+              link: '/guide/features',
+            },
+            {
+              text: 'Cluster Types',
+              link: '/guide/cluster-types',
+            },
+          ],
+        },
+      ],
+    },
 
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/cbjs-dev/cbjs' }
-    ]
-  }
-})
+    socialLinks: [{ icon: 'github', link: 'https://github.com/cbjs-dev/cbjs' }],
+
+    footer: {
+      copyright: 'Copyright © 2023-PRESENT Jonathan Massuchetti',
+    },
+  },
+});

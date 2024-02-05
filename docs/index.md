@@ -12,7 +12,7 @@ hero:
       link: /guide
     - theme: alt
       text: Why Cbjs?
-      link: /why-cbjs
+      link: /guide/why
 
 features:
   - title: Autocompletion
