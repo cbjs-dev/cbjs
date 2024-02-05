@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { If, IsExactly, Try } from '@cbjs/shared';
 
 import type { CppProtocolSubdocOpcode } from '../../../binding';
 import type { LookupInResultEntry } from '../../../crudoptypes';
@@ -21,15 +22,18 @@ import type { IsFuzzyDocument } from '../mutation/mutateIn.types';
 import type { ArrayElement, IsArrayLengthFixed } from '../utils/array-utils.types';
 import type { SubDocument } from '../utils/path-utils.types';
 import type { LookupInMacroReturnType } from './lookupInMacro.types';
-import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './lookupOperations.types';
-import type { IsExactly, Try, If } from '@cbjs/shared';
+import type {
+  LookupInCountPath,
+  LookupInExistsPath,
+  LookupInGetPath,
+} from './lookupOperations.types';
 
 /**
  * Infer the actual {@link CppProtocolSubdocOpcode} from the given path for a {@link LookupInSpec.get} operation.
  */
-export type LookupInSpecGetOpcode<Path extends string | LookupInMacro> =
-  Path extends '' ? CppProtocolSubdocOpcode.get_doc : CppProtocolSubdocOpcode.get
-;
+export type LookupInSpecGetOpcode<Path extends string | LookupInMacro> = Path extends ''
+  ? CppProtocolSubdocOpcode.get_doc
+  : CppProtocolSubdocOpcode.get;
 
 /**
  * Return a {@link LookupInSpec} type with `Path` converted to an internal path.
@@ -44,10 +48,10 @@ export type MakeLookupInSpec<Doc extends object, Opcode extends LookupInSpecOpCo
  * @see LookupIn
  * @see Specs
  */
-export type LookupInSpecResults<Specs extends ReadonlyArray<LookupInSpec>, CollectionDocuments> =
+export type LookupInSpecResults<Specs, CollectionDocuments> =
   Specs extends readonly [infer Spec extends LookupInSpec, ...infer Rest extends ReadonlyArray<LookupInSpec>] ?
-    readonly [LookupInSpecResult<Spec, CollectionDocuments>, ...LookupInSpecResults<Rest, CollectionDocuments>] :
-  readonly []
+    [LookupInSpecResult<Spec, CollectionDocuments>, ...LookupInSpecResults<Rest, CollectionDocuments>] :
+  []
 ;
 
 /**
@@ -77,9 +81,9 @@ export type LookupInSpecResult<Spec extends LookupInSpec, CollectionDocuments> =
  */
 export type LookupInResultEntries<Results extends ReadonlyArray<unknown>> =
   Results extends readonly [infer Head extends unknown, ...infer Rest extends ReadonlyArray<unknown>] ?
-    readonly [LookupInResultEntry<Head>, ...LookupInResultEntries<Rest>] :
+    [LookupInResultEntry<Head>, ...LookupInResultEntries<Rest>] :
   IsArrayLengthFixed<Results> extends true ?
-    readonly [] :
+    [] :
   LookupInResultEntry<ArrayElement<Results>>[]
 ;
 
@@ -164,10 +168,10 @@ export type ValidateLookupInSpec<Docs extends object, Spec extends LookupInSpec>
  */
 export type ValidateLookupInSpecs<Docs extends object, Specs> =
   Specs extends readonly [LookupInSpec<infer Doc, infer Opcode, infer InternalPath>, ...infer Rest extends ReadonlyArray<unknown>] ?
-    readonly [ValidateLookupInSpec<Docs, LookupInSpec<Doc, Opcode, InternalPath>>, ...ValidateLookupInSpecs<Docs, Rest>] :
+    [ValidateLookupInSpec<Docs, LookupInSpec<Doc, Opcode, InternalPath>>, ...ValidateLookupInSpecs<Docs, Rest>] :
   Specs extends ReadonlyArray<LookupInSpec<Docs>> ?
     Specs :
-  readonly []
+  []
 ;
 
 /**
@@ -175,7 +179,11 @@ export type ValidateLookupInSpecs<Docs extends object, Specs> =
  *
  * @see ValidateLookupInSpecs
  */
-export type NarrowLookupSpecs<Docs extends object, Specs> = Try<Specs, [], ValidateLookupInSpecs<Docs, Specs>>;
+export type NarrowLookupSpecs<Docs extends object, Specs> = Try<
+  Specs,
+  [],
+  ValidateLookupInSpecs<Docs, Specs>
+>;
 
 /**
  * OpCode used in sub-document lookup operation.

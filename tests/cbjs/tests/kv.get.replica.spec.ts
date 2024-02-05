@@ -14,19 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { beforeEach, describe, vi } from 'vitest';
-
 import { DefaultTranscoder, DurabilityLevel } from '@cbjs/cbjs';
 import { getPool } from '@cbjs/http-client';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
-import { getLargeTestDocument } from './kv._helpers';
+import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
+import { beforeEach, describe, vi } from 'vitest';
+
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';
+import { getLargeTestDocument } from './kv._helpers';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Replicas))
-  .shuffle('kv replica', async () => {
+  .shuffle('kv get replica', async () => {
     const test = await createCouchbaseTest(async ({ useDocumentKey }) => {
       return {
         testDocKey: useDocumentKey(),

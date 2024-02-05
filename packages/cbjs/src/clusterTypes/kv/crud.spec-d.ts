@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
+
 import { connect } from '../../couchbase';
-import { GetReplicaResult, GetResult, ScanResult } from '../../crudoptypes';
+import {
+  GetReplicaResult,
+  GetResult,
+  LookupInResult,
+  ScanResult,
+} from '../../crudoptypes';
 import { PrefixScan, SamplingScan } from '../../rangeScan';
+import { LookupInSpec } from '../../sdspecs';
+import { lookupSpec } from '../../specBuilders';
 import { StreamableReplicasPromise } from '../../streamablepromises';
 import { DocDef } from '../clusterTypes';
 
@@ -224,5 +231,21 @@ describe('Collection.remove', function () {
 
     // @ts-expect-error Invalid value for the key
     await collection.remove('unknownKey');
+  });
+});
+
+describe.todo('Collection.lookupIn', function () {
+  it('should return any if no cluster types are defined', async function () {
+    const cluster = await connect('couchbase://127.0.0.1');
+    const collection = cluster.bucket('test').defaultCollection();
+    const doc = await collection.lookupIn('book::001').get('title');
+    expectTypeOf(doc).toEqualTypeOf<LookupInResult<[any]>>();
+  });
+
+  it('should narrow the doc using the key if types are defined', async function () {
+    const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+    const collection = cluster.bucket('test').defaultCollection();
+    const doc = await collection.lookupIn('book::001', [LookupInSpec.get('title')]);
+    expectTypeOf(doc).toEqualTypeOf<LookupInResult<[string]>>();
   });
 });

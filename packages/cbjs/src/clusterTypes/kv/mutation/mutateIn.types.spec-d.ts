@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
+
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { connect } from '../../../couchbase';
 import { MutateInResult, MutateInResultEntry } from '../../../crudoptypes';
 import { MutateInSpec } from '../../../sdspecs';
 import { mutationSpec } from '../../../specBuilders';
-
 import { DocDef } from '../../clusterTypes';
 import {
   IsFuzzyDocument,
@@ -62,7 +61,7 @@ describe('mutateIn', function () {
       const cluster = await connect('couchbase://127.0.0.1');
       const collection = cluster.bucket('test').defaultCollection();
 
-      collection.mutateIn('test__document', [
+      await collection.mutateIn('test__document', [
         MutateInSpec.upsert('what', 'foo'),
         MutateInSpec.arrayInsert('what', 'foo'),
         MutateInSpec.insert('does_not_exists', 'foo'),
@@ -84,7 +83,7 @@ describe('mutateIn', function () {
         MutateInSpec.increment('does_not_exists', 'whatever'),
       ]);
 
-      expectTypeOf(result).toEqualTypeOf<MutateInResult<readonly [undefined, number]>>();
+      expectTypeOf(result).toEqualTypeOf<MutateInResult<[undefined, number]>>();
     });
 
     it('should infer the mutation result when given an array of typed specs', async function () {
@@ -98,7 +97,7 @@ describe('mutateIn', function () {
       ]);
 
       expectTypeOf(result).toEqualTypeOf<
-        MutateInResult<readonly [undefined, undefined, number]>
+        MutateInResult<[undefined, undefined, number]>
       >();
     });
 
@@ -110,7 +109,7 @@ describe('mutateIn', function () {
         await collection.mutateIn('test__document', [
           MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
           MutateInSpec.increment('sales[0]', 3),
-          // @ts-expect-error Invalid value
+          // @ts-expect-error Invalid path
           MutateInSpec.increment('sales[0]', 'three'),
           // @ts-expect-error Invalid path
           MutateInSpec.insert('metadata.tags[0]', 'whatever'),
@@ -128,11 +127,18 @@ describe('mutateIn', function () {
         await collection.mutateIn(
           'test__document',
           [
+            MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
             MutateInSpec.increment('sales[0]', 3),
             // @ts-expect-error Invalid value
             MutateInSpec.increment('sales[0]', 'three'),
+            // @ts-expect-error Invalid path
+            MutateInSpec.insert('metadata.tags[0]', 'whatever'),
+            // @ts-expect-error Invalid path
+            MutateInSpec.insert('metadata.tags', 'whatever'),
+            // @ts-expect-error Path does not exist
+            MutateInSpec.upsert('does_not_exists', 'whatever'),
           ],
-          { timeout: 3 }
+          { timeout: 200 }
         );
       });
 
@@ -143,9 +149,16 @@ describe('mutateIn', function () {
         await collection.mutateIn(
           'test__document',
           [
+            MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
             MutateInSpec.increment('sales[0]', 3),
             // @ts-expect-error Invalid value
             MutateInSpec.increment('sales[0]', 'three'),
+            // @ts-expect-error Invalid path
+            MutateInSpec.insert('metadata.tags[0]', 'whatever'),
+            // @ts-expect-error Invalid path
+            MutateInSpec.insert('metadata.tags', 'whatever'),
+            // @ts-expect-error Path does not exist
+            MutateInSpec.upsert('does_not_exists', 'whatever'),
           ],
           (err, result) => console.log(err, result)
         );
@@ -161,6 +174,8 @@ describe('mutateIn', function () {
             MutateInSpec.increment('sales[0]', 3),
             // @ts-expect-error Invalid value
             MutateInSpec.increment('sales[0]', 'three'),
+            // @ts-expect-error Invalid value
+            MutateInSpec.increment('sales[1]', 'three'),
           ],
           { timeout: 3 },
           (err, result) => console.log(err, result)
@@ -176,16 +191,14 @@ describe('mutateIn', function () {
           MutateInSpec.increment('sales[0]', 3),
         ]);
 
-        expectTypeOf(result).toEqualTypeOf<
-          MutateInResult<readonly [undefined, number]>
-        >();
+        expectTypeOf(result).toEqualTypeOf<MutateInResult<[undefined, number]>>();
       });
     });
   });
 
   describe('MutationResultsFromSpecs', function () {
     it('should infer the result entries from MutateInSpec[]', function () {
-      expectTypeOf<MutateInSpecResults<[]>>().toEqualTypeOf<readonly []>();
+      expectTypeOf<MutateInSpecResults<[]>>().toEqualTypeOf<[]>();
 
       expectTypeOf<
         MutateInSpecResults<
@@ -194,16 +207,16 @@ describe('mutateIn', function () {
             MutateInSpec<TestDoc, CppProtocolSubdocOpcode.remove>
           ]
         >
-      >().toEqualTypeOf<readonly [number, undefined]>();
+      >().toEqualTypeOf<[number, undefined]>();
     });
   });
 
   describe('MutateInResultEntries', function () {
     it('should create an array of type MutateInResult with the input values', function () {
-      expectTypeOf<MutateInResultEntries<readonly []>>().toEqualTypeOf<readonly []>();
+      expectTypeOf<MutateInResultEntries<readonly []>>().toEqualTypeOf<[]>();
 
       expectTypeOf<MutateInResultEntries<readonly [number, undefined]>>().toEqualTypeOf<
-        readonly [MutateInResultEntry<number>, MutateInResultEntry<undefined>]
+        [MutateInResultEntry<number>, MutateInResultEntry<undefined>]
       >();
     });
   });

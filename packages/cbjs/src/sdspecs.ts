@@ -359,15 +359,24 @@ export class MutateInSpec<
    */
   _data: string | undefined;
 
+  /**
+   * Raw user's value.
+   *
+   * @internal
+   */
+  _rawData: Value;
+
   private constructor(
     op: Opcode,
     path: Path,
     flags: number,
+    data: Value,
     serializedData: string | undefined
   ) {
     this._op = op;
     this._path = path;
     this._flags = flags;
+    this._rawData = data;
     this._data = serializedData;
   }
 
@@ -380,7 +389,7 @@ export class MutateInSpec<
   >(
     op: Opcode,
     path: Path,
-    value?: Value,
+    value: Value,
     options?: {
       createPath?: boolean;
       multi?: Multi;
@@ -423,7 +432,7 @@ export class MutateInSpec<
       }
     }
 
-    return new MutateInSpec(op, path as Path, flags, valueAsString) as MutateInSpec<
+    return new MutateInSpec(op, path as Path, flags, value, valueAsString) as MutateInSpec<
       Doc,
       Opcode,
       Path,

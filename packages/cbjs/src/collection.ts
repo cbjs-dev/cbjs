@@ -14,8 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { If, IsAny } from '@cbjs/shared';
-import { Keyspace, hasOwn, invariant, keyspacePath } from '@cbjs/shared';
+import {
+  If,
+  IsAny,
+  Keyspace,
+  NoInfer,
+  Try,
+  hasOwn,
+  invariant,
+  keyspacePath,
+} from '@cbjs/shared';
 import { promisify } from 'node:util';
 
 import {
@@ -65,6 +73,8 @@ import {
   CollectionDocumentBag,
   CouchbaseClusterTypes,
   ExtractBodyByKey,
+  ExtractCollectionJsonDocBody,
+  ExtractCollectionJsonDocKey,
   ExtractDefByBody,
   ExtractDefByKey,
   IfCollectionContains,
@@ -114,7 +124,12 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
-import { LookupSpecs, MutationSpecs } from './specBuilders';
+import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
+import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
+import { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
+import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
+import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs';
+import { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
 import { StreamableReplicasPromise, StreamableScanPromise } from './streamablepromises';
 import { Transcoder } from './transcoders';
 import {
@@ -623,7 +638,7 @@ export class Collection<
 
   private async _projectedGet<
     Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
-    Key extends CT['Key'] = CT['Key']
+    Key extends CT['Key']
   >(
     key: Key,
     options: GetOptions<Doc>,
@@ -668,8 +683,12 @@ export class Collection<
     }
 
     try {
-      const res = await this.lookupIn<Key, Doc, typeof specs>(
-        key,
+      const res = await this.lookupIn<
+        ExtractCollectionJsonDocKey<this>,
+        Doc,
+        typeof specs
+      >(
+        key as ExtractCollectionJsonDocKey<this>,
         specs as ValidateLookupInSpecs<Doc, typeof specs>,
         {
           ...options,
@@ -1844,76 +1863,95 @@ export class Collection<
    * Performs a lookup-in operation against a document, fetching individual fields or
    * information about specific fields inside the document value.
    *
+   * @overload
    * @param key The document key to look in.
    * @param specs An array of {@link LookupInSpec} describing the data to fetch from the document, or
    * an instance of {@link LookupSpecs}.
-   * @param options Optional parameters for this operation.
+   * @param options {LookupInOptions} Optional parameters for this operation.
    * @param callback Optional node-style callback to be invoked after execution.
    */
-  async lookupIn<
-    Key extends CT['Key'],
+
+  /**
+   * Performs a lookup-in operation against a document, fetching individual fields or
+   * information about specific fields inside the document value.
+   *
+   * @overload
+   * @param key The document key to look in.
+   * @param options {LookupInOptions} Optional parameters for this operation.
+   * an instance of {@link LookupSpecs}.
+   */
+
+  /**
+   * Performs a lookup-in operation against a document, fetching individual fields or
+   * information about specific fields inside the document value.
+   *
+   * @param key The document key to look in.
+   * @param specsOrOptions { LookupInOptions | LookupInSpec[] } Lookup specs or parameters for this operation.
+   * an instance of {@link LookupSpecs}.
+   * @param optionsOrCallback { LookupInOptions | NodeCallback } Parameters for this operation or a node-style callback to be invoked after execution.
+   * @param callback Optional node-style callback to be invoked after execution.
+   */
+  lookupIn<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  >(
+    key: Key,
+    ...args: LookupInArgs<
+      Doc,
+      SpecDefinitions,
+      LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>
+    >
+  ): LookupInReturnType<this, 'lookupIn', Key, SpecDefinitions> {
+    const { specs, options, callback: resolvedCallback } = resolveLookupInArgs(args);
+
+    if (specs === undefined) {
+      return ChainableLookupIn.for(this, 'lookupIn', key, options) as LookupInReturnType<
+        this,
+        'lookupIn',
+        Key,
+        SpecDefinitions
+      >;
+    }
+
+    return this._lookupIn(
+      key,
+      specs as NoInfer<SpecDefinitions>,
+      options,
+      resolvedCallback
+    ) as LookupInReturnType<this, 'lookupIn', Key, NoInfer<SpecDefinitions>>;
+  }
+
+  private async _lookupIn<
+    Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
-    specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
+    specs: SpecDefinitions,
     options: LookupInOptions,
     callback?: NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>
-  ): Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
-  async lookupIn<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>
-  >(
-    key: Key,
-    specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    callback?: NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>
-  ): Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
-  async lookupIn<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>
-  >(
-    key: Key,
-    specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options?:
-      | LookupInOptions
-      | NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
-    callback?: NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>
   ): Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
-
-    let specsArray: ReadonlyArray<LookupInSpec> = [];
-
-    if (Array.isArray(specs)) {
-      specsArray = specs;
-    }
-
-    if (specs instanceof LookupSpecs) {
-      specsArray = specs.getSpecs();
-    }
-
-    const cppSpecs: CppImplSubdocCommand[] = [];
-    for (let i = 0; i < specsArray.length; ++i) {
-      cppSpecs.push({
-        opcode_: specsArray[i]._op,
-        flags_: specsArray[i]._flags,
-        path_: specsArray[i]._path,
-        original_index_: i,
-      });
-    }
-
-    const timeout = options.timeout || this.cluster.kvTimeout;
-    const accessDeleted = options.accessDeleted || false;
-
     try {
+      const defaultOptions = {
+        timeout: this.cluster.kvTimeout,
+        accessDeleted: false,
+      } satisfies LookupInOptions;
+
+      const resolvedOptions = {
+        ...defaultOptions,
+        ...options,
+      };
+
+      const { timeout, accessDeleted } = resolvedOptions;
       const lookupIn = promisify(this.conn.lookupIn).bind(this.conn);
+
+      const cppSpecs: CppImplSubdocCommand[] = specs.map((spec, i) => ({
+        opcode_: spec._op,
+        flags_: spec._flags,
+        path_: spec._path,
+        original_index_: i,
+      }));
 
       const response = await lookupIn({
         id: this.getDocId(key),
@@ -1972,13 +2010,13 @@ export class Collection<
   }
 
   private _lookupInReplica<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
     lookupInAllReplicas: boolean,
-    specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
+    specs: SpecDefinitions,
     options?: { timeout?: number }
   ): StreamableReplicasPromise<
     [
@@ -2016,7 +2054,7 @@ export class Collection<
       ? this.conn.lookupInAllReplicas
       : this.conn.lookupInAnyReplica;
 
-    lookupIn(
+    lookupIn.bind(this.conn)(
       {
         id: this.getDocId(key),
         specs: cppSpecs,
@@ -2084,9 +2122,9 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async lookupInAnyReplica<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+  lookupInAnyReplica<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
@@ -2096,9 +2134,9 @@ export class Collection<
       LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
     >
   ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
-  async lookupInAnyReplica<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+  lookupInAnyReplica<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: string,
@@ -2107,32 +2145,38 @@ export class Collection<
       LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
     >
   ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
-  async lookupInAnyReplica<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+
+  lookupInAnyReplica<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
-    specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options?:
-      | LookupInOptions
-      | NodeCallback<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
-    callback?: NodeCallback<
+    specs?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
+  ): LookupInReturnType<this, 'lookupInAnyReplica', Key, SpecDefinitions>;
+
+  lookupInAnyReplica<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  >(
+    key: Key,
+    ...args: LookupInArgs<
+      Doc,
+      SpecDefinitions,
       LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
     >
-  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
+  ):
+    | Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
+    | ChainableLookupIn<this, 'lookupInAnyReplica', Key, []> {
+    const { specs, options, callback } = resolveLookupInArgs(args);
+
+    if (specs === undefined) {
+      return ChainableLookupIn.for(this, 'lookupInAnyReplica', key, options);
     }
 
-    return await PromiseHelper.wrapAsync(async () => {
-      const replicas = await this._lookupInReplica(
-        key,
-        false,
-        specs,
-        options as LookupInOptions
-      );
+    return PromiseHelper.wrapAsync(async () => {
+      const replicas = await this._lookupInReplica(key, false, specs, options);
       return replicas[0];
     }, callback);
   }
@@ -2148,119 +2192,106 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   lookupInAllReplicas<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
     options: LookupInOptions,
     callback?: NodeCallback<
-      Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
     >
-  ): Promise<Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>>;
+  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
   lookupInAllReplicas<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
     callback?: NodeCallback<
-      Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
     >
-  ): Promise<Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>>;
+  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
+
   lookupInAllReplicas<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>
   >(
     key: Key,
-    specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options?:
-      | LookupInOptions
-      | NodeCallback<
-          Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
-        >,
-    callback?: NodeCallback<
-      Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
+    specs?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
+  ): LookupInReturnType<this, 'lookupInAllReplicas', Key, SpecDefinitions>;
+
+  lookupInAllReplicas<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  >(
+    key: Key,
+    ...args: LookupInArgs<
+      Doc,
+      SpecDefinitions,
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
     >
-  ): Promise<Array<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>> {
+  ):
+    | Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>
+    | ChainableLookupIn<this, 'lookupInAllReplicas', Key, []> {
+    const { specs, options, callback } = resolveLookupInArgs(args);
+
+    if (specs === undefined) {
+      return ChainableLookupIn.for(this, 'lookupInAllReplicas', key, options);
+    }
+
     return PromiseHelper.wrapAsync(
-      () => this._lookupInReplica(key, true, specs, options as LookupInOptions),
+      () => this._lookupInReplica(key, true, specs, options),
       callback
     );
   }
 
-  /**
-   * Mutate document.
-   *
-   * @param key Doc key.
-   * @param specs Specs.
-   * @param options Optional options.
-   * @param callback Optional callback.
-   */
-  async mutateIn<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+  mutateIn<
+    Key extends ExtractCollectionJsonDocKey<this>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>
   >(
     key: Key,
-    specs: NarrowMutationSpecs<Doc, SpecDefinitions>,
-    callback?: NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
-  ): Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>>;
-  async mutateIn<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
+    ...args: MutateInArgs<Doc, SpecDefinitions>
+  ): MutateInReturnType<this, Key, NoInfer<SpecDefinitions>> {
+    const { specs, options, callback: resolvedCallback } = resolveMutateInArgs(args);
+
+    if (specs === undefined) {
+      return ChainableMutateIn.for(this, key, options) as MutateInReturnType<
+        this,
+        Key,
+        SpecDefinitions
+      >;
+    }
+
+    return this._mutateIn(
+      key,
+      specs as SpecDefinitions,
+      options,
+      resolvedCallback
+    ) as MutateInReturnType<this, Key, SpecDefinitions>;
+  }
+
+  private async _mutateIn<
+    Key extends ExtractCollectionJsonDocKey<this>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>
   >(
     key: Key,
-    specs: NarrowMutationSpecs<Doc, SpecDefinitions>,
+    specs: SpecDefinitions,
     options: MutateInOptions,
     callback?: NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
-  ): Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>>;
-  async mutateIn<
-    Key extends CT['Key'],
-    Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
-    SpecDefinitions extends ReadonlyArray<MutateInSpec>
-  >(
-    key: Key,
-    specs: NarrowMutationSpecs<Doc, SpecDefinitions>,
-    options?:
-      | MutateInOptions
-      | NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>,
-    callback?: NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
   ): Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
-
-    let specsArray: ReadonlyArray<MutateInSpec> = [];
-
-    if (Array.isArray(specs)) {
-      specsArray = specs;
-    }
-
-    if (specs instanceof MutationSpecs) {
-      specsArray = specs.getSpecs();
-    }
-
-    const cppSpecs: CppImplSubdocCommand[] = [];
-    for (let i = 0; i < specsArray.length; ++i) {
-      cppSpecs.push({
-        opcode_: specsArray[i]._op,
-        flags_: specsArray[i]._flags,
-        path_: specsArray[i]._path,
-        value_: specsArray[i]._data
-          ? this.encodeSubDocument(specsArray[i]._data)
-          : specsArray[i]._data,
-        original_index_: 0,
-      });
-    }
+    const cppSpecs: CppImplSubdocCommand[] = specs.map((spec) => ({
+      opcode_: spec._op,
+      flags_: spec._flags,
+      path_: spec._path,
+      value_: spec._data ? this.encodeSubDocument(spec._data) : spec._data,
+      original_index_: 0,
+    }));
 
     const storeSemantics = options.upsertDocument
       ? StoreSemantics.Upsert
@@ -2332,7 +2363,6 @@ export class Collection<
       throw err;
     }
   }
-
   /**
    * Returns a CouchbaseList permitting simple list storage in a document.
    *

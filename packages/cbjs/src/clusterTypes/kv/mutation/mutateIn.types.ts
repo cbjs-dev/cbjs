@@ -60,8 +60,8 @@ export type IsFuzzyDocument<T> = Or<[
  */
 export type MutateInSpecResults<Specs> =
   Specs extends readonly [infer Spec extends MutateInSpec, ...infer Rest extends ReadonlyArray<MutateInSpec>] ?
-    readonly [MutateInSpecResult<Spec>, ...MutateInSpecResults<Rest>] :
-  readonly []
+    [MutateInSpecResult<Spec>, ...MutateInSpecResults<Rest>] :
+  []
 ;
 
 /**
@@ -78,8 +78,8 @@ export type MutateInSpecResult<Spec extends MutateInSpec> =
  */
 export type MutateInResultEntries<Results extends ReadonlyArray<number | undefined>> =
   Results extends readonly [infer Head extends (number | undefined), ...infer Rest extends ReadonlyArray<number | undefined>] ?
-    readonly [MutateInResultEntry<Head>, ...MutateInResultEntries<Rest>] :
-  readonly []
+    [MutateInResultEntry<Head>, ...MutateInResultEntries<Rest>] :
+  []
 ;
 
 /**

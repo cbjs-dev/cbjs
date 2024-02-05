@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { CppProtocolSubdocOpcode } from './binding';
 import { MakeLookupInSpec } from './clusterTypes/kv/lookup/lookupIn.types';
 import {
@@ -81,13 +80,13 @@ export function lookupSpec<Doc extends object>(): LookupInSpecMakers<Doc> {
  * Utility class to build an array of strongly typed {@link LookupInSpec}.
  *
  * @example
- * LookupSpecs.for<Doc>().get('title').count('tags').exists('modifiedBy');
+ * LookupSpecs.for<Doc>().get('title').count('tags').exists('modifiedBy').getSpecs();
  */
 export class LookupSpecs<
   Doc extends object,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>
 > {
-  private readonly specs: SpecDefinitions;
+  protected readonly specs: SpecDefinitions;
 
   /**
    * Create a new instance based on the given specs.
@@ -106,6 +105,12 @@ export class LookupSpecs<
    */
   static for<Doc extends object>(): LookupSpecs<Doc, []> {
     return new LookupSpecs([]);
+  }
+
+  push<Spec extends LookupInSpec>(
+    spec: Spec
+  ): LookupSpecs<Doc, [...SpecDefinitions, Spec]> {
+    return new LookupSpecs([...this.getSpecs(), spec]);
   }
 
   get(
@@ -138,7 +143,7 @@ export class LookupSpecs<
     options?: { xattr?: boolean }
   ): LookupSpecs<Doc, [...SpecDefinitions, LookupInSpec]> {
     const spec = LookupInSpec.get(path, options);
-    return new LookupSpecs([...this.getSpecs(), spec]);
+    return this.push(spec);
   }
 
   /**
@@ -158,7 +163,7 @@ export class LookupSpecs<
     [...SpecDefinitions, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.exists, Path>]
   > {
     const spec = LookupInSpec.exists<Doc, Path>(path, options);
-    return new LookupSpecs([...this.getSpecs(), spec]);
+    return this.push(spec);
   }
 
   /**
@@ -178,7 +183,7 @@ export class LookupSpecs<
     [...SpecDefinitions, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_count, Path>]
   > {
     const spec = LookupInSpec.count<Doc, Path>(path, options);
-    return new LookupSpecs([...this.getSpecs(), spec]);
+    return this.push(spec);
   }
 
   /**

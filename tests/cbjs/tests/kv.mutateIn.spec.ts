@@ -19,13 +19,15 @@ import {
   CouchbaseCas,
   DocumentExistsError,
   DocumentNotFoundError,
+  MutateInResult,
   MutateInSpec,
   StoreSemantics,
 } from '@cbjs/cbjs';
 import { getPool } from '@cbjs/http-client';
 import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
-import { beforeEach, describe } from 'vitest';
+import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
+import { beforeEach, describe, expectTypeOf } from 'vitest';
+
 import { apiConfig } from '../setupTests';
 
 describe.shuffle('kv mutateIn', async () => {
@@ -73,6 +75,206 @@ describe.shuffle('kv mutateIn', async () => {
     expect(res.content[2]).toHaveProperty('value', undefined);
     expect(res.content[3]).toHaveProperty('value', undefined);
     expect(res.content[4]).toHaveProperty('value', undefined);
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 17,
+      str: 'newStr',
+      newProp: 'newPropValue',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  test('should mutateIn given specs and options', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const res = await serverTestContext.collection.mutateIn(
+      testDocKey,
+      [
+        MutateInSpec.increment('int', 3),
+        MutateInSpec.upsert('str', 'newStr'),
+        MutateInSpec.insert('newProp', 'newPropValue'),
+        MutateInSpec.arrayAppend('arr', 4),
+        MutateInSpec.arrayAppend('arr', [5, 6], { multi: true }),
+      ],
+      { timeout: 500 }
+    );
+
+    expect(res.cas).toBeNonZeroCAS();
+    expect(res.token).toBeMutationToken();
+
+    expect(res.content[0].value).toEqual(17);
+    expect(res.content[1]).toHaveProperty('value', undefined);
+    expect(res.content[2]).toHaveProperty('value', undefined);
+    expect(res.content[3]).toHaveProperty('value', undefined);
+    expect(res.content[4]).toHaveProperty('value', undefined);
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 17,
+      str: 'newStr',
+      newProp: 'newPropValue',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  test('should mutateIn given specs and callback', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection.mutateIn(
+      testDocKey,
+      [
+        MutateInSpec.increment('int', 3),
+        MutateInSpec.upsert('str', 'newStr'),
+        MutateInSpec.insert('newProp', 'newPropValue'),
+        MutateInSpec.arrayAppend('arr', 4),
+        MutateInSpec.arrayAppend('arr', [5, 6], { multi: true }),
+      ],
+      (err, res) => {
+        expectTypeOf(err).toEqualTypeOf<Error | null>();
+        if (err) return;
+        expectTypeOf(res).toEqualTypeOf<
+          MutateInResult<readonly [number, undefined, undefined, undefined, undefined]>
+        >();
+      }
+    );
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    expect(result.content[0].value).toEqual(17);
+    expect(result.content[1]).toHaveProperty('value', undefined);
+    expect(result.content[2]).toHaveProperty('value', undefined);
+    expect(result.content[3]).toHaveProperty('value', undefined);
+    expect(result.content[4]).toHaveProperty('value', undefined);
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 17,
+      str: 'newStr',
+      newProp: 'newPropValue',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  test('should mutateIn given specs, options and callback', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection.mutateIn(
+      testDocKey,
+      [
+        MutateInSpec.increment('int', 3),
+        MutateInSpec.upsert('str', 'newStr'),
+        MutateInSpec.insert('newProp', 'newPropValue'),
+        MutateInSpec.arrayAppend('arr', 4),
+        MutateInSpec.arrayAppend('arr', [5, 6], { multi: true }),
+      ],
+      { timeout: 500 },
+      (err, res) => {
+        expectTypeOf(err).toEqualTypeOf<Error | null>();
+        if (err) return;
+        expectTypeOf(res).toEqualTypeOf<
+          MutateInResult<readonly [number, undefined, undefined, undefined, undefined]>
+        >();
+      }
+    );
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    expect(result.content[0].value).toEqual(17);
+    expect(result.content[1]).toHaveProperty('value', undefined);
+    expect(result.content[2]).toHaveProperty('value', undefined);
+    expect(result.content[3]).toHaveProperty('value', undefined);
+    expect(result.content[4]).toHaveProperty('value', undefined);
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 17,
+      str: 'newStr',
+      newProp: 'newPropValue',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  test('should perform the mutateIn using ChainableMutateIn instance specs', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .increment('int', 3)
+      .upsert('str', 'newStr')
+      .insert('newProp', 'newPropValue')
+      .arrayAppend('arr', 4)
+      .arrayAppend('arr', [5, 6], { multi: true });
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    expect(result.content[0].value).toEqual(17);
+    expect(result.content[1]).toHaveProperty('value', undefined);
+    expect(result.content[2]).toHaveProperty('value', undefined);
+    expect(result.content[3]).toHaveProperty('value', undefined);
+    expect(result.content[4]).toHaveProperty('value', undefined);
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 17,
+      str: 'newStr',
+      newProp: 'newPropValue',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  test('should perform the mutateIn using ChainableMutateIn instance specs with options', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey, { timeout: 500 })
+      .increment('int', 3)
+      .upsert('str', 'newStr')
+      .insert('newProp', 'newPropValue')
+      .arrayAppend('arr', 4)
+      .arrayAppend('arr', [5, 6], { multi: true });
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    expect(result.content[0].value).toEqual(17);
+    expect(result.content[1]).toHaveProperty('value', undefined);
+    expect(result.content[2]).toHaveProperty('value', undefined);
+    expect(result.content[3]).toHaveProperty('value', undefined);
+    expect(result.content[4]).toHaveProperty('value', undefined);
 
     const resultGet = await serverTestContext.collection.get(testDocKey);
 
@@ -141,7 +343,7 @@ describe.shuffle('kv mutateIn', async () => {
     } catch (err) {
       expect(err).toBeInstanceOf(DocumentExistsError);
       invariant(err instanceof DocumentExistsError);
-      // TODO uncomment once the issue is fixed: JSCBC-1228
+      // Issue JSCBC-1228
       // expect(err.context).toBeInstanceOf(HttpErrorContext);
     }
   });
@@ -165,7 +367,7 @@ describe.shuffle('kv mutateIn', async () => {
     } catch (err) {
       expect(err).toBeInstanceOf(DocumentNotFoundError);
       invariant(err instanceof DocumentNotFoundError);
-      // TODO uncomment once the issue is fixed: JSCBC-1228
+      // Issue JSCBC-1228
       // expect(err.context).toBeInstanceOf(HttpErrorContext);
     }
   });
@@ -183,7 +385,7 @@ describe.shuffle('kv mutateIn', async () => {
     } catch (err) {
       expect(err).toBeInstanceOf(DocumentNotFoundError);
       invariant(err instanceof DocumentNotFoundError);
-      // TODO uncomment once the issue is fixed: JSCBC-1228
+      // Issue JSCBC-1228
       // expect(err.context).toBeInstanceOf(HttpErrorContext);
     }
   });
@@ -206,7 +408,7 @@ describe.shuffle('kv mutateIn', async () => {
     } catch (err) {
       expect(err).toBeInstanceOf(CasMismatchError);
       invariant(err instanceof CasMismatchError);
-      // TODO uncomment once the issue is fixed: JSCBC-1228
+      // Issue JSCBC-1228
       // expect(err.context).toBeInstanceOf(HttpErrorContext);
     }
   });

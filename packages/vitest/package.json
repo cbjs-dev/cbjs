@@ -19,8 +19,8 @@
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && cp package.json dist/package.json",
-    "build:watch": "tsc --watch",
+    "build": "cp package.json dist/package.json && tsc -p tsconfig.build.json",
+    "build:watch": "cp package.json dist/package.json && tsc --watch -p tsconfig.build.json",
     "ts-check": "tsc --noEmit",
     "test": "vitest --run"
   },

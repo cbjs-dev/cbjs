@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
 
 import {
@@ -36,7 +35,7 @@ import {
 } from './lookupIn.types';
 import { LookupInMacroDocument } from './lookupInMacro.types';
 
-describe('LookupInSpecs', function () {
+describe('LookupInSpecs', () => {
   type TestDoc = {
     title: string;
     metadata: {
@@ -63,9 +62,9 @@ describe('LookupInSpecs', function () {
     };
   };
 
-  describe('lookupIn', function () {
-    describe('Default ClusterTypes', function () {
-      it('should infer the result type from an array of typeless specs with `any` for get operations', async function () {
+  describe('lookupIn', () => {
+    describe('Default ClusterTypes', () => {
+      it('should infer the result type from an array of typeless specs with `any` for get operations', async () => {
         const cluster = await connect('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -79,6 +78,50 @@ describe('LookupInSpecs', function () {
         expectTypeOf(result).toEqualTypeOf<
           LookupInResult<readonly [any, any, number, boolean]>
         >();
+
+        await collection.lookupIn(
+          'test__document',
+          [
+            LookupInSpec.get('title'),
+            LookupInSpec.get('does_not_exists'),
+            LookupInSpec.count('metadata.tags'),
+            LookupInSpec.exists('metadata.tags[0]'),
+          ],
+          { timeout: 200 }
+        );
+
+        await collection.lookupIn(
+          'test__document',
+          [
+            LookupInSpec.get('title'),
+            LookupInSpec.get('does_not_exists'),
+            LookupInSpec.count('metadata.tags'),
+            LookupInSpec.exists('metadata.tags[0]'),
+          ],
+          (err, res) => {
+            if (err) return;
+          }
+        );
+
+        await collection.lookupIn(
+          'test__document',
+          [
+            LookupInSpec.get('title'),
+            LookupInSpec.get('does_not_exists'),
+            LookupInSpec.count('metadata.tags'),
+            LookupInSpec.exists('metadata.tags[0]'),
+          ],
+          { timeout: 200 },
+          (err, res) => {
+            if (err) return;
+          }
+        );
+
+        await collection
+          .lookupIn('test__document')
+          .get('title')
+          .exists('does_not_exists')
+          .count('metadata.tags');
 
         const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
           LookupInSpec.get('title'),
@@ -106,7 +149,7 @@ describe('LookupInSpecs', function () {
         >();
       });
 
-      it('should infer the result type from an array of typed specs', async function () {
+      it('should infer the result type from an array of typed specs', async () => {
         const cluster = await connect('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -147,7 +190,7 @@ describe('LookupInSpecs', function () {
         >();
       });
 
-      it('should infer the result type from an array of specs built with typed makers', async function () {
+      it('should infer the result type from an array of specs built with typed makers', async () => {
         const cluster = await connect('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -184,21 +227,10 @@ describe('LookupInSpecs', function () {
           Array<LookupInReplicaResult<readonly [string, number, boolean]>>
         >();
       });
-
-      it('should infer the result type from an instance of LookupSpecs', async function () {
-        const cluster = await connect('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        // const result = await collection.lookupIn('test__document',
-        //   LookupSpecs.for<TestDoc>().get('title').count('metadata.tags').exists('metadata.tags[0]')
-        // );
-        //
-        // expectTypeOf(result).toEqualTypeOf<LookupInResult<readonly [string, number, boolean]>>();
-      });
     });
 
-    describe('User-defined ClusterTypes', function () {
-      it('should validate the path given to typeless spec based on collection documents', async function () {
+    describe('User-defined ClusterTypes', () => {
+      it('should validate the path given to typeless spec based on collection documents', async () => {
         const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -206,7 +238,54 @@ describe('LookupInSpecs', function () {
           LookupInSpec.get('title'),
           // @ts-expect-error Invalid path throughout all the documents of the collection
           LookupInSpec.get('does_not_exists'),
+          // @ts-expect-error Invalid path throughout all the documents of the collection
+          LookupInSpec.exists('does_not_exists'),
+          // @ts-expect-error Invalid path throughout all the documents of the collection
+          LookupInSpec.count('does_not_exists'),
         ]);
+
+        await collection.lookupIn(
+          'test__document',
+          [
+            LookupInSpec.get('title'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.get('does_not_exists'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.exists('does_not_exists'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.count('does_not_exists'),
+          ],
+          { timeout: 200 }
+        );
+
+        await collection.lookupIn(
+          'test__document',
+          [
+            LookupInSpec.get('title'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.get('does_not_exists'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.exists('does_not_exists'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.count('does_not_exists'),
+          ],
+          (err, res) => {
+            if (err) return;
+          }
+        );
+
+        await collection.lookupIn(
+          'test__document',
+          [
+            LookupInSpec.get('title'),
+            // @ts-expect-error Invalid path throughout all the documents of the collection
+            LookupInSpec.get('does_not_exists'),
+          ],
+          { timeout: 200 },
+          (err, res) => {
+            if (err) return;
+          }
+        );
 
         await collection.lookupInAnyReplica('test__document', [
           LookupInSpec.get('title'),
@@ -221,7 +300,7 @@ describe('LookupInSpecs', function () {
         ]);
       });
 
-      it('should infer the result type of an array of typeless specs based on collection documents', async function () {
+      it('should infer the result type of an array of typeless specs based on collection documents', async () => {
         const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -259,7 +338,7 @@ describe('LookupInSpecs', function () {
         >();
       });
 
-      it('should validate the path of the specs carried by an instance of a typeless Specs', async function () {
+      it('should validate the path of the specs carried by an instance of a typeless Specs', async () => {
         const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -282,18 +361,7 @@ describe('LookupInSpecs', function () {
         );
       });
 
-      it('should infer the result type of a Specs instance', async function () {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        // const result = await collection.lookupIn('test__document',
-        //   LookupSpecs.for<TestDoc>().get('title').count('metadata.tags').exists('metadata.tags[0]')
-        // );
-        //
-        // expectTypeOf(result).toEqualTypeOf<LookupInResult<readonly [string, number, boolean]>>();
-      });
-
-      it('should infer the result type from an array built with makeLookupInSpec()', async function () {
+      it('should infer the result type from an array built with lookupSpec()', async () => {
         const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
@@ -333,15 +401,13 @@ describe('LookupInSpecs', function () {
     });
   });
 
-  describe('LookupInSpecResult', function () {
+  describe('LookupInSpecResult', () => {
     type Test<
       Path extends LookupInInternalPath<TestDoc, Opcode>,
       Opcode extends LookupInSpecOpCode
     > = LookupInSpecResult<LookupInSpec<TestDoc, Opcode, Path>, never>;
 
-    type P = LookupInInternalPath<TestDoc, CppProtocolSubdocOpcode.get_count>;
-
-    it('should infer the correct type', function () {
+    it('should infer the correct type', () => {
       expectTypeOf<
         Test<'$document', CppProtocolSubdocOpcode.get>
       >().toEqualTypeOf<LookupInMacroDocument>();
@@ -369,8 +435,8 @@ describe('LookupInSpecs', function () {
     });
   });
 
-  describe('LookupInSpecResults', function () {
-    it('should infer the correct result when using user defined document', function () {
+  describe('LookupInSpecResults', () => {
+    it('should infer the correct result when using user defined document', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
@@ -381,10 +447,10 @@ describe('LookupInSpecs', function () {
           ],
           TestDoc | TestDoc2
         >
-      >().toEqualTypeOf<readonly [string, boolean, number, string | undefined]>();
+      >().toEqualTypeOf<[string, boolean, number, string | undefined]>();
     });
 
-    it('should provide best-effort when using collection documents', function () {
+    it('should provide best-effort when using collection documents', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
@@ -394,10 +460,10 @@ describe('LookupInSpecs', function () {
           ],
           TestDoc | TestDoc2
         >
-      >().toEqualTypeOf<readonly [string | number, boolean, number]>();
+      >().toEqualTypeOf<[string | number, boolean, number]>();
     });
 
-    it('should fallback to `any` when using efault cluster types', function () {
+    it('should fallback to `any` when using efault cluster types', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
@@ -407,13 +473,13 @@ describe('LookupInSpecs', function () {
           ],
           any
         >
-      >().toEqualTypeOf<readonly [any, boolean, number]>();
+      >().toEqualTypeOf<[any, boolean, number]>();
     });
   });
 
-  describe('LookupInSpec - legacy', function () {
-    describe('LookupInSpec.get', function () {
-      it('should return correct type', function () {
+  describe('LookupInSpec - legacy', () => {
+    describe('LookupInSpec.get', () => {
+      it('should return correct type', () => {
         expectTypeOf(LookupInSpec.get('')).toEqualTypeOf<
           LookupInSpec<object, CppProtocolSubdocOpcode.get_doc, ''>
         >();
@@ -426,8 +492,8 @@ describe('LookupInSpecs', function () {
       });
     });
 
-    describe('LookupInSpec.count', function () {
-      it('should return correct type', function () {
+    describe('LookupInSpec.count', () => {
+      it('should return correct type', () => {
         expectTypeOf(LookupInSpec.count('')).toEqualTypeOf<
           LookupInSpec<object, CppProtocolSubdocOpcode.get_count, ''>
         >();
@@ -442,8 +508,8 @@ describe('LookupInSpecs', function () {
       });
     });
 
-    describe('LookupInSpec.exists', function () {
-      it('should return correct type', function () {
+    describe('LookupInSpec.exists', () => {
+      it('should return correct type', () => {
         expectTypeOf(LookupInSpec.exists('')).toEqualTypeOf<
           LookupInSpec<object, CppProtocolSubdocOpcode.exists, ''>
         >();
@@ -457,10 +523,10 @@ describe('LookupInSpecs', function () {
     });
   });
 
-  describe('LookupInResultEntries', function () {
-    it('should infer the array of result', function () {
+  describe('LookupInResultEntries', () => {
+    it('should infer the array of result', () => {
       expectTypeOf<LookupInResultEntries<[string, number, boolean]>>().toEqualTypeOf<
-        readonly [
+        [
           LookupInResultEntry<string>,
           LookupInResultEntry<number>,
           LookupInResultEntry<boolean>

@@ -14,12 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '@cbjs/shared';
-import { beforeEach, describe } from 'vitest';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
-
-import { DocumentNotFoundError, LookupInSpec, PathNotFoundError } from '@cbjs/cbjs';
+import {
+  DocumentNotFoundError,
+  LookupInResult,
+  LookupInSpec,
+  PathNotFoundError,
+} from '@cbjs/cbjs';
+import { ChainableLookupIn } from '@cbjs/cbjs/internal';
 import { getPool } from '@cbjs/http-client';
+import { invariant } from '@cbjs/shared';
+import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
+import { beforeEach, describe, expectTypeOf } from 'vitest';
+
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
@@ -79,9 +85,135 @@ describe.shuffle('kv lookupIn', async () => {
     expect(res.content).toStrictEqual(res.results);
   });
 
-  test('should throw DocumentNotFoundError when lookupIn a missing document', async ({
+  test('should lookupIn given specs with options', async ({
     serverTestContext,
     testDocKey,
+    expect,
+  }) => {
+    const result = await serverTestContext.collection.lookupIn(
+      testDocKey,
+      [
+        LookupInSpec.get('str'),
+        LookupInSpec.get('int'),
+        LookupInSpec.get('missingPath'),
+        LookupInSpec.exists('missingPath'),
+      ],
+      { timeout: 200 }
+    );
+
+    expect(result.content).toBeInstanceOf(Array);
+    expect(result.content).toHaveLength(4);
+  });
+
+  test('should lookupIn given specs with callback', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    const result = await serverTestContext.collection.lookupIn(
+      testDocKey,
+      [
+        LookupInSpec.get('str'),
+        LookupInSpec.get('int'),
+        LookupInSpec.get('missingPath'),
+        LookupInSpec.exists('missingPath'),
+      ],
+      (err, res) => {
+        expectTypeOf(err).toEqualTypeOf<Error | null>();
+        if (err) return;
+
+        expectTypeOf(res).toEqualTypeOf<LookupInResult<[any, any, any, boolean]>>();
+      }
+    );
+
+    expect(result.content).toBeInstanceOf(Array);
+    expect(result.content).toHaveLength(4);
+  });
+
+  test('should lookupIn given specs with options and callback', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    const result = await serverTestContext.collection.lookupIn(
+      testDocKey,
+      [
+        LookupInSpec.get('str'),
+        LookupInSpec.get('int'),
+        LookupInSpec.get('missingPath'),
+        LookupInSpec.exists('missingPath'),
+      ],
+      { timeout: 200 },
+      (err, res) => {
+        expectTypeOf(err).toEqualTypeOf<Error | null>();
+        if (err) return;
+
+        expectTypeOf(res).toEqualTypeOf<LookupInResult<[any, any, any, boolean]>>();
+      }
+    );
+
+    expect(result.content).toBeInstanceOf(Array);
+    expect(result.content).toHaveLength(4);
+  });
+
+  test('should perform the lookupIn using ChainableLookupIn instance specs', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    const lookup = serverTestContext.collection
+      .lookupIn(testDocKey)
+      .get('str')
+      .get('int')
+      .get('missingPath')
+      .exists('missingPath');
+
+    expect(lookup).toBeInstanceOf(ChainableLookupIn);
+
+    const result = await lookup;
+
+    expect(result.content).toBeInstanceOf(Array);
+    expect(result.content).toHaveLength(4);
+
+    expect(result.content[0].error).toBeNull();
+    expect(result.content[0].value).toEqual('hello');
+
+    expect(result.content[1].error).toBeNull();
+    expect(result.content[1].value).toEqual(14);
+
+    expect(result.content[2].error).toBeInstanceOf(PathNotFoundError);
+    expect(result.content[2].error).toHaveProperty('context', undefined);
+    expect(result.content[2].value).toBeUndefined();
+
+    expect(result.content[3].error).toBeNull();
+    expect(result.content[3].value).toEqual(false);
+
+    // Support legacy API
+    expect(result.content).toStrictEqual(result.results);
+  });
+
+  test('should perform the lookupIn using ChainableLookupIn instance specs with options', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    const lookup = serverTestContext.collection
+      .lookupIn(testDocKey, { timeout: 200 })
+      .get('str')
+      .get('int')
+      .get('missingPath')
+      .exists('missingPath');
+
+    expect(lookup).toBeInstanceOf(ChainableLookupIn);
+
+    const result = await lookup;
+
+    expect(result.content).toBeInstanceOf(Array);
+    expect(result.content).toHaveLength(4);
+  });
+
+  test('should throw DocumentNotFoundError when lookupIn a missing document', async ({
+    serverTestContext,
     expect,
   }) => {
     expect.hasAssertions();
@@ -93,7 +225,7 @@ describe.shuffle('kv lookupIn', async () => {
     } catch (err) {
       expect(err).toBeInstanceOf(DocumentNotFoundError);
       invariant(err instanceof DocumentNotFoundError);
-      // TODO uncomment once the issue is fixed: JSCBC-1228
+      // Issue JSCBC-1228
       // expect(err.context).toBeInstanceOf(KeyValueErrorContext);
     }
   });

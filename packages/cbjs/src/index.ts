@@ -60,14 +60,4 @@ export * from './viewtypes';
 
 export type * from './clusterTypes';
 
-export type {
-  Keyspace
-} from '@cbjs/shared';
-
-export type {
-  CppProtocolSubdocOpcode
-} from './binding';
-
-// Later export as "@cbjs/cbjs/internals"
-
-export { ConnSpec } from './connspec';
+export type { Keyspace } from '@cbjs/shared';

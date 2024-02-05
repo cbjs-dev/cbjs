@@ -106,8 +106,8 @@ type LastInUnion<U> =
  */
 export type UnionToTuple<U, Last = LastInUnion<U>> =
   [U] extends [never] ?
-    [] :
-  [...UnionToTuple<Exclude<U, Last>>, Last]
+    readonly [] :
+  readonly [...UnionToTuple<Exclude<U, Last>>, Last]
 ;
 
 /**
@@ -151,8 +151,8 @@ export type Split<
 /**
  * Join a tuple of string into a string.
  */
-export type Join<Tuple extends ReadonlyArray<string>, Glue extends string, InitialString extends string = ''> =
-  Tuple extends [infer Head extends string, ...(infer Rest extends string[])] ?
+export type Join<Tuple extends ReadonlyArray<unknown>, Glue extends string, InitialString extends string = ''> =
+  Tuple extends readonly [infer Head extends string, ...(infer Rest extends ReadonlyArray<string>)] ?
     InitialString extends '' ?
       Join<Rest, Glue, `${Head}`> :
     Join<Rest, Glue, `${InitialString}${Glue}${Head}`> :
@@ -174,3 +174,8 @@ export type RequiredProps<T, K extends keyof T> = Pretty<
 >;
 
 export type PromiseValue<T> = T extends Promise<infer V> ? V : T;
+
+/**
+ * Artificially block TS from inferring the given type parameter, stopping union creation
+ */
+export type NoInfer<T> = [T][T extends any ? 0 : never]
