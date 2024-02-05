@@ -61,3 +61,7 @@ export * from './viewtypes';
 export type * from './clusterTypes';
 
 export type { Keyspace } from '@cbjs/shared';
+export { CouchbaseList } from './services/kv/dataStructures/CouchbaseList';
+export { CouchbaseMap } from './services/kv/dataStructures/CouchbaseMap';
+export { CouchbaseQueue } from './services/kv/dataStructures/CouchbaseQueue';
+export { CouchbaseSet } from './services/kv/dataStructures/CouchbaseSet';

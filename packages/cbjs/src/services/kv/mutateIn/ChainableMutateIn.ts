@@ -25,7 +25,6 @@ import {
   AnyMutateInValue,
   MutateInSpecResults,
   MutateInValue,
-  NarrowMutationSpecs,
 } from '../../../clusterTypes/kv/mutation/mutateIn.types';
 import {
   MutateInArrayAddUniqueOptions,

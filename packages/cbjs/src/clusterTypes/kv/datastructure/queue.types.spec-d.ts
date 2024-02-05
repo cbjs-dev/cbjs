@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
 
 import { connect } from '../../..';
 import { Collection } from '../../../collection';
-import { CouchbaseQueue } from '../../../datastructures';
+import { CouchbaseQueue } from '../../../services/kv/dataStructures/CouchbaseQueue';
 import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '../../clusterTypes';
 
 describe('CouchbaseQueue', function () {

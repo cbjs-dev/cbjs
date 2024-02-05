@@ -110,12 +110,6 @@ import {
   MutationResult,
   ScanResult,
 } from './crudoptypes';
-import {
-  CouchbaseList,
-  CouchbaseMap,
-  CouchbaseQueue,
-  CouchbaseSet,
-} from './datastructures';
 import { InvalidArgumentError } from './errors';
 import { DurabilityLevel, StoreSemantics } from './generaltypes';
 import { MutationState } from './mutationstate';
@@ -124,6 +118,10 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
+import { CouchbaseList } from './services/kv/dataStructures/CouchbaseList';
+import { CouchbaseMap } from './services/kv/dataStructures/CouchbaseMap';
+import { CouchbaseQueue } from './services/kv/dataStructures/CouchbaseQueue';
+import { CouchbaseSet } from './services/kv/dataStructures/CouchbaseSet';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
 import { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
