@@ -10,8 +10,9 @@
   },
   "type": "module",
   "scripts": {
-    "build": "cp package.json dist/package.json && tsc -p tsconfig.build.json",
-    "build:watch": "cp package.json dist/package.json && tsc --watch -p tsconfig.build.json",
+    "prebuild": "[ -d dist/. ] || mkdir dist && cp package.json dist/package.json",
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "npm run build -- --watch",
     "test": "vitest --run"
   },
   "main": "dist/src/index.js",

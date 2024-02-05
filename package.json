@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "npm run build -workspaces --if-present",
-    "build:watch": "npm run build:watch -workspaces --if-present",
+    "dev": "npm run dev -workspaces --if-present",
     "test": "vitest --run"
   },
   "devDependencies": {
