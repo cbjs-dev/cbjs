@@ -13,30 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { RoleName } from '@cbjs/shared';
 
 export type ApiUser = {
-  "id": string,
-  "domain": "local" | (string & NonNullable<unknown>),
-  "roles": Array<
-    {
-      "role": RoleName,
-      "origins": Array<{
-        type: string;
-        name?: string;
-      }>
-    }
-  >,
-  "groups": string[],
-  "external_groups": string[],
-  "name": "",
-  "uuid": string,
+  id: string;
+  domain: 'local' | (string & NonNullable<unknown>);
+  roles: ApiUserRole[];
+  groups: string[];
+  external_groups: string[];
+  name: '';
+  uuid: string;
 
   /**
    * Date string ISO
    *
    * @example 2024-01-16T20:09:52.000Z
    */
-  "password_change_date": string;
-}
+  password_change_date: string;
+};
+
+export type ApiUserRole = {
+  role: RoleName;
+  origins?: ApiUserRoleOrigin[];
+  bucket_name?: '*' | (string & NonNullable<unknown>);
+  scope_name?: '*' | (string & NonNullable<unknown>);
+  collection_name?: '*' | (string & NonNullable<unknown>);
+};
+
+export type ApiUserRoleOrigin = {
+  type: string;
+  name?: string;
+};

@@ -621,7 +621,7 @@ export class CollectionQueryIndexManager<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T>,
   S extends ScopeName<T, B>,
-  C extends CollectionName<T, B, S>
+  C extends CollectionName<T, B, S>,
 > {
   private _bucketName: B;
   private _scopeName: S;

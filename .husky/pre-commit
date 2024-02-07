@@ -1,0 +1,6 @@
+set -e
+
+#npm run lint:check
+npm run prettier:write
+
+exit 1

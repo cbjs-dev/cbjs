@@ -19,11 +19,11 @@ export async function runCase(casePath: string, ...args: string[]) {
     let result = '';
     let error = '';
 
-    nodeProcess.stdout.on('data', (data) => {
+    nodeProcess.stdout.on('data', (data: { toString(): string }) => {
       result += data.toString();
     });
 
-    nodeProcess.stderr.on('data', (data) => {
+    nodeProcess.stderr.on('data', (data: { toString(): string }) => {
       error += data.toString();
     });
 

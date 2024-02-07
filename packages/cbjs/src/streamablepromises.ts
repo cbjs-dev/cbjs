@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn } from '@cbjs/shared';
 import { EventEmitter } from 'events';
+
+import { hasOwn } from '@cbjs/shared';
 
 import { EventMap, TypedEmitter } from './utils/TypedEmitter';
 
@@ -33,6 +34,7 @@ type PromisifyFunc<T, EM extends EventMap> = (
  */
 export class StreamablePromise<T, EM extends EventMap>
   extends (EventEmitter as unknown as {
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type
     new <TEM extends EventMap>(): TypedEmitter<TEM>;
   })<EM>
   implements Promise<T>
@@ -79,7 +81,7 @@ export class StreamablePromise<T, EM extends EventMap>
    * @internal
    */
   get [Symbol.toStringTag](): string {
-    return (Promise as any)[Symbol.toStringTag];
+    return (Promise as never)[Symbol.toStringTag];
   }
 }
 
@@ -103,10 +105,10 @@ export class StreamableRowPromise<T, TRow, TMeta> extends StreamablePromise<
       const rows: TRow[] = [];
       let meta: TMeta | undefined;
 
-      emitter.on('row', (r) => rows.push(r));
-      emitter.on('meta', (m) => (meta = m));
-      emitter.on('error', (e) => (err = e));
-      emitter.on('end', () => {
+      void emitter.on('row', (r) => rows.push(r));
+      void emitter.on('meta', (m) => (meta = m));
+      void emitter.on('error', (e) => (err = e));
+      void emitter.on('end', () => {
         if (err) {
           return reject(err);
         }
@@ -135,9 +137,9 @@ export class StreamableReplicasPromise<T, TRep> extends StreamablePromise<
       let err: Error | undefined;
       const replicas: TRep[] = [];
 
-      emitter.on('replica', (r) => replicas.push(r));
-      emitter.on('error', (e) => (err = e));
-      emitter.on('end', () => {
+      void emitter.on('replica', (r) => replicas.push(r));
+      void emitter.on('error', (e) => (err = e));
+      void emitter.on('end', () => {
         if (err) {
           return reject(err);
         }
@@ -163,9 +165,9 @@ export class StreamableScanPromise<T, TRes> extends StreamablePromise<
       let err: Error | undefined;
       const results: TRes[] = [];
 
-      emitter.on('result', (r) => results.push(r));
-      emitter.on('error', (e) => (err = e));
-      emitter.on('end', () => {
+      void emitter.on('result', (r) => results.push(r));
+      void emitter.on('error', (e) => (err = e));
+      void emitter.on('end', () => {
         if (err) {
           return reject(err);
         }

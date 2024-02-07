@@ -38,8 +38,8 @@ export class UserGroupFixture extends FixtureFunctionValue<
     params: UserGroupFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.name = params.name || serverTestContext.newUid();
-    this.roles = params.roles || ['admin'];
+    this.name = params.name ?? serverTestContext.newUid();
+    this.roles = params.roles ?? ['admin'];
 
     logger?.debug(
       `Creating user group '${this.name}' with roles: ${this.roles.join(', ')}`

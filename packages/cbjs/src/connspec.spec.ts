@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { PasswordAuthenticator, ConnSpec } from '@cbjs/cbjs';
 import { describe, it } from 'vitest';
 
 import { invariant } from '@cbjs/shared';
+
+import { PasswordAuthenticator } from './authenticators';
+import { ConnSpec } from './connspec';
 
 describe.shuffle('ConnSpec', function () {
   describe('stringify', function () {

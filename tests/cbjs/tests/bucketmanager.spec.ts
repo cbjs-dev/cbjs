@@ -28,6 +28,7 @@ import {
 } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.shuffle('bucket manager', async () => {

@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/* eslint jsdoc/require-jsdoc: off */
 import binding from './binding';
 import {
   errorFromCpp,
@@ -67,7 +65,7 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
       });
     });
 
-    const timeout = options.timeout || this._cluster.viewTimeout;
+    const timeout = options.timeout ?? this._cluster.viewTimeout;
 
     this._cluster.conn.documentView(
       {
@@ -81,23 +79,15 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
         consistency: viewScanConsistencyToCpp(options.scanConsistency),
         keys: options.keys ? options.keys.map((k) => JSON.stringify(k)) : [],
         key: JSON.stringify(options.key),
-        start_key:
-          options.range && options.range.start
-            ? JSON.stringify(options.range.start)
-            : undefined,
-        end_key:
-          options.range && options.range.end
-            ? JSON.stringify(options.range.end)
-            : undefined,
+        start_key: options.range?.start ? JSON.stringify(options.range.start) : undefined,
+        end_key: options.range?.end ? JSON.stringify(options.range.end) : undefined,
         inclusive_end: options.range ? options.range.inclusiveEnd : undefined,
-        start_key_doc_id:
-          options.idRange && options.idRange.start
-            ? JSON.stringify(options.idRange.start)
-            : undefined,
-        end_key_doc_id:
-          options.idRange && options.idRange.end
-            ? JSON.stringify(options.idRange.end)
-            : undefined,
+        start_key_doc_id: options.idRange?.start
+          ? JSON.stringify(options.idRange.start)
+          : undefined,
+        end_key_doc_id: options.idRange?.end
+          ? JSON.stringify(options.idRange.end)
+          : undefined,
         reduce: options.reduce,
         group: options.group,
         group_level: options.groupLevel,
@@ -118,7 +108,7 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
           emitter.emit(
             'row',
             new ViewRow<TValue, TKey>({
-              value: JSON.parse(row.value),
+              value: JSON.parse(row.value) as TValue,
               id: row.id,
               key: row.key,
             })

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe } from 'vitest';
+
 import { getQueryIndexes } from '@cbjs/http-client';
 import { createCouchbaseTest } from '@cbjs/vitest';
-import { describe } from 'vitest';
 
 describe(
   'getQueryIndexes',

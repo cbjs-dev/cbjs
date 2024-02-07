@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '@cbjs/shared';
 import { describe } from 'vitest';
-import { createCouchbaseTest } from '@cbjs/vitest';
 
 import { DocumentNotFoundError, KeyValueErrorContext } from '@cbjs/cbjs';
+import { invariant } from '@cbjs/shared';
+import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { getLargeTestDocument } from './kv._helpers';
 
 describe.shuffle('kv remove', async () => {

@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './UserGroupFixture'
-export * from './UserFixture'
+export * from './UserGroupFixture';
+export * from './UserFixture';

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { AnalyticsExecutor } from './analyticsexecutor';
 import {
   AnalyticsMetaData,
@@ -42,7 +41,7 @@ import { NodeCallback, PromiseHelper } from './utilities';
 export class Scope<
   in out T extends CouchbaseClusterTypes,
   in out B extends BucketName<T>,
-  in out S extends ScopeName<T, B>
+  in out S extends ScopeName<T, B>,
 > {
   /**
    * @internal

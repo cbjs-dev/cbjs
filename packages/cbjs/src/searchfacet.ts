@@ -23,30 +23,30 @@
  * @category Full Text Search
  */
 export class SearchFacet {
-  protected _data: any
+  protected _data: any;
 
   constructor(data: any) {
     if (!data) {
-      data = {}
+      data = {};
     }
 
-    this._data = data
+    this._data = data;
   }
 
   toJSON(): any {
-    return this._data
+    return this._data;
   }
 
   static term(field: string, size: number): TermSearchFacet {
-    return new TermSearchFacet(field, size)
+    return new TermSearchFacet(field, size);
   }
 
   static numeric(field: string, size: number): NumericSearchFacet {
-    return new NumericSearchFacet(field, size)
+    return new NumericSearchFacet(field, size);
   }
 
   static date(field: string, size: number): DateSearchFacet {
-    return new DateSearchFacet(field, size)
+    return new DateSearchFacet(field, size);
   }
 }
 
@@ -63,7 +63,7 @@ export class TermSearchFacet extends SearchFacet {
     super({
       field: field,
       size: size,
-    })
+    });
   }
 }
 
@@ -81,7 +81,7 @@ export class NumericSearchFacet extends SearchFacet {
       field: field,
       size: size,
       numeric_ranges: [],
-    })
+    });
   }
 
   addRange(name: string, min?: number, max?: number): NumericSearchFacet {
@@ -89,8 +89,8 @@ export class NumericSearchFacet extends SearchFacet {
       name: name,
       min: min,
       max: max,
-    })
-    return this
+    });
+    return this;
   }
 }
 
@@ -108,7 +108,7 @@ export class DateSearchFacet extends SearchFacet {
       field: field,
       size: size,
       date_ranges: [],
-    })
+    });
   }
 
   addRange(name: string, start?: Date, end?: Date): DateSearchFacet {
@@ -116,7 +116,7 @@ export class DateSearchFacet extends SearchFacet {
       name: name,
       start: start,
       end: end,
-    })
-    return this
+    });
+    return this;
   }
 }

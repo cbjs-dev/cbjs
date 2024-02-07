@@ -14,20 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { raise } from '@cbjs/shared';
 import { CouchbaseFixtures } from '@cbjs/vitest';
+
 import { DataSample, SampleCollection } from '../utils/dataSample';
 
-export async function useSampleData({ serverTestContext }: CouchbaseFixtures, use: (v: (target: SampleCollection) => Promise<{ sampleSize: number; testUid: string }>) => Promise<void>) {
+export async function useSampleData(
+  { serverTestContext }: CouchbaseFixtures,
+  use: (
+    v: (target: SampleCollection) => Promise<{ sampleSize: number; testUid: string }>
+  ) => Promise<void>
+) {
   const sampleData = new DataSample(serverTestContext);
 
   await use(async (target: SampleCollection) => {
     await sampleData.upsertSample(target);
     return {
-      sampleSize: sampleData.getSampleSize() || raise('DataSample.getSampleSize() should never be undefined after the data has been upserted'),
+      sampleSize:
+        sampleData.getSampleSize() ??
+        raise(
+          'DataSample.getSampleSize() should never be undefined after the data has been upserted'
+        ),
       testUid: sampleData.getTestUid(),
-    }
+    };
   });
 
   await sampleData.removeSample();

@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */
+// eslint-disable-next-line no-restricted-imports
 import { expect } from 'vitest';
 
 import { CouchbaseCas } from '@cbjs/cbjs';
@@ -26,7 +29,11 @@ expect.extend({
       pass: false,
     };
 
-    if (typeof received !== 'object' || received.toJSON === undefined || received.toString === undefined) {
+    if (
+      typeof received !== 'object' ||
+      received.toJSON === undefined ||
+      received.toString === undefined
+    ) {
       return failure;
     }
 
@@ -47,7 +54,11 @@ expect.extend({
       pass: false,
     };
 
-    if (typeof received !== 'object' || received.toJSON === undefined || received.toString === undefined) {
+    if (
+      typeof received !== 'object' ||
+      received.toJSON === undefined ||
+      received.toString === undefined
+    ) {
       return failure;
     }
 
@@ -62,6 +73,7 @@ expect.extend({
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface ExpectCAS<R = unknown> {
   toBeNonZeroCAS(): R;
   toBeZeroCAS(): R;

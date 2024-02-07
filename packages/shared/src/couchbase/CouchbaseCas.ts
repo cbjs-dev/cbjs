@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Buffer } from 'node:buffer';
 
 /**
  * CAS represents an opaque value which can be used to compare documents to
@@ -21,7 +20,7 @@ import { Buffer } from 'node:buffer';
  *
  * @category Key-Value
  */
-export interface Cas {
+export type Cas = {
   /**
    * Generates a string representation of this CAS.
    */
@@ -30,5 +29,5 @@ export interface Cas {
   /**
    * Generates a JSON representation of this CAS.
    */
-  toJSON(): any;
-}
+  toJSON(): Record<string, unknown>;
+};

@@ -67,7 +67,7 @@ export type BucketName<T extends CouchbaseClusterTypes> = Extract<keyof T, strin
  */
 export type ScopeName<
   T extends CouchbaseClusterTypes,
-  B extends BucketName<T> = BucketName<T>
+  B extends BucketName<T> = BucketName<T>,
 > = B extends BucketName<T> ? Extract<keyof T[B], string> : never;
 
 /**
@@ -76,12 +76,13 @@ export type ScopeName<
 export type CollectionName<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T> = BucketName<T>,
-  S extends ScopeName<T, B> = ScopeName<T, B>
-> = B extends BucketName<T>
-  ? S extends ScopeName<T, B>
-    ? Extract<keyof T[B][S], string>
-    : never
-  : never;
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+> =
+  B extends BucketName<T>
+    ? S extends ScopeName<T, B>
+      ? Extract<keyof T[B][S], string>
+      : never
+    : never;
 
 /**
  * Union of all of `T` values. Distributive.
@@ -97,14 +98,15 @@ export type PickCollectionDocument<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T> = BucketName<T>,
   S extends ScopeName<T, B> = ScopeName<T, B>,
-  C extends CollectionName<T, B, S> = CollectionName<T, B, S>
-> = B extends BucketName<T>
-  ? S extends ScopeName<T, B>
-    ? C extends CollectionName<T, B, S>
-      ? Extract<UnwindUnionObjectValues<T[B][S]>, T[B][S][C]>
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+> =
+  B extends BucketName<T>
+    ? S extends ScopeName<T, B>
+      ? C extends CollectionName<T, B, S>
+        ? Extract<UnwindUnionObjectValues<T[B][S]>, T[B][S][C]>
+        : never
       : never
-    : never
-  : never;
+    : never;
 
 /**
  * A JSON object.
@@ -196,25 +198,15 @@ export type CollectionDocumentBag<Def extends DocDef> = {
   ObjectDocumentPath: DocumentPath<ObjectDocumentDef<Def>['body']> | '';
 };
 
-export type ExtractCollectionDocumentBag<C> = C extends Collection<
-  any,
-  any,
-  any,
-  any,
-  infer Bag extends CollectionDocumentBag<any>
->
-  ? Bag
-  : never;
+export type ExtractCollectionDocumentBag<C> =
+  C extends Collection<any, any, any, any, infer Bag extends CollectionDocumentBag<any>>
+    ? Bag
+    : never;
 
-export type ExtractCollectionDocumentDef<C> = C extends Collection<
-  any,
-  any,
-  any,
-  any,
-  CollectionDocumentBag<infer Defs>
->
-  ? Defs
-  : never;
+export type ExtractCollectionDocumentDef<C> =
+  C extends Collection<any, any, any, any, CollectionDocumentBag<infer Defs>>
+    ? Defs
+    : never;
 
 export type ExtractCollectionJsonDocBody<C, Key extends string> = ExtractBodyByKey<
   Key,
@@ -231,7 +223,7 @@ export type ClusterTypesWith<
   Doc,
   B extends string = string,
   S extends string = string,
-  C extends string = string
+  C extends string = string,
 > = {
   [bucket in B | NonNullable<string>]: {
     [scope in S | NonNullable<string>]: {
@@ -248,7 +240,7 @@ export type AugmentClusterTypes<
   B extends string,
   S extends string = never,
   C extends string = never,
-  Doc = never
+  Doc = never,
 > = Pretty<
   T & {
     [AugmentedBucket in B]: {
@@ -287,7 +279,7 @@ export type CollectionAmong<
   T extends CouchbaseClusterTypes = any,
   B extends BucketName<T> = any,
   S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any
+  C extends CollectionName<T, B, S> = any,
 > = Collection<T, B, S, C>;
 
 /**
@@ -307,54 +299,43 @@ export type CollectionContaining<Doc extends DocDef> = Collection<
  * If `Doc` is a union, then all members must be contained within the collection.
  * To validate the collection contains any member of the union, see {@link ValidateCollectionContainsAny}.
  */
-export type ValidateCollectionContainsAll<Instance, Doc> = Instance extends Collection<
-  any,
-  any,
-  any,
-  any,
-  infer DocBag
->
-  ? DocBag extends CollectionDocumentBag<infer Def>
-    ? [Doc] extends [Def['Body']]
-      ? Instance
+export type ValidateCollectionContainsAll<Instance, Doc> =
+  Instance extends Collection<any, any, any, any, infer DocBag>
+    ? DocBag extends CollectionDocumentBag<infer Def>
+      ? [Doc] extends [Def['Body']]
+        ? Instance
+        : never
       : never
-    : never
-  : never;
+    : never;
 
 /**
  * Validate the collection types contains the given document type.
  * If `Doc` is a union, then the collection will be validated if it contains any member of the union.
  * To validate the collection contains all members of the union, see {@link ValidateCollectionContainsAll}
  */
-export type ValidateCollectionContainsAny<Instance, Doc> = Instance extends Collection<
-  any,
-  any,
-  any,
-  any,
-  infer DocBag
->
-  ? DocBag extends CollectionDocumentBag<infer Def>
-    ? Doc extends Def['Body']
-      ? Instance
+export type ValidateCollectionContainsAny<Instance, Doc> =
+  Instance extends Collection<any, any, any, any, infer DocBag>
+    ? DocBag extends CollectionDocumentBag<infer Def>
+      ? Doc extends Def['Body']
+        ? Instance
+        : never
       : never
-    : never
-  : never;
+    : never;
 
 /**
  * Validate the collection can contain the given data structure.
  */
-export type IfCollectionContains<TargetType, CollectionInstance, Doc> = IsNever<
-  ValidateCollectionContainsAny<CollectionInstance, Doc>
-> extends false
-  ? TargetType
-  : 'The collection cannot contain such document.';
+export type IfCollectionContains<TargetType, CollectionInstance, Doc> =
+  IsNever<ValidateCollectionContainsAny<CollectionInstance, Doc>> extends false
+    ? TargetType
+    : 'The collection cannot contain such document.';
 
 /**
  * Represent the runtime type of the default {@Scope} of a bucket.
  */
 export type DefaultScope<
   T extends CouchbaseClusterTypes,
-  B extends BucketName<T>
+  B extends BucketName<T>,
 > = B extends unknown
   ? DefaultScopeName extends ScopeName<T, B>
     ? Scope<T, B, DefaultScopeName>
@@ -366,7 +347,7 @@ export type DefaultScope<
  */
 export type HasDefaultScope<
   T extends CouchbaseClusterTypes,
-  B extends BucketName<T>
+  B extends BucketName<T>,
 > = B extends unknown ? (DefaultScopeName extends ScopeName<T, B> ? true : false) : never;
 
 /**
@@ -374,7 +355,7 @@ export type HasDefaultScope<
  */
 export type DefaultScopeCollectionName<
   T extends CouchbaseClusterTypes,
-  B extends BucketName<T>
+  B extends BucketName<T>,
 > = B extends unknown
   ? DefaultScopeName extends ScopeName<T, B>
     ? CollectionName<T, B, DefaultScopeName>
@@ -388,38 +369,37 @@ export type DefaultScopeCollectionName<
 export type DefaultScopeCollection<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T>,
-  C extends DefaultScopeCollectionName<T, B>
-> = B extends BucketName<T>
-  ? DefaultScopeName extends ScopeName<T, B>
-    ? Collection<
-        T,
-        B,
-        DefaultScopeName,
-        C,
-        CollectionDocumentBag<PickCollectionDocument<T, B, DefaultScopeName, C>>
-      >
-    : MissingDefaultScope<B>
-  : never;
+  C extends DefaultScopeCollectionName<T, B>,
+> =
+  B extends BucketName<T>
+    ? DefaultScopeName extends ScopeName<T, B>
+      ? Collection<
+          T,
+          B,
+          DefaultScopeName,
+          C,
+          CollectionDocumentBag<PickCollectionDocument<T, B, DefaultScopeName, C>>
+        >
+      : MissingDefaultScope<B>
+    : never;
 
 /**
  * Represent the runtime type of a {@link Collection} instance of the default collection inside the default scope.
  * It includes check to ensure the default scope and default collection exists and returns an error type if it doesn't.
  */
-export type DefaultCollection<
-  T extends CouchbaseClusterTypes,
+export type DefaultCollection<T extends CouchbaseClusterTypes, B extends BucketName<T>> =
   B extends BucketName<T>
-> = B extends BucketName<T>
-  ? DefaultScopeName extends ScopeName<T, B>
-    ? DefaultCollectionName extends CollectionName<T, B, DefaultScopeName>
-      ? Collection<
-          T,
-          B,
-          DefaultScopeName,
-          DefaultCollectionName,
-          CollectionDocumentBag<
-            PickCollectionDocument<T, B, DefaultScopeName, DefaultCollectionName>
+    ? DefaultScopeName extends ScopeName<T, B>
+      ? DefaultCollectionName extends CollectionName<T, B, DefaultScopeName>
+        ? Collection<
+            T,
+            B,
+            DefaultScopeName,
+            DefaultCollectionName,
+            CollectionDocumentBag<
+              PickCollectionDocument<T, B, DefaultScopeName, DefaultCollectionName>
+            >
           >
-        >
-      : MissingDefaultCollection<B>
-    : MissingDefaultScope<B>
-  : never;
+        : MissingDefaultCollection<B>
+      : MissingDefaultScope<B>
+    : never;

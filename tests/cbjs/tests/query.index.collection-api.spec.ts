@@ -18,17 +18,18 @@ import { describe } from 'vitest';
 
 import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
+import { sleep } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
 import { getRandomId } from '@cbjs/vitest';
+
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { sleep } from '@cbjs/shared';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Collections))(
   'query index collection api',
   async () => {
     const test = await createCouchbaseTest({
-      useSampleData
+      useSampleData,
     });
 
     test('should successfully create & drop a primary index', async ({

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseCas } from '@cbjs/cbjs';
 import { describe, it } from 'vitest';
+
+import { CouchbaseCas } from '@cbjs/cbjs';
 
 import './expectCAS';
 

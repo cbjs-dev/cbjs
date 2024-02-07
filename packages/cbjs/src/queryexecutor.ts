@@ -14,15 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { invariant } from '@cbjs/shared';
 
-import { CppError, CppQueryResponse } from './binding'
+import { CppError, CppQueryResponse } from './binding';
 import {
   errorFromCpp,
   mutationStateToCpp,
   queryProfileToCpp,
   queryScanConsistencyToCpp,
-} from './bindingutilities'
-import { Cluster } from './cluster'
+} from './bindingutilities';
+import { Cluster } from './cluster';
 import {
   QueryMetaData,
   QueryMetrics,
@@ -30,20 +31,20 @@ import {
   QueryResult,
   QueryStatus,
   QueryWarning,
-} from './querytypes'
-import { StreamableRowPromise } from './streamablepromises'
+} from './querytypes';
+import { StreamableRowPromise } from './streamablepromises';
 
 /**
  * @internal
  */
 export class QueryExecutor {
-  private _cluster: Cluster
+  private _cluster: Cluster;
 
   /**
    * @internal
    */
   constructor(cluster: Cluster) {
-    this._cluster = cluster
+    this._cluster = cluster;
   }
 
   /**
@@ -51,51 +52,51 @@ export class QueryExecutor {
    */
   static execute<TRow = any>(
     exec: (
-      callback: (err: CppError | null, resp: CppQueryResponse) => void
+      callback: (err: CppError | null, resp: CppQueryResponse | undefined) => void
     ) => void
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
-    const emitter = new StreamableRowPromise<
-      QueryResult<TRow>,
-      TRow,
-      QueryMetaData
-    >((rows, meta) => {
-      return new QueryResult({
-        rows: rows,
-        meta: meta,
-      })
-    })
+    const emitter = new StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>(
+      (rows, meta) => {
+        return new QueryResult({
+          rows: rows,
+          meta: meta,
+        });
+      }
+    );
 
     exec((cppErr, resp) => {
-      const err = errorFromCpp(cppErr)
+      const err = errorFromCpp(cppErr);
       if (err) {
-        emitter.emit('error', err)
-        emitter.emit('end')
-        return
+        emitter.emit('error', err);
+        emitter.emit('end');
+        return;
       }
 
+      invariant(resp);
+
       resp.rows.forEach((row) => {
-        emitter.emit('row', JSON.parse(row))
-      })
+        emitter.emit('row', JSON.parse(row));
+      });
 
       {
-        const metaData = resp.meta
+        const metaData = resp.meta;
 
-        let warnings: QueryWarning[]
+        let warnings: QueryWarning[];
         if (metaData.warnings) {
           warnings = metaData.warnings.map(
-            (warningData: any) =>
+            (warningData) =>
               new QueryWarning({
                 code: warningData.code,
                 message: warningData.message,
               })
-          )
+          );
         } else {
-          warnings = []
+          warnings = [];
         }
 
-        let metrics: QueryMetrics | undefined
+        let metrics: QueryMetrics | undefined;
         if (metaData.metrics) {
-          const metricsData = metaData.metrics
+          const metricsData = metaData.metrics;
 
           metrics = new QueryMetrics({
             elapsedTime: metricsData.elapsed_time,
@@ -106,31 +107,29 @@ export class QueryExecutor {
             mutationCount: metricsData.mutation_count || 0,
             errorCount: metricsData.error_count || 0,
             warningCount: metricsData.warning_count || 0,
-          })
+          });
         } else {
-          metrics = undefined
+          metrics = undefined;
         }
 
         const meta = new QueryMetaData({
           requestId: metaData.request_id,
           clientContextId: metaData.client_context_id,
           status: metaData.status as QueryStatus,
-          signature: metaData.signature
-            ? JSON.parse(metaData.signature)
-            : undefined,
+          signature: metaData.signature ? JSON.parse(metaData.signature) : undefined,
           warnings: warnings,
           metrics: metrics,
           profile: metaData.profile ? JSON.parse(metaData.profile) : undefined,
-        })
+        });
 
-        emitter.emit('meta', meta)
+        emitter.emit('meta', meta);
       }
 
-      emitter.emit('end')
-      return
-    })
+      emitter.emit('end');
+      return;
+    });
 
-    return emitter
+    return emitter;
   }
 
   /**
@@ -140,18 +139,18 @@ export class QueryExecutor {
     query: string,
     options: QueryOptions
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
-    const timeout = options.timeout || this._cluster.queryTimeout
+    const timeout = options.timeout ?? this._cluster.queryTimeout;
 
     return QueryExecutor.execute((callback) => {
       this._cluster.conn.query(
         {
           statement: query,
           client_context_id: options.clientContextId,
-          adhoc: options.adhoc === false ? false : true,
-          metrics: options.metrics || false,
-          readonly: options.readOnly || false,
-          flex_index: options.flexIndex || false,
-          preserve_expiry: options.preserveExpiry || false,
+          adhoc: options.adhoc !== false,
+          metrics: options.metrics ?? false,
+          readonly: options.readOnly ?? false,
+          flex_index: options.flexIndex ?? false,
+          preserve_expiry: options.preserveExpiry ?? false,
           use_replica: options.useReplica,
           max_parallelism: options.maxParallelism,
           scan_cap: options.scanCap,
@@ -185,7 +184,7 @@ export class QueryExecutor {
           body_str: '',
         },
         callback
-      )
-    })
+      );
+    });
   }
 }

@@ -16,15 +16,15 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import {
+  connect,
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,
-  connect,
 } from '../../..';
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';
-import { LookupSpecs, lookupSpec } from '../../../specBuilders';
+import { lookupSpec, LookupSpecs } from '../../../specBuilders';
 import { DocDef } from '../../clusterTypes';
 import {
   LookupInInternalPath,
@@ -404,7 +404,7 @@ describe('LookupInSpecs', () => {
   describe('LookupInSpecResult', () => {
     type Test<
       Path extends LookupInInternalPath<TestDoc, Opcode>,
-      Opcode extends LookupInSpecOpCode
+      Opcode extends LookupInSpecOpCode,
     > = LookupInSpecResult<LookupInSpec<TestDoc, Opcode, Path>, never>;
 
     it('should infer the correct type', () => {
@@ -443,7 +443,7 @@ describe('LookupInSpecs', () => {
             LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get, 'title'>,
             LookupInSpec<TestDoc, CppProtocolSubdocOpcode.exists, 'title'>,
             LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get_count, 'metadata'>,
-            LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>
+            LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
           ],
           TestDoc | TestDoc2
         >
@@ -456,7 +456,7 @@ describe('LookupInSpecs', () => {
           [
             LookupInSpec<object, CppProtocolSubdocOpcode.get, 'title'>,
             LookupInSpec<object, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'metadata'>
+            LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'metadata'>,
           ],
           TestDoc | TestDoc2
         >
@@ -469,7 +469,7 @@ describe('LookupInSpecs', () => {
           [
             LookupInSpec<object, CppProtocolSubdocOpcode.get, 'title'>,
             LookupInSpec<object, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'metadata'>
+            LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'metadata'>,
           ],
           any
         >
@@ -529,7 +529,7 @@ describe('LookupInSpecs', () => {
         [
           LookupInResultEntry<string>,
           LookupInResultEntry<number>,
-          LookupInResultEntry<boolean>
+          LookupInResultEntry<boolean>,
         ]
       >();
 

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ServiceName } from '@cbjs/shared';
+
 import { ApiNode } from '../types/Api/ApiNode';
 import { ApiPoolNodes } from '../types/Api/ApiPoolNodes';
 import { extractNodeHostnames } from './extractNodeHostnames';
@@ -39,7 +39,7 @@ export function mapNodes<T>(
   const fn = args[args.length - 1] as MapNodesCallback<T>;
 
   if (args.length == 2) {
-    const [serviceName, _] = args;
+    const [serviceName] = args;
     nodes = poolNodes.nodes.filter((n) => n.services.includes(serviceName));
   }
 

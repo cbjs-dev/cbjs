@@ -24,7 +24,7 @@ export {
   CouchbaseFixtures,
 } from './extendedTests/createCouchbaseTest';
 
-export { FixtureContext, TestFixtures } from './fixtures/types'
+export { FixtureContext, TestFixtures } from './fixtures/types';
 
 export { FixtureFunctionValue } from './fixtures/FixtureFunctionValue';
 

@@ -15,7 +15,6 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getHttpClientLogger } from '../logger';
 import { getCollections, getPoolNodes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { ApiCollection } from '../types/Api/ApiCollection';

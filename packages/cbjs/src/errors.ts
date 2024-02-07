@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { hasOwn } from '@cbjs/shared';
+
 import { CppCodedError, CppServiceError, CppTxnAnyError } from './binding';
 import {
   AnalyticsErrorContext,
@@ -24,7 +26,6 @@ import {
   ServiceErrorContext,
   ViewErrorContext,
 } from './errorcontexts';
-import { hasOwn } from '@cbjs/shared';
 
 function appendReason(reason?: string) {
   if (reason) return `: ${reason}`;

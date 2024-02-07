@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
 
 import type {
@@ -58,7 +57,7 @@ describe('mutation operations', function () {
   type TestPaths<
     Doc extends object,
     F extends keyof Paths<Doc>,
-    T extends Record<MakeTestPaths<Doc>, boolean>
+    T extends Record<MakeTestPaths<Doc>, boolean>,
   > = {
     [Path in keyof T]: [T[Path], Path extends Paths<Doc>[F] ? true : false];
   };

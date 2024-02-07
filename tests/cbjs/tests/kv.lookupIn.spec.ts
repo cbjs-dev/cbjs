@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { beforeEach, describe, expectTypeOf } from 'vitest';
+
 import {
   DocumentNotFoundError,
   LookupInResult,
@@ -23,8 +25,7 @@ import {
 import { ChainableLookupIn } from '@cbjs/cbjs/internal';
 import { getPool } from '@cbjs/http-client';
 import { invariant } from '@cbjs/shared';
-import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
-import { beforeEach, describe, expectTypeOf } from 'vitest';
+import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
 
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

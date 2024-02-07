@@ -14,6 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  ApiViewDesignDocument,
+  ApiViewDesignDocuments,
+} from '@cbjs/http-client/dist/src/types/Api/ApiViewDesignDocument';
 
 import { Bucket } from './bucket';
 import { BucketName, CouchbaseClusterTypes } from './clusterTypes';
@@ -52,19 +56,19 @@ export class DesignDocumentView {
   /**
    * @internal
    */
-  constructor(...args: any[]) {
-    let data;
-    if (typeof args[0] === 'string' || typeof args[0] === 'function') {
-      data = {
-        map: args[0],
-        reduce: args[1],
-      };
-    } else {
-      data = args[0];
+  constructor(
+    ...args: [{ map: string; reduce?: string }] | [map: string, reduce?: string]
+  ) {
+    if (typeof args[0] === 'string') {
+      this.map = args[0];
+      this.reduce = args[1];
+      return;
     }
 
-    this.map = data.map;
-    this.reduce = data.reduce;
+    const { map, reduce } = args[0];
+
+    this.map = map;
+    this.reduce = reduce;
   }
 }
 
@@ -103,25 +107,30 @@ export class DesignDocument {
   /**
    * @internal
    */
-  constructor(...args: any[]) {
-    let data;
+  constructor(
+    ...args:
+      | [{ name: string; views?: { [viewName: string]: DesignDocumentView } }]
+      | [name: string, views: { [viewName: string]: DesignDocumentView }]
+  ) {
     if (typeof args[0] === 'string') {
-      data = {
-        name: args[0],
-        views: args[1],
-      };
-    } else {
-      data = args[0];
+      this.name = args[0];
+      this.views = args[1] ?? {};
+      return;
     }
 
-    this.name = data.name;
-    this.views = data.views || {};
+    const { name, views } = args[0];
+
+    this.name = name;
+    this.views = views ?? {};
   }
 
   /**
    * @internal
    */
-  static _fromNsData(ddocName: string, ddocData: any): DesignDocument {
+  static _fromNsData(
+    ddocName: string,
+    ddocData: ApiViewDesignDocument['doc']['json']
+  ): DesignDocument {
     const views: { [viewName: string]: DesignDocumentView } = {};
     for (const viewName in ddocData.views) {
       const viewData = ddocData.views[viewName];
@@ -240,7 +249,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const bucketName = this._bucket.name;
@@ -258,14 +267,12 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
         throw new CouchbaseError('failed to get design documents', undefined, errCtx);
       }
 
-      const ddocsData = JSON.parse(res.body.toString());
+      const apiResponse = JSON.parse(res.body.toString()) as ApiViewDesignDocuments;
 
-      const ddocs = ddocsData.rows.map((ddocData: any) => {
-        const ddocName = ddocData.doc.meta.id.substr(8);
-        return DesignDocument._fromNsData(ddocName, ddocData.doc.json);
+      return apiResponse.rows.map((ddoc) => {
+        const name = ddoc.doc.meta.id.substring(8);
+        return DesignDocument._fromNsData(name, ddoc.doc.json);
       });
-
-      return ddocs;
     }, callback);
   }
 
@@ -298,7 +305,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const bucketName = this._bucket.name;
@@ -354,7 +361,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const bucketName = this._bucket.name;
@@ -414,7 +421,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const bucketName = this._bucket.name;
@@ -470,7 +477,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
     const timer = new CompoundTimeout(timeout);
 
     return PromiseHelper.wrapAsync(async () => {

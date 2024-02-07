@@ -14,15 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import {
   BucketTypeName,
-  CompressionModeName, DurabilityLevelName,
+  CompressionModeName,
+  DurabilityLevelName,
   EvictionPolicyName,
   ReplicaNumber,
   RequiredProps,
   StorageBackendName,
 } from '@cbjs/shared';
-import { promisify } from 'node:util';
 
 import { CppManagementClusterBucketSettings } from './binding';
 import {

@@ -39,7 +39,7 @@ import { LookupMethodName } from './types';
 type LookupMethod<
   Method extends LookupMethodName,
   Doc,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
 > = {
   lookupIn: (
     key: string,
@@ -61,25 +61,26 @@ type LookupMethod<
 type LookupResult<
   Method extends LookupMethodName,
   Doc,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
 > = PromiseValue<ReturnType<LookupMethod<Method, Doc, SpecDefinitions>>>;
 
-type ThisAnd<T, Spec extends LookupInSpec> = T extends ChainableLookupIn<
-  infer C,
-  infer Method,
-  infer Key,
-  infer SpecDefinitions,
-  infer Doc
->
-  ? ChainableLookupIn<C, Method, Key, [...SpecDefinitions, Spec], Doc>
-  : never;
+type ThisAnd<T, Spec extends LookupInSpec> =
+  T extends ChainableLookupIn<
+    infer C,
+    infer Method,
+    infer Key,
+    infer SpecDefinitions,
+    infer Doc
+  >
+    ? ChainableLookupIn<C, Method, Key, [...SpecDefinitions, Spec], Doc>
+    : never;
 
 export class ChainableLookupIn<
   C extends AnyCollection,
   Method extends LookupMethodName,
   Key extends ExtractCollectionJsonDocKey<C>,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-  Doc extends ExtractCollectionJsonDocBody<C, Key> = ExtractCollectionJsonDocBody<C, Key>
+  Doc extends ExtractCollectionJsonDocBody<C, Key> = ExtractCollectionJsonDocBody<C, Key>,
 > implements Promise<LookupResult<Method, Doc, SpecDefinitions>>
 {
   // Promise stuff
@@ -134,7 +135,7 @@ export class ChainableLookupIn<
   static for<
     C extends AnyCollection,
     Method extends LookupMethodName,
-    Key extends ExtractCollectionJsonDocKey<C>
+    Key extends ExtractCollectionJsonDocKey<C>,
   >(
     collection: C,
     method: Method,
@@ -163,6 +164,7 @@ export class ChainableLookupIn<
       SpecDefinitions
     >;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     return lookup(this.key, this.getSpecs(), this.options);
   }
 

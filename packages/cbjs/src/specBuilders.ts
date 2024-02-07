@@ -72,6 +72,7 @@ export function lookupSpec<Doc extends object>(): LookupInSpecMakers<Doc> {
   return {
     get: LookupInSpec.get,
     exists: LookupInSpec.exists,
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     count: LookupInSpec.count,
   };
 }
@@ -84,7 +85,7 @@ export function lookupSpec<Doc extends object>(): LookupInSpecMakers<Doc> {
  */
 export class LookupSpecs<
   Doc extends object,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
 > {
   protected readonly specs: SpecDefinitions;
 
@@ -240,7 +241,7 @@ export function mutationSpec<Doc extends object>(): MutateInSpecMakers<Doc> {
  */
 export class MutationSpecs<
   Doc extends object,
-  SpecDefinitions extends ReadonlyArray<MutateInSpec<Doc>>
+  SpecDefinitions extends ReadonlyArray<MutateInSpec<Doc>>,
 > {
   private readonly specs: SpecDefinitions;
 
@@ -279,7 +280,7 @@ export class MutationSpecs<
    */
   insert<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
     path: Path,
     value: Value,
@@ -288,7 +289,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, false, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, false, Value>,
     ]
   > {
     const spec = MutateInSpec.insert<Doc, Path, Value>(path, value, options);
@@ -303,13 +304,13 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.set_doc, '', false, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.set_doc, '', false, Value>,
     ]
   >;
 
   upsert<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
     path: Path,
     value: Value,
@@ -318,7 +319,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>,
     ]
   >;
 
@@ -345,7 +346,7 @@ export class MutationSpecs<
       Doc,
       CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert,
       Path
-    >
+    >,
   >(
     path: Path,
     value: Value,
@@ -360,7 +361,7 @@ export class MutationSpecs<
         any,
         false,
         any
-      >
+      >,
     ]
   > {
     const spec = MutateInSpec.upsert<Doc, Path, Value>(path, value, options);
@@ -380,7 +381,7 @@ export class MutationSpecs<
    */
   replace<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
   >(
     path: Path,
     value: Value,
@@ -389,7 +390,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, any, false, any>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, any, false, any>,
     ]
   > {
     const spec = MutateInSpec.replace<Doc, Path, Value>(path, value, options);
@@ -425,7 +426,7 @@ export class MutationSpecs<
     Path extends AnyMutateInPath<
       Doc,
       CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
-    >
+    >,
   >(
     path: Path,
     options?: MutateInRemoveOptions
@@ -453,7 +454,7 @@ export class MutationSpecs<
   arrayAppend<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_last>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_push_last, Path>,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -462,7 +463,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value>,
     ]
   > {
     const spec = MutateInSpec.arrayAppend<Doc, Path, Value, Multi>(path, value, options);
@@ -488,7 +489,7 @@ export class MutationSpecs<
   arrayPrepend<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_first>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_push_first, Path>,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -497,7 +498,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value>,
     ]
   > {
     const spec = MutateInSpec.arrayPrepend<Doc, Path, Value, Multi>(path, value, options);
@@ -525,7 +526,7 @@ export class MutationSpecs<
   arrayInsert<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_insert>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_insert, Path>,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -534,7 +535,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value>,
     ]
   > {
     const spec = MutateInSpec.arrayInsert<Doc, Path, Value, Multi>(path, value, options);
@@ -561,7 +562,7 @@ export class MutationSpecs<
   arrayAddUnique<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_add_unique>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_add_unique, Path>,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -570,7 +571,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value>,
     ]
   > {
     const spec = MutateInSpec.arrayAddUnique<Doc, Path, Value, Multi>(
@@ -596,7 +597,7 @@ export class MutationSpecs<
    */
   increment<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
   >(
     path: Path,
     incrementBy: Value,
@@ -605,7 +606,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value>,
     ]
   > {
     const spec = MutateInSpec.increment<Doc, Path, Value>(path, incrementBy, options);
@@ -627,7 +628,7 @@ export class MutationSpecs<
    */
   decrement<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
   >(
     path: Path,
     decrementBy: Value,
@@ -636,7 +637,7 @@ export class MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value>
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value>,
     ]
   > {
     const spec = MutateInSpec.decrement<Doc, Path, Value>(path, decrementBy, options);

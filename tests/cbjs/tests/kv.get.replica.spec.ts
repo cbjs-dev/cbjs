@@ -14,10 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { beforeEach, describe, vi } from 'vitest';
+
 import { DefaultTranscoder, DurabilityLevel } from '@cbjs/cbjs';
 import { getPool } from '@cbjs/http-client';
-import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
-import { beforeEach, describe, vi } from 'vitest';
+import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
 
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

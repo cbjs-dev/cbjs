@@ -33,11 +33,11 @@ type ResolvedArgs<SpecDefinitions extends ReadonlyArray<MutateInSpec>> = {
 
 export function resolveMutateInArgs<
   Doc extends object,
-  SpecDefinitions extends ReadonlyArray<MutateInSpec>
+  SpecDefinitions extends ReadonlyArray<MutateInSpec>,
 >(args: MutateInArgs<Doc, SpecDefinitions>): ResolvedArgs<SpecDefinitions> {
   if (!(args[0] instanceof Array)) {
     return {
-      options: args[0] || {},
+      options: args[0] ?? {},
       specs: undefined,
       callback: undefined,
     } satisfies ResolvedArgs<SpecDefinitions>;

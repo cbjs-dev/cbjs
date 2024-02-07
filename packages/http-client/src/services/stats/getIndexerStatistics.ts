@@ -39,5 +39,5 @@ export async function getIndexerStatistics(
 
   const stats = (await response.json()) as IndexerStatistics;
 
-  return stats['indexer'];
+  return stats.indexer;
 }

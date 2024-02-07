@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { dropEventingFunction, getEventingFunctions, undeployEventingFunction } from '@cbjs/http-client';
+import {
+  dropEventingFunction,
+  getEventingFunctions,
+  undeployEventingFunction,
+} from '@cbjs/http-client';
 import { getApiConfig } from '@cbjs/shared';
 
 const apiConfig = getApiConfig();
 
 const result = await getEventingFunctions(apiConfig);
-result.forEach(async (f) => {
+for (const f of result) {
   if (f.settings.deployment_status === true) {
     await undeployEventingFunction(apiConfig, f.appname, f.function_scope);
   }
 
-  dropEventingFunction(apiConfig, f.appname, f.function_scope);
-});
+  await dropEventingFunction(apiConfig, f.appname, f.function_scope);
+}

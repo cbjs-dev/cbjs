@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import type { TaskContext } from 'vitest';
-import { registerContextCleanupAction, registerTestCleanupAction } from '../hook';
 
-import { getTestLogger } from '../logger';
 import type { Class } from '@cbjs/shared';
+
+import { registerContextCleanupAction, registerTestCleanupAction } from '../hook';
+import { getTestLogger } from '../logger';
 import { FixtureFunctionValue } from './FixtureFunctionValue';
 import type { FixtureContext, UnknownContext } from './types';
 
 export class CreateTestFixtureFunction<
   Args extends ReadonlyArray<unknown>,
   UseValue,
-  Context extends UnknownContext
+  Context extends UnknownContext,
 > {
   protected taskName?: string;
   protected taskType: 'suite' | 'test' = 'suite';
@@ -56,6 +57,7 @@ export class CreateTestFixtureFunction<
       this.taskType = 'test';
       this.taskName = task.name;
 
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       await use(await this.get());
     };
   }

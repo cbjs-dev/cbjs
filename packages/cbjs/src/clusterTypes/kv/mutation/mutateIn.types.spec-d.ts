@@ -204,7 +204,7 @@ describe('mutateIn', function () {
         MutateInSpecResults<
           [
             MutateInSpec<TestDoc, CppProtocolSubdocOpcode.counter>,
-            MutateInSpec<TestDoc, CppProtocolSubdocOpcode.remove>
+            MutateInSpec<TestDoc, CppProtocolSubdocOpcode.remove>,
           ]
         >
       >().toEqualTypeOf<[number, undefined]>();

@@ -28,13 +28,13 @@ type ResolvedArgs<SpecDefinitions extends ReadonlyArray<LookupInSpec>, OpResult>
 export function resolveLookupInArgs<
   Doc extends object,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-  OpResult
+  OpResult,
 >(
   args: LookupInArgs<Doc, SpecDefinitions, OpResult>
 ): ResolvedArgs<SpecDefinitions, OpResult> {
   if (!(args[0] instanceof Array)) {
     return {
-      options: args[0] || {},
+      options: args[0] ?? {},
       specs: undefined,
       callback: undefined,
     } satisfies ResolvedArgs<SpecDefinitions, OpResult>;

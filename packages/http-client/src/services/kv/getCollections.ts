@@ -25,7 +25,7 @@ export async function getCollections(
   const response = await requestGetBucketScopes(params, bucketName);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
   const body = (await response.json()) as ApiBucketScopes;

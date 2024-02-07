@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe } from 'vitest';
+
 import {
   EventingFunction,
   EventingFunctionBucketAccess,
@@ -27,7 +29,6 @@ import {
 import { waitForEventingFunction } from '@cbjs/http-client';
 import { sleep } from '@cbjs/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjs/vitest';
-import { describe } from 'vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';

@@ -15,10 +15,16 @@
  * limitations under the License.
  */
 import { describe } from 'vitest';
-import { AuthenticationFailureError, ConnectOptions, lcbVersion, connectionProfiles } from '@cbjs/cbjs';
 
+import {
+  AuthenticationFailureError,
+  connectionProfiles,
+  ConnectOptions,
+  lcbVersion,
+} from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { testLogger } from '../setupLogger';
 import { connectionParams } from '../setupTests';
 import { triggerGC } from '../utils/triggerGC';

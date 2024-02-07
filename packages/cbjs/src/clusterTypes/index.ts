@@ -19,14 +19,11 @@ export {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   ClusterTypesWith,
-  
   BucketName,
   ScopeName,
   CollectionName,
-
   DefaultScope,
   DefaultCollection,
-
   DocDef,
   AnyCollection,
   CollectionAmong,

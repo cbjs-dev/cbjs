@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
-import { Json } from '../../clusterTypes';
 
+import { Json } from '../../clusterTypes';
 import {
   DocumentPath,
   MaybeMissing,

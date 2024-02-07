@@ -26,6 +26,7 @@ import {
 } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
@@ -399,7 +400,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
 
         const collectionManager = serverTestContext.c.bucket(bucketName).collections();
 
-        expect(
+        await expect(
           collectionManager.updateCollection(collectionName, scopeName, {
             history: true,
           })

@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {
   BucketCapability,
-  BucketTypeName, CompressionModeName, ConflictResolutionTypeName,
+  BucketTypeName,
+  CompressionModeName,
+  ConflictResolutionTypeName,
   DurabilityLevelName,
   EvictionPolicyName,
   ReplicaNumber,
   StorageBackendName,
 } from '@cbjs/shared';
+
 import type { ApiNode } from './ApiNode';
 
 export type ApiBucket = {

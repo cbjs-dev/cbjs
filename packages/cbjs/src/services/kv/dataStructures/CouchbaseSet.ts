@@ -37,7 +37,7 @@ import { NodeCallback, PromiseHelper, VoidNodeCallback } from '../../../utilitie
  */
 export class CouchbaseSet<
   C extends Collection<any, any, any, any, CollectionDocumentBag<DocDef<string, Item[]>>>,
-  Item
+  Item,
 > {
   private _coll: CollectionContaining<DocDef<string, unknown[]>>;
   private _key: string;
@@ -93,8 +93,8 @@ export class CouchbaseSet<
   async contains(item: Item, callback?: NodeCallback<boolean>): Promise<boolean> {
     return await PromiseHelper.wrapAsync(async () => {
       const values = await this._get();
-      for (let i = 0; i < values.length; ++i) {
-        if (values[i] === item) {
+      for (const value of values) {
+        if (value === item) {
           return true;
         }
       }

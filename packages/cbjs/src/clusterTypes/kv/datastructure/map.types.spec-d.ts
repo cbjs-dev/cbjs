@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CouchbaseMap, connect, Collection } from '../../..';
+import { Collection, connect, CouchbaseMap } from '../../..';
 import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '../../clusterTypes';
 
 describe('CouchbaseMap', function () {

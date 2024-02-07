@@ -19,6 +19,7 @@ import { describe } from 'vitest';
 import { GroupNotFoundError, HttpErrorContext } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe

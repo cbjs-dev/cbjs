@@ -41,18 +41,15 @@ import { MutateInOptions } from '../../../collection';
 import { MutateInResult } from '../../../crudoptypes';
 import { MutateInSpec } from '../../../sdspecs';
 
-type ThisAnd<T, Spec extends MutateInSpec> = T extends ChainableMutateIn<
-  infer C,
-  infer Key,
-  infer SpecDefinitions
->
-  ? ChainableMutateIn<C, Key, [...SpecDefinitions, Spec]>
-  : never;
+type ThisAnd<T, Spec extends MutateInSpec> =
+  T extends ChainableMutateIn<infer C, infer Key, infer SpecDefinitions>
+    ? ChainableMutateIn<C, Key, [...SpecDefinitions, Spec]>
+    : never;
 
 export class ChainableMutateIn<
   C extends AnyCollection,
   Key extends ExtractCollectionJsonDocKey<C>,
-  SpecDefinitions extends ReadonlyArray<MutateInSpec>
+  SpecDefinitions extends ReadonlyArray<MutateInSpec>,
 > implements Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
 {
   // Promise stuff
@@ -122,7 +119,7 @@ export class ChainableMutateIn<
   }
 
   execute(): Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>> {
-    return this.collection.mutateIn(this.key, this.getSpecs(), this.options || {});
+    return this.collection.mutateIn(this.key, this.getSpecs(), this.options ?? {});
   }
 
   /**
@@ -148,7 +145,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.dict_add,
       Path
-    >
+    >,
   >(
     path: Path,
     value: Value,
@@ -176,7 +173,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.set_doc,
       ''
-    >
+    >,
   >(
     path: '',
     value: Value,
@@ -201,7 +198,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.dict_upsert,
       Path
-    >
+    >,
   >(
     path: Path,
     value: Value,
@@ -240,7 +237,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert,
       Path
-    >
+    >,
   >(
     path: Path,
     value: Value,
@@ -283,7 +280,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.replace,
       Path
-    >
+    >,
   >(
     path: Path,
     value: Value,
@@ -322,7 +319,7 @@ export class ChainableMutateIn<
     Path extends AnyMutateInPath<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.remove
-    >
+    >,
   >(
     path: Path,
     options?: MutateInRemoveOptions
@@ -348,7 +345,7 @@ export class ChainableMutateIn<
     Path extends AnyMutateInPath<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
-    >
+    >,
   >(
     path: Path,
     options?: MutateInRemoveOptions
@@ -383,7 +380,7 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.array_push_last,
       Path
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -433,7 +430,7 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.array_push_first,
       Path
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -485,7 +482,7 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.array_insert,
       Path
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -536,7 +533,7 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.array_add_unique,
       Path
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
@@ -582,7 +579,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.counter,
       Path
-    >
+    >,
   >(
     path: Path,
     incrementBy: Value,
@@ -627,7 +624,7 @@ export class ChainableMutateIn<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.counter,
       Path
-    >
+    >,
   >(
     path: Path,
     decrementBy: Value,

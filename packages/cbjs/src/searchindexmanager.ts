@@ -426,7 +426,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -753,7 +753,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({

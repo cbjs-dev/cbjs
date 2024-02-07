@@ -16,10 +16,16 @@
  */
 import { describe } from 'vitest';
 
-import { DesignDocument, DesignDocumentNotFoundError, HttpErrorContext } from '@cbjs/cbjs';
+import {
+  DesignDocument,
+  DesignDocumentNotFoundError,
+  DesignDocumentView,
+  HttpErrorContext,
+} from '@cbjs/cbjs';
 import { waitForViewDesignDocument } from '@cbjs/http-client';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';
@@ -28,26 +34,29 @@ describe
   .runIf(serverSupportsFeatures(ServerFeatures.Views))
   .shuffle('views', async () => {
     const buildDesignDocument = (testUid: string, docId: string, viewName: string) => {
-      return new DesignDocument(`dev_${docId}`, {
-        [viewName]: new DesignDocument.View(`
+      return new DesignDocument({
+        name: `dev_${docId}`,
+        views: {
+          [viewName]: new DesignDocumentView({
+            map: `
           function(doc, meta){
             if(meta.id.indexOf("${testUid}")==0){
               emit(meta.id);
             }
           }
-      `),
+          `,
+          }),
+        },
       });
     };
 
-    const test = await createCouchbaseTest(
-      ({ useViewDocumentKey }) => {
-        return {
-          useSampleData,
-          docId: useViewDocumentKey(),
-          viewName: 'simple',
-        };
-      }
-    );
+    const test = await createCouchbaseTest(({ useViewDocumentKey }) => {
+      return {
+        useSampleData,
+        docId: useViewDocumentKey(),
+        viewName: 'simple',
+      };
+    });
 
     test(
       'should successfully create an index',

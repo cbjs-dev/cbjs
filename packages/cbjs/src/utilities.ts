@@ -14,9 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DurabilityLevelName, NonVoid, durabilityLevels } from '@cbjs/shared';
 import { Buffer } from 'node:buffer';
+import { ParsedUrlQueryInput } from 'querystring';
 import * as qs from 'querystring';
+
+import { DurabilityLevelName, durabilityLevels, NonVoid } from '@cbjs/shared';
 
 import { AnyCollection } from './clusterTypes';
 import { DurabilityLevel } from './generaltypes';
@@ -156,13 +158,14 @@ export class PromiseHelper {
     logicFn: (callback: (err: Error | null, res?: T | null) => void) => void,
     callback?: ((err: Error | null, res: T | null) => T) | null
   ): Promise<T> {
-    const prom: Promise<T> = new Promise((resolve, reject) => {
+    const prom = new Promise<T>((resolve, reject) => {
       logicFn((err, res) => {
         if (err) {
-          reject(err as Error);
-        } else {
-          resolve(res as T);
+          reject(err);
+          return;
         }
+
+        resolve(res as T);
       });
     });
 
@@ -277,22 +280,30 @@ export function nsServerStrToDuraLevel(
  * @internal
  */
 export function cbQsStringify(
-  values: { [key: string]: any },
+  values: ParsedUrlQueryInput,
   options?: { boolAsString?: boolean }
 ): string {
-  const cbValues: { [key: string]: any } = {};
+  const cbValues: ParsedUrlQueryInput = {};
   for (const i in values) {
-    if (values[i] === undefined) {
-      // skipped
-    } else if (typeof values[i] === 'boolean') {
-      if (options && options.boolAsString) {
-        cbValues[i] = values[i] ? 'true' : 'false';
-      } else {
-        cbValues[i] = values[i] ? 1 : 0;
-      }
-    } else {
-      cbValues[i] = values[i];
+    const value = values[i];
+    const resolvedOptions = {
+      boolAsString: false,
+      ...options,
+    };
+
+    if (value === undefined) continue;
+
+    if (typeof value === 'boolean' && resolvedOptions.boolAsString) {
+      cbValues[i] = values[i] ? 'true' : 'false';
+      continue;
     }
+
+    if (typeof value === 'boolean') {
+      cbValues[i] = values[i] ? 1 : 0;
+      continue;
+    }
+
+    cbValues[i] = values[i];
   }
   return qs.stringify(cbValues);
 }

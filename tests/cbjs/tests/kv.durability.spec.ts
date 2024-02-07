@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access */
 import { describe } from 'vitest';
 
 import {
@@ -25,9 +27,9 @@ import {
   MutationToken,
 } from '@cbjs/cbjs';
 import { getPool } from '@cbjs/http-client';
-
-import { invariant, hasOwn } from '@cbjs/shared';
+import { hasOwn, invariant } from '@cbjs/shared';
 import { createCouchbaseTest, ServerTestContext } from '@cbjs/vitest';
+
 import { apiConfig } from '../setupTests';
 
 export type NodeCallback<T> = (...args: [null, T] | [Error, null]) => void;
@@ -181,8 +183,11 @@ describe.shuffle('kv durability', async () => {
       const res = await operation(serverTestContext, [
         testDocKey,
         operationArg,
-        (err: unknown, res: any) => {
+        (err: unknown, res: unknown) => {
           if (err) return;
+
+          invariant(hasOwn(res, 'cas'));
+          invariant(hasOwn(res, 'token'));
 
           expect(res.cas).toBeNonZeroCAS();
           expect(res.token).toBeMutationToken();
@@ -220,8 +225,11 @@ describe.shuffle('kv durability', async () => {
         testDocKey,
         operationArg,
         { timeout: 2000 },
-        (err: unknown, res: any) => {
+        (err: unknown, res: unknown) => {
           if (err) return;
+
+          invariant(hasOwn(res, 'cas'));
+          invariant(hasOwn(res, 'token'));
 
           expect(res.cas).toBeNonZeroCAS();
           expect(res.token).toBeMutationToken();

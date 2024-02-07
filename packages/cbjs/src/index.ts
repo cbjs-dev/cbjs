@@ -32,7 +32,7 @@ export * from './collection';
 export * from './collectionmanager';
 export { type IConfigProfile, connectionProfiles } from './configProfile';
 export * from './crudoptypes';
-export * from './datastructures';
+export * from './services/kv/dataStructures';
 export * from './diagnosticstypes';
 export * from './errorcontexts';
 export * from './errors';
@@ -61,7 +61,3 @@ export * from './viewtypes';
 export type * from './clusterTypes';
 
 export type { Keyspace } from '@cbjs/shared';
-export { CouchbaseList } from './services/kv/dataStructures/CouchbaseList';
-export { CouchbaseMap } from './services/kv/dataStructures/CouchbaseMap';
-export { CouchbaseQueue } from './services/kv/dataStructures/CouchbaseQueue';
-export { CouchbaseSet } from './services/kv/dataStructures/CouchbaseSet';

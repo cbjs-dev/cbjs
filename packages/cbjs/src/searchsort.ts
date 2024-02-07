@@ -15,46 +15,36 @@
  * limitations under the License.
  */
 
-/* eslint jsdoc/require-jsdoc: off */
-
 /**
  * Provides the ability to specify sorting for a search query.
  *
  * @category Full Text Search
  */
 export class SearchSort {
-  protected _data: any
+  protected _data: Record<string, unknown>;
 
-  constructor(data: any) {
-    if (!data) {
-      data = {}
-    }
-
-    this._data = data
+  constructor(data: Record<string, unknown> = {}) {
+    this._data = data;
   }
 
-  toJSON(): any {
-    return this._data
+  toJSON() {
+    return this._data;
   }
 
   static score(): ScoreSearchSort {
-    return new ScoreSearchSort()
+    return new ScoreSearchSort();
   }
 
   static id(): IdSearchSort {
-    return new IdSearchSort()
+    return new IdSearchSort();
   }
 
   static field(field: string): FieldSearchSort {
-    return new FieldSearchSort(field)
+    return new FieldSearchSort(field);
   }
 
-  static geoDistance(
-    field: string,
-    lat: number,
-    lon: number
-  ): GeoDistanceSearchSort {
-    return new GeoDistanceSearchSort(field, lat, lon)
+  static geoDistance(field: string, lat: number, lon: number): GeoDistanceSearchSort {
+    return new GeoDistanceSearchSort(field, lat, lon);
   }
 }
 
@@ -70,12 +60,12 @@ export class ScoreSearchSort extends SearchSort {
   constructor() {
     super({
       by: 'score',
-    })
+    });
   }
 
   descending(descending: boolean): ScoreSearchSort {
-    this._data.desc = descending
-    return this
+    this._data.desc = descending;
+    return this;
   }
 }
 
@@ -85,18 +75,23 @@ export class ScoreSearchSort extends SearchSort {
  * @category Full Text Search
  */
 export class IdSearchSort extends SearchSort {
+  declare _data: {
+    by: 'id';
+    desc?: boolean;
+  };
+
   /**
    * @internal
    */
   constructor() {
     super({
       by: 'id',
-    })
+    });
   }
 
   descending(descending: boolean): IdSearchSort {
-    this._data.desc = descending
-    return this
+    this._data.desc = descending;
+    return this;
   }
 }
 
@@ -106,6 +101,15 @@ export class IdSearchSort extends SearchSort {
  * @category Full Text Search
  */
 export class FieldSearchSort extends SearchSort {
+  declare _data: {
+    by: 'field';
+    field: string;
+    type?: string;
+    mode?: string;
+    missing?: boolean;
+    desc?: boolean;
+  };
+
   /**
    * @internal
    */
@@ -113,27 +117,27 @@ export class FieldSearchSort extends SearchSort {
     super({
       by: 'field',
       field: field,
-    })
+    });
   }
 
   type(type: string): FieldSearchSort {
-    this._data.type = type
-    return this
+    this._data.type = type;
+    return this;
   }
 
   mode(mode: string): FieldSearchSort {
-    this._data.mode = mode
-    return this
+    this._data.mode = mode;
+    return this;
   }
 
   missing(missing: boolean): FieldSearchSort {
-    this._data.missing = missing
-    return this
+    this._data.missing = missing;
+    return this;
   }
 
   descending(descending: boolean): FieldSearchSort {
-    this._data.desc = descending
-    return this
+    this._data.desc = descending;
+    return this;
   }
 }
 
@@ -143,6 +147,13 @@ export class FieldSearchSort extends SearchSort {
  * @category Full Text Search
  */
 export class GeoDistanceSearchSort extends SearchSort {
+  declare _data: {
+    by: 'geo_distance';
+    field: string;
+    location: [number, number];
+    unit?: string;
+    desc?: boolean;
+  };
   /**
    * @internal
    */
@@ -151,16 +162,16 @@ export class GeoDistanceSearchSort extends SearchSort {
       by: 'geo_distance',
       field: field,
       location: [lon, lat],
-    })
+    });
   }
 
   unit(unit: string): GeoDistanceSearchSort {
-    this._data.unit = unit
-    return this
+    this._data.unit = unit;
+    return this;
   }
 
   descending(descending: boolean): GeoDistanceSearchSort {
-    this._data.desc = descending
-    return this
+    this._data.desc = descending;
+    return this;
   }
 }

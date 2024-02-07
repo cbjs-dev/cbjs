@@ -81,19 +81,19 @@ export class AnalyticsResult<TRow = any> {
   /**
    * The rows which have been returned by the query.
    */
-  rows: TRow[]
+  rows: TRow[];
 
   /**
    * The meta-data which has been returned by the query.
    */
-  meta: AnalyticsMetaData
+  meta: AnalyticsMetaData;
 
   /**
    * @internal
    */
   constructor(data: AnalyticsResult) {
-    this.rows = data.rows
-    this.meta = data.meta
+    this.rows = data.rows;
+    this.meta = data.meta;
   }
 }
 
@@ -106,43 +106,43 @@ export class AnalyticsMetaData {
   /**
    * The request ID which is associated with the executed query.
    */
-  requestId: string
+  requestId: string;
 
   /**
    * The client context id which is assoicated with the executed query.
    */
-  clientContextId: string
+  clientContextId: string;
 
   /**
    * The status of the query at the time the query meta-data was generated.
    */
-  status: AnalyticsStatus
+  status: AnalyticsStatus;
 
   /**
    * Provides the signature of the query.
    */
-  signature?: any
+  signature?: any;
 
   /**
    * Any warnings that occurred during the execution of the query.
    */
-  warnings: AnalyticsWarning[]
+  warnings: AnalyticsWarning[];
 
   /**
    * Various metrics which are made available by the query engine.
    */
-  metrics: AnalyticsMetrics
+  metrics: AnalyticsMetrics;
 
   /**
    * @internal
    */
   constructor(data: AnalyticsMetaData) {
-    this.requestId = data.requestId
-    this.clientContextId = data.clientContextId
-    this.status = data.status
-    this.signature = data.signature
-    this.warnings = data.warnings
-    this.metrics = data.metrics
+    this.requestId = data.requestId;
+    this.clientContextId = data.clientContextId;
+    this.status = data.status;
+    this.signature = data.signature;
+    this.warnings = data.warnings;
+    this.metrics = data.metrics;
   }
 }
 
@@ -156,19 +156,19 @@ export class AnalyticsWarning {
   /**
    * The numeric code associated with the warning which occurred.
    */
-  code: number
+  code: number;
 
   /**
    * A human readable representation of the warning which occurred.
    */
-  message: string
+  message: string;
 
   /**
    * @internal
    */
   constructor(data: AnalyticsWarning) {
-    this.code = data.code
-    this.message = data.message
+    this.code = data.code;
+    this.message = data.message;
   }
 }
 
@@ -182,49 +182,49 @@ export class AnalyticsMetrics {
   /**
    * The total amount of time spent running the query, in milliseconds.
    */
-  elapsedTime: number
+  elapsedTime: number;
 
   /**
    * The total amount of time spent executing the query, in milliseconds.
    */
-  executionTime: number
+  executionTime: number;
 
   /**
    * The total number of rows which were part of the result set.
    */
-  resultCount: number
+  resultCount: number;
 
   /**
    * The total number of bytes which were generated as part of the result set.
    */
-  resultSize: number
+  resultSize: number;
 
   /**
    * The total number of errors which were encountered during the execution of the query.
    */
-  errorCount: number
+  errorCount: number;
 
   /**
    * The total number of objects that were processed as part of execution of the query.
    */
-  processedObjects: number
+  processedObjects: number;
 
   /**
    * The total number of warnings which were encountered during the execution of the query.
    */
-  warningCount: number
+  warningCount: number;
 
   /**
    * @internal
    */
   constructor(data: AnalyticsMetrics) {
-    this.elapsedTime = data.elapsedTime
-    this.executionTime = data.executionTime
-    this.resultCount = data.resultCount
-    this.resultSize = data.resultSize
-    this.errorCount = data.errorCount
-    this.processedObjects = data.processedObjects
-    this.warningCount = data.warningCount
+    this.elapsedTime = data.elapsedTime;
+    this.executionTime = data.executionTime;
+    this.resultCount = data.resultCount;
+    this.resultSize = data.resultSize;
+    this.errorCount = data.errorCount;
+    this.processedObjects = data.processedObjects;
+    this.warningCount = data.warningCount;
   }
 }
 
@@ -258,44 +258,44 @@ export interface AnalyticsQueryOptions {
   /**
    * Values to be used for the placeholders within the query.
    */
-  parameters?: { [key: string]: any } | any[]
+  parameters?: { [key: string]: any } | any[];
 
   /**
    * Specifies the consistency requirements when executing the query.
    *
    * @see AnalyticsScanConsistency
    */
-  scanConsistency?: AnalyticsScanConsistency
+  scanConsistency?: AnalyticsScanConsistency;
 
   /**
    * The returned client context id for this query.
    */
-  clientContextId?: string
+  clientContextId?: string;
 
   /**
    * Indicates whether this query should be executed with a specific priority level.
    */
-  priority?: boolean
+  priority?: boolean;
 
   /**
    * Indicates whether this query should be executed in read-only mode.
    */
-  readOnly?: boolean
+  readOnly?: boolean;
 
   /**
    * Specifies the context within which this query should be executed.  This can be
    * scoped to a scope or a collection within the dataset.
    */
-  queryContext?: string
+  queryContext?: string;
 
   /**
    * Specifies any additional parameters which should be passed to the query engine
    * when executing the query.
    */
-  raw?: { [key: string]: any }
+  raw?: { [key: string]: any };
 
   /**
    * The timeout for this operation, represented in milliseconds.
    */
-  timeout?: number
+  timeout?: number;
 }

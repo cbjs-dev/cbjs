@@ -21,7 +21,7 @@ export async function getScopes(params: CouchbaseHttpApiConfig, bucketName: stri
   const response = await requestGetBucketScopes(params, bucketName);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
   return (await response.json()) as Promise<ApiBucketScopes>;

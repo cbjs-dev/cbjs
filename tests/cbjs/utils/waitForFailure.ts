@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { sleep } from '@cbjs/shared';
 
 type WaitForOptions = {
@@ -32,7 +31,7 @@ type WaitForOptions = {
  * })).rejects.toThrow();
  */
 export async function waitForFailure(
-  fn: () => unknown | Promise<unknown>,
+  fn: () => unknown,
   opts: WaitForOptions = {}
 ): Promise<void> {
   const defaultOpts = {

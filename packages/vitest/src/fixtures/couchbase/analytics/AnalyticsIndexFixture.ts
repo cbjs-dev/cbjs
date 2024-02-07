@@ -38,7 +38,7 @@ export class AnalyticsIndexFixture extends FixtureFunctionValue<
     { serverTestContext, logger }: FixtureContext<CouchbaseTestContext>,
     opts: AnalyticsIndexFixtureParams
   ): Promise<string> {
-    this.indexName = opts.indexName || serverTestContext.newUid();
+    this.indexName = opts.indexName ?? serverTestContext.newUid();
     this.datasetName = opts.datasetName;
     this.dataverseName = opts.dataverseName;
 

@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { invariant } from '@cbjs/shared';
 
 import { ConnectOptions } from './cluster';
-import { invariant } from '@cbjs/shared';
 
 /**
  * IConfigProfile specifies a ConfigProfile which applies

@@ -17,6 +17,7 @@
 export const MANAGEMENT_PORT = 8091;
 export const VIEWS_PORT = 8092;
 export const QUERY_PORT = 8093;
+export const SEARCH_PORT = 8094;
 export const ANALYTICS_PORT = 8095;
 export const EVENTING_PORT = 8096;
 export const INDEX_STATISTICS = 9102;

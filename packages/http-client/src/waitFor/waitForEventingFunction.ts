@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EventingFunctionStatusName } from '@cbjs/shared';
 import { retry } from 'ts-retry-promise';
+
+import { EventingFunctionStatusName } from '@cbjs/shared';
 
 import { getEventingFunctionStatus, getPoolNodes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
@@ -52,7 +53,7 @@ export async function waitForEventingFunction(
 
   if (optionalArgs.length === 2) {
     resolvedOptionalArgs.expectedStatus = optionalArgs[0];
-    resolvedOptionalArgs.options = optionalArgs[1] || {};
+    resolvedOptionalArgs.options = optionalArgs[1] ?? {};
   }
 
   if (optionalArgs.length === 1 && typeof optionalArgs[0] === 'string') {

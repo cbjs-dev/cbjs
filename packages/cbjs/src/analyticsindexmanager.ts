@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Cluster } from './cluster';
 import {
   CouchbaseError,
@@ -26,10 +25,10 @@ import {
 } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import {
+  cbQsStringify,
   NodeCallback,
   PromiseHelper,
   VoidNodeCallback,
-  cbQsStringify,
 } from './utilities';
 
 /**

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { AnyCollection } from '@cbjs/cbjs';
-import { keyspacePath } from '@cbjs/shared';
 import { hasOwn } from '@cbjs/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
@@ -50,7 +49,7 @@ export class DocumentKeyFixture extends FixtureFunctionValue<
     { serverTestContext, logger }: FixtureContext<CouchbaseTestContext>,
     opts: DocumentKeyFixtureParams = {}
   ) {
-    this.docKey = opts.docKey || serverTestContext.newUid();
+    this.docKey = opts.docKey ?? serverTestContext.newUid();
 
     if (hasOwn(opts, 'collection')) {
       this.keyspace = {
@@ -70,7 +69,7 @@ export class DocumentKeyFixture extends FixtureFunctionValue<
 
     logger?.debug(`DocumentKey '${this.docKey}' provided`);
 
-    return this.docKey as string;
+    return this.docKey;
   }
 
   override async cleanup({ serverTestContext }: FixtureContext<CouchbaseTestContext>) {

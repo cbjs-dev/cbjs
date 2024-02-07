@@ -42,13 +42,13 @@ export class CollectionFixture extends FixtureFunctionValue<
     params: CollectionFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.collectionName = params.collectionName || serverTestContext.newUid();
+    this.collectionName = params.collectionName ?? serverTestContext.newUid();
 
     const bucket = params.bucketName
       ? serverTestContext.c.bucket(params.bucketName)
       : serverTestContext.b;
-    this.bucketName = params.bucketName || serverTestContext.b.name;
-    this.scopeName = params.scopeName || Scope.DEFAULT_NAME;
+    this.bucketName = params.bucketName ?? serverTestContext.b.name;
+    this.scopeName = params.scopeName ?? Scope.DEFAULT_NAME;
 
     logger?.debug(
       `Creating collection '${keyspacePath(

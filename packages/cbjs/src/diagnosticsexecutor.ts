@@ -22,8 +22,8 @@ import {
   pingStateFromCpp,
   serviceTypeFromCpp,
   serviceTypeToCpp,
-} from './bindingutilities'
-import { Cluster } from './cluster'
+} from './bindingutilities';
+import { Cluster } from './cluster';
 import {
   DiagnosticsEndpoint,
   DiagnosticsOptions,
@@ -31,19 +31,19 @@ import {
   PingEndpoint,
   PingOptions,
   PingResult,
-} from './diagnosticstypes'
+} from './diagnosticstypes';
 
 /**
  * @internal
  */
 export class DiagnoticsExecutor {
-  private _cluster: Cluster
+  private _cluster: Cluster;
 
   /**
    * @internal
    */
   constructor(cluster: Cluster) {
-    this._cluster = cluster
+    this._cluster = cluster;
   }
 
   /**
@@ -56,10 +56,10 @@ export class DiagnoticsExecutor {
           report_id: options.reportId,
         },
         (cppErr, resp) => {
-          const err = errorFromCpp(cppErr)
+          const err = errorFromCpp(cppErr);
           if (err || !resp) {
-            reject(err)
-            return
+            reject(err);
+            return;
           }
 
           resolve(
@@ -79,16 +79,16 @@ export class DiagnoticsExecutor {
                         remote: svc.remote,
                         lastActivity: svc.last_activity,
                         state: endpointStateFromCpp(svc.state),
-                      })
+                      });
                     }),
-                  ]
+                  ];
                 })
               ),
             })
-          )
+          );
         }
-      )
-    })
+      );
+    });
   }
 }
 
@@ -96,13 +96,13 @@ export class DiagnoticsExecutor {
  * @internal
  */
 export class PingExecutor {
-  private _cluster: Cluster
+  private _cluster: Cluster;
 
   /**
    * @internal
    */
   constructor(cluster: Cluster) {
-    this._cluster = cluster
+    this._cluster = cluster;
   }
 
   /**
@@ -111,7 +111,7 @@ export class PingExecutor {
   async ping(options: PingOptions): Promise<PingResult> {
     return new Promise((resolve, reject) => {
       // BUG(JSCBC-993): timeout is not currently sent to the C++ client
-      options.timeout
+      options.timeout;
 
       this._cluster.conn.ping(
         {
@@ -121,10 +121,10 @@ export class PingExecutor {
             : undefined,
         },
         (cppErr, resp) => {
-          const err = errorFromCpp(cppErr)
+          const err = errorFromCpp(cppErr);
           if (err || !resp) {
-            reject(err)
-            return
+            reject(err);
+            return;
           }
 
           resolve(
@@ -146,15 +146,15 @@ export class PingExecutor {
                         state: pingStateFromCpp(svc.state),
                         bucket: svc.bucket,
                         error: svc.error,
-                      })
+                      });
                     }),
-                  ]
+                  ];
                 })
               ),
             })
-          )
+          );
         }
-      )
-    })
+      );
+    });
   }
 }

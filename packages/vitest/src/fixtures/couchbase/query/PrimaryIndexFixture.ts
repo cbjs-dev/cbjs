@@ -58,7 +58,7 @@ export class PrimaryIndexFixture extends FixtureFunctionValue<
       } '${bucketName}'`
     );
 
-    const indexName = opts.name || '#primary';
+    const indexName = opts.name ?? '#primary';
 
     await serverTestContext.c.queryIndexes().createPrimaryIndex(bucketName, opts);
 

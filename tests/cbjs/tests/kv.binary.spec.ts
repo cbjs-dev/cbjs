@@ -19,7 +19,9 @@ import { beforeEach, describe, vi } from 'vitest';
 
 import { DurabilityLevel } from '@cbjs/cbjs';
 import { getPool } from '@cbjs/http-client';
+import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+
 import { apiConfig } from '../setupTests';
 import { waitFor } from '../utils/waitFor';
 
@@ -109,7 +111,7 @@ describe.shuffle('kv binary', async () => {
         expect(res.value).toEqual(17);
         expect(res.token).toBeMutationToken();
 
-        serverTestContext.collection.get(testDocKey, (err, gres) => {
+        void serverTestContext.collection.get(testDocKey, (err, gres) => {
           if (err) return;
           expect(gres.value).toEqual(17);
           successCallback();
@@ -141,7 +143,7 @@ describe.shuffle('kv binary', async () => {
           expect(res.value).toEqual(17);
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(gres.value).toEqual(17);
             successCallback();
@@ -223,7 +225,7 @@ describe.shuffle('kv binary', async () => {
           expect(res.value).toEqual(10);
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(gres.value).toEqual(10);
             successCallback();
@@ -255,7 +257,7 @@ describe.shuffle('kv binary', async () => {
           expect(res.value).toEqual(10);
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(gres.value).toEqual(10);
             successCallback();
@@ -285,6 +287,8 @@ describe.shuffle('kv binary', async () => {
       const gres = await serverTestContext.collection.get(testDocKey);
 
       expect(Buffer.isBuffer(gres.value)).toBe(true);
+      invariant(gres.value instanceof Buffer);
+
       expect(gres.value.toString()).toEqual('14after');
     });
 
@@ -305,6 +309,8 @@ describe.shuffle('kv binary', async () => {
       const gres = await serverTestContext.collection.get(testDocKey);
 
       expect(Buffer.isBuffer(gres.value)).toBe(true);
+      invariant(gres.value instanceof Buffer);
+
       expect(gres.value.toString()).toEqual('14after');
     });
 
@@ -327,6 +333,8 @@ describe.shuffle('kv binary', async () => {
       const gres = await serverTestContext.collection.get(testDocKey);
 
       expect(Buffer.isBuffer(gres.value)).toBe(true);
+      invariant(gres.value instanceof Buffer);
+
       expect(gres.value.toString()).toEqual('14after');
     });
 
@@ -346,9 +354,12 @@ describe.shuffle('kv binary', async () => {
           expect(res.cas).toBeNonZeroCAS();
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+            invariant(gres.value instanceof Buffer);
+
             expect(gres.value.toString()).toEqual('14after');
             successCallback();
           });
@@ -378,9 +389,12 @@ describe.shuffle('kv binary', async () => {
           expect(res.cas).toBeNonZeroCAS();
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+            invariant(gres.value instanceof Buffer);
+
             expect(gres.value.toString()).toEqual('14after');
             successCallback();
           });
@@ -409,6 +423,9 @@ describe.shuffle('kv binary', async () => {
 
       const gres = await serverTestContext.collection.get(testDocKey);
       expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+      invariant(gres.value instanceof Buffer);
+
       expect(gres.value.toString()).toEqual('before14');
     });
 
@@ -427,6 +444,9 @@ describe.shuffle('kv binary', async () => {
 
       const gres = await serverTestContext.collection.get(testDocKey);
       expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+      invariant(gres.value instanceof Buffer);
+
       expect(gres.value.toString()).toEqual('before14');
     });
 
@@ -447,6 +467,9 @@ describe.shuffle('kv binary', async () => {
 
       const gres = await serverTestContext.collection.get(testDocKey);
       expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+      invariant(gres.value instanceof Buffer);
+
       expect(gres.value.toString()).toEqual('before14');
     });
 
@@ -466,9 +489,12 @@ describe.shuffle('kv binary', async () => {
           expect(res.cas).toBeNonZeroCAS();
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+            invariant(gres.value instanceof Buffer);
+
             expect(gres.value.toString()).toEqual('before14');
             successCallback();
           });
@@ -498,9 +524,12 @@ describe.shuffle('kv binary', async () => {
           expect(res.cas).toBeNonZeroCAS();
           expect(res.token).toBeMutationToken();
 
-          serverTestContext.collection.get(testDocKey, (err, gres) => {
+          void serverTestContext.collection.get(testDocKey, (err, gres) => {
             if (err) return;
             expect(Buffer.isBuffer(gres.value)).toBe(true);
+
+            invariant(gres.value instanceof Buffer);
+
             expect(gres.value.toString()).toEqual('before14');
             successCallback();
           });

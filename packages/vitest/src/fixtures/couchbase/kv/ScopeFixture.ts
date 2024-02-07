@@ -38,7 +38,7 @@ export class ScopeFixture extends FixtureFunctionValue<
     params: ScopeFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.scopeName = params.scopeName || serverTestContext.newUid();
+    this.scopeName = params.scopeName ?? serverTestContext.newUid();
 
     const bucket = params.bucketName
       ? serverTestContext.c.bucket(params.bucketName)

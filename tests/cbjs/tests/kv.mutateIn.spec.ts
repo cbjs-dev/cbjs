@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { beforeEach, describe, expectTypeOf } from 'vitest';
+
 import {
   CasMismatchError,
   CouchbaseCas,
@@ -25,8 +27,7 @@ import {
 } from '@cbjs/cbjs';
 import { getPool } from '@cbjs/http-client';
 import { invariant } from '@cbjs/shared';
-import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
-import { beforeEach, describe, expectTypeOf } from 'vitest';
+import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
 
 import { apiConfig } from '../setupTests';
 

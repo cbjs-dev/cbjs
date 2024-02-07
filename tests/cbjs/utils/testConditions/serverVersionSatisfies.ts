@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { satisfies } from 'semver';
 
 import { ClusterReleaseFlavor } from '@cbjs/http-client';
 import { invariant } from '@cbjs/shared';
-import { satisfies } from 'semver';
 
 import { clusterRelease } from '../clusterRelease';
 
@@ -32,7 +32,10 @@ export async function serverVersionSatisfies(
   flavor: ClusterReleaseFlavor
 ): Promise<boolean>;
 export async function serverVersionSatisfies(
-  ...args: [string] | [string, ClusterReleaseFlavor] | [string, string, ClusterReleaseFlavor]
+  ...args:
+    | [string]
+    | [string, ClusterReleaseFlavor]
+    | [string, string, ClusterReleaseFlavor]
 ): Promise<boolean> {
   let expectedVersion, expectedBuild, expectedFlavor;
 
@@ -51,7 +54,8 @@ export async function serverVersionSatisfies(
   }
 
   if (expectedBuild !== undefined && clusterRelease.build !== expectedBuild) return false;
-  if (expectedFlavor !== undefined && clusterRelease.flavor !== expectedFlavor) return false;
+  if (expectedFlavor !== undefined && clusterRelease.flavor !== expectedFlavor)
+    return false;
 
   invariant(expectedVersion);
   return satisfies(clusterRelease.version, expectedVersion);

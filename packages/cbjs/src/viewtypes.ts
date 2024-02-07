@@ -24,19 +24,19 @@ export class ViewResult<TValue = any, TKey = any> {
   /**
    * The rows which have been returned by the query.
    */
-  rows: ViewRow<TKey, TValue>[]
+  rows: ViewRow<TKey, TValue>[];
 
   /**
    * The meta-data which has been returned by the query.
    */
-  meta: ViewMetaData
+  meta: ViewMetaData;
 
   /**
    * @internal
    */
   constructor(data: ViewResult) {
-    this.rows = data.rows
-    this.meta = data.meta
+    this.rows = data.rows;
+    this.meta = data.meta;
   }
 }
 
@@ -49,19 +49,19 @@ export class ViewMetaData {
   /**
    * The total number of rows available in the index that match the query.
    */
-  totalRows?: number
+  totalRows?: number;
 
   /**
    * Contains various pieces of debug information exposed by the view service.
    */
-  debug?: any
+  debug?: any;
 
   /**
    * @internal
    */
   constructor(data: { totalRows?: number; debug?: any }) {
-    this.totalRows = data.totalRows
-    this.debug = data.debug
+    this.totalRows = data.totalRows;
+    this.debug = data.debug;
   }
 
   /**
@@ -71,7 +71,7 @@ export class ViewMetaData {
    * @deprecated Use {@link ViewMetaData.totalRows} instead.
    */
   get total_rows(): number | undefined {
-    return this.totalRows
+    return this.totalRows;
   }
 }
 
@@ -84,25 +84,25 @@ export class ViewRow<TValue = any, TKey = any> {
   /**
    * The value for this row.
    */
-  value: TValue
+  value: TValue;
 
   /**
    * The key for this row.
    */
-  key?: TKey
+  key?: TKey;
 
   /**
    * The id for this row.
    */
-  id?: string
+  id?: string;
 
   /**
    * @internal
    */
   constructor(data: ViewRow) {
-    this.value = data.value
-    this.key = data.key
-    this.id = data.id
+    this.value = data.value;
+    this.key = data.key;
+    this.id = data.id;
   }
 }
 
@@ -182,17 +182,17 @@ export interface ViewQueryKeyRange {
   /**
    * Specifies the first key that should be included in the results.
    */
-  start?: string | string[]
+  start?: string | string[];
 
   /**
    * Specifies the last key that should be included in the results.
    */
-  end?: string | string[]
+  end?: string | string[];
 
   /**
    * Specifies whether the end key should be considered inclusive or exclusive.
    */
-  inclusiveEnd?: boolean
+  inclusiveEnd?: boolean;
 
   /**
    * Same as {@link ViewQueryKeyRange.inclusiveEnd}, but represented as
@@ -200,7 +200,7 @@ export interface ViewQueryKeyRange {
    *
    * @deprecated Use {@link ViewQueryKeyRange.inclusiveEnd} instead.
    */
-  inclusive_end?: boolean
+  inclusive_end?: boolean;
 }
 
 /**
@@ -212,12 +212,12 @@ export interface ViewQueryIdRange {
   /**
    * Specifies the first id that should be included in the results.
    */
-  start?: string
+  start?: string;
 
   /**
    * Specifies the last id (inclusively) that should be included in the results.
    */
-  end?: string
+  end?: string;
 }
 
 /**
@@ -229,75 +229,75 @@ export interface ViewQueryOptions {
    *
    * @see ViewScanConsistency
    */
-  scanConsistency?: ViewScanConsistency
+  scanConsistency?: ViewScanConsistency;
 
   /**
    * Specifies the number of results to skip from the index before returning
    * results.
    */
-  skip?: number
+  skip?: number;
 
   /**
    * Specifies the limit to the number of results that should be returned.
    */
-  limit?: number
+  limit?: number;
 
   /**
    * Specifies the ordering that should be used when returning results.
    */
-  order?: ViewOrdering
+  order?: ViewOrdering;
 
   /**
    * Specifies whether reduction should be performed as part of the query.
    */
-  reduce?: boolean
+  reduce?: boolean;
 
   /**
    * Specifies whether the results should be grouped together.
    */
-  group?: boolean
+  group?: boolean;
 
   /**
    * Specifies the level to which results should be group.
    */
-  groupLevel?: number
+  groupLevel?: number;
 
   /**
    * Specifies a specific key which should be fetched from the index.
    */
-  key?: string
+  key?: string;
 
   /**
    * Specifies a list of keys which should be fetched from the index.
    */
-  keys?: string[]
+  keys?: string[];
 
   /**
    * Specifies a range of keys that should be fetched from the index.
    */
-  range?: ViewQueryKeyRange
+  range?: ViewQueryKeyRange;
 
   /**
    * Specifies a range of ids that should be fetched from the index.
    */
-  idRange?: ViewQueryIdRange
+  idRange?: ViewQueryIdRange;
 
   /**
    * Indicates whether the query should force the entire set of document in the index
    * to be included in the result.  This is on by default for production views and off
    * by default for development views (only a subset of results may be returned).
    */
-  fullSet?: boolean
+  fullSet?: boolean;
 
   /**
    * Specifies the error-handling behaviour that should be used when an error occurs.
    */
-  onError?: ViewErrorMode
+  onError?: ViewErrorMode;
 
   /**
    * The timeout for this operation, represented in milliseconds.
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * Same as {@link ViewQueryOptions.scanConsistency}, but represented as
@@ -305,7 +305,7 @@ export interface ViewQueryOptions {
    *
    * @deprecated Use {@link ViewQueryOptions.scanConsistency} instead.
    */
-  stale?: string | ViewScanConsistency
+  stale?: string | ViewScanConsistency;
 
   /**
    * Same as {@link ViewQueryOptions.groupLevel}, but represented as
@@ -313,7 +313,7 @@ export interface ViewQueryOptions {
    *
    * @deprecated Use {@link ViewQueryOptions.groupLevel} instead.
    */
-  group_level?: number
+  group_level?: number;
 
   /**
    * Same as {@link ViewQueryOptions.idRange}, but represented as
@@ -321,7 +321,7 @@ export interface ViewQueryOptions {
    *
    * @deprecated Use {@link ViewQueryOptions.idRange} instead.
    */
-  id_range?: ViewQueryIdRange
+  id_range?: ViewQueryIdRange;
 
   /**
    * Same as {@link ViewQueryOptions.fullSet}, but represented as
@@ -329,7 +329,7 @@ export interface ViewQueryOptions {
    *
    * @deprecated Use {@link ViewQueryOptions.fullSet} instead.
    */
-  full_set?: boolean
+  full_set?: boolean;
 
   /**
    * Same as {@link ViewQueryOptions.onError}, but represented as
@@ -337,5 +337,5 @@ export interface ViewQueryOptions {
    *
    * @deprecated Use {@link ViewQueryOptions.onError} instead.
    */
-  on_error?: ViewErrorMode
+  on_error?: ViewErrorMode;
 }

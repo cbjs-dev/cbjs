@@ -41,8 +41,8 @@ export class UserFixture extends FixtureFunctionValue<
     params: UserFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.username = params.username || serverTestContext.newUid();
-    this.password = params.password || getRandomId();
+    this.username = params.username ?? serverTestContext.newUid();
+    this.password = params.password ?? getRandomId();
 
     await serverTestContext.c.users().upsertUser({
       ...params,
@@ -62,7 +62,6 @@ export class UserFixture extends FixtureFunctionValue<
   override async cleanup({
     serverTestContext,
     apiConfig,
-    logger,
   }: FixtureContext<CouchbaseTestContext>) {
     if (!this.username) return;
     await serverTestContext.c.users().dropUser(this.username);

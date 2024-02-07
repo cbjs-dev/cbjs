@@ -21,7 +21,7 @@ export async function getBucket(params: CouchbaseHttpApiConfig, bucketName: stri
   const response = await requestGetBucket(params, bucketName);
 
   if (response.status !== 200) {
-    throw new Error(`API Error (${response.statusText}): ${response.text()}`);
+    throw new Error(`API Error (${response.statusText}): ${await response.text()}`);
   }
 
   return (await response.json()) as Promise<ApiBucket>;

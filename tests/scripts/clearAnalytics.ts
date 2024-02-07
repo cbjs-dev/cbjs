@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { connect } from '@cbjs/cbjs';
-import { quoteIdentifier, getConnectionParams } from '@cbjs/shared';
+import { getConnectionParams, quoteIdentifier } from '@cbjs/shared';
 
 const params = getConnectionParams();
 const cluster = await connect(params.connectionString, {

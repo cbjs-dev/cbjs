@@ -38,7 +38,7 @@ export class DatasetFixture extends FixtureFunctionValue<
     { serverTestContext, logger }: FixtureContext<CouchbaseTestContext>,
     opts: DatasetFixtureParams
   ): Promise<string> {
-    this.datasetName = opts.datasetName || serverTestContext.newUid();
+    this.datasetName = opts.datasetName ?? serverTestContext.newUid();
     this.dataverseName = opts.dataverseName;
     this.bucketName = opts.bucketName
       ? serverTestContext.cluster.bucket(opts.bucketName).name
@@ -57,7 +57,10 @@ export class DatasetFixture extends FixtureFunctionValue<
     return this.datasetName;
   }
 
-  override async cleanup({ serverTestContext, logger }: FixtureContext<CouchbaseTestContext>) {
+  override async cleanup({
+    serverTestContext,
+    logger,
+  }: FixtureContext<CouchbaseTestContext>) {
     if (!this.datasetName || !this.dataverseName) return;
     await serverTestContext.cluster
       .analyticsIndexes()

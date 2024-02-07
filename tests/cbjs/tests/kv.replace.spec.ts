@@ -19,8 +19,9 @@ import { beforeEach, describe, vi } from 'vitest';
 import { CasMismatchError, DefaultTranscoder, KeyValueErrorContext } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
-import { getLargeTestDocument } from './kv._helpers';
+
 import { waitFor } from '../utils/waitFor';
+import { getLargeTestDocument } from './kv._helpers';
 
 describe.shuffle('kv replace', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {
@@ -65,7 +66,7 @@ describe.shuffle('kv replace', async () => {
       expect(res.cas).toBeNonZeroCAS();
       expect(res.token).toBeMutationToken();
 
-      return serverTestContext.collection.get(testDocKey, (err, res) => {
+      void serverTestContext.collection.get(testDocKey, (err, res) => {
         if (err) return;
         expect(res?.value).toEqual(testDocContent);
         deepGetCallback();
@@ -96,7 +97,7 @@ describe.shuffle('kv replace', async () => {
         expect(res.cas).toBeNonZeroCAS();
         expect(res.token).toBeMutationToken();
 
-        return serverTestContext.collection.get(testDocKey, (err, res) => {
+        void serverTestContext.collection.get(testDocKey, (err, res) => {
           if (err) return;
           expect(res?.value).toEqual(testDocContent);
           deepGetCallback();

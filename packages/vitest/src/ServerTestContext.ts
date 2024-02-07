@@ -18,16 +18,16 @@ import {
   Bucket,
   Cluster,
   Collection,
+  connect,
   ConnectOptions,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   DefaultCollection,
   DefaultScope,
   Scope,
-  connect,
 } from '@cbjs/cbjs';
 import { waitForBucket, waitForCollection } from '@cbjs/http-client';
-import { CouchbaseLogger, Keyspace, invariant, keyspacePath, sleep } from '@cbjs/shared';
+import { CouchbaseLogger, invariant, Keyspace, keyspacePath, sleep } from '@cbjs/shared';
 import { ConnectionParams, getApiConfig, getConnectionParams } from '@cbjs/shared';
 
 import { getTestLogger } from './logger';
@@ -73,7 +73,7 @@ export class ServerTestContext {
       await sleep(200);
     }
 
-    const localParams = params || getConnectionParams();
+    const localParams = params ?? getConnectionParams();
     const defaultOpts = {
       // configProfile: 'wanDevelopment',
     } satisfies ConnectOptions;

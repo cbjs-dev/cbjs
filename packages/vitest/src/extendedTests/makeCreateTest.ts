@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Class, CouchbaseLogger } from '@cbjs/shared';
 import { test, TestAPI } from 'vitest';
 
+import { Class, CouchbaseLogger } from '@cbjs/shared';
+
 import { CreateTestFixtureFunction } from '../fixtures/CreateTestFixtureFunction';
-import { FixtureFunctionValue, isFixtureFunctionValueClass } from '../fixtures/FixtureFunctionValue';
-import { FixturePlainValue, isFixturePlainValueClass } from '../fixtures/FixturePlainValue';
-import { CreateTestFixtureOf, FixtureUseValues, TestFixtureOf, UnknownContext } from '../fixtures/types';
+import {
+  FixtureFunctionValue,
+  isFixtureFunctionValueClass,
+} from '../fixtures/FixtureFunctionValue';
+import {
+  FixturePlainValue,
+  isFixturePlainValueClass,
+} from '../fixtures/FixturePlainValue';
+import {
+  CreateTestFixtureOf,
+  FixtureUseValues,
+  TestFixtureOf,
+  UnknownContext,
+} from '../fixtures/types';
 import { useFixture } from '../fixtures/useFixture';
 import { getTestLogger } from '../logger';
 
@@ -29,23 +41,24 @@ export type TestBodyFixtures<T extends FixtureRecords> = {
   [K in keyof T]: TestBodyFixture<T[K]>;
 };
 
-export type TestBodyFixture<T> = T extends Class<
-  FixtureFunctionValue<
-    infer Args extends ReadonlyArray<unknown>,
-    infer UseValue,
-    UnknownContext
+export type TestBodyFixture<T> =
+  T extends Class<
+    FixtureFunctionValue<
+      infer Args extends ReadonlyArray<unknown>,
+      infer UseValue,
+      UnknownContext
+    >
   >
->
-  ? (...args: Args) => UseValue
-  : T extends Class<FixturePlainValue<infer UseValue, UnknownContext>>
-  ? () => UseValue
-  : T extends (ctx: any, use: (v: infer UseValue) => Promise<void>) => Promise<void>
-  ? UseValue
-  : T;
+    ? (...args: Args) => UseValue
+    : T extends Class<FixturePlainValue<infer UseValue, UnknownContext>>
+      ? () => UseValue
+      : T extends (ctx: any, use: (v: infer UseValue) => Promise<void>) => Promise<void>
+        ? UseValue
+        : T;
 
 type CreateTestFunctionArg<
   CreateTestFixtures extends Record<string, unknown>,
-  UserFixtures extends Record<string, unknown>
+  UserFixtures extends Record<string, unknown>,
 > =
   | UserFixtures
   | ((args: WithLogger<CreateTestFixtures>) => Promise<UserFixtures>)
@@ -67,18 +80,20 @@ type FixtureRecords = Record<string, unknown>;
 
 type CreateTestFunction<
   CreatorFixtures extends FixtureRecords,
-  UserFixtures extends Record<string, unknown>
+  UserFixtures extends Record<string, unknown>,
 > = UserFixtures extends undefined
   ? TestAPI<FixtureUseValues<TestFixtureRecords<CreatorFixtures>>>
   : TestAPI<FixtureUseValues<TestFixtureRecords<CreatorFixtures> & UserFixtures>>;
 
 export function makeCreateTest<
   const FixtureContext extends UnknownContext,
-  const RawCreatorFixtures extends FixtureRecords
->(fn: () => Promise<{
-  fixtureContext: FixtureContext;
-  creatorFixtures: RawCreatorFixtures;
-}>) {
+  const RawCreatorFixtures extends FixtureRecords,
+>(
+  fn: () => Promise<{
+    fixtureContext: FixtureContext;
+    creatorFixtures: RawCreatorFixtures;
+  }>
+) {
   return async function <UserFixtures extends Record<string, any>>(
     userArg?: CreateTestFunctionArg<
       CreateTestFixtureRecords<RawCreatorFixtures>,

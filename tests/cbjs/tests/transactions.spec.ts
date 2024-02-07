@@ -25,9 +25,10 @@ import {
   TransactionOperationFailedError,
 } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { sleep } from '@cbjs/shared';
+import { createCouchbaseTest } from '@cbjs/vitest';
+
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
   'transactions',

@@ -14,38 +14,38 @@ const cluster = await connect(params.connectionString, {
 
 const insertPromises = [];
 const getPromises = [];
-const insert = cluster.bucket(bucketName).defaultCollection().insert;
-const get = cluster.bucket(bucketName).defaultCollection().get;
+const collection = cluster.bucket(bucketName).defaultCollection();
 
-for (let i = 0; i < 200; i++) {
-  insertPromises.push(insert(`optimizationDoc_${prefix}_${i}`, 'hi'));
+for (let i = 0; i < 1000; i++) {
+  insertPromises.push(collection.insert(`optimizationDoc_${prefix}_${i}`, 'hi'));
 }
 
 await Promise.allSettled(insertPromises);
 
-for (let i = 0; i < 2000; i++) {
-  getPromises.push(get(`optimizationDoc_${prefix}_${i}`));
+for (let i = 0; i < 1000; i++) {
+  getPromises.push(collection.get(`optimizationDoc_${prefix}_${i}`));
   getPromises.push(
-    get(`optimizationDoc_${prefix}_${i}`, {
+    collection.get(`optimizationDoc_${prefix}_${i}`, {
       timeout: 500,
     })
   );
 
   getPromises.push(
-    get(`optimizationDoc_${prefix}_${i}`, (err, res) => {
+    collection.get(`optimizationDoc_${prefix}_${i}`, (err, res) => {
       if (err) return;
-      const { content } = res;
+      if (typeof res !== 'object') throw new Error('Invalid response');
     })
   );
 
   getPromises.push(
-    get(`optimizationDoc_${prefix}_${i}`, { timeout: 500 }, (err, res) => {
+    collection.get(`optimizationDoc_${prefix}_${i}`, { timeout: 500 }, (err, res) => {
       if (err) return;
-      const { content } = res;
+      if (typeof res !== 'object') throw new Error('Invalid response');
     })
   );
 }
 
 await Promise.allSettled(getPromises);
 
-console.log(isOptimized(get));
+// eslint-disable-next-line @typescript-eslint/unbound-method
+console.log(isOptimized(collection.get));

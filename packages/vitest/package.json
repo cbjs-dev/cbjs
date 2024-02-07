@@ -2,7 +2,12 @@
   "name": "@cbjs/vitest",
   "version": "1.0.0",
   "description": "Vitest extended tests and fixtures for your tests with Couchbase",
-  "keywords": ["couchbase", "vitest", "fixture", "test"],
+  "keywords": [
+    "couchbase",
+    "vitest",
+    "fixture",
+    "test"
+  ],
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
   "engines": {
@@ -37,5 +42,9 @@
     "@cbjs/cbjs": "*",
     "@cbjs/http-client": "*",
     "vitest": "^1.2.0"
+  },
+  "devDependencies": {
+    "http-client": "^4.3.1",
+    "zod": "^3.22.4"
   }
 }

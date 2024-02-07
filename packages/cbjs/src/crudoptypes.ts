@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { DocDef } from './clusterTypes';
 import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types';
 import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types';
@@ -319,7 +318,7 @@ export class MutateInResultEntry<Result extends number | undefined = any | undef
  * @category Key-Value
  */
 export class MutateInResult<
-  Results extends ReadonlyArray<number | undefined> = Array<any | undefined>
+  Results extends ReadonlyArray<number | undefined> = Array<any | undefined>,
 > {
   /**
    * A list of result entries for each sub-operation performed.

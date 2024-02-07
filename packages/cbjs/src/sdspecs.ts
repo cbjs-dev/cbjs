@@ -14,16 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import binding, { CppProtocolSubdocOpcode } from './binding';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards';
 import {
   LookupInInternalPath,
   LookupInPath,
   LookupInSpecOpCode,
-  MakeLookupInSpec, ToLookupInternalPath,
+  MakeLookupInSpec,
+  ToLookupInternalPath,
 } from './clusterTypes/kv/lookup/lookupIn.types';
-
 import { LookupInMacroReturnType } from './clusterTypes/kv/lookup/lookupInMacro.types';
 import {
   LookupInCountPath,
@@ -58,7 +57,7 @@ import {
  * @category Key-Value
  */
 export class LookupInMacro<
-  Type extends keyof LookupInMacroReturnType = keyof LookupInMacroReturnType
+  Type extends keyof LookupInMacroReturnType = keyof LookupInMacroReturnType,
 > {
   /**
    * @internal
@@ -135,7 +134,7 @@ export class LookupInMacro<
  * @category Key-Value
  */
 export class MutateInMacro<
-  Type extends keyof MutateInMacroReturnType = keyof MutateInMacroReturnType
+  Type extends keyof MutateInMacroReturnType = keyof MutateInMacroReturnType,
 > {
   /**
    * @internal
@@ -180,7 +179,7 @@ export class LookupInSpec<
   InternalPath extends LookupInInternalPath<Doc, Opcode> = LookupInInternalPath<
     Doc,
     Opcode
-  >
+  >,
 > {
   /**
    * BUG(JSCBC-756): Previously provided access to the expiry macro for a
@@ -216,7 +215,7 @@ export class LookupInSpec<
   private static _create<
     Doc extends object,
     Opcode extends LookupInSpecOpCode,
-    Path extends LookupInPath<Doc, Opcode>
+    Path extends LookupInPath<Doc, Opcode>,
   >(
     op: Opcode,
     path: Path,
@@ -243,11 +242,13 @@ export class LookupInSpec<
   }
 
   static get<Doc extends object>(
+    this: void,
     path: '',
     options?: { xattr?: boolean }
   ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_doc, ''>;
 
   static get<Doc extends object, Path extends Exclude<LookupInGetPath<Doc>, ''>>(
+    this: void,
     path: Path,
     options?: { xattr?: boolean }
   ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get, Path>;
@@ -262,12 +263,12 @@ export class LookupInSpec<
    */
   static get<
     Doc extends object,
-    Path extends LookupInGetPath<Doc> = LookupInGetPath<Doc>
-  >(path: Path, options?: { xattr?: boolean }): LookupInSpec {
+    Path extends LookupInGetPath<Doc> = LookupInGetPath<Doc>,
+  >(this: void, path: Path, options?: { xattr?: boolean }): LookupInSpec {
     if (path === '') {
-      return this._create(binding.protocol_subdoc_opcode.get_doc, '', options);
+      return LookupInSpec._create(binding.protocol_subdoc_opcode.get_doc, '', options);
     }
-    return this._create(binding.protocol_subdoc_opcode.get, path, options);
+    return LookupInSpec._create(binding.protocol_subdoc_opcode.get, path, options);
   }
 
   /**
@@ -280,10 +281,11 @@ export class LookupInSpec<
    * attributes data for the document.
    */
   static exists<Doc extends object, Path extends LookupInExistsPath<Doc>>(
+    this: void,
     path: Path,
     options?: { xattr?: boolean }
   ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.exists, Path> {
-    return this._create(binding.protocol_subdoc_opcode.exists, path, options);
+    return LookupInSpec._create(binding.protocol_subdoc_opcode.exists, path, options);
   }
 
   /**
@@ -297,8 +299,9 @@ export class LookupInSpec<
    */
   static count<
     Doc extends object,
-    Path extends LookupInCountPath<Doc> = LookupInCountPath<Doc>
+    Path extends LookupInCountPath<Doc> = LookupInCountPath<Doc>,
   >(
+    this: void,
     path: Path,
     options?: { xattr?: boolean }
   ): LookupInSpec<
@@ -306,7 +309,7 @@ export class LookupInSpec<
     CppProtocolSubdocOpcode.get_count,
     ToLookupInternalPath<Doc, CppProtocolSubdocOpcode.get_count, Path>
   > {
-    return this._create(binding.protocol_subdoc_opcode.get_count, path, options);
+    return LookupInSpec._create(binding.protocol_subdoc_opcode.get_count, path, options);
   }
 }
 
@@ -325,7 +328,7 @@ export class MutateInSpec<
     Opcode,
     Path,
     Multi
-  >
+  >,
 > {
   /**
    * BUG(JSCBC-756): Previously provided access to the document cas mutate
@@ -385,7 +388,7 @@ export class MutateInSpec<
     Opcode extends MutateInSpecOpcode,
     Path extends MutateInPath<Doc, Opcode>,
     Multi extends boolean,
-    Value extends MutateInValue<Doc, Opcode, Path, Multi>
+    Value extends MutateInValue<Doc, Opcode, Path, Multi>,
   >(
     op: Opcode,
     path: Path,
@@ -432,13 +435,7 @@ export class MutateInSpec<
       }
     }
 
-    return new MutateInSpec(op, path as Path, flags, value, valueAsString) as MutateInSpec<
-      Doc,
-      Opcode,
-      Path,
-      Multi,
-      Value
-    >;
+    return new MutateInSpec(op, path, flags, value, valueAsString);
   }
 
   /**
@@ -458,19 +455,26 @@ export class MutateInSpec<
   static insert<
     Doc extends object,
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInInsertOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, boolean, Value> {
-    return this._create(binding.protocol_subdoc_opcode.dict_add, path, value, options);
+    return MutateInSpec._create(
+      binding.protocol_subdoc_opcode.dict_add,
+      path,
+      value,
+      options
+    );
   }
 
   static upsert<
     Doc extends object,
-    Value extends MutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, ''>
+    Value extends MutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, ''>,
   >(
+    this: void,
     path: '',
     value: Value,
     options?: MutateInUpsertOptions
@@ -479,8 +483,9 @@ export class MutateInSpec<
   static upsert<
     Doc extends object,
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInUpsertOptions
@@ -506,8 +511,9 @@ export class MutateInSpec<
       Doc,
       CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert
     >,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, Path>,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInUpsertOptions
@@ -519,12 +525,17 @@ export class MutateInSpec<
     any
   > {
     if (!path) {
-      return this._create(binding.protocol_subdoc_opcode.set_doc, '', value, options);
+      return MutateInSpec._create(
+        binding.protocol_subdoc_opcode.set_doc,
+        '',
+        value,
+        options
+      );
     }
 
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.dict_upsert,
-      path as any,
+      path as never,
       value,
       options
     );
@@ -544,24 +555,32 @@ export class MutateInSpec<
   static replace<
     Doc extends object,
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInReplaceOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, Path, boolean, Value> {
-    return this._create(binding.protocol_subdoc_opcode.replace, path, value, options);
+    return MutateInSpec._create(
+      binding.protocol_subdoc_opcode.replace,
+      path,
+      value,
+      options
+    );
   }
 
   static remove<Doc extends object>(
+    this: void,
     path: '',
     options?: MutateInRemoveOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove_doc, '', false, never>;
 
   static remove<
     Doc extends object,
-    Path extends Exclude<AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>, ''>
+    Path extends Exclude<AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>, ''>,
   >(
+    this: void,
     path: Path,
     options?: MutateInRemoveOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path, false, never>;
@@ -580,8 +599,9 @@ export class MutateInSpec<
     Path extends AnyMutateInPath<
       Doc,
       CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
-    >
+    >,
   >(
+    this: void,
     path: Path,
     options?: MutateInRemoveOptions
   ): MutateInSpec<
@@ -592,14 +612,14 @@ export class MutateInSpec<
     never
   > {
     if (!path) {
-      return this._create(
+      return MutateInSpec._create(
         binding.protocol_subdoc_opcode.remove_doc,
         '',
         undefined as never,
         options
       );
     }
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.remove,
       path as any,
       undefined as never,
@@ -632,13 +652,14 @@ export class MutateInSpec<
       Path,
       Multi
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInArrayAppendOptions<Multi>
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value> {
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_push_last,
       path,
       value,
@@ -671,13 +692,14 @@ export class MutateInSpec<
       Path,
       Multi
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInArrayPrependOptions<Multi>
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value> {
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_push_first,
       path,
       value,
@@ -712,13 +734,14 @@ export class MutateInSpec<
       Path,
       Multi
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInArrayInsertOptions<Multi>
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value> {
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_insert,
       path,
       value,
@@ -752,13 +775,14 @@ export class MutateInSpec<
       Path,
       Multi
     >,
-    Multi extends boolean = false
+    Multi extends boolean = false,
   >(
+    this: void,
     path: Path,
     value: Value,
     options?: MutateInArrayAddUniqueOptions<Multi>
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value> {
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_add_unique,
       path,
       value,
@@ -782,13 +806,14 @@ export class MutateInSpec<
   static increment<
     Doc extends object,
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
   >(
+    this: void,
     path: Path,
     incrementBy: Value,
     options?: MutateInCounterOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, boolean, Value> {
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,
       path,
       +incrementBy as Value,
@@ -812,13 +837,14 @@ export class MutateInSpec<
   static decrement<
     Doc extends object,
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>
+    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
   >(
+    this: void,
     path: Path,
     decrementBy: Value,
     options?: MutateInDecrementOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value> {
-    return this._create(
+    return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,
       path,
       +decrementBy as Value,

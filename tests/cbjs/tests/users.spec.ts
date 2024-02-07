@@ -17,8 +17,9 @@
 import { describe } from 'vitest';
 
 import { HttpErrorContext, UserNotFoundError } from '@cbjs/cbjs';
-import { invariant, getConnectionParams } from '@cbjs/shared';
+import { getConnectionParams, invariant } from '@cbjs/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjs/vitest';
+
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe

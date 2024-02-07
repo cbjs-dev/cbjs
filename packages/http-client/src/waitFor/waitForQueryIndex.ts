@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Keyspace } from '@cbjs/shared';
 import { retry } from 'ts-retry-promise';
+
+import { Keyspace } from '@cbjs/shared';
 
 import { getStatistics } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';

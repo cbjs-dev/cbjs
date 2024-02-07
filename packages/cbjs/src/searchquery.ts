@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { hasOwn } from '@cbjs/shared';
 
 /**
  * Specifies how the individual match terms should be logically concatenated.
@@ -44,19 +45,16 @@ export type GeoPoint =
   | { lon: number; lat: number }
   | { longitude: number; latitude: number };
 
-function _parseGeoPoint(v: GeoPoint): [number, number] {
-  if (Array.isArray(v)) {
-    return v;
-  } else if (v instanceof Object) {
-    const latLonObj = v as any;
-    if (latLonObj.lon || latLonObj.lat) {
-      return [latLonObj.lon, latLonObj.lat];
-    } else if (latLonObj.longitude || latLonObj.latitude) {
-      return [latLonObj.longitude, latLonObj.latitude];
-    }
+function normalizeGeoPoint(point: GeoPoint): [number, number] {
+  if (Array.isArray(point)) {
+    return point;
   }
 
-  throw new Error('invalid geopoint specified');
+  if (hasOwn(point, 'lon')) {
+    return [point.lon, point.lat];
+  }
+
+  return [point.longitude, point.latitude];
 }
 
 /**
@@ -64,9 +62,9 @@ function _parseGeoPoint(v: GeoPoint): [number, number] {
  */
 function _unpackListArgs<T>(args: T[] | T[][]): T[] {
   if (Array.isArray(args[0])) {
-    return args[0] as any as T[];
+    return args[0];
   }
-  return args as any as T[];
+  return args as T[];
 }
 
 /**
@@ -75,36 +73,21 @@ function _unpackListArgs<T>(args: T[] | T[][]): T[] {
  * @category Full Text Search
  */
 export class SearchQuery {
-  protected _data: any;
+  protected _data: Record<string, unknown>;
 
-  constructor(data: any) {
-    if (!data) {
-      data = {};
-    }
-
+  constructor(data: Record<string, unknown> = {}) {
     this._data = data;
   }
 
-  toJSON(): any {
+  toJSON() {
     return this._data;
   }
 
   /**
    * @internal
    */
-  static toJSON(query: SearchQuery | any): any {
-    if (query.toJSON) {
-      return query.toJSON();
-    }
-    return query;
-  }
-
-  /**
-   * @internal
-   */
-  static hasProp(query: SearchQuery | any, prop: string): boolean {
-    const json = this.toJSON(query);
-    return json[prop] !== undefined;
+  hasProp(prop: string): boolean {
+    return this._data[prop] !== undefined;
   }
 
   static match(match: string): MatchSearchQuery {
@@ -247,6 +230,16 @@ export class SearchQuery {
  * @category Full Text Search
  */
 export class MatchSearchQuery extends SearchQuery {
+  declare _data: {
+    match: string;
+    operator?: MatchOperator;
+    analyzer?: string;
+    prefix_length?: number;
+    fuzziness?: number;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -293,6 +286,13 @@ export class MatchSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class MatchPhraseSearchQuery extends SearchQuery {
+  declare _data: {
+    match_phrase: string;
+    analyzer?: string;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -324,6 +324,12 @@ export class MatchPhraseSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class RegexpSearchQuery extends SearchQuery {
+  declare _data: {
+    regexp: string;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -350,6 +356,11 @@ export class RegexpSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class QueryStringSearchQuery extends SearchQuery {
+  declare _data: {
+    query: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -371,6 +382,15 @@ export class QueryStringSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class NumericRangeSearchQuery extends SearchQuery {
+  declare _data: {
+    min?: number;
+    inclusive_min?: boolean;
+    max?: number;
+    inclusive_max?: boolean;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -378,21 +398,13 @@ export class NumericRangeSearchQuery extends SearchQuery {
     super({});
   }
 
-  min(min: number, inclusive?: boolean): NumericRangeSearchQuery {
-    if (inclusive === undefined) {
-      inclusive = true;
-    }
-
+  min(min: number, inclusive = true): NumericRangeSearchQuery {
     this._data.min = min;
     this._data.inclusive_min = inclusive;
     return this;
   }
 
-  max(max: number, inclusive?: boolean): NumericRangeSearchQuery {
-    if (inclusive === undefined) {
-      inclusive = false;
-    }
-
+  max(max: number, inclusive = false): NumericRangeSearchQuery {
     this._data.max = max;
     this._data.inclusive_max = inclusive;
     return this;
@@ -415,6 +427,16 @@ export class NumericRangeSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class DateRangeSearchQuery extends SearchQuery {
+  declare _data: {
+    start?: string;
+    inclusive_start?: boolean;
+    end?: string;
+    inclusive_end?: boolean;
+    datetime_parser?: string;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -474,6 +496,11 @@ export class DateRangeSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class ConjunctionSearchQuery extends SearchQuery {
+  declare _data: {
+    conjuncts: SearchQuery[];
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -503,8 +530,8 @@ export class ConjunctionSearchQuery extends SearchQuery {
   and(...args: SearchQuery[] | SearchQuery[][]): ConjunctionSearchQuery {
     const queries = _unpackListArgs(args);
 
-    for (let i = 0; i < queries.length; ++i) {
-      this._data.conjuncts.push(queries[i]);
+    for (const item of queries) {
+      this._data.conjuncts.push(item);
     }
     return this;
   }
@@ -521,6 +548,12 @@ export class ConjunctionSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class DisjunctionSearchQuery extends SearchQuery {
+  declare _data: {
+    disjuncts: SearchQuery[];
+    boost?: number;
+    min?: number;
+  };
+
   /**
    * @internal
    */
@@ -550,8 +583,8 @@ export class DisjunctionSearchQuery extends SearchQuery {
   or(...args: SearchQuery[] | SearchQuery[][]): DisjunctionSearchQuery {
     const queries = _unpackListArgs(args);
 
-    for (let i = 0; i < queries.length; ++i) {
-      this._data.disjuncts.push(queries[i]);
+    for (const item of queries) {
+      this._data.disjuncts.push(item);
     }
     return this;
   }
@@ -569,6 +602,12 @@ export class DisjunctionSearchQuery extends SearchQuery {
  */
 export class BooleanSearchQuery extends SearchQuery {
   private _shouldMin: number | undefined;
+  declare _data: {
+    boost?: number;
+    must?: ConjunctionSearchQuery;
+    should?: DisjunctionSearchQuery;
+    must_not?: DisjunctionSearchQuery;
+  };
 
   /**
    * @internal
@@ -579,7 +618,7 @@ export class BooleanSearchQuery extends SearchQuery {
   }
 
   must(query: ConjunctionSearchQuery): BooleanSearchQuery {
-    if (!SearchQuery.hasProp(query, 'conjuncts')) {
+    if (!query.hasProp('conjuncts')) {
       query = new ConjunctionSearchQuery(query);
     }
 
@@ -588,7 +627,7 @@ export class BooleanSearchQuery extends SearchQuery {
   }
 
   should(query: DisjunctionSearchQuery): BooleanSearchQuery {
-    if (!SearchQuery.hasProp(query, 'disjuncts')) {
+    if (!query.hasProp('disjuncts')) {
       query = new DisjunctionSearchQuery(query);
     }
     this._data.should = query;
@@ -596,7 +635,7 @@ export class BooleanSearchQuery extends SearchQuery {
   }
 
   mustNot(query: DisjunctionSearchQuery): BooleanSearchQuery {
-    if (!SearchQuery.hasProp(query, 'disjuncts')) {
+    if (!query.hasProp('disjuncts')) {
       query = new DisjunctionSearchQuery(query);
     }
     this._data.must_not = query;
@@ -613,22 +652,26 @@ export class BooleanSearchQuery extends SearchQuery {
     return this;
   }
 
-  override toJSON(): any {
-    const out: any = {};
-    if (this._data.must) {
-      out.must = SearchQuery.toJSON(this._data.must);
-    }
-    if (this._data.should) {
-      out.should = SearchQuery.toJSON(this._data.should);
+  override toJSON() {
+    const result: Partial<
+      Record<'should' | 'must' | 'must_not' | 'boost', number | Record<string, unknown>>
+    > = {};
 
-      if (this._shouldMin) {
-        out.should.min = this._shouldMin;
-      }
+    if (this._data.must) result.must = this._data.must.toJSON();
+    if (this._data.must_not) result.must_not = this._data.must_not.toJSON();
+
+    if (this._data.should) {
+      const shouldQueryJson = this._data.should.toJSON();
+      if (this._shouldMin) shouldQueryJson.min = this._shouldMin;
+
+      result.should = shouldQueryJson;
     }
-    if (this._data.must_not) {
-      out.must_not = SearchQuery.toJSON(this._data.must_not);
+
+    if (this._data.boost) {
+      result.boost = this._data.boost;
     }
-    return out;
+
+    return result;
   }
 }
 
@@ -638,6 +681,12 @@ export class BooleanSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class WildcardSearchQuery extends SearchQuery {
+  declare _data: {
+    wildcard: string;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -664,6 +713,12 @@ export class WildcardSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class DocIdSearchQuery extends SearchQuery {
+  declare _data: {
+    ids: string[];
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -693,8 +748,8 @@ export class DocIdSearchQuery extends SearchQuery {
   addDocIds(...args: string[] | string[][]): DocIdSearchQuery {
     const ids = _unpackListArgs(args);
 
-    for (let i = 0; i < ids.length; ++i) {
-      this._data.ids.push(ids[i]);
+    for (const item of ids) {
+      this._data.ids.push(item);
     }
     return this;
   }
@@ -716,6 +771,12 @@ export class DocIdSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class BooleanFieldSearchQuery extends SearchQuery {
+  declare _data: {
+    bool: boolean;
+    boost?: number;
+    field?: string;
+  };
+
   /**
    * @internal
    */
@@ -742,6 +803,14 @@ export class BooleanFieldSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class TermSearchQuery extends SearchQuery {
+  declare _data: {
+    term: string;
+    boost?: number;
+    field?: string;
+    prefix_length?: number;
+    fuzziness?: number;
+  };
+
   /**
    * @internal
    */
@@ -778,6 +847,12 @@ export class TermSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class PhraseSearchQuery extends SearchQuery {
+  declare _data: {
+    terms: string[];
+    boost?: number;
+    field?: string;
+  };
+
   /**
    * @internal
    */
@@ -804,6 +879,12 @@ export class PhraseSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class PrefixSearchQuery extends SearchQuery {
+  declare _data: {
+    prefix: string;
+    boost?: number;
+    field?: string;
+  };
+
   /**
    * @internal
    */
@@ -830,6 +911,10 @@ export class PrefixSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class MatchAllSearchQuery extends SearchQuery {
+  declare _data: {
+    match_all: null;
+  };
+
   /**
    * @internal
    */
@@ -846,6 +931,10 @@ export class MatchAllSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class MatchNoneSearchQuery extends SearchQuery {
+  declare _data: {
+    match_none: true;
+  };
+
   /**
    * @internal
    */
@@ -862,6 +951,13 @@ export class MatchNoneSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class GeoDistanceSearchQuery extends SearchQuery {
+  declare _data: {
+    location: [number, number];
+    distance: number;
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -889,6 +985,13 @@ export class GeoDistanceSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class GeoBoundingBoxSearchQuery extends SearchQuery {
+  declare _data: {
+    top_left: [number, number];
+    bottom_right: [number, number];
+    field?: string;
+    boost?: number;
+  };
+
   /**
    * @internal
    */
@@ -916,11 +1019,17 @@ export class GeoBoundingBoxSearchQuery extends SearchQuery {
  * @category Full Text Search
  */
 export class GeoPolygonSearchQuery extends SearchQuery {
+  declare _data: {
+    polygon_points: GeoPoint[];
+    boost?: number;
+    field?: string;
+  };
+
   /**
    * @internal
    */
   constructor(points: GeoPoint[]) {
-    const mappedPoints = points.map((v) => _parseGeoPoint(v));
+    const mappedPoints = points.map((v) => normalizeGeoPoint(v));
     super({
       polygon_points: mappedPoints,
     });

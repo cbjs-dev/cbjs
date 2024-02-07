@@ -16,11 +16,17 @@
  */
 import { describe, vi } from 'vitest';
 
-import { InvalidArgumentError, MutationState, ScanResult, PrefixScan, RangeScan, SamplingScan, ScanTerm } from '@cbjs/cbjs';
 import {
-  couchbaseFixture,
-  createCouchbaseTest,
-} from '@cbjs/vitest';
+  InvalidArgumentError,
+  MutationState,
+  PrefixScan,
+  RangeScan,
+  SamplingScan,
+  ScanResult,
+  ScanTerm,
+} from '@cbjs/cbjs';
+import { couchbaseFixture, createCouchbaseTest } from '@cbjs/vitest';
+
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async () => {
@@ -159,7 +165,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       const scanType = new PrefixScan('doc::');
       const resultsStream = data.collection.scan(scanType);
 
-      resultsStream.on('result', onResult);
+      void resultsStream.on('result', onResult);
 
       const results = await resultsStream;
 
@@ -190,7 +196,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
         docCount++;
       });
 
-      resultsStream.on('result', onResult);
+      void resultsStream.on('result', onResult);
 
       const results = await resultsStream;
 
@@ -265,10 +271,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
   }) => {
     const cases = [new PrefixScan('doc::'), new SamplingScan(100), new RangeScan()];
 
-    for (let i = 0; i < cases.length; i++) {
-      const scanType = cases[i];
+    for (const scanType of cases) {
       const results = await data.collection.scan(scanType, { idsOnly: true });
-
       expect(results).toBeInstanceOf(Array);
       expect(results).toHaveLength(100);
 
@@ -344,8 +348,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       },
     ];
 
-    for (let i = 0; i < cases.length; i++) {
-      const { scanType, limit, expectedDocumentCount } = cases[i];
+    for (const scanCase of cases) {
+      const { scanType, limit, expectedDocumentCount } = scanCase;
 
       const results = await data.collection.scan(scanType, { batchByteLimit: limit });
 
@@ -424,8 +428,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       },
     ];
 
-    for (let i = 0; i < cases.length; i++) {
-      const { scanType, limit, expectedDocumentCount } = cases[i];
+    for (const scanCase of cases) {
+      const { scanType, limit, expectedDocumentCount } = scanCase;
 
       const results = await data.collection.scan(scanType, { batchItemLimit: limit });
 
@@ -443,11 +447,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
   test('should scan with set concurrency', async ({ expect, data }) => {
     const cases = [1, 2, 4, 16, 64, 128];
 
-    for (let i = 0; i < cases.length; i++) {
-      const concurrency = cases[i];
-
+    for (const concurrency of cases) {
       const scanType = new RangeScan(new ScanTerm(`doc::1`), new ScanTerm(`doc::2`));
-
       const results = await data.collection.scan(scanType, {
         concurrency: concurrency,
         consistentWith: data.mutationState,

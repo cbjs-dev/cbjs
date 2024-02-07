@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {
   CollectionContaining,
   CollectionDocumentBag,
@@ -180,7 +179,7 @@ export class BinaryCollection<
     any,
     any,
     CollectionDocumentBag<DocDef<string, string | number>>
-  >
+  >,
 > {
   private _coll: CollectionContaining<DocDef<string, string | number>>;
 
@@ -217,7 +216,12 @@ export class BinaryCollection<
     options?: IncrementOptions | NodeCallback<CounterResult>,
     callback?: NodeCallback<CounterResult>
   ): Promise<CounterResult> {
-    return (this._coll as Collection<any, any, any, any>)._binaryIncrement(key, delta, options as IncrementOptions, callback);
+    return (this._coll as Collection<any, any, any, any>)._binaryIncrement(
+      key,
+      delta,
+      options as IncrementOptions,
+      callback
+    );
   }
 
   /**
@@ -246,7 +250,12 @@ export class BinaryCollection<
     options?: DecrementOptions | NodeCallback<CounterResult>,
     callback?: NodeCallback<CounterResult>
   ): Promise<CounterResult> {
-    return (this._coll as Collection<any, any, any, any>)._binaryDecrement(key, delta, options as DecrementOptions, callback);
+    return (this._coll as Collection<any, any, any, any>)._binaryDecrement(
+      key,
+      delta,
+      options as DecrementOptions,
+      callback
+    );
   }
 
   /**
@@ -274,7 +283,12 @@ export class BinaryCollection<
     options?: AppendOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
-    return (this._coll as Collection<any, any, any, any>)._binaryAppend(key, value, options as AppendOptions, callback);
+    return (this._coll as Collection<any, any, any, any>)._binaryAppend(
+      key,
+      value,
+      options as AppendOptions,
+      callback
+    );
   }
 
   /**
@@ -282,13 +296,12 @@ export class BinaryCollection<
    *
    * @param key The key to prepend to.
    * @param value The value to adjoin to the beginning of the document.
-   * @param options Optional parameters for this operation.
-   * @param callback A node-style callback to be invoked after execution.
+   * @param callbackOrOptions Optional parameters for this operation or a node-style callback to be invoked after execution.
    */
   prepend(
     key: string,
     value: string | Buffer,
-    callback?: NodeCallback<MutationResult>
+    callbackOrOptions?: PrependOptions | NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   prepend(
     key: string,
@@ -302,6 +315,11 @@ export class BinaryCollection<
     options?: PrependOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
-    return (this._coll as Collection<any, any, any, any>)._binaryPrepend(key, value, options as PrependOptions, callback);
+    return (this._coll as Collection<any, any, any, any>)._binaryPrepend(
+      key,
+      value,
+      options as PrependOptions,
+      callback
+    );
   }
 }

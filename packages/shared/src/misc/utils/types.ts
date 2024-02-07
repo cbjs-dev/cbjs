@@ -21,6 +21,7 @@ export type IsUnion<T> = [T] extends [UnionToIntersection<T>] ? false : true;
  */
 export type Pretty<T> = {
   [Key in keyof T]: T[Key];
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 } & unknown;
 
 /**
@@ -46,11 +47,9 @@ export type Not<T extends boolean> = T extends true ? false : true;
 /**
  * Return `Then` if `Case` if true, false otherwise.
  */
-export type If<Case extends boolean, Then, Else = never> =
-  Case extends true ?
-    Then :
-  Else
-;
+export type If<Case extends boolean, Then, Else = never> = Case extends true
+  ? Then
+  : Else;
 
 /**
  * Return `true` if `X` extends `Y`.
@@ -80,35 +79,33 @@ export type IsAny<T> = 1 extends 2 & T ? true : false;
 /**
  * Return true if the two given types are exactly the same.
  */
-export type IsExactly<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false;
+export type IsExactly<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false;
 
 /**
  * UnionToIntersection<{ foo: string } | { bar: string }> =
  *  { foo: string } & { bar: string }.
  */
-type UnionToIntersection<U> =
-  (U extends unknown ? (arg: U) => 0 : never) extends (arg: infer I) => 0 ?
-    I :
-  never
-;
+type UnionToIntersection<U> = (U extends unknown ? (arg: U) => 0 : never) extends (
+  arg: infer I
+) => 0
+  ? I
+  : never;
 
 /**
  * LastInUnion<1 | 2> = 2.
  */
 type LastInUnion<U> =
-  UnionToIntersection<U extends unknown ? (x: U) => 0 : never> extends (x: infer L) => 0 ?
-    L :
-  never
-;
+  UnionToIntersection<U extends unknown ? (x: U) => 0 : never> extends (x: infer L) => 0
+    ? L
+    : never;
 
 /**
  * UnionToTuple<1 | 2> = [1, 2].
  */
-export type UnionToTuple<U, Last = LastInUnion<U>> =
-  [U] extends [never] ?
-    readonly [] :
-  readonly [...UnionToTuple<Exclude<U, Last>>, Last]
-;
+export type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
+  ? readonly []
+  : readonly [...UnionToTuple<Exclude<U, Last>>, Last];
 
 /**
  * Extract the string up the delimiter.
@@ -118,19 +115,17 @@ export type CaptureUntil<
   T extends string,
   Delimiter extends string,
   LiteralWrapper extends string,
-> =
-  T extends `${infer Head}${LiteralWrapper}${infer Tail}` ?
-    Head extends `${infer SubstringHead}${Delimiter}${string}` ?
-      SubstringHead :
-      Tail extends `${infer LiteralSubstring}${LiteralWrapper}${infer AfterLiteralSubstring}` ?
-        AfterLiteralSubstring extends `${infer SubstringTail}${Delimiter}${string}` ?
-          `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}${SubstringTail}` :
-        `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}` :
-      never :
-  T extends `${infer Head}${Delimiter}${string}` ?
-    Head :
-    T
-;
+> = T extends `${infer Head}${LiteralWrapper}${infer Tail}`
+  ? Head extends `${infer SubstringHead}${Delimiter}${string}`
+    ? SubstringHead
+    : Tail extends `${infer LiteralSubstring}${LiteralWrapper}${infer AfterLiteralSubstring}`
+      ? AfterLiteralSubstring extends `${infer SubstringTail}${Delimiter}${string}`
+        ? `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}${SubstringTail}`
+        : `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}`
+      : never
+  : T extends `${infer Head}${Delimiter}${string}`
+    ? Head
+    : T;
 
 /**
  * Split a string into a tuple using `Delimiter`.
@@ -141,23 +136,27 @@ export type Split<
   Delimiter extends string,
   LiteralWrapper extends string,
 > =
-  CaptureUntil<T, Delimiter, LiteralWrapper> extends infer FirstChunk extends string ?
-    T extends `${FirstChunk}${Delimiter}${infer Rest}` ?
-      [FirstChunk, ...Split<Rest, Delimiter, LiteralWrapper>] :
-    [FirstChunk] :
-  [T]
-;
+  CaptureUntil<T, Delimiter, LiteralWrapper> extends infer FirstChunk extends string
+    ? T extends `${FirstChunk}${Delimiter}${infer Rest}`
+      ? [FirstChunk, ...Split<Rest, Delimiter, LiteralWrapper>]
+      : [FirstChunk]
+    : [T];
 
 /**
  * Join a tuple of string into a string.
  */
-export type Join<Tuple extends ReadonlyArray<unknown>, Glue extends string, InitialString extends string = ''> =
-  Tuple extends readonly [infer Head extends string, ...(infer Rest extends ReadonlyArray<string>)] ?
-    InitialString extends '' ?
-      Join<Rest, Glue, `${Head}`> :
-    Join<Rest, Glue, `${InitialString}${Glue}${Head}`> :
-  InitialString
-;
+export type Join<
+  Tuple extends ReadonlyArray<unknown>,
+  Glue extends string,
+  InitialString extends string = '',
+> = Tuple extends readonly [
+  infer Head extends string,
+  ...infer Rest extends ReadonlyArray<string>,
+]
+  ? InitialString extends ''
+    ? Join<Rest, Glue, `${Head}`>
+    : Join<Rest, Glue, `${InitialString}${Glue}${Head}`>
+  : InitialString;
 
 export type NonVoid<T> = T extends void ? never : T;
 
@@ -178,4 +177,5 @@ export type PromiseValue<T> = T extends Promise<infer V> ? V : T;
 /**
  * Artificially block TS from inferring the given type parameter, stopping union creation
  */
-export type NoInfer<T> = [T][T extends any ? 0 : never]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type NoInfer<T> = [T][T extends any ? 0 : never];

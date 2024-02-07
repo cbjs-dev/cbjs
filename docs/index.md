@@ -3,8 +3,8 @@
 layout: home
 
 hero:
-  name: "Cbjs"
-  text: "Modern Couchbase client for JS runtimes"
+  name: 'Cbjs'
+  text: 'Modern Couchbase client for JS runtimes'
   tagline: A drop-in replacement for the official library.
   actions:
     - theme: brand
@@ -21,9 +21,8 @@ features:
     icon:
       src: /typescript-logo.svg
     details: Cluster connections are typed so you know what you are getting back.
-  - title: 100% Compatible  
-    icon: 
-        src: /couchbase-logo.svg  
+  - title: 100% Compatible
+    icon:
+      src: /couchbase-logo.svg
     details: Drop-in replacement for the official library.
 ---
-

@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../../types';
+import { apiGET } from '../../../utils/apiGET';
+import { MANAGEMENT_PORT } from '../../../utils/ports';
 
-export { hasOwn } from './hasOwn';
-export * from './identifier';
-export * from './invariant';
-export * from './raise';
-export * from './sleep';
-export * from './types';
-export * from './waitFor';
-
-export * from './getApiConfig';
-export * from './getConnectionParams';
-export * from './jsonToUrlSearchParams';
+export async function requestGetRoles(params: CouchbaseHttpApiConfig) {
+  return apiGET({ ...params }, `/settings/rbac/roles`, MANAGEMENT_PORT);
+}

@@ -14,10 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe, vi } from 'vitest';
+
 import { CouchbaseError } from '@cbjs/cbjs';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
-import { describe, vi } from 'vitest';
 
 import { waitFor } from '../utils/waitFor';
 
@@ -98,7 +99,7 @@ describe('PromiseHelper', async () => {
         });
       }
 
-      expect(callMe()).rejects.toThrowError();
+      await expect(callMe()).rejects.toThrowError();
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalled();

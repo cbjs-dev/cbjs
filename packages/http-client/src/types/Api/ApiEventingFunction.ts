@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EventingFunctionDcpBoundaryName, EventingFunctionLogLevelName } from '@cbjs/shared';
+import {
+  EventingFunctionDcpBoundaryName,
+  EventingFunctionLogLevelName,
+} from '@cbjs/shared';
 
 export type ApiEventingFunction = {
   appcode: string;

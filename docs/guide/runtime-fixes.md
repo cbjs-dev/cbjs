@@ -18,4 +18,3 @@ const { indexKey } = collection.getAllIndexes();
 expect(indexKey).toEqual(['`title`', '`description`']); // [!code --]
 expect(indexKey).toEqual(['title', 'description']); // [!code ++]
 ```
-

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ServiceName } from '@cbjs/shared';
 
 export type ApiNode = {
@@ -44,7 +43,7 @@ export type ApiNode = {
     {
       afamily: string;
       nodeEncryption: boolean;
-    }
+    },
   ];
   serverGroup: string;
   couchApiBase: `http://${string}:${number}${string}`;

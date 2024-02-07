@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { invariant, MapEntry } from '@cbjs/shared';
+
 import {
   CollectionContaining,
   CollectionDocumentBag,
@@ -35,7 +37,7 @@ import { NodeCallback, PromiseHelper, VoidNodeCallback } from '../../../utilitie
  */
 export class CouchbaseMap<
   C extends Collection<any, any, any, any, CollectionDocumentBag<DocDef<string, MapDoc>>>,
-  MapDoc extends Record<string, unknown>
+  MapDoc extends Record<string, unknown>,
 > {
   private _coll: CollectionContaining<DocDef<string, Record<string, unknown>>>;
   private _key: string;
@@ -89,29 +91,37 @@ export class CouchbaseMap<
   /**
    * Provides the ability to async-for loop this object.
    */
-  [Symbol.asyncIterator](): AsyncIterator<[MapDoc[keyof MapDoc], string]> {
+  [Symbol.asyncIterator](): AsyncIterator<MapEntry<MapDoc>> {
     const getNext = async () => this._get();
+
+    type LocalIterator = {
+      data: MapDoc | null;
+      keys: (keyof MapDoc)[] | null;
+      index: number;
+    } & AsyncIterator<MapEntry<MapDoc>>;
+
     return {
-      data: null as { [key: string]: any } | null,
-      keys: null as string[] | null,
+      data: null,
+      keys: null,
       index: -1,
-      async next() {
+      async next(this: LocalIterator) {
         if (this.index < 0) {
           this.data = await getNext();
           this.keys = Object.keys(this.data);
           this.index = 0;
         }
 
-        const keys = this.keys as string[];
-        const data = this.data as { [key: string]: any };
-        if (this.index < keys.length) {
-          const key = keys[this.index++];
-          return { done: false, value: [data[key], key] };
+        invariant(this.data);
+        invariant(this.keys);
+
+        if (this.index < this.keys.length) {
+          const key = this.keys[this.index++];
+          return { done: false, value: [this.data[key], key] as MapEntry<MapDoc> };
         }
 
         return { done: true, value: undefined };
       },
-    } as any;
+    } as AsyncIterator<MapEntry<MapDoc>>;
   }
 
   /**
@@ -150,7 +160,7 @@ export class CouchbaseMap<
 
       const itemRes = res.content[0];
 
-      if (itemRes.error || itemRes.value === undefined) {
+      if (itemRes.error ?? itemRes.value === undefined) {
         throw new CouchbaseError(
           `key is missing from the map`,
           itemRes.error ?? undefined,

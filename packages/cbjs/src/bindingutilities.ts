@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { DurabilityLevelName, invariant } from '@cbjs/shared';
+
 import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes';
 import binding, {
   CppAnalyticsResponseAnalyticsStatus,
@@ -45,7 +46,13 @@ import binding, {
   CppViewScanConsistency,
   CppViewSortOrder,
 } from './binding';
-import { BucketType, CompressionMode, ConflictResolutionType, EvictionPolicy, StorageBackend } from './bucketmanager';
+import {
+  BucketType,
+  CompressionMode,
+  ConflictResolutionType,
+  EvictionPolicy,
+  StorageBackend,
+} from './bucketmanager';
 import { EndpointState, PingState } from './diagnosticstypes';
 import {
   AnalyticsErrorContext,

@@ -13,31 +13,31 @@ const cluster = await connect(params.connectionString, {
 });
 
 const promises = [];
-const insert = cluster.bucket(bucketName).defaultCollection().insert;
+const collection = cluster.bucket(bucketName).defaultCollection();
 
-for (let i = 0; i < 200; i++) {
-  promises.push(insert(`optimizationDoc_${prefix}_${i}`, 'hi'));
+for (let i = 0; i < 500; i++) {
+  promises.push(collection.insert(`optimizationDoc_${prefix}_${i}`, 'hi'));
   promises.push(
-    insert(`optimizationDoc_${prefix}_${i}_opts`, 'hi', {
+    collection.insert(`optimizationDoc_${prefix}_${i}_opts`, 'hi', {
       timeout: 500,
     })
   );
 
   promises.push(
-    insert(`optimizationDoc_${prefix}_${i}_cb`, 'hi', (err, res) => {
+    collection.insert(`optimizationDoc_${prefix}_${i}_cb`, 'hi', (err, res) => {
       if (err) return;
-      const { token } = res;
+      if (typeof res !== 'object') throw new Error('Invalid response');
     })
   );
 
   promises.push(
-    insert(
+    collection.insert(
       `optimizationDoc_${prefix}_${i}_opts_cb`,
       'hi',
       { timeout: 500 },
       (err, res) => {
         if (err) return;
-        const { token } = res;
+        if (typeof res !== 'object') throw new Error('Invalid response');
       }
     )
   );
@@ -45,4 +45,5 @@ for (let i = 0; i < 200; i++) {
 
 await Promise.allSettled(promises);
 
-console.log(isOptimized(insert));
+// eslint-disable-next-line @typescript-eslint/unbound-method
+console.log(isOptimized(collection.insert));

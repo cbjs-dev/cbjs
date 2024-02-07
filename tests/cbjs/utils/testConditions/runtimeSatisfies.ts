@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { hasOwn } from '@cbjs/shared';
 import { satisfies } from 'semver';
+
+import { hasOwn, raise } from '@cbjs/shared';
 
 export type RuntimeName = 'node' | 'deno' | 'bun';
 
@@ -53,7 +53,7 @@ function getRuntimeName(): RuntimeName {
   throw new Error('Unknown runtime');
 }
 
-function getRuntimeVersion(runtime: RuntimeName) {
+function getRuntimeVersion(runtime: RuntimeName): string {
   if (getRuntimeName() !== runtime) {
     throw new Error(
       'You cannot get the runtime version while not executing that runtime'
@@ -65,11 +65,12 @@ function getRuntimeVersion(runtime: RuntimeName) {
       return process.versions.node;
 
     case 'bun':
-      return process.versions.bun;
+      return process.versions.bun ?? raise('Missing property process.versions.bun');
 
     case 'deno':
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return globalThis.Deno.version;
   }
 

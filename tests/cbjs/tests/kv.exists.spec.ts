@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestFixtures, createCouchbaseTest } from '@cbjs/vitest';
 import { beforeEach, describe, vi } from 'vitest';
+
+import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';

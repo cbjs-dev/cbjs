@@ -17,13 +17,14 @@
 import { beforeEach, describe, vi } from 'vitest';
 
 import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { waitFor } from '../utils/waitFor';
 import {
   getBinaryTestDocument,
   getLargeTestDocument,
   getUtf8TestDocument,
 } from './kv._helpers';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitFor } from '../utils/waitFor';
 
 describe.shuffle('kv get', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {
@@ -96,7 +97,7 @@ describe.shuffle('kv get', async () => {
   }) {
     await serverTestContext.collection.upsert(testKeyA, testObjVal);
 
-    expect(
+    await expect(
       serverTestContext.collection.get(testKeyA, {
         transcoder: errorTranscoder,
       })

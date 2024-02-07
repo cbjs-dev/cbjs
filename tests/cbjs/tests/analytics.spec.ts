@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createCouchbaseTest } from '@cbjs/vitest';
 import { describe } from 'vitest';
 
 import {
@@ -26,6 +25,8 @@ import {
   IndexExistsError,
   IndexNotFoundError,
 } from '@cbjs/cbjs';
+import { createCouchbaseTest } from '@cbjs/vitest';
+
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';
@@ -34,7 +35,7 @@ describe
   .runIf(serverSupportsFeatures(ServerFeatures.Analytics))
   .shuffle('analytics', async () => {
     const test = await createCouchbaseTest({
-      useSampleData
+      useSampleData,
     });
 
     test('analytics fixture cleanup', async ({ useDataverse }) => {

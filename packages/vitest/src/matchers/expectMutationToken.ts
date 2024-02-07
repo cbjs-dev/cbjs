@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */
 // eslint-disable-next-line no-restricted-imports
 import { expect } from 'vitest';
 
@@ -30,6 +31,7 @@ expect.extend({
       return failure;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const token = received.toJSON?.();
 
     if (token === undefined) {
@@ -51,6 +53,7 @@ expect.extend({
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface ExpectMutationToken<R = unknown> {
   toBeMutationToken(): R;
 }

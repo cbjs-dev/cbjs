@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { invariant } from '@cbjs/shared';
+
 import {
   CollectionContaining,
   CollectionDocumentBag,
@@ -35,7 +37,7 @@ import { NodeCallback, PromiseHelper, VoidNodeCallback } from '../../../utilitie
  */
 export class CouchbaseList<
   C extends Collection<any, any, any, any, CollectionDocumentBag<DocDef<string, Item[]>>>,
-  Item
+  Item,
 > {
   private _coll: CollectionContaining<DocDef<string, unknown[]>>;
   private _key: string;
@@ -81,7 +83,7 @@ export class CouchbaseList<
     return await PromiseHelper.wrapAsync(async () => {
       const values = await this._get();
       for (let i = 0; i < values.length; ++i) {
-        rowCallback(values[i] as Item, i, this);
+        rowCallback(values[i], i, this);
       }
     }, callback);
   }
@@ -91,23 +93,30 @@ export class CouchbaseList<
    */
   [Symbol.asyncIterator](): AsyncIterator<Item> {
     const getNext = async () => this._get();
+
+    type LocalIterator = {
+      data: Item[] | null;
+      index: number;
+    } & AsyncIterator<Item>;
+
     return {
-      data: null as null | Item[],
+      data: null,
       index: -1,
-      async next() {
+      async next(this: LocalIterator) {
         if (this.index < 0) {
           this.data = await getNext();
           this.index = 0;
         }
 
-        const data = this.data as Item[];
-        if (this.index < data.length) {
-          return { done: false, value: data[this.index++] };
+        invariant(this.data);
+
+        if (this.index < this.data.length) {
+          return { done: false, value: this.data[this.index++] };
         }
 
         return { done: true };
       },
-    } as any;
+    } as AsyncIterator<Item>;
   }
 
   /**
@@ -123,7 +132,7 @@ export class CouchbaseList<
       ]);
 
       const itemRes = res.content[0];
-      if (itemRes.error || itemRes.value === undefined) {
+      if (itemRes.error !== undefined || itemRes.value === undefined) {
         throw new CouchbaseError(
           `index is missing from the list`,
           itemRes.error ?? undefined,

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { hasOwn } from '@cbjs/shared';
 
 import { FixtureContext, UnknownContext } from './types';
 
@@ -21,7 +22,7 @@ export const FixtureFunctionValueSymbol: unique symbol = Symbol();
 export abstract class FixtureFunctionValue<
   in Args extends ReadonlyArray<unknown>,
   out UseValue,
-  in Context extends UnknownContext
+  in Context extends UnknownContext,
 > {
   abstract fixtureName: string;
 
@@ -37,5 +38,5 @@ Object.defineProperty(FixtureFunctionValue, FixtureFunctionValueSymbol, {
 });
 
 export function isFixtureFunctionValueClass(v: any): boolean {
-  return v[FixtureFunctionValueSymbol] === true;
+  return hasOwn(v, FixtureFunctionValueSymbol);
 }

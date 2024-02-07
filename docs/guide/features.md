@@ -13,7 +13,6 @@ outline: deep
 - HTTP Client
 - Vitest fixtures
 
-
 ## Compatible with the official client
 
 Cbjs is fully compatible with the official client.
@@ -34,7 +33,7 @@ await collection.lookupIn(bookId).get('authors[0]'); // returns: string
 await collection.lookupIn(bookId).get('tite'); // [!code error] Error: invalid key
 await collection.lookupIn(bookId).get('quaterSales[5]'); // [!code error] Error: quaterSales is a tuple with 4 members maximum
 
-await collection.mutateIn(bookId).insert('title'); // [!code error] Error: `title` is a required property, so it already exist 
+await collection.mutateIn(bookId).insert('title'); // [!code error] Error: `title` is a required property, so it already exist
 await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467'); // [!code error] Error: invalid value. `quaterSales` is a tuple of numbers
 ```
 

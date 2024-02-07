@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { CaptureUntil, Split } from '@cbjs/shared';
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { CaptureUntil, Split } from '@cbjs/shared';
+
 import { Json } from '../../clusterTypes';
-import {
-  CircularReferences,
-  ReferencesItself,
-} from './misc-utils.types';
+import { CircularReferences, ReferencesItself } from './misc-utils.types';
 
 describe('Split', function () {
   it('should return a tuple with an empty string if the string is empty', function () {

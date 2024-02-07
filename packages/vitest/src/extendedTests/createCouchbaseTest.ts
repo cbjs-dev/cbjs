@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { CouchbaseApiConfig } from '@cbjs/shared';
-import { type PromiseValue, getApiConfig } from '@cbjs/shared';
 import type { TaskContext } from 'vitest';
 
-import { ServerTestContext } from '../ServerTestContext';
+import type { CouchbaseApiConfig } from '@cbjs/shared';
+import { getApiConfig, type PromiseValue } from '@cbjs/shared';
+
 import { getDefaultServerTestContext } from '../context';
 import {
   AnalyticsIndexFixture,
@@ -36,7 +36,8 @@ import { UserFixture, UserGroupFixture } from '../fixtures/couchbase/rbac';
 import { SearchIndexFixture } from '../fixtures/couchbase/search';
 import { ViewDocumentKeyFixture } from '../fixtures/couchbase/views';
 import { LoggerFixture } from '../fixtures/misc/LoggerFixture';
-import { TestBodyFixtures, makeCreateTest } from './makeCreateTest';
+import { ServerTestContext } from '../ServerTestContext';
+import { makeCreateTest, TestBodyFixtures } from './makeCreateTest';
 
 const couchbaseTestFixtures = {
   useBucket: BucketFixture,

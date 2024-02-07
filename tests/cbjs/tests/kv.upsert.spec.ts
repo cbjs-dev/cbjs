@@ -17,13 +17,14 @@
 import { describe, vi } from 'vitest';
 
 import { createCouchbaseTest } from '@cbjs/vitest';
+
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { waitForFailure } from '../utils/waitForFailure';
 import {
   getBinaryTestDocument,
   getLargeTestDocument,
   getUtf8TestDocument,
 } from './kv._helpers';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitForFailure } from '../utils/waitForFailure';
 
 describe.shuffle('kv upsert', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {
@@ -152,7 +153,7 @@ describe.shuffle('kv upsert', async () => {
         }
       );
 
-      expect(() =>
+      await expect(() =>
         waitForFailure(() => serverTestContext.collection.get(docKey))
       ).rejects.toThrowError();
     }

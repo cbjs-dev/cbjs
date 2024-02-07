@@ -18,3 +18,4 @@ export * from './getUser';
 export * from './getUserGroup';
 export * from './getUsers';
 export * from './getUserGroups';
+export * from './getRoles';

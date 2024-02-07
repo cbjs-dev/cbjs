@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { describe, expectTypeOf, it } from 'vitest';
 
 import type { AssertTests } from '../../test-utils.types';
@@ -40,7 +39,7 @@ describe('lookup operations', function () {
 
   type TestPaths<
     F extends keyof Paths<TestDoc>,
-    T extends Record<DocumentPath<TestDoc>, boolean>
+    T extends Record<DocumentPath<TestDoc>, boolean>,
   > = {
     [Path in keyof T]: [T[Path], Path extends Paths<TestDoc>[F] ? true : false];
   };

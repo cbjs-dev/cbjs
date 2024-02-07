@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {
   CppTopologyCollectionsManifestCollection,
   CppTopologyCollectionsManifestScope,
@@ -659,7 +658,7 @@ function resolveCreateCollectionArguments(
         string,
         CreateCollectionSettings | undefined,
         CreateCollectionOptions,
-        VoidNodeCallback?
+        VoidNodeCallback?,
       ]
     | [ICollectionSpec, VoidNodeCallback?]
     | [ICollectionSpec, CreateCollectionOptions, VoidNodeCallback?]

@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { CppConnection } from './binding';
 import { Cluster } from './cluster';
 import { BucketName, ScopeName } from './clusterTypes';
 import {
-  CouchbaseClusterTypes, DefaultCollection,
+  CouchbaseClusterTypes,
+  DefaultCollection,
   DefaultScope,
   DefaultScopeCollectionName,
   DefaultScopeName,
@@ -45,7 +45,7 @@ import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes
  */
 export class Bucket<
   in out T extends CouchbaseClusterTypes,
-  in out B extends BucketName<T>
+  in out B extends BucketName<T>,
 > {
   readonly cluster: Cluster<T>;
   readonly name: B;
@@ -101,7 +101,9 @@ export class Bucket<
    * Creates a Collection object reference to the default collection.
    */
   defaultCollection(): DefaultCollection<T, B> {
-    return this.collection('_default' as DefaultScopeCollectionName<T, B>) as unknown as DefaultCollection<T, B>;
+    return this.collection(
+      '_default' as DefaultScopeCollectionName<T, B>
+    ) as unknown as DefaultCollection<T, B>;
   }
 
   /**

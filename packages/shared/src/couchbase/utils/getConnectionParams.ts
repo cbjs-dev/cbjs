@@ -29,7 +29,7 @@ export type ConnectionParams = z.output<typeof zConnectionParams>;
 
 export function getConnectionParams(): ConnectionParams {
   const env = {
-    connectionString: process.env.CB_CONNECTION_STRING as string,
+    connectionString: process.env.CB_CONNECTION_STRING,
     credentials: {
       username: process.env.CB_USER,
       password: process.env.CB_PASSWORD,

@@ -19,6 +19,7 @@ import { describe } from 'vitest';
 import { QueryMetaData, QueryProfileMode, QueryResult, QueryStatus } from '@cbjs/cbjs';
 import { keyspacePath } from '@cbjs/shared';
 import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjs/vitest';
+
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
@@ -26,10 +27,10 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
   'query request',
   async () => {
     const test = await createCouchbaseTest({
-      useSampleData
+      useSampleData,
     });
 
-    const serverTestContext = await getDefaultServerTestContext();
+    const serverTestContext = getDefaultServerTestContext();
 
     const cases = [
       {
@@ -44,7 +45,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
         indexKeyspace: {
           bucketName: serverTestContext.bucket.name,
           scopeName: serverTestContext.scope.name,
-          collectionName: serverTestContext.collection.name,
+          collectionName: serverTestContext.collection.name as string,
         },
         dataKeyspacePath: serverTestContext.getKeyspacePath(),
       },
@@ -107,7 +108,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
               const rowsOut: unknown[] = [];
               let metaOut: QueryMetaData | undefined = undefined;
 
-              serverTestContext.cluster
+              void serverTestContext.cluster
                 .query(qs)
                 .on('row', (row) => {
                   rowsOut.push(row);
@@ -118,7 +119,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
                 .on('end', () => {
                   resolve({
                     rows: rowsOut,
-                    meta: metaOut as QueryMetaData,
+                    meta: metaOut!,
                   });
                 })
                 .on('error', (err) => {

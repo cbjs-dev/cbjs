@@ -35,7 +35,7 @@ import { NodeCallback, PromiseHelper, VoidNodeCallback } from '../../../utilitie
  */
 export class CouchbaseQueue<
   C extends Collection<any, any, any, any, CollectionDocumentBag<DocDef<string, Item[]>>>,
-  Item
+  Item,
 > {
   private _coll: CollectionContaining<DocDef<string, unknown[]>>;
   private _key: string;

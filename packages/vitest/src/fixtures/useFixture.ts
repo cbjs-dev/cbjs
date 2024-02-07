@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import type { TaskContext, Test } from 'vitest';
+
 import type { Class } from '@cbjs/shared';
+
 import { registerTestCleanupAction } from '../hook';
 import { getTestLogger } from '../logger';
 import { CreateTestFixtureFunction } from './CreateTestFixtureFunction';
@@ -29,19 +31,19 @@ export function useFixture<
   FixtureClass extends Class<FixtureFunctionValue<Args, UseValue, Context>>,
   Args extends ReadonlyArray<unknown>,
   UseValue,
-  Context extends UnknownContext
+  Context extends UnknownContext,
 >(
   ctx: Context,
   fixtureClass: FixtureClass
 ): [
   (...args: Args) => CreateTestFixtureFunction<Args, UseValue, Context>,
-  TestFixtureFn<Args, UseValue>
+  TestFixtureFn<Args, UseValue>,
 ];
 
 export function useFixture<
   FixtureClass extends Class<FixturePlainValue<UseValue, Context>>,
   UseValue,
-  Context extends UnknownContext
+  Context extends UnknownContext,
 >(ctx: Context, fixtureClass: FixtureClass): [UseValue, UseValue];
 
 export function useFixture<
@@ -50,13 +52,13 @@ export function useFixture<
     | Class<FixturePlainValue<UseValue, Context>>,
   Args extends ReadonlyArray<unknown>,
   UseValue,
-  Context extends UnknownContext
+  Context extends UnknownContext,
 >(
   ctx: Context,
   fixtureClass: FixtureClass
 ): [
   ((...args: Args) => CreateTestFixtureFunction<Args, UseValue, Context>) | UseValue,
-  TestFixtureFn<Args, UseValue> | UseValue
+  TestFixtureFn<Args, UseValue> | UseValue,
 ] {
   const suiteFixture = getSuiteFixture(ctx, fixtureClass);
 
@@ -92,7 +94,7 @@ export function useFixture<
 function getSuiteFixture<
   Args extends ReadonlyArray<unknown>,
   UseValue,
-  Context extends UnknownContext
+  Context extends UnknownContext,
 >(
   ctx: Context,
   fixtureClass:
@@ -106,7 +108,7 @@ function getSuiteFixture<
         ...ctx,
         logger: getTestLogger(),
       } as FixtureContext<Context>;
-      return fixtureInstance.use(augmentedCtx) as UseValue;
+      return fixtureInstance.use(augmentedCtx);
     }
 
     case isFixtureFunctionValueClass(fixtureClass): {

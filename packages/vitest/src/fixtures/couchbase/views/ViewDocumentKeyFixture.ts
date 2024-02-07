@@ -38,14 +38,14 @@ export class ViewDocumentKeyFixture extends FixtureFunctionValue<
     opts: ViewDocumentKeyFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.docKey = opts.docKey || serverTestContext.newUid();
-    this.bucketName = opts.bucketName || serverTestContext.b.name;
+    this.docKey = opts.docKey ?? serverTestContext.newUid();
+    this.bucketName = opts.bucketName ?? serverTestContext.b.name;
 
     logger?.debug(
       `ViewDocumentKey '${this.docKey}' provided within ${keyspacePath(this.bucketName)}`
     );
 
-    return this.docKey as string;
+    return this.docKey;
   }
 
   override async cleanup({ serverTestContext }: FixtureContext<CouchbaseTestContext>) {

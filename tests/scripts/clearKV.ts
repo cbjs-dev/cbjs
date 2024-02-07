@@ -24,6 +24,7 @@ const cluster = await connect(params.connectionString, {
 });
 
 const buckets = await cluster.buckets().getAllBuckets();
-buckets
-  .filter((b) => !['ci', 'travel-sample'].includes(b.name))
-  .forEach((b) => cluster.buckets().dropBucket(b.name));
+const bucketsToDrop = buckets.filter((b) => !['ci', 'travel-sample'].includes(b.name));
+for (const b of bucketsToDrop) {
+  await cluster.buckets().dropBucket(b.name);
+}

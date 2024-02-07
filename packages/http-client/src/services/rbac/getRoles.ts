@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../types';
+import { ApiRole } from '../../types/Api/ApiRole';
+import { createHttpError } from '../../utils/createHttpError';
+import { requestGetRoles } from './requests/requestGetRoles';
 
-type HasOwn<T, K extends PropertyKey> =
-  [Extract<T, { [key in K]: unknown }>] extends [never] ?
-    T & Record<K, unknown> :
-  Extract<T, { [key in K]: unknown }>
-;
+export async function getRoles(apiConfig: CouchbaseHttpApiConfig) {
+  const response = await requestGetRoles(apiConfig);
 
-export function hasOwn<T, K extends PropertyKey>(
-  obj: T,
-  prop: K
-): obj is HasOwn<T, K> {
-  if (typeof obj !== 'object' || obj === null) return false;
-  return Object.hasOwn(obj, prop);
+  if (response.status !== 200) {
+    throw await createHttpError('GET', response);
+  }
+
+  return (await response.json()) as ApiRole[];
 }

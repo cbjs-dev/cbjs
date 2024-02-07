@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe } from 'vitest';
+
 import {
   HighlightStyle,
   HttpErrorContext,
@@ -22,7 +24,6 @@ import {
 } from '@cbjs/cbjs';
 import { invariant, sleep } from '@cbjs/shared';
 import { createCouchbaseTest } from '@cbjs/vitest';
-import { describe } from 'vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { useSampleData } from '../fixtures/useSampleData';
@@ -142,6 +143,8 @@ describe
         const indexName = await useSearchIndex(indexConfig, {
           waitSearchIndexTimeout: 20_000,
         });
+
+        process.exit(1);
 
         const result = await serverTestContext.cluster.searchQuery(
           indexName,

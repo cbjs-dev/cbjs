@@ -17,16 +17,24 @@
 
 module.exports = {
   extends: ['../../.eslintrc.cjs'],
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    project: true,
+  },
   rules: {
     'no-undef': 'off',
-    'no-restricted-imports': ['error', {
-      'paths': [
-        {
-          'name': 'vitest',
-          'importNames': ['expect'],
-          'message': "Use the `expect` from the test context instead."
-        },
-      ]
-    }]
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'vitest',
+            importNames: ['expect'],
+            message: 'Use the `expect` from the test context instead.',
+          },
+        ],
+      },
+    ],
   },
-}
+};

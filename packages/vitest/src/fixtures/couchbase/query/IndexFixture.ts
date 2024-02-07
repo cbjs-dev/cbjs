@@ -59,7 +59,7 @@ export class IndexFixture extends FixtureFunctionValue<
   ) {
     await serverTestContext.start();
     const timeout = fixtureOptions.waitIndexTimeout ?? 10_000;
-    const indexName = params.name || getRandomId();
+    const indexName = params.name ?? getRandomId();
     const { bucketName, fields, ...opts } = params;
 
     this.params = {

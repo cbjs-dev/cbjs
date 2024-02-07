@@ -16,9 +16,9 @@
 import { CouchbaseHttpApiConfig } from '../../types';
 import { createHttpError } from '../../utils/createHttpError';
 import {
+  requestStatistics,
   StatisticDefinition,
   StatisticsResult,
-  requestStatistics,
 } from './requests/requestStatistics';
 
 export async function getStatistics(

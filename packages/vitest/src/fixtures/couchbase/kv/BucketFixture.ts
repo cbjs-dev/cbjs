@@ -39,12 +39,12 @@ export class BucketFixture extends FixtureFunctionValue<
     params: BucketFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.bucketName = params.bucketName || params.name || serverTestContext.newUid();
+    this.bucketName = params.bucketName ?? params.name ?? serverTestContext.newUid();
 
     const baseBucketConfig = {
       name: this.bucketName,
-      storageBackend: params.storageBackend || 'couchstore',
-      ramQuotaMB: params.ramQuotaMB || (params.storageBackend === 'magma' ? 1024 : 256),
+      storageBackend: params.storageBackend ?? 'couchstore',
+      ramQuotaMB: params.ramQuotaMB ?? (params.storageBackend === 'magma' ? 1024 : 256),
       numReplicas: 0 as ReplicaNumber,
     } satisfies ICreateBucketSettings;
 

@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DefaultClusterTypes, connect } from '../../..';
+import { connect, DefaultClusterTypes } from '../../..';
 import { Collection } from '../../../collection';
 import { CouchbaseSet } from '../../../services/kv/dataStructures/CouchbaseSet';
 import { CollectionDocumentBag, DocDef } from '../../clusterTypes';

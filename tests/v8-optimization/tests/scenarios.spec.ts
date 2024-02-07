@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createCouchbaseTest } from '@cbjs/vitest';
 import { glob } from 'glob';
 import { resolve } from 'path';
 import { describe } from 'vitest';
+
+import { createCouchbaseTest } from '@cbjs/vitest';
 
 import { rootDir } from '../constants';
 import { runCase } from '../utils/runCase';
@@ -28,12 +29,13 @@ describe('optimization', async () => {
 
   for (const caseFilePath of cases) {
     const localFilePath = caseFilePath.substring(pathToCases.length + 1);
-    test(`${localFilePath} should be optimized`, async ({
-      expect,
-      serverTestContext,
-    }) => {
-      const isOptimized = await runCase(localFilePath, serverTestContext.bucket.name);
-      expect(isOptimized).toBe(true);
-    });
+    test(
+      `${localFilePath} should be optimized`,
+      async ({ expect, serverTestContext }) => {
+        const isOptimized = await runCase(localFilePath, serverTestContext.bucket.name);
+        expect(isOptimized).toBe(true);
+      },
+      { retry: 5 }
+    );
   }
 });

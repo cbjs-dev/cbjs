@@ -19,6 +19,7 @@ import { describe } from 'vitest';
 import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjs/cbjs';
 import { invariant, keyspacePath } from '@cbjs/shared';
 import { createCouchbaseTest, ServerTestContext } from '@cbjs/vitest';
+
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
@@ -26,7 +27,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Colle
   'query index cluster api',
   async () => {
     const test = await createCouchbaseTest({
-      useSampleData
+      useSampleData,
     });
 
     const cases = [

@@ -16,8 +16,9 @@
  */
 
 /* eslint @typescript-eslint/no-empty-interface: off */
-import { ReplicaNumber } from '@cbjs/shared';
 import { createRequire } from 'module';
+
+import { ReplicaNumber } from '@cbjs/shared';
 
 export type CppJsonString = string | Buffer;
 
@@ -898,8 +899,8 @@ export interface CppSearchResponseSearchFacetDateRangeFacet {
 export interface CppSearchResponseSearchFacetNumericRangeFacet {
   name: string;
   count: number;
-  min: undefined | number | number;
-  max: undefined | number | number;
+  min: undefined | number;
+  max: undefined | number;
 }
 export interface CppSearchRequest {
   index_name: string;
@@ -3391,7 +3392,7 @@ export interface CppTransaction {
       positional_parameters?: CppJsonString[];
       named_parameters?: { [key: string]: CppJsonString };
     },
-    callback: (err: CppError | null, resp: CppQueryResponse | null) => void
+    callback: (err: CppError | null, resp?: CppQueryResponse) => void
   ): void;
 
   commit(callback: (err: CppError | null, resp: CppTransactionResult) => void): void;

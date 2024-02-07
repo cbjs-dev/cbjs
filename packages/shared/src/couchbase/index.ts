@@ -15,3 +15,5 @@
  */
 
 export * from './CouchbaseCas';
+export * from './utils';
+export * from './types';

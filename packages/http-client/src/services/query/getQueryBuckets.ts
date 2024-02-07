@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiQueryResponseBody } from '../../types/Api/Query/ApiQueryResponseBody';
+import { ApiQueryResponseBody } from '../../types/Api/ApiQueryResponseBody';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestExecuteStatement } from './requests/requestExecuteStatement';
 

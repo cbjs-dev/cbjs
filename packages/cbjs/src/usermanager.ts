@@ -14,16 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  ApiRole,
+  ApiUser,
+  ApiUserGroup,
+  ApiUserRole,
+  ApiUserRoleOrigin,
+} from '@cbjs/http-client';
+import { hasOwn, RoleName } from '@cbjs/shared';
+import { getRoleScope } from '@cbjs/shared/dist/src/couchbase/getRoleScope';
 
-import { RoleName } from '@cbjs/shared';
 import { Cluster } from './cluster';
 import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import {
+  cbQsStringify,
   NodeCallback,
   PromiseHelper,
   VoidNodeCallback,
-  cbQsStringify,
 } from './utilities';
 
 /**
@@ -40,7 +48,7 @@ export class Origin {
   /**
    * The name of this origin.
    */
-  name: string;
+  name?: string;
 
   /**
    * @internal
@@ -53,7 +61,7 @@ export class Origin {
   /**
    * @internal
    */
-  static _fromNsData(data: any): Origin {
+  static _fromNsData(data: ApiUserRoleOrigin): Origin {
     return new Origin({
       type: data.type,
       name: data.name,
@@ -100,12 +108,10 @@ export class Role {
   /**
    * @internal
    */
-  static _fromNsData(data: any): Role {
+  static _fromNsData(data: ApiUserRole): Role {
     return new Role({
       name: data.role,
-      bucket: data.bucket_name,
-      scope: data.scope_name,
-      collection: data.collection_name,
+      ...getRoleScope(data),
     });
   }
 
@@ -126,6 +132,10 @@ export class Role {
     } else {
       return role.name;
     }
+  }
+
+  toString(role: string | Role) {
+    return Role._toNsStr(this);
   }
 }
 
@@ -156,12 +166,13 @@ export class RoleAndDescription extends Role {
 
   /**
    * @internal
+   * @deprecated
    */
-  static override _fromNsData(data: any): RoleAndDescription {
+  static override _fromNsData(data: ApiRole): RoleAndDescription {
     return new RoleAndDescription({
       ...Role._fromNsData(data),
       displayName: data.name,
-      description: data.description,
+      description: data.desc,
     });
   }
 }
@@ -188,13 +199,9 @@ export class RoleAndOrigin extends Role {
   /**
    * @internal
    */
-  static override _fromNsData(data: any): RoleAndOrigin {
-    let origins: Origin[];
-    if (data.origins) {
-      origins = data.origins.map((originData: any) => Origin._fromNsData(originData));
-    } else {
-      origins = [];
-    }
+  static override _fromNsData(data: ApiUserRole): RoleAndOrigin {
+    const origins =
+      data.origins?.map((originData: any) => Origin._fromNsData(originData)) ?? [];
 
     return new RoleAndOrigin({
       ...Role._fromNsData(data),
@@ -279,22 +286,14 @@ export class User implements IUser {
   /**
    * @internal
    */
-  static _fromNsData(data: any): User {
-    let roles: Role[];
-    if (data.roles) {
-      roles = data.roles
-        .filter((roleData: any) => {
-          // Check whether or not this role has originated from the user directly
-          // or whether it was through a group.
-          if (!roleData.origins || roleData.origins.length === 0) {
-            return false;
-          }
-          return !!roleData.origins.find((originData: any) => originData.type === 'user');
-        })
-        .map((roleData: any) => Role._fromNsData(roleData));
-    } else {
-      roles = [];
-    }
+  static _fromNsData(data: ApiUser): User {
+    const roles = data.roles
+      .filter((roleData) => {
+        // Check whether or not this role has originated from the user directly
+        // or whether it was through a group.
+        return !!roleData.origins?.find((originData) => originData.type === 'user');
+      })
+      .map((roleData) => Role._fromNsData(roleData));
 
     return new User({
       username: data.id,
@@ -306,24 +305,16 @@ export class User implements IUser {
   }
 
   /**
+   * Used to upsert a user
    * @internal
+   * @deprecated
    */
-  static _toNsData(user: IUser): any {
-    let groups: any = undefined;
-    if (user.groups && user.groups.length > 0) {
-      groups = user.groups;
-    }
-
-    let roles: any = undefined;
-    if (user.roles && user.roles.length > 0) {
-      roles = user.roles.map((role) => Role._toNsStr(role)).join(',');
-    }
-
+  static _toNsData(user: IUser) {
     return {
       name: user.displayName,
-      groups: groups,
+      groups: user.groups,
       password: user.password,
-      roles: roles,
+      roles: user.roles?.map((role) => Role._toNsStr(role)).join(','),
     };
   }
 }
@@ -379,15 +370,10 @@ export class UserAndMetadata extends User {
   /**
    * @internal
    */
-  static override _fromNsData(data: any): UserAndMetadata {
-    let effectiveRoles: RoleAndOrigin[];
-    if (data.roles) {
-      effectiveRoles = data.roles.map((roleData: any) =>
-        RoleAndOrigin._fromNsData(roleData)
-      );
-    } else {
-      effectiveRoles = [];
-    }
+  static override _fromNsData(data: ApiUser): UserAndMetadata {
+    const effectiveRoles = data.roles.map((roleData) =>
+      RoleAndOrigin._fromNsData(roleData)
+    );
 
     return new UserAndMetadata({
       ...User._fromNsData(data),
@@ -466,13 +452,15 @@ export class Group {
   /**
    * @internal
    */
-  static _fromNsData(data: any): Group {
-    let roles: Role[];
-    if (data.roles) {
-      roles = data.roles.map((roleData: any) => Role._fromNsData(roleData));
-    } else {
-      roles = [];
-    }
+  static _fromNsData(data: ApiUserGroup): Group {
+    const roles =
+      data.roles?.map(
+        (roleData) =>
+          new Role({
+            name: roleData.role,
+            ...getRoleScope(roleData),
+          })
+      ) ?? [];
 
     return new Group({
       name: data.id,
@@ -485,14 +473,11 @@ export class Group {
   /**
    * @internal
    */
-  static _toNsData(group: IGroup): any {
-    let roles: any = undefined;
-    if (group.roles && group.roles.length > 0) {
-      roles = group.roles.map((role) => Role._toNsStr(role)).join(',');
-    }
+  static _toNsData(group: IGroup) {
+    const roles = group.roles?.map((role) => Role._toNsStr(role)).join(',');
 
     return {
-      description: group.description,
+      description: group.description ?? '',
       roles: roles,
       ldap_group_reference: group.ldapGroupReference,
     };
@@ -668,8 +653,8 @@ export class UserManager {
       options = {};
     }
 
-    const domainName = options.domainName || 'local';
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const domainName = options.domainName ?? 'local';
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -689,7 +674,7 @@ export class UserManager {
         throw new CouchbaseError('failed to get the user', undefined, errCtx);
       }
 
-      const userData = JSON.parse(res.body.toString());
+      const userData = JSON.parse(res.body.toString()) as ApiUser;
       return UserAndMetadata._fromNsData(userData);
     }, callback);
   }
@@ -719,8 +704,8 @@ export class UserManager {
       options = {};
     }
 
-    const domainName = options.domainName || 'local';
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const domainName = options.domainName ?? 'local';
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -736,11 +721,8 @@ export class UserManager {
         throw new CouchbaseError('failed to get users', undefined, errCtx);
       }
 
-      const usersData = JSON.parse(res.body.toString());
-      const users = usersData.map((userData: any) =>
-        UserAndMetadata._fromNsData(userData)
-      );
-      return users;
+      const usersData = JSON.parse(res.body.toString()) as ApiUser[];
+      return usersData.map((userData) => UserAndMetadata._fromNsData(userData));
     }, callback);
   }
 
@@ -770,11 +752,18 @@ export class UserManager {
       options = {};
     }
 
-    const domainName = options.domainName || 'local';
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const domainName = options.domainName ?? 'local';
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
-      const userData = User._toNsData(user);
+      const roles = user.roles?.map((role) => Role._toNsStr(role)).join(',');
+
+      const userData = {
+        name: user.displayName,
+        groups: user.groups,
+        password: user.password,
+        roles: roles,
+      };
 
       const res = await this._http.request({
         type: HttpServiceType.Management,
@@ -819,7 +808,7 @@ export class UserManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const passwordData = { password: newPassword };
@@ -875,8 +864,8 @@ export class UserManager {
       options = {};
     }
 
-    const domainName = options.domainName || 'local';
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const domainName = options.domainName ?? 'local';
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -921,7 +910,7 @@ export class UserManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -937,11 +926,16 @@ export class UserManager {
         throw new CouchbaseError('failed to get roles', undefined, errCtx);
       }
 
-      const rolesData = JSON.parse(res.body.toString());
-      const roles = rolesData.map((roleData: any) =>
-        RoleAndDescription._fromNsData(roleData)
+      const rolesData = JSON.parse(res.body.toString()) as ApiRole[];
+      return rolesData.map(
+        (roleData) =>
+          new RoleAndDescription({
+            name: roleData.role,
+            displayName: roleData.name,
+            description: roleData.desc,
+            ...getRoleScope(roleData),
+          })
       );
-      return roles;
     }, callback);
   }
 
@@ -971,7 +965,7 @@ export class UserManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1019,7 +1013,7 @@ export class UserManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1035,9 +1029,8 @@ export class UserManager {
         throw new CouchbaseError('failed to get groups', undefined, errCtx);
       }
 
-      const groupsData = JSON.parse(res.body.toString());
-      const groups = groupsData.map((groupData: any) => Group._fromNsData(groupData));
-      return groups;
+      const groupsData = JSON.parse(res.body.toString()) as ApiUserGroup[];
+      return groupsData.map((groupData) => Group._fromNsData(groupData));
     }, callback);
   }
 
@@ -1067,7 +1060,7 @@ export class UserManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const groupData = Group._toNsData(group);
@@ -1115,7 +1108,7 @@ export class UserManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({

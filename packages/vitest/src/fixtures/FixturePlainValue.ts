@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { hasOwn } from '@cbjs/shared';
 
 import { FixtureContext, UnknownContext } from './types';
 
@@ -37,5 +38,5 @@ Object.defineProperty(FixturePlainValue, FixturePlainValueSymbol, {
 });
 
 export function isFixturePlainValueClass(v: any): boolean {
-  return v[FixturePlainValueSymbol] === true;
+  return hasOwn(v, FixturePlainValueSymbol);
 }

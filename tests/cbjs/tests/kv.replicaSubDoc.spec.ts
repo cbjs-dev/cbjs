@@ -26,9 +26,10 @@ import {
 import { getPool } from '@cbjs/http-client';
 import { invariant } from '@cbjs/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
-import { getLargeTestDocument } from './kv._helpers';
+
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { getLargeTestDocument } from './kv._helpers';
 
 describe
   .runIf(
@@ -111,7 +112,7 @@ describe
       expect.hasAssertions();
 
       try {
-        serverTestContext.collection.lookupInAllReplicas('missingDoc', [
+        await serverTestContext.collection.lookupInAllReplicas('missingDoc', [
           LookupInSpec.get('str'),
           LookupInSpec.get('int'),
           LookupInSpec.exists('missingPath'),
@@ -196,7 +197,7 @@ describe
       expect.hasAssertions();
 
       try {
-        serverTestContext.collection.lookupInAllReplicas('missingDoc', [
+        await serverTestContext.collection.lookupInAllReplicas('missingDoc', [
           LookupInSpec.get('str'),
           LookupInSpec.get('int'),
           LookupInSpec.exists('missingPath'),

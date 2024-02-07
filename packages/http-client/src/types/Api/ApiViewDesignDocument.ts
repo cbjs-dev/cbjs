@@ -28,6 +28,7 @@ export type ApiViewDesignDocument = {
       views: {
         [viewName: string]: {
           map: string;
+          reduce?: string | undefined;
         };
       };
     };

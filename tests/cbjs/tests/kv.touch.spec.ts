@@ -16,9 +16,10 @@
  */
 import { describe } from 'vitest';
 
-import { createCouchbaseTest } from '@cbjs/vitest';
-import { getLargeTestDocument } from './kv._helpers';
 import { sleep } from '@cbjs/shared';
+import { createCouchbaseTest } from '@cbjs/vitest';
+
+import { getLargeTestDocument } from './kv._helpers';
 
 describe.shuffle('kv touch', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {
@@ -80,7 +81,7 @@ describe.shuffle('kv touch', async () => {
       expect(getAndTouchResult.cas).toBeNonZeroCAS();
 
       // Support legacy API
-      expect(getAndTouchResult.value, getAndTouchResult.content);
+      expect(getAndTouchResult.value).toEqual(getAndTouchResult.content);
 
       // Check the key is there after the initial expiry value
       await sleep(4000);
@@ -88,7 +89,7 @@ describe.shuffle('kv touch', async () => {
 
       // Check the key has expired
       await sleep(5000);
-      expect(() => serverTestContext.collection.get(testDocKey)).rejects.toThrowError();
+      await expect(serverTestContext.collection.get(testDocKey)).rejects.toThrowError();
     },
     { timeout: 15_000 }
   );

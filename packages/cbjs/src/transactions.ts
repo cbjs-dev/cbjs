@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { invariant } from '@cbjs/shared';
+
 import binding, {
   CppQueryResponse,
   CppTransaction,
@@ -46,7 +48,6 @@ import {
 } from './querytypes';
 import { Scope } from './scope';
 import { Cas, NodeCallback, PromiseHelper } from './utilities';
-import { invariant } from '@cbjs/shared';
 
 /**
  * Represents the path to a document.
@@ -417,7 +418,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     Doc extends ExtractBodyByKey<Key, ExtractCollectionDocumentDef<C>> = ExtractBodyByKey<
       Key,
       ExtractCollectionDocumentDef<C>
-    >
+    >,
   >(collection: C, key: Key): Promise<TransactionGetResult<Doc>> {
     return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult<Doc>>) => {
       const id = collection.getDocId(key);
@@ -451,7 +452,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     Doc extends ExtractBodyByKey<Key, ExtractCollectionDocumentDef<C>> = ExtractBodyByKey<
       Key,
       ExtractCollectionDocumentDef<C>
-    >
+    >,
   >(collection: C, key: Key, content: Doc): Promise<TransactionGetResult<Doc>> {
     return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult<Doc>>) => {
       const id = collection.getDocId(key);
@@ -555,16 +556,16 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
         statement,
         {
           scan_consistency: queryScanConsistencyToCpp(options.scanConsistency),
-          ad_hoc: options.adhoc === false ? false : true,
+          ad_hoc: options.adhoc !== false,
           client_context_id: options.clientContextId,
           pipeline_batch: options.pipelineBatch,
           pipeline_cap: options.pipelineCap,
           max_parallelism: options.maxParallelism,
           scan_wait: options.scanWait,
           scan_cap: options.scanCap,
-          readonly: options.readOnly || false,
+          readonly: options.readOnly ?? false,
           profile: queryProfileToCpp(options.profile),
-          metrics: options.metrics || false,
+          metrics: options.metrics ?? false,
           raw: options.raw
             ? Object.fromEntries(
                 Object.entries(options.raw)
@@ -586,7 +587,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
               : {},
         },
         (cppErr, resp) => {
-          callback(cppErr, resp as CppQueryResponse);
+          callback(cppErr, resp);
         }
       );
     });

@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { MutationState } from './mutationstate'
+import { MutationState } from './mutationstate';
 
 /**
  * Represents the status of a query.
@@ -83,19 +82,19 @@ export class QueryResult<TRow = any> {
   /**
    * The rows which have been returned by the query.
    */
-  rows: TRow[]
+  rows: TRow[];
 
   /**
    * The meta-data which has been returned by the query.
    */
-  meta: QueryMetaData
+  meta: QueryMetaData;
 
   /**
    * @internal
    */
   constructor(data: QueryResult) {
-    this.rows = data.rows
-    this.meta = data.meta
+    this.rows = data.rows;
+    this.meta = data.meta;
   }
 }
 
@@ -108,49 +107,49 @@ export class QueryMetaData {
   /**
    * The request ID which is associated with the executed query.
    */
-  requestId: string
+  requestId: string;
 
   /**
    * The client context id which is assoicated with the executed query.
    */
-  clientContextId: string
+  clientContextId: string;
 
   /**
    * The status of the query at the time the query meta-data was generated.
    */
-  status: QueryStatus
+  status: QueryStatus;
 
   /**
    * Provides the signature of the query.
    */
-  signature?: any
+  signature?: any;
 
   /**
    * Any warnings that occurred during the execution of the query.
    */
-  warnings: QueryWarning[]
+  warnings: QueryWarning[];
 
   /**
    * Various metrics which are made available by the query engine.
    */
-  metrics?: QueryMetrics
+  metrics?: QueryMetrics;
 
   /**
    * Various profiling details that were generated during execution of the query.
    */
-  profile?: any
+  profile?: any;
 
   /**
    * @internal
    */
   constructor(data: QueryMetaData) {
-    this.requestId = data.requestId
-    this.clientContextId = data.clientContextId
-    this.status = data.status
-    this.signature = data.signature
-    this.warnings = data.warnings
-    this.metrics = data.metrics
-    this.profile = data.profile
+    this.requestId = data.requestId;
+    this.clientContextId = data.clientContextId;
+    this.status = data.status;
+    this.signature = data.signature;
+    this.warnings = data.warnings;
+    this.metrics = data.metrics;
+    this.profile = data.profile;
   }
 }
 
@@ -164,19 +163,19 @@ export class QueryWarning {
   /**
    * The numeric code associated with the warning which occurred.
    */
-  code: number
+  code: number;
 
   /**
    * A human readable representation of the warning which occurred.
    */
-  message: string
+  message: string;
 
   /**
    * @internal
    */
   constructor(data: QueryWarning) {
-    this.code = data.code
-    this.message = data.message
+    this.code = data.code;
+    this.message = data.message;
   }
 }
 
@@ -190,55 +189,55 @@ export class QueryMetrics {
   /**
    * The total amount of time spent running the query, in milliseconds.
    */
-  elapsedTime: number
+  elapsedTime: number;
 
   /**
    * The total amount of time spent executing the query, in milliseconds.
    */
-  executionTime: number
+  executionTime: number;
 
   /**
    * The total number of rows which were part of the sorting for the query.
    */
-  sortCount: number
+  sortCount: number;
 
   /**
    * The total number of rows which were part of the result set.
    */
-  resultCount: number
+  resultCount: number;
 
   /**
    * The total number of bytes which were generated as part of the result set.
    */
-  resultSize: number
+  resultSize: number;
 
   /**
    * The total number of rows which were altered by the query.
    */
-  mutationCount: number
+  mutationCount: number;
 
   /**
    * The total number of errors which were encountered during the execution of the query.
    */
-  errorCount: number
+  errorCount: number;
 
   /**
    * The total number of warnings which were encountered during the execution of the query.
    */
-  warningCount: number
+  warningCount: number;
 
   /**
    * @internal
    */
   constructor(data: QueryMetrics) {
-    this.elapsedTime = data.elapsedTime
-    this.executionTime = data.executionTime
-    this.sortCount = data.sortCount
-    this.resultCount = data.resultCount
-    this.resultSize = data.resultSize
-    this.mutationCount = data.mutationCount
-    this.errorCount = data.errorCount
-    this.warningCount = data.warningCount
+    this.elapsedTime = data.elapsedTime;
+    this.executionTime = data.executionTime;
+    this.sortCount = data.sortCount;
+    this.resultCount = data.resultCount;
+    this.resultSize = data.resultSize;
+    this.mutationCount = data.mutationCount;
+    this.errorCount = data.errorCount;
+    this.warningCount = data.warningCount;
   }
 }
 
@@ -294,115 +293,115 @@ export interface QueryOptions {
   /**
    * Values to be used for the placeholders within the query.
    */
-  parameters?: { [key: string]: any } | any[]
+  parameters?: { [key: string]: any } | any[];
 
   /**
    * Specifies the consistency requirements when executing the query.
    *
    * @see QueryScanConsistency
    */
-  scanConsistency?: QueryScanConsistency
+  scanConsistency?: QueryScanConsistency;
 
   /**
    * Specifies a MutationState which the query should be consistent with.
    *
    * @see {@link MutationState}
    */
-  consistentWith?: MutationState
+  consistentWith?: MutationState;
 
   /**
    * Specifies whether this is an ad-hoc query, or if it should be prepared
    * for faster execution in the future.
    */
-  adhoc?: boolean
+  adhoc?: boolean;
 
   /**
    * Specifies whether flex-indexes should be enabled.  Allowing the use of
    * full-text search from the query service.
    */
-  flexIndex?: boolean
+  flexIndex?: boolean;
 
   /**
    * Specifies that the query should preserve the existing document expiry times
    * when mutating documents.
    */
-  preserveExpiry?: boolean
+  preserveExpiry?: boolean;
 
   /**
    * The returned client context id for this query.
    */
-  clientContextId?: string
+  clientContextId?: string;
 
   /**
    * This is an advanced option, see the query service reference for more
    * information on the proper use and tuning of this option.
    */
-  maxParallelism?: number
+  maxParallelism?: number;
 
   /**
    * This is an advanced option, see the query service reference for more
    * information on the proper use and tuning of this option.
    */
-  pipelineBatch?: number
+  pipelineBatch?: number;
 
   /**
    * This is an advanced option, see the query service reference for more
    * information on the proper use and tuning of this option.
    */
-  pipelineCap?: number
+  pipelineCap?: number;
 
   /**
    * This is an advanced option, see the query service reference for more
    * information on the proper use and tuning of this option.  Specified
    * in milliseconds.
    */
-  scanWait?: number
+  scanWait?: number;
 
   /**
    * This is an advanced option, see the query service reference for more
    * information on the proper use and tuning of this option.
    */
-  scanCap?: number
+  scanCap?: number;
 
   /**
    * Specifies that this query should be executed in read-only mode, disabling
    * the ability for the query to make any changes to the data.
    */
-  readOnly?: boolean
+  readOnly?: boolean;
 
   /**
    * Uncommitted: This API is subject to change in the future.
-   * 
+   *
    * Specifies whether the query engine should use replica nodes for kv fetches,
    * if the active node is down.
    */
-  useReplica?: boolean
+  useReplica?: boolean;
 
   /**
    * Specifies the level of profiling that should be used for the query.
    */
-  profile?: QueryProfileMode
+  profile?: QueryProfileMode;
 
   /**
    * Specifies whether metrics should be captured as part of the execution of
    * the query.
    */
-  metrics?: boolean
+  metrics?: boolean;
 
   /**
    * Specifies the context within which this query should be executed.  This can be
    * scoped to a scope or a collection within the dataset.
    */
-  queryContext?: string
+  queryContext?: string;
 
   /**
    * Specifies any additional parameters which should be passed to the query engine
    * when executing the query.
    */
-  raw?: { [key: string]: any }
+  raw?: { [key: string]: any };
 
   /**
    * The timeout for this operation, represented in milliseconds.
    */
-  timeout?: number
+  timeout?: number;
 }

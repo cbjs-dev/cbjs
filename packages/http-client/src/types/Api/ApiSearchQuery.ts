@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+type ApiSearchQuery = {
+  query: string;
+  boost: number;
+};

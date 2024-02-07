@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { promisify } from 'node:util';
-
-import { CppError } from './binding';
 import {
   errorFromCpp,
   mutationStateToCpp,
@@ -64,28 +61,24 @@ export class SearchExecutor {
       }
     );
 
-    const timeout = options.timeout || this._cluster.searchTimeout;
+    const timeout = options.timeout ?? this._cluster.searchTimeout;
     const searchArgs = {
       timeout,
       index_name: indexName,
       query: JSON.stringify(query),
       limit: options.limit,
       skip: options.skip,
-      explain: options.explain || false,
-      disable_scoring: options.disableScoring || false,
-      include_locations: options.includeLocations || false,
-      highlight_style: options.highlight
-        ? searchHighlightStyleToCpp(options.highlight.style)
-        : undefined,
-      highlight_fields:
-        options.highlight && options.highlight.fields ? options.highlight.fields : [],
-      fields: options.fields || [],
-      collections: options.collections || [],
+      explain: options.explain ?? false,
+      disable_scoring: options.disableScoring ?? false,
+      include_locations: options.includeLocations ?? false,
+      highlight_style: searchHighlightStyleToCpp(options.highlight?.style),
+      highlight_fields: options.highlight?.fields ?? [],
+      fields: options.fields ?? [],
+      collections: options.collections ?? [],
       scan_consistency: searchScanConsistencyToCpp(options.consistency),
       mutation_state: mutationStateToCpp(options.consistentWith).tokens,
-      sort_specs: options.sort
-        ? options.sort.map((sort: string | SearchSort) => JSON.stringify(sort))
-        : [],
+      sort_specs:
+        options.sort?.map((sort: string | SearchSort) => JSON.stringify(sort)) ?? [],
       facets: options.facets
         ? Object.fromEntries(
             Object.entries(options.facets)
@@ -105,7 +98,7 @@ export class SearchExecutor {
 
     this._cluster.conn.search(searchArgs, (cppErr, response) => {
       if (cppErr) {
-        const err = errorFromCpp(cppErr as CppError);
+        const err = errorFromCpp(cppErr);
         emitter.emit('error', err);
         emitter.emit('end');
         return;

@@ -74,7 +74,7 @@ export type StatisticDefinition = {
    */
   metric: [
     Omit<StatisticLabelSelector, 'label'> & { label: 'name' },
-    ...StatisticLabelSelector[]
+    ...StatisticLabelSelector[],
   ];
 
   /**
