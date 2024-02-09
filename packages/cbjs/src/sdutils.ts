@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/* eslint jsdoc/require-jsdoc: off */
-'use strict';
+import { invariant } from '@cbjs/shared';
+import { isArray } from '@cbjs/shared/dist/src/misc/utils/isArray';
 
 interface SdPathPartProp {
   type: 'property';
@@ -67,22 +66,33 @@ export class SdUtils {
     return parts;
   }
 
-  private static _insertByPath(root: any, parts: SdPathPart[], value: any): any {
+  private static _insertByPath(
+    root: unknown,
+    parts: SdPathPart[],
+    value: unknown
+  ): unknown {
     if (parts.length === 0) {
       return value;
     }
 
     const firstPart = parts.shift() as SdPathPart;
+
     if (firstPart.type === 'property') {
-      if (!root) {
-        root = {};
-      }
-      if (Array.isArray(root)) {
+      if (isArray(root)) {
         throw new Error('expected object, found array');
       }
 
-      root[firstPart.path] = this._insertByPath(root[firstPart.path], parts, value);
-    } else if (firstPart.type === 'index') {
+      const localRoot = (root ?? {}) as Record<string, unknown>;
+
+      localRoot[firstPart.path] = this._insertByPath(
+        localRoot[firstPart.path],
+        parts,
+        value
+      );
+      return localRoot;
+    }
+
+    if (firstPart.type === 'index') {
       if (!root) {
         root = [];
       }
@@ -91,11 +101,11 @@ export class SdUtils {
       }
 
       root[firstPart.index] = this._insertByPath(root[firstPart.index], parts, value);
-    } else {
-      throw new Error('encountered unexpected path type');
+
+      return root;
     }
 
-    return root;
+    throw new Error('encountered unexpected path type');
   }
 
   static insertByPath(root: any, path: string, value: any): any {
@@ -103,7 +113,7 @@ export class SdUtils {
     return this._insertByPath(root, parts, value);
   }
 
-  private static _getByPath(value: any, parts: SdPathPart[]): any {
+  private static _getByPath(value: unknown, parts: SdPathPart[]): any {
     if (parts.length === 0) {
       return value;
     }
@@ -117,7 +127,7 @@ export class SdUtils {
         throw new Error('expected object, found array');
       }
 
-      return this._getByPath(value[firstPart.path], parts);
+      return this._getByPath((value as Record<string, unknown>)[firstPart.path], parts);
     } else if (firstPart.type === 'index') {
       if (!value) {
         return undefined;

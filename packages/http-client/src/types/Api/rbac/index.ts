@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-type ApiSearchQuery = {
-  query: string;
-  boost: number;
-};
+export * from './ApiRole';
+export * from './ApiUser';
+export * from './ApiUserGroup';

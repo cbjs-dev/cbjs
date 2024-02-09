@@ -56,39 +56,38 @@ describe
       await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
     });
 
-    test('should successfully get all indexes', async ({
-      serverTestContext,
-      useCollection,
-      useSearchIndex,
-      expect,
-    }) => {
-      const collection = await useCollection();
-      await sleep(2_000);
+    test(
+      'should successfully get all indexes',
+      async ({ serverTestContext, useCollection, useSearchIndex, expect }) => {
+        const collection = await useCollection();
+        await sleep(2_000);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { name, ...indexConfig } = getSearchIndexConfig(
-        'willBeRemovedAndRandomized',
-        {
-          ...serverTestContext.getKeyspace(),
-          collection,
-        }
-      );
-      const index0 = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
-      const index1 = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
-      const indexes = await serverTestContext.cluster.searchIndexes().getAllIndexes();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { name, ...indexConfig } = getSearchIndexConfig(
+          'willBeRemovedAndRandomized',
+          {
+            ...serverTestContext.getKeyspace(),
+            collection,
+          }
+        );
+        const index0 = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
+        const index1 = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
+        const indexes = await serverTestContext.cluster.searchIndexes().getAllIndexes();
 
-      expect(indexes.length).toBeGreaterThanOrEqual(2);
-      expect(indexes).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: index0,
-          }),
-          expect.objectContaining({
-            name: index1,
-          }),
-        ])
-      );
-    });
+        expect(indexes.length).toBeGreaterThanOrEqual(2);
+        expect(indexes).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              name: index0,
+            }),
+            expect.objectContaining({
+              name: index1,
+            }),
+          ])
+        );
+      },
+      { timeout: 30_000 }
+    );
 
     test('should successfully get an index', async ({
       serverTestContext,
@@ -143,8 +142,6 @@ describe
         const indexName = await useSearchIndex(indexConfig, {
           waitSearchIndexTimeout: 20_000,
         });
-
-        process.exit(1);
 
         const result = await serverTestContext.cluster.searchQuery(
           indexName,

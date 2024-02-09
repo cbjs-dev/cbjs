@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiBucket } from '../../types/Api/ApiBucket';
+import { ApiBucket } from '../../types/Api/kv/ApiBucket';
 import { requestGetBucket } from './requests/requestGetBucket';
 
 export async function getBucket(params: CouchbaseHttpApiConfig, bucketName: string) {

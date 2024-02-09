@@ -22,7 +22,10 @@ import { DataSample, SampleCollection } from '../utils/dataSample';
 export async function useSampleData(
   { serverTestContext }: CouchbaseFixtures,
   use: (
-    v: (target: SampleCollection) => Promise<{ sampleSize: number; testUid: string }>
+    v: (
+      target: SampleCollection,
+      docs?: ReadonlyArray<Record<string, unknown>>
+    ) => Promise<{ sampleSize: number; testUid: string }>
   ) => Promise<void>
 ) {
   const sampleData = new DataSample(serverTestContext);

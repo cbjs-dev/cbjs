@@ -132,6 +132,7 @@ export enum CppImplSubdocOpcode {}
 export enum CppStoreSemantics {}
 export enum CppPersistTo {}
 export enum CppReplicateTo {}
+export enum CppVectorQueryCombination {}
 
 export interface CppManagementAnalyticsDataset {
   name: string;
@@ -628,9 +629,6 @@ export interface CppQueryRequest {
   body_str: string;
   // parent_span
 }
-export interface CppMcbpNoopResponse {
-  // ctx
-}
 export interface CppReplaceResponse {
   // ctx
   cas: CppCas;
@@ -905,6 +903,11 @@ export interface CppSearchResponseSearchFacetNumericRangeFacet {
 export interface CppSearchRequest {
   index_name: string;
   query: CppJsonString;
+  bucket_name?: string;
+  scope_name?: string;
+  show_request?: boolean;
+  vector_search?: CppJsonString;
+  vector_query_combination?: CppVectorQueryCombination;
   limit?: number;
   skip?: number;
   explain?: boolean;
@@ -1225,6 +1228,8 @@ export interface CppManagementBucketGetAllResponse {
   buckets: CppManagementClusterBucketSettings[];
 }
 export interface CppManagementBucketGetAllRequest {
+  bucket_name?: string;
+  scope_name?: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -1290,6 +1295,8 @@ export interface CppManagementSearchIndexAnalyzeDocumentResponse {
 export interface CppManagementSearchIndexAnalyzeDocumentRequest {
   index_name: string;
   encoded_document: string;
+  bucket_name?: string;
+  scope_name?: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -1381,6 +1388,8 @@ export interface CppManagementSearchIndexUpsertResponse {
 }
 export interface CppManagementSearchIndexUpsertRequest {
   index: CppManagementSearchIndex;
+  bucket_name?: string;
+  scope_name?: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -1728,6 +1737,31 @@ export interface CppManagementSearchIndexDropResponse {
 }
 export interface CppManagementSearchIndexDropRequest {
   index_name: string;
+  bucket_name?: string;
+  scope_name?: string;
+  client_context_id?: string;
+  timeout?: number;
+}
+export interface CppManagementSearchIndexControlPlanFreezeResponse {
+  // ctx
+  status: string;
+  error: string;
+}
+export interface CppManagementSearchIndexControlPlanFreezeRequest {
+  index_name: string;
+  freeze: boolean;
+  bucket_name?: string;
+  scope_name?: string;
+  client_context_id?: string;
+  timeout?: number;
+}
+export interface CppManagementSearchGetStatsResponse {
+  // ctx
+  status: string;
+  error: string;
+}
+export interface CppManagementSearchGetStatsRequest {
+  index_name: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -1777,6 +1811,8 @@ export interface CppManagementSearchIndexControlQueryResponse {
 }
 export interface CppManagementSearchIndexControlQueryRequest {
   index_name: string;
+  bucket_name?: string;
+  scope_name?: string;
   allow: boolean;
   client_context_id?: string;
   timeout?: number;
@@ -1837,6 +1873,8 @@ export interface CppManagementSearchIndexControlIngestResponse {
 }
 export interface CppManagementSearchIndexControlIngestRequest {
   index_name: string;
+  bucket_name?: string;
+  scope_name?: string;
   pause: boolean;
   client_context_id?: string;
   timeout?: number;
@@ -1907,6 +1945,8 @@ export interface CppManagementSearchIndexGetResponse {
 }
 export interface CppManagementSearchIndexGetRequest {
   index_name: string;
+  bucket_name?: string;
+  scope_name?: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -1958,6 +1998,8 @@ export interface CppManagementSearchIndexGetDocumentsCountResponse {
 }
 export interface CppManagementSearchIndexGetDocumentsCountRequest {
   index_name: string;
+  bucket_name?: string;
+  scope_name?: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -2489,12 +2531,9 @@ export interface CppConnectionAutogen {
       result: CppManagementSearchIndexControlPlanFreezeResponse
     ) => void
   ): void;
-  managementSearchIndexStats(
-    options: CppManagementSearchIndexStatsRequest,
-    callback: (
-      err: CppError | null,
-      result: CppManagementSearchIndexStatsResponse
-    ) => void
+  managementSearchGetStats(
+    options: CppManagementSearchGetStatsRequest,
+    callback: (err: CppError | null, result: CppManagementSearchGetStatsResponse) => void
   ): void;
   managementUserDrop(
     options: CppManagementUserDropRequest,
@@ -2856,6 +2895,7 @@ export interface CppBindingAutogen {
     xattr_unknown_virtual_attribute: CppErrcKeyValue;
     xattr_cannot_modify_virtual_attribute: CppErrcKeyValue;
     xattr_no_access: CppErrcKeyValue;
+    document_not_locked: CppErrcKeyValue;
     cannot_revive_living_document: CppErrcKeyValue;
     mutation_token_outdated: CppErrcKeyValue;
     range_scan_completed: CppErrcKeyValue;
@@ -2938,6 +2978,7 @@ export interface CppBindingAutogen {
     dcp_stream_not_found: CppKeyValueStatusCode;
     opaque_no_match: CppKeyValueStatusCode;
     locked: CppKeyValueStatusCode;
+    not_locked: CppKeyValueStatusCode;
     auth_stale: CppKeyValueStatusCode;
     auth_error: CppKeyValueStatusCode;
     auth_continue: CppKeyValueStatusCode;
@@ -3036,6 +3077,10 @@ export interface CppBindingAutogen {
     one: CppReplicateTo;
     two: CppReplicateTo;
     three: CppReplicateTo;
+  };
+  vector_query_combination: {
+    combination_and: CppVectorQueryCombination;
+    combination_or: CppVectorQueryCombination;
   };
 }
 
@@ -3282,8 +3327,7 @@ export interface CppConnection extends CppConnectionAutogen {
 
 export interface CppTransactionsConfig {
   durability_level?: CppDurabilityLevel;
-  kv_timeout?: number;
-  expiration_time?: number;
+  timeout?: number;
   query_scan_consistency?: CppQueryScanConsistency;
   cleanup_window?: number;
   cleanup_lost_attempts?: boolean;
@@ -3292,8 +3336,7 @@ export interface CppTransactionsConfig {
 
 export interface CppTransactionOptions {
   durability_level?: CppDurabilityLevel;
-  kv_timeout?: number;
-  expiration_time?: number;
+  timeout?: number;
   query_scan_consistency?: CppQueryScanConsistency;
 }
 

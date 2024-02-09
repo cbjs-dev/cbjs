@@ -21,8 +21,7 @@ import {
   ApiUserRole,
   ApiUserRoleOrigin,
 } from '@cbjs/http-client';
-import { hasOwn, RoleName } from '@cbjs/shared';
-import { getRoleScope } from '@cbjs/shared/dist/src/couchbase/getRoleScope';
+import { getRoleScope, RoleName } from '@cbjs/shared';
 
 import { Cluster } from './cluster';
 import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors';

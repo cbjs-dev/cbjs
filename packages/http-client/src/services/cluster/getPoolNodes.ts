@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiPoolNodes } from '../../types/Api/ApiPoolNodes';
+import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetPoolNodes } from './requests/requestGetPoolNodes';
 

@@ -24,7 +24,6 @@
     "NOTICE"
   ],
   "devDependencies": {
-    "http-client": "^4.3.1",
     "zod": "^3.22.4"
   }
 }

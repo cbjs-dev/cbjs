@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-export * from './ApiBucket';
-export * from './ApiBucketScopes';
-export * from './ApiCollection';
-export * from './ApiEventingFunction';
-export * from './ApiEventingFunctionStatus';
-export * from './ApiNode';
-export * from './ApiPool';
-export * from './ApiPoolNodes';
-export * from './ApiQueryIndex';
-export * from './ApiQueryResponseBody';
-export * from './ApiRole';
-export * from './ApiScope';
-export * from './ApiUser';
-export * from './ApiUserGroup';
-export * from './ApiViewDesignDocument';
+export * from './cluster';
+export * from './eventing';
+export * from './kv';
+export * from './query';
+export * from './rbac';
+export * from './search';
+export * from './views';

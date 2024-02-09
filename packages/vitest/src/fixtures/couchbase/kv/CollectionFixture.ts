@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Scope } from '@cbjs/cbjs';
+import { CreateCollectionOptions, CreateCollectionSettings, Scope } from '@cbjs/cbjs';
 import { waitForCollection } from '@cbjs/http-client';
 import { keyspacePath } from '@cbjs/shared';
 
@@ -28,7 +28,7 @@ export type CollectionFixtureParams = {
 };
 
 export class CollectionFixture extends FixtureFunctionValue<
-  [CollectionFixtureParams?],
+  [CollectionFixtureParams?, CreateCollectionSettings?],
   Promise<string>,
   CouchbaseTestContext
 > {
@@ -39,7 +39,8 @@ export class CollectionFixture extends FixtureFunctionValue<
 
   async use(
     { serverTestContext, apiConfig, logger }: FixtureContext<CouchbaseTestContext>,
-    params: CollectionFixtureParams = {}
+    params: CollectionFixtureParams = {},
+    settings: CreateCollectionSettings = {}
   ) {
     await serverTestContext.start();
     this.collectionName = params.collectionName ?? serverTestContext.newUid();
@@ -60,7 +61,9 @@ export class CollectionFixture extends FixtureFunctionValue<
 
     await bucket
       .collections()
-      .createCollection(this.collectionName, this.scopeName, { timeout: 5_000 });
+      .createCollection(this.collectionName, this.scopeName, settings, {
+        timeout: 5_000,
+      });
     await waitForCollection(
       apiConfig,
       this.bucketName,

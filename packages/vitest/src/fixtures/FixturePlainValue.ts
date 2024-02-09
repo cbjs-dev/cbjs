@@ -38,5 +38,6 @@ Object.defineProperty(FixturePlainValue, FixturePlainValueSymbol, {
 });
 
 export function isFixturePlainValueClass(v: any): boolean {
-  return hasOwn(v, FixturePlainValueSymbol);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return v[FixturePlainValueSymbol] === true;
 }

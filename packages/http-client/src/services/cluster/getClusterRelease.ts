@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiPoolNodes } from '../../types/Api/ApiPoolNodes';
+import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes';
 import { getPoolNodes } from './getPoolNodes';
 
 export type ClusterReleaseFlavor = 'community' | 'enterprise';

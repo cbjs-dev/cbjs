@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiNode } from '../types/Api/ApiNode';
+import { ApiNode } from '../types/Api/cluster/ApiNode';
 
 export function extractNodeHostnames(nodes: ApiNode[]) {
   return nodes.map((n) => n.configuredHostname.split(':')[0]);

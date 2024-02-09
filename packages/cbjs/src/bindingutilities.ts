@@ -43,6 +43,7 @@ import binding, {
   CppStoreSemantics,
   CppTxnExternalException,
   CppTxnOpException,
+  CppVectorQueryCombination,
   CppViewScanConsistency,
   CppViewSortOrder,
 } from './binding';
@@ -150,6 +151,7 @@ import { QueryProfileMode, QueryScanConsistency } from './querytypes';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { HighlightStyle, SearchScanConsistency } from './searchtypes';
 import { nsServerStrToDuraLevel } from './utilities';
+import { VectorQueryCombination } from './vectorsearch';
 import { ViewOrdering, ViewScanConsistency } from './viewtypes';
 
 /**
@@ -723,6 +725,8 @@ export function errorFromCpp(cppError: unknown): Error | null {
       return new UnambiguousTimeoutError(cppError, context);
     case binding.errc_common.ambiguous_timeout:
       return new AmbiguousTimeoutError(cppError, context);
+    case binding.errc_key_value.document_not_locked:
+      return new DocumentNotLockedError(baseErr, context);
     case binding.errc_common.feature_not_available:
       return new FeatureNotAvailableError(cppError, context);
     case binding.errc_common.scope_not_found:
@@ -1095,4 +1099,19 @@ export function bucketConflictResolutionTypeFromCpp(
   }
 
   throw new InvalidArgumentError();
+}
+
+/**
+ * @internal
+ */
+export function vectorQueryCombinationToCpp(
+  combination: VectorQueryCombination | undefined
+): CppVectorQueryCombination {
+  if (combination === VectorQueryCombination.AND) {
+    return binding.vector_query_combination.combination_and;
+  } else if (combination === VectorQueryCombination.OR) {
+    return binding.vector_query_combination.combination_or;
+  }
+
+  throw new InvalidArgumentError('Unrecognized VectorQueryCombination.');
 }

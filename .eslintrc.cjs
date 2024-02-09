@@ -34,6 +34,8 @@ module.exports = {
     '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/consistent-indexed-object-style': 'off',
     '@typescript-eslint/no-base-to-string': 'off',
+    '@typescript-eslint/unbound-method': 'off',
+    '@typescript-eslint/non-nullable-type-assertion-style': 'off',
     '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
     '@typescript-eslint/no-unused-vars': [
       'warn',

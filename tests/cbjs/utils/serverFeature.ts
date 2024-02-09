@@ -43,7 +43,11 @@ export const ServerFeatures = {
   SubdocReadReplica: 'subdoc_read_replica',
   BucketDedup: 'bucket_dedup',
   UpdateCollectionMaxExpiry: 'update_collection_max_expiry',
+  NegativeCollectionMaxExpiry: 'negative_collection_max_expiry',
   StorageBackend: 'storage_backend',
+  VectorSearch: 'vector_search',
+  ScopeSearch: 'scope_search',
+  ScopeSearchIndexManagement: 'scope_search_index_management',
 } as const;
 
 export type ServerFeature = (typeof ServerFeatures)[keyof typeof ServerFeatures];
@@ -85,6 +89,10 @@ export function versionSupports(version: string, feature: ServerFeature) {
     case ServerFeatures.SubdocReadReplica:
     case ServerFeatures.UpdateCollectionMaxExpiry:
       return gte(version, '7.5.0');
+    case ServerFeatures.VectorSearch:
+    case ServerFeatures.ScopeSearch:
+    case ServerFeatures.ScopeSearchIndexManagement:
+      return gte(version, '7.6.0');
   }
 
   throw new Error(`Unknown feature '${feature}'`);

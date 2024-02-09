@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiUserGroup } from '../../types/Api/ApiUserGroup';
+import { ApiUserGroup } from '../../types/Api/rbac/ApiUserGroup';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetUserGroup } from './requests/requestGetUserGroup';
 

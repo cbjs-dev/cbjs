@@ -17,3 +17,4 @@
 export * from './identifier';
 export * from './getApiConfig';
 export * from './getConnectionParams';
+export * from './getRoleScope';

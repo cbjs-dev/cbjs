@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
- * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnyCollection } from '@cbjs/cbjs';
 
-export function insertRandomDocuments(collection: AnyCollection, n: number, prefix = '') {
-  for (let i = 0; i < n; i++) {
-    collection.insert(`${prefix}${i}`, {
-      content: Math.random(),
-    });
-  }
-}
+export * from './ApiNode';
+export * from './ApiPool';
+export * from './ApiPoolNodes';

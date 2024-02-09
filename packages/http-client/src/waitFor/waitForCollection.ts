@@ -17,7 +17,7 @@ import { retry } from 'ts-retry-promise';
 
 import { getCollections, getPoolNodes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
-import { ApiCollection } from '../types/Api/ApiCollection';
+import { ApiCollection } from '../types/Api/kv/ApiCollection';
 import { mapNodes } from '../utils/mapNodes';
 import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';

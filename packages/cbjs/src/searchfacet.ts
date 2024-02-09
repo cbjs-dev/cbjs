@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-/* eslint jsdoc/require-jsdoc: off */
-
 /**
  * Provides the ability to specify facets for a search query.
  *
  * @category Full Text Search
  */
 export class SearchFacet {
-  protected _data: any;
+  protected _data: unknown;
 
   constructor(data: any) {
     if (!data) {
@@ -73,6 +71,16 @@ export class TermSearchFacet extends SearchFacet {
  * @category Full Text Search
  */
 export class NumericSearchFacet extends SearchFacet {
+  declare _data: {
+    field: string;
+    size: number;
+    numeric_ranges: Array<{
+      name: string;
+      min: number | undefined;
+      max: number | undefined;
+    }>;
+  };
+
   /**
    * @internal
    */
@@ -100,6 +108,16 @@ export class NumericSearchFacet extends SearchFacet {
  * @category Full Text Search
  */
 export class DateSearchFacet extends SearchFacet {
+  declare _data: {
+    field: string;
+    size: number;
+    date_ranges: Array<{
+      name: string;
+      start: Date | undefined;
+      end: Date | undefined;
+    }>;
+  };
+
   /**
    * @internal
    */

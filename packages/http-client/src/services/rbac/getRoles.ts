@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiRole } from '../../types/Api/ApiRole';
+import { ApiRole } from '../../types/Api/rbac/ApiRole';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetRoles } from './requests/requestGetRoles';
 

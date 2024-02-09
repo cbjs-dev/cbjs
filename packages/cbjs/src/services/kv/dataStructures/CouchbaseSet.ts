@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { invariant } from '@cbjs/shared';
+import { isArray } from '@cbjs/shared/dist/src/misc/utils/isArray';
 
 import {
   CollectionContaining,
@@ -52,7 +53,7 @@ export class CouchbaseSet<
 
   private async _get(): Promise<Item[]> {
     const doc = await this._coll.get(this._key);
-    if (!(doc.content instanceof Array)) {
+    if (!isArray(doc.content)) {
       throw new CouchbaseError('expected document of array type');
     }
 
@@ -115,7 +116,7 @@ export class CouchbaseSet<
       for (let i = 0; i < 16; ++i) {
         try {
           const res = await this._coll.get(this._key);
-          if (!(res.content instanceof Array)) {
+          if (!isArray(res.content)) {
             throw new CouchbaseError('expected document of array type');
           }
 

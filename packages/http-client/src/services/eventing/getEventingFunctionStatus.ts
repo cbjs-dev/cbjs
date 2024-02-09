@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiEventingFunctionStatus } from '../../types/Api/ApiEventingFunctionStatus';
+import { ApiEventingFunctionStatus } from '../../types/Api/eventing/ApiEventingFunctionStatus';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetEventingFunctionStatus } from './requests/requestGetEventingFunctionStatus';
 

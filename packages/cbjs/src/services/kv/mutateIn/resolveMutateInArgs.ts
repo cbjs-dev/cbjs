@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { NoInfer } from '@cbjs/shared';
+import { isArray } from '@cbjs/shared/dist/src/misc/utils/isArray';
 
 import { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types';
 import { MutateInOptions } from '../../../collection';
@@ -35,7 +36,7 @@ export function resolveMutateInArgs<
   Doc extends object,
   SpecDefinitions extends ReadonlyArray<MutateInSpec>,
 >(args: MutateInArgs<Doc, SpecDefinitions>): ResolvedArgs<SpecDefinitions> {
-  if (!(args[0] instanceof Array)) {
+  if (!isArray(args[0])) {
     return {
       options: args[0] ?? {},
       specs: undefined,

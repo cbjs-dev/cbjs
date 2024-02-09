@@ -21,4 +21,21 @@ module.exports = {
     'es2022': false,
     'shared-node-browser': true,
   },
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: '@cbjs/cbjs',
+            message: 'This will created a cyclic dependency. You should probably move the module to @cbjs/shared instead.',
+          },
+          {
+            name: '@cbjs/vitest',
+            message: 'This will created a cyclic dependency. You should probably move the module to @cbjs/shared instead.',
+          },
+        ],
+      },
+    ],
+  },
 };

@@ -14,9 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { InvalidArgumentError } from './errors';
 import { MutationState } from './mutationstate';
 import { SearchFacet } from './searchfacet';
+import { SearchQuery } from './searchquery';
 import { SearchSort } from './searchsort';
+import { VectorSearch } from './vectorsearch';
 
 /**
  * SearchMetaData represents the meta-data available from a search query.
@@ -169,7 +172,7 @@ export enum SearchScanConsistency {
 /**
  * @category Full Text Search
  */
-export interface SearchQueryOptions {
+export type SearchQueryOptions = {
   /**
    * Specifies the number of results to skip from the index before returning
    * results.
@@ -252,4 +255,93 @@ export interface SearchQueryOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+};
+
+/**
+ *  Represents a search query and/or vector search to execute via the Couchbase Full Text Search (FTS) service.
+ *
+ *  Volatile: This API is subject to change at any time.
+ *
+ * @category Full Text Search
+ */
+export class SearchRequest {
+  private _searchQuery: SearchQuery | undefined;
+  private _vectorSearch: VectorSearch | undefined;
+
+  constructor(query: SearchQuery | VectorSearch) {
+    if (query instanceof SearchQuery) {
+      this._searchQuery = query;
+      return;
+    }
+
+    if (query instanceof VectorSearch) {
+      this._vectorSearch = query;
+      return;
+    }
+
+    throw new InvalidArgumentError(
+      'Must provide either a SearchQuery or VectorSearch when creating SearchRequest.'
+    );
+  }
+
+  /**
+   * @internal
+   */
+  get searchQuery(): SearchQuery | undefined {
+    return this._searchQuery;
+  }
+
+  /**
+   * @internal
+   */
+  get vectorSearch(): VectorSearch | undefined {
+    return this._vectorSearch;
+  }
+
+  /**
+   * Adds a search query to the request if the request does not already have a search query.
+   *
+   * Volatile: This API is subject to change at any time.
+   *
+   * @param query A SearchQuery to add to the request.
+   */
+  withSearchQuery(query: SearchQuery): SearchRequest {
+    if (!(query instanceof SearchQuery)) {
+      throw new InvalidArgumentError('Must provide a SearchQuery.');
+    }
+    if (this._searchQuery) {
+      throw new InvalidArgumentError('Request already has a SearchQuery.');
+    }
+    this._searchQuery = query;
+    return this;
+  }
+
+  /**
+   * Adds a vector search to the request if the request does not already have a vector search.
+   *
+   * Volatile: This API is subject to change at any time.
+   *
+   * @param search A VectorSearch to add to the request.
+   */
+  withVectorSearch(search: VectorSearch): SearchRequest {
+    if (!(search instanceof VectorSearch)) {
+      throw new InvalidArgumentError('Must provide a VectorSearch.');
+    }
+    if (this._vectorSearch) {
+      throw new InvalidArgumentError('Request already has a VectorSearch.');
+    }
+    this._vectorSearch = search;
+    return this;
+  }
+
+  /**
+   * Creates a search request.
+   *
+   * Volatile: This API is subject to change at any time.
+   *
+   * @param query Either a SearchQuery or VectorSearch to add to the search request.
+   */
+  static create(query: SearchQuery | VectorSearch): SearchRequest {
+    return new SearchRequest(query);
+  }
 }

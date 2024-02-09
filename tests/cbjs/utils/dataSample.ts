@@ -22,13 +22,20 @@ export type SampleCollection = {
   remove: (key: string) => Promise<unknown>;
 };
 
+const DEFAULT_SAMPLE_DOCS = [
+  { x: 0, y: 0, name: 'x0,y0' },
+  { x: 1, y: 0, name: 'x1,y0' },
+  { x: 2, y: 0, name: 'x2,y0' },
+  { x: 0, y: 1, name: 'x0,y1' },
+  { x: 1, y: 1, name: 'x1,y1' },
+  { x: 2, y: 1, name: 'x2,y1' },
+  { x: 0, y: 2, name: 'x0,y2' },
+  { x: 1, y: 2, name: 'x1,y2' },
+  { x: 2, y: 2, name: 'x2,y2' },
+] as const;
+
 export class DataSample {
-  private readonly sampleDocs: Array<{
-    x: number;
-    y: number;
-    name: string;
-    testUid?: string;
-  }>;
+  private readonly sampleDocs: ReadonlyArray<Record<string, unknown>>;
 
   /**
    * Unique identifier used to prefix documents of a test.
@@ -39,28 +46,27 @@ export class DataSample {
   private sampleDocKeys?: string[];
   private targetCollection?: SampleCollection;
 
-  constructor(serverTestContext: ServerTestContext) {
+  constructor(
+    serverTestContext: ServerTestContext,
+    sampleDocs?: ReadonlyArray<Record<string, unknown>>
+  ) {
     this.testUid = serverTestContext.newUid();
-    this.sampleDocs = [
-      { x: 0, y: 0, name: 'x0,y0' },
-      { x: 1, y: 0, name: 'x1,y0' },
-      { x: 2, y: 0, name: 'x2,y0' },
-      { x: 0, y: 1, name: 'x0,y1' },
-      { x: 1, y: 1, name: 'x1,y1' },
-      { x: 2, y: 1, name: 'x2,y1' },
-      { x: 0, y: 2, name: 'x0,y2' },
-      { x: 1, y: 2, name: 'x1,y2' },
-      { x: 2, y: 2, name: 'x2,y2' },
-    ];
+    this.sampleDocs = sampleDocs ?? DEFAULT_SAMPLE_DOCS;
   }
 
   async upsertSample(target: SampleCollection) {
     this.targetCollection = target;
     const upserts = this.sampleDocs.map(async (doc, i) => {
       const testDocKey = `${this.testUid}::${i}`;
-      doc.testUid = this.testUid;
 
-      await target.upsert(testDocKey, doc, { timeout: 2_000 });
+      await target.upsert(
+        testDocKey,
+        {
+          ...doc,
+          testUid: this.testUid,
+        },
+        { timeout: 2_000 }
+      );
       return testDocKey;
     });
 

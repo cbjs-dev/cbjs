@@ -15,8 +15,8 @@
  */
 import { ServiceName } from '@cbjs/shared';
 
-import { ApiNode } from '../types/Api/ApiNode';
-import { ApiPoolNodes } from '../types/Api/ApiPoolNodes';
+import { ApiNode } from '../types/Api/cluster/ApiNode';
+import { ApiPoolNodes } from '../types/Api/cluster/ApiPoolNodes';
 import { extractNodeHostnames } from './extractNodeHostnames';
 
 type NodeMapArguments = {

@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CppSearchRequest } from './binding';
 import {
   errorFromCpp,
   mutationStateToCpp,
@@ -21,11 +22,12 @@ import {
   searchScanConsistencyToCpp,
 } from './bindingutilities';
 import { Cluster } from './cluster';
-import { SearchQuery } from './searchquery';
+import { MatchNoneSearchQuery, SearchQuery } from './searchquery';
 import { SearchSort } from './searchsort';
 import {
   SearchMetaData,
   SearchQueryOptions,
+  SearchRequest,
   SearchResult,
   SearchRow,
 } from './searchtypes';
@@ -35,13 +37,20 @@ import { StreamableRowPromise } from './streamablepromises';
  * @internal
  */
 export class SearchExecutor {
-  private _cluster: Cluster;
+  private cluster: Cluster;
+  private bucketName?: string;
+  private scopeName?: string;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
-    this._cluster = cluster;
+  constructor(cluster: Cluster);
+  constructor(cluster: Cluster, bucketName: string, scopeName: string);
+
+  constructor(cluster: Cluster, bucketName?: string, scopeName?: string) {
+    this.cluster = cluster;
+    this.bucketName = bucketName;
+    this.scopeName = scopeName;
   }
 
   /**
@@ -49,7 +58,7 @@ export class SearchExecutor {
    */
   query(
     indexName: string,
-    query: SearchQuery,
+    query: SearchQuery | SearchRequest,
     options: SearchQueryOptions
   ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData> {
     const emitter = new StreamableRowPromise<SearchResult, SearchRow, SearchMetaData>(
@@ -61,11 +70,17 @@ export class SearchExecutor {
       }
     );
 
-    const timeout = options.timeout ?? this._cluster.searchTimeout;
-    const searchArgs = {
+    let searchQuery: SearchQuery = new MatchNoneSearchQuery();
+
+    if (query instanceof SearchQuery) searchQuery = query;
+    if (query instanceof SearchRequest)
+      searchQuery = query.searchQuery ?? new MatchNoneSearchQuery();
+
+    const timeout = options.timeout ?? this.cluster.searchTimeout;
+    const searchArgs: CppSearchRequest = {
       timeout,
       index_name: indexName,
-      query: JSON.stringify(query),
+      query: JSON.stringify(searchQuery),
       limit: options.limit,
       skip: options.skip,
       explain: options.explain ?? false,
@@ -96,7 +111,12 @@ export class SearchExecutor {
       body_str: '',
     };
 
-    this._cluster.conn.search(searchArgs, (cppErr, response) => {
+    if (this.bucketName && this.scopeName) {
+      searchArgs.bucket_name = this.bucketName;
+      searchArgs.scope_name = this.scopeName;
+    }
+
+    this.cluster.conn.search(searchArgs, (cppErr, response) => {
       if (cppErr) {
         const err = errorFromCpp(cppErr);
         emitter.emit('error', err);

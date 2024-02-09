@@ -14,10 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ApiViewDesignDocument,
-  ApiViewDesignDocuments,
-} from '@cbjs/http-client/dist/src/types/Api/ApiViewDesignDocument';
+import { ApiViewDesignDocument, ApiViewDesignDocuments } from '@cbjs/http-client';
 
 import { Bucket } from './bucket';
 import { BucketName, CouchbaseClusterTypes } from './clusterTypes';

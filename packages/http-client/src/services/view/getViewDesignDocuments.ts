@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiViewDesignDocuments } from '../../types/Api/ApiViewDesignDocument';
+import { ApiViewDesignDocuments } from '../../types/Api/views/ApiViewDesignDocument';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetViewDesignDocuments } from './requests/requestGetViewDesignDocuments';
 

@@ -16,8 +16,8 @@
 import { hasOwn } from '@cbjs/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiQueryIndex } from '../../types/Api/ApiQueryIndex';
-import { ApiQueryResponseBody } from '../../types/Api/ApiQueryResponseBody';
+import { ApiQueryIndex } from '../../types/Api/query/ApiQueryIndex';
+import { ApiQueryResponseBody } from '../../types/Api/query/ApiQueryResponseBody';
 import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryInex';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetQueryIndexes } from './requests/requestGetQueryIndexes';

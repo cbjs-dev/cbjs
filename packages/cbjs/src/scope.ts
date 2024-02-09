@@ -28,6 +28,7 @@ import { CouchbaseClusterTypes, DefaultScopeName } from './clusterTypes/clusterT
 import { Collection } from './collection';
 import { QueryExecutor } from './queryexecutor';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
+import { ScopeSearchIndexManager } from './scopesearchindexmanager';
 import { StreamableRowPromise } from './streamablepromises';
 import { Transcoder } from './transcoders';
 import { NodeCallback, PromiseHelper } from './utilities';
@@ -46,9 +47,7 @@ export class Scope<
   /**
    * @internal
    */
-  static get DEFAULT_NAME(): DefaultScopeName {
-    return '_default';
-  }
+  static readonly DEFAULT_NAME = '_default';
 
   readonly bucket: Bucket<T, B>;
   readonly name: S;
@@ -83,6 +82,17 @@ export class Scope<
     collectionName: C
   ): Collection<T, B, S, C> {
     return new Collection(this, collectionName);
+  }
+
+  /**
+   * Returns a SearchIndexManager which can be used to manage the search
+   * indexes of this scope.
+   *
+   * Volatile: This API is subject to change at any time.
+   *
+   */
+  searchIndexes(): ScopeSearchIndexManager {
+    return new ScopeSearchIndexManager(this.cluster, this.bucket.name, this.name);
   }
 
   /**

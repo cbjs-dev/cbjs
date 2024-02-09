@@ -130,6 +130,8 @@ export interface TransactionsConfig {
 
   /**
    * Specifies the default timeout for KV operations, specified in millseconds.
+   *
+   * @deprecated Currently a no-op.  CXXCBC-391: Adds support for ExtSDKIntegration which uses KV durable timeout internally.
    */
   kvTimeout?: number;
 

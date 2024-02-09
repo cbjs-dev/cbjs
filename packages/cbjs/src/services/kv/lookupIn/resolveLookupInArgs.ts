@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isArray } from '@cbjs/shared/dist/src/misc/utils/isArray';
+
 import { LookupInOptions } from '../../../collection';
 import { LookupInSpec } from '../../../sdspecs';
 import { NodeCallback } from '../../../utilities';
@@ -32,7 +34,7 @@ export function resolveLookupInArgs<
 >(
   args: LookupInArgs<Doc, SpecDefinitions, OpResult>
 ): ResolvedArgs<SpecDefinitions, OpResult> {
-  if (!(args[0] instanceof Array)) {
+  if (!isArray(args[0])) {
     return {
       options: args[0] ?? {},
       specs: undefined,

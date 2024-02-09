@@ -14,6 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
+import { ApiSearchGetIndex, ApiSearchIndexDefinition } from '@cbjs/http-client';
+import { ApiSearchGetAllIndexes } from '@cbjs/http-client/dist/src/types/Api/search/ApiSearchGetAllIndexes';
+
+import { CppError } from './binding';
+import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
 import {
   IndexNotFoundError,
@@ -29,213 +36,7 @@ import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
  *
  * @category Management
  */
-export type ISearchIndex = SearchIndexCommonConfig &
-  SearchIndexConfigIndexParams &
-  SearchIndexConfigSourceParams;
-
-export type SearchIndexCommonConfig = {
-  /**
-   * The UUID of the search index.  Used for updates to ensure consistency.
-   */
-  uuid?: string;
-
-  /**
-   * The name of the search index.
-   */
-  name: string;
-
-  /**
-   * Name of the source of the data (ie: the bucket name).
-   */
-  sourceName: string;
-
-  /**
-   * The UUID of the data source.
-   */
-  sourceUUID?: string;
-
-  /**
-   * Plan properties such as the number of replicas and number of partitions.
-   */
-  planParams?: {
-    hierarchyRules?: unknown;
-    maxPartitionsPerPIndex?: number;
-    nodePlanParams?: unknown;
-    numReplicas?: number;
-    indexPartitions?: number;
-    planFrozen?: boolean;
-  };
-};
-
-type SearchIndexConfigIndexParams =
-  | {
-      /**
-       * The type of index to use.
-       */
-      type: 'fulltext-alias';
-
-      /**
-       * Parameters to specify such as the store type and mappings.
-       */
-      params: SearchIndexIndexParamsCommon & SearchIndexIndexParamsIndexTypeAlias;
-    }
-  | {
-      /**
-       * The type of index to use.
-       */
-      type: 'fulltext-index';
-
-      /**
-       * Parameters to specify such as the store type and mappings.
-       */
-      params: SearchIndexIndexParamsCommon & SearchIndexIndexParamsIndexTypeBleve;
-    };
-
-type SearchIndexIndexParamsCommon = {
-  doc_config: {
-    docid_prefix_delim?: string;
-    docid_regexp?: string;
-    mode:
-      | 'docid_prefix'
-      | 'scope.collection.type_field'
-      | (string & NonNullable<unknown>);
-    type_field: string;
-  };
-  store?: {
-    kvStoreName?: string;
-    indexType?: 'scorch' | (string & NonNullable<unknown>);
-    segmentVersion?: number;
-  };
-};
-
-type SearchIndexIndexParamsIndexTypeAlias = {
-  targets: {
-    [indexName: string]: {
-      indexUUID: string;
-    };
-  };
-};
-
-type SearchIndexMappingFieldType =
-  | 'text'
-  | 'number'
-  | 'datetime'
-  | 'boolean'
-  | 'disabled'
-  | 'geopoint'
-  | 'geoshape'
-  | 'ip';
-
-type SearchIndexMappingFieldAnalyzer =
-  | 'ar'
-  | 'cjk'
-  | 'ckb'
-  | 'da'
-  | 'de'
-  | 'en'
-  | 'es'
-  | 'fa'
-  | 'fi'
-  | 'fr'
-  | 'he'
-  | 'hi'
-  | 'hr'
-  | 'hu'
-  | 'it'
-  | 'keyword'
-  | 'nl'
-  | 'no'
-  | 'pt'
-  | 'ro'
-  | 'ru'
-  | 'simple'
-  | 'standard'
-  | 'sv'
-  | 'tr'
-  | 'web';
-
-type SearchIndexIndexParamsIndexTypeBleve = {
-  mapping: {
-    default_mapping: {
-      enabled: boolean;
-      dynamic: boolean;
-      default_analyzer?: string;
-    };
-    default_type: string;
-    docvalues_dynamic?: boolean;
-    default_analyzer: SearchIndexMappingFieldAnalyzer;
-    default_datetime_parser: string;
-    default_field: '_all' | (string & NonNullable<unknown>);
-    byte_array_converter?: 'json' | (string & NonNullable<unknown>);
-    analysis?: unknown;
-    index_dynamic?: boolean;
-    store_dynamic?: boolean;
-    type_field: string;
-    types: {
-      [bucketName: string]: {
-        dynamic: boolean;
-        enabled: boolean;
-        properties: {
-          [name: string]: {
-            enabled: boolean;
-            dynamic: boolean;
-            fields: Array<{
-              analyzer?: SearchIndexMappingFieldAnalyzer;
-              docvalues?: boolean;
-              include_in_all?: boolean;
-              include_term_vectors?: boolean;
-              index: boolean;
-              name: string;
-              store: boolean;
-              type: SearchIndexMappingFieldType;
-            }>;
-          };
-        };
-      };
-    };
-  };
-};
-
-type SearchIndexConfigSourceParams =
-  | {
-      /**
-       * The type of the source.
-       */
-      sourceType: 'couchbase' | 'gocbcore';
-
-      /**
-       * Extra parameters for the source. These are usually things like advanced
-       * connection options and tuning parameters.
-       */
-      sourceParams?: SearchIndexConfigSourceParamsCouchbase;
-    }
-  | {
-      /**
-       * The type of the source.
-       */
-      sourceType: 'nil';
-
-      /**
-       * Extra parameters for the source. These are usually things like advanced
-       * connection options and tuning parameters.
-       */
-      sourceParams?: unknown;
-    };
-
-type SearchIndexConfigSourceParamsCouchbase = {
-  authUser?: string;
-  authPassword?: string;
-  authSaslUser?: string;
-  authSaslPassword?: string;
-  clusterManagerBackoffFactor?: number;
-  clusterManagerSleepInitMS?: number;
-  clusterManagerSleepMaxMS?: number;
-  dataManagerBackoffFactor?: number;
-  dataManagerSleepInitMS?: number;
-  dataManagerSleepMaxMS?: number;
-  feedBufferSizeBytes?: number;
-  feedBufferAckThreshold?: number;
-};
+export type ISearchIndex = ApiSearchIndexDefinition;
 
 /**
  * This class is currently incomplete and must be casted to `any` in
@@ -440,8 +241,8 @@ export class SearchIndexManager {
         throw new IndexNotFoundError();
       }
 
-      const idxData = JSON.parse(res.body.toString());
-      return idxData.indexDef as SearchIndex;
+      const indexData = JSON.parse(res.body.toString()) as ApiSearchGetIndex;
+      return indexData.indexDef;
     }, callback);
   }
 
@@ -468,7 +269,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -482,8 +283,10 @@ export class SearchIndexManager {
         throw new Error('failed to fetch search indices');
       }
 
-      const idxsData = JSON.parse(res.body.toString());
-      return Object.values(idxsData.indexDefs.indexDefs) as SearchIndex[];
+      const idxsData = JSON.parse(res.body.toString()) as ApiSearchGetAllIndexes;
+      console.log(idxsData);
+
+      return Object.values(idxsData.indexDefs);
     }, callback);
   }
 
@@ -517,7 +320,7 @@ export class SearchIndexManager {
     }
 
     const indexName = indexDefinition.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return await PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -571,7 +374,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -625,7 +428,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -669,7 +472,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -711,7 +514,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -795,7 +598,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -837,7 +640,7 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -886,22 +689,31 @@ export class SearchIndexManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Post,
-        path: `/api/index/${indexName}/analyzeDoc`,
-        body: JSON.stringify(document),
+    const analyze = promisify(
+      this._cluster.conn.managementSearchIndexAnalyzeDocument
+    ).bind(this._cluster.conn);
+
+    try {
+      const result = (await analyze({
+        index_name: indexName,
+        encoded_document: JSON.stringify(document),
         timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to perform search index document analysis');
+      })) as any; // TODO create type
+      if (callback) {
+        callback(null, result);
       }
 
-      return JSON.parse(res.body.toString()).analyze;
-    }, callback);
+      return result;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 }
