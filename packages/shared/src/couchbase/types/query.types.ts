@@ -14,11 +14,4 @@
  * limitations under the License.
  */
 
-export * from './analytics.types';
-export * from './bucket.types';
-export * from './cluster.types';
-export * from './durability.types';
-export * from './eventing.types';
-export * from './logger.types';
-export * from './query.types';
-export * from './rbac.types';
+export type QueryScanConsistencyName = 'not_bounded' | 'request_plus';

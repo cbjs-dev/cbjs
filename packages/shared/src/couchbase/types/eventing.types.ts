@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Pretty } from '../../misc';
 
 export type EventingFunctionDcpBoundaryName = 'from_now' | 'everything';
 export type EventingFunctionLogLevelName =
@@ -30,6 +31,10 @@ export type EventingFunctionStatusName =
   | 'undeploying'
   | 'pausing';
 
+export type EventingFunctionProcessingStatusName = 'running' | 'paused';
+
+export type EventingFunctionLanguageCompatibilityName = '6.0.0' | '6.5.0' | '6.6.2';
+
 /**
  * A bucket.scope combination used for identifying functions belonging to the same group.
  */
@@ -37,3 +42,17 @@ export type EventingFunctionScope = {
   bucket: '*' | (string & NonNullable<unknown>);
   scope: '*' | (string & NonNullable<unknown>);
 };
+
+export type EventingFunctionUrlAuthData =
+  | {
+      auth_type: 'basic' | 'digest';
+      username: string;
+      password: string;
+    }
+  | {
+      auth_type: 'no-auth';
+    }
+  | {
+      auth_type: 'bearer';
+      bearer_key: string;
+    };
