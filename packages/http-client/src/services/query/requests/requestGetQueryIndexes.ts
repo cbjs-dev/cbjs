@@ -17,5 +17,8 @@ import { CouchbaseHttpApiConfig } from '../../../types';
 import { requestExecuteStatement } from './requestExecuteStatement';
 
 export async function requestGetQueryIndexes(params: CouchbaseHttpApiConfig) {
-  return await requestExecuteStatement(params, 'SELECT RAW indexes FROM system:indexes');
+  return await requestExecuteStatement(
+    params,
+    "SELECT RAW indexes FROM system:indexes WHERE `using` = 'gsi'"
+  );
 }

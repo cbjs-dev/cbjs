@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn } from '@cbjs/shared';
+import { hasOwn, invariant, Keyspace } from '@cbjs/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types';
 import { ApiQueryIndex } from '../../types/Api/query/ApiQueryIndex';
@@ -22,7 +22,10 @@ import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryInex
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetQueryIndexes } from './requests/requestGetQueryIndexes';
 
-export async function getQueryIndexes(params: CouchbaseHttpApiConfig) {
+export async function getQueryIndexes(
+  params: CouchbaseHttpApiConfig,
+  options: Partial<Keyspace> = {}
+) {
   const response = await requestGetQueryIndexes(params);
 
   if (response.status !== 200) {
@@ -30,10 +33,19 @@ export async function getQueryIndexes(params: CouchbaseHttpApiConfig) {
   }
 
   const body = (await response.json()) as ApiQueryResponseBody<ApiQueryIndex[]>;
-  return body.results.map(toFriendlyFormat);
+  const friendlyResult = body.results.map(toFriendlyFormat);
+
+  return friendlyResult.filter((index) => {
+    if (options.collection && options.collection !== index.collectionName) return false;
+    if (options.scope && options.scope !== index.scopeName) return false;
+    if (options.bucket && options.bucket !== index.bucketName) return false;
+
+    return true;
+  });
 }
 
-function toFriendlyFormat(index: ApiQueryIndex) {
+function toFriendlyFormat(index: ApiQueryIndex): HttpClientQueryIndex {
+  invariant(index.using === 'gsi');
   const friendly: Partial<HttpClientQueryIndex> = {};
 
   if (hasOwn(index, 'bucket_id')) {
@@ -60,5 +72,5 @@ function toFriendlyFormat(index: ApiQueryIndex) {
   friendly.namespace = index.namespace_id;
   friendly.using = index.using;
 
-  return friendly;
+  return friendly as HttpClientQueryIndex;
 }

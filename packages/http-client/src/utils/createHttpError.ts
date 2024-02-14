@@ -21,10 +21,7 @@ export async function createHttpError(
 ) {
   const err = new Error(
     `HTTP Request failed - ${method} ${response.url}
-    ${response.statusText}: ${await response.text()}`,
-    {
-      cause: response,
-    }
+    ${response.statusText}: ${await response.text()}`
   );
 
   Error.captureStackTrace(err, createHttpError);
