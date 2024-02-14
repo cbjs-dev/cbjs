@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../types';
+import { ApiAnalyticsLink } from '../../types/Api';
+import { createHttpError } from '../../utils/createHttpError';
+import { requestAnalyticsCreateLink } from './requests/requestAnalyticsCreateLink';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './views';
+export async function createAnalyticsLink(
+  apiConfig: CouchbaseHttpApiConfig,
+  link: ApiAnalyticsLink
+) {
+  const response = await requestAnalyticsCreateLink(apiConfig, link);
+
+  if (!response.ok) {
+    throw await createHttpError('POST', response);
+  }
+}

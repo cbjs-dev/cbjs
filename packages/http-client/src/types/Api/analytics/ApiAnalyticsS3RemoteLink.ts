@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './views';
+export type ApiAnalyticsS3RemoteLink = {
+  type: 's3';
+  accessKeyId: string;
+  secretAccessKey: string;
+
+  /**
+   * Use this parameter if you want the link to have temporary access.
+   */
+  sessionToken?: string;
+  region: string;
+  serviceEndpoint?: string;
+} & ApiAnalyticsLinkSharedProperties;

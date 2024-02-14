@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './views';
+export type ApiAnalyticsGoogleStorageRemoteLink = {
+  type: 'gcs';
+  endpoint?: string;
+} & ApiAnalyticsLinkSharedProperties &
+  (
+    | {
+        /**
+         * Use this parameter when the link should use the Google Application Default Credentials for authentication.
+         */
+        applicationDefaultCredentials: 'true';
+        jsonCredentials?: never;
+      }
+    | {
+        /**
+         * The serialized json credentials used by the link.
+         */
+        jsonCredentials?: string;
+        applicationDefaultCredentials?: never;
+      }
+  );

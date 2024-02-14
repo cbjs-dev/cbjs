@@ -15,3 +15,5 @@
  */
 
 export * from './getAnalyticsClusterStatus';
+export * from './getAnalyticsLinks';
+export * from './createAnalyticsLink';

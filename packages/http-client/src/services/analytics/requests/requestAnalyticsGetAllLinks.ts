@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../../types';
+import { apiGET } from '../../../utils/apiGET';
+import { ANALYTICS_PORT } from '../../../utils/ports';
+import { GetAnalyticsLinksOptions } from '../getAnalyticsLinks';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './views';
+export async function requestAnalyticsGetAllLinks(
+  apiConfig: CouchbaseHttpApiConfig,
+  { scope }: GetAnalyticsLinksOptions = {}
+) {
+  const scopePath = scope ? `/${scope}` : '';
+
+  return await apiGET(apiConfig, `/analytics/link${scopePath}`, ANALYTICS_PORT);
+}
