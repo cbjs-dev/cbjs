@@ -13,5 +13,14 @@ export default defineConfig({
       DEBUG: '1',
       LOG_LEVEL: 'info',
     },
+    reporters: ['default', 'html'],
+    outputFile: {
+      html: './tests-report/index.html',
+    },
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: './tests-report/coverage',
+      reporter: ['html'],
+    },
   },
 });

@@ -10,8 +10,7 @@ couchbase-native*.node
 /.vscode
 
 # Dev stuff
-/coverage
-/html
+/tests-report
 *.tar.gz
 .loadEnv.sh
 *.log

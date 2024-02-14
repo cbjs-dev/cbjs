@@ -52,12 +52,12 @@ jobs:
         run: npx tsx tests/scripts/initTestCluster.ts
 
       - name: Run all tests
-        run: npm run test -- --bail 5 --reporter default --reporter html
+        run: npm run test -- --bail 5
 
       - name: Upload Tests Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tests-report-${{ github.sha }}
-          path: html
+          path: tests-report
           overwrite: true
