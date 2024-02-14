@@ -84,6 +84,6 @@ export type ApiBucket = {
   pitrGranularity: number;
   pitrMaxHistoryAge: number;
   conflictResolutionType: ConflictResolutionTypeName;
-  maxTTL: 0;
+  maxTTL: number;
   compressionMode: CompressionModeName;
 };
