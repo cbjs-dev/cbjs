@@ -17,13 +17,23 @@ import { retry } from 'ts-retry-promise';
 
 import { Keyspace } from '@cbjs/shared';
 
-import { getStatistics } from '../services';
+import { getQueryIndexes, getStatistics } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
 type WaitForQueryIndexOptions = WaitForOptions & { awaitMutations?: boolean };
 
+/**
+ * Wait for the query index to be visible by the query service and wait until no mutations are remaining.
+ *
+ * You can opt-out waiting for mutations by passing `{ awaitMutations: false }`.
+ *
+ * @param apiConfig
+ * @param indexName
+ * @param keyspace
+ * @param options
+ */
 export async function waitForQueryIndex(
   apiConfig: CouchbaseHttpApiConfig,
   indexName: string,
@@ -39,6 +49,16 @@ export async function waitForQueryIndex(
   const { expectMissing, awaitMutations } = resolvedOptions;
 
   return await retry(async () => {
+    const indexes = await getQueryIndexes(apiConfig, keyspace);
+    const indexExists = indexes.some((index) => index.name === indexName);
+
+    if (!indexExists && !expectMissing) throw new Error('Query index is not visible yet');
+    if (indexExists && expectMissing) throw new Error('Query index still exists');
+
+    if (!awaitMutations) {
+      return;
+    }
+
     const stats = await getStatistics(apiConfig, [
       {
         metric: [
@@ -54,17 +74,9 @@ export async function waitForQueryIndex(
       },
     ]);
 
-    // Index not found
     if (stats[0].data.length === 0) {
-      if (expectMissing) return;
-      throw new Error('Query index is not visible yet');
-    }
-
-    if (expectMissing) {
-      throw new Error('Query index still exists');
-    }
-
-    if (!awaitMutations) {
+      // The statistics service may experience delay if no document has been indexed yet.
+      // This means no mutations are remaining.
       return;
     }
 
