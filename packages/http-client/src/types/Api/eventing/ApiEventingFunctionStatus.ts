@@ -15,7 +15,7 @@
  */
 import { EventingFunctionStatusName } from '@cbjs/shared';
 
-type FunctionStatusDescription = {
+export type ApiFunctionStatusDescription = {
   composite_status: EventingFunctionStatusName;
   name: string;
   function_scope: {
@@ -30,6 +30,6 @@ type FunctionStatusDescription = {
 };
 
 export type ApiEventingFunctionStatus = {
-  apps: FunctionStatusDescription[];
+  apps: ApiFunctionStatusDescription[];
   num_eventing_nodes: number;
 };

@@ -13,10 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  EventingFunctionDcpBoundaryName,
-  EventingFunctionLogLevelName,
-} from '@cbjs/shared';
+import { EventingFunctionUrlAuthData } from '@cbjs/shared';
+
+import { ApiEventingFunctionSettings } from './ApiEventingFunctionSettings';
+
+export type ApiEventingFunctionConstantBinding = {
+  value: string;
+  literal: string;
+};
+
+export type ApiEventingFunctionBucketBinding = {
+  bucket_name: string;
+  scope_name: string;
+  collection_name: string;
+  alias: string;
+  access: 'r' | 'rw';
+};
+
+export type ApiEventingFunctionCurlBinding = {
+  hostname: string;
+  value: string;
+  allow_cookies: boolean;
+  validate_ssl_certificate: boolean;
+} & EventingFunctionUrlAuthData;
 
 export type ApiEventingFunction = {
   appcode: string;
@@ -27,29 +46,16 @@ export type ApiEventingFunction = {
     metadata_bucket: string;
     metadata_scope: string;
     metadata_collection: string;
+    constants: ReadonlyArray<ApiEventingFunctionConstantBinding>;
+    buckets: ReadonlyArray<ApiEventingFunctionBucketBinding>;
+    curl: ReadonlyArray<ApiEventingFunctionCurlBinding>;
   };
   version: string;
   enforce_schema: boolean;
   handleruuid: number;
   function_instance_id: string;
   appname: string;
-  settings: {
-    dcp_stream_boundary: EventingFunctionDcpBoundaryName;
-    deployment_status: boolean;
-    description: string;
-    execution_timeout: number;
-
-    /**
-     * Couchbase Server version, i.e: "7.2.0".
-     */
-    language_compatibility: string;
-    log_level: EventingFunctionLogLevelName;
-    n1ql_consistency: 'none' | 'request';
-    processing_status: boolean;
-    timer_context_size: number;
-    user_prefix: 'eventing' | (string & NonNullable<unknown>);
-    worker_count: number;
-  };
+  settings: ApiEventingFunctionSettings;
   function_scope: {
     bucket: string;
     scope: string;
