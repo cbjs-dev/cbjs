@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-export * from './ApiSearchGetAllIndexes';
-export * from './ApiSearchGetIndex';
-export * from './ApiSearchIndexAnalyzeDocument';
-export * from './ApiSearchIndexCountDocuments';
-export * from './ApiSearchQuery';
-export * from './types';
+export type ApiSearchIndexCountDocuments =
+  | {
+      status: 'fail';
+      error: string;
+      request: string;
+    }
+  | {
+      status: 'ok';
+      count: number;
+    };

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-export type ApiSearchIndexAnalyzeDoc =
+export type ApiSearchIndexAnalyzeDocument =
   | {
       status: 'fail';
       error: string;
       request: string;
     }
-  | {
-      status: 'ok';
-      analyzed: unknown[];
-    };
+  | ApiSearchIndexSuccessfulAnalysis;
+
+export type ApiSearchIndexSuccessfulAnalysis = {
+  status: 'ok';
+  analyzed: Record<string, unknown>[];
+};
