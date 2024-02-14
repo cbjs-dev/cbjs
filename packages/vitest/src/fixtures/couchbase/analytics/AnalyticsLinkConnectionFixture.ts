@@ -13,48 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IAnalyticsLink } from '@cbjs/cbjs';
-import { ApiAnalyticsLink } from '@cbjs/http-client';
-import { OptionalProps } from '@cbjs/shared';
-
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
-import { getRandomId } from '../../../utils/getRandomId';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';
 import { FixtureContext } from '../../types';
 
-export type AnalyticsLinkFixtureParams = OptionalProps<
-  ApiAnalyticsLink,
-  'name' | 'scope'
->;
+export type AnalyticsLinkConnectionFixtureParams = {
+  dataverseName: string;
+  linkName?: string;
+};
 
-export class AnalyticsLinkFixture extends FixtureFunctionValue<
-  [AnalyticsLinkFixtureParams],
-  Promise<ApiAnalyticsLink>,
+export class AnalyticsLinkConnectionFixture extends FixtureFunctionValue<
+  [AnalyticsLinkConnectionFixtureParams?],
+  Promise<string>,
   CouchbaseTestContext
 > {
-  public readonly fixtureName = 'AnalyticsLinkFixture';
-  private link?: ApiAnalyticsLink;
+  public readonly fixtureName = 'AnalyticsLinkConnectionFixture';
+  private dataverseName?: string;
+  private linkName?: string;
 
   async use(
     { serverTestContext, logger }: FixtureContext<CouchbaseTestContext>,
-    params: AnalyticsLinkFixtureParams
-  ): Promise<ApiAnalyticsLink> {
-    this.link = {
-      name: getRandomId(),
-      scope: 'Default',
-      ...params,
-    };
+    params: AnalyticsLinkConnectionFixtureParams
+  ): Promise<string> {
+    this.dataverseName = params.dataverseName;
+    this.linkName = params.linkName ?? `${params.dataverseName}.Local`;
 
-    logger?.debug(`AnalyticsLinkFixture: ${this.link.name} in ${this.link.scope}`);
+    logger?.debug(
+      `AnalyticsLinkConnectionFixture: ${this.linkName} in ${this.dataverseName}`
+    );
 
-    await serverTestContext.c.analyticsIndexes().createLink(this.link);
+    await serverTestContext.c.analyticsIndexes().connectLink(this.linkName);
 
-    return this.link;
+    return this.linkName;
   }
 
   override async cleanup({ serverTestContext }: FixtureContext<CouchbaseTestContext>) {
-    if (!this.link) return;
-    const linkName = `${this.link.name}.Local`;
-    await serverTestContext.c.analyticsIndexes().dropLink(linkName, this.link.scope);
+    if (!this.dataverseName || !this.linkName) return;
+
+    await serverTestContext.c.analyticsIndexes().disconnectLink(this.linkName);
   }
 }

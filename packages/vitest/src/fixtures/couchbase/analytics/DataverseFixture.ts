@@ -33,7 +33,7 @@ export class DataverseFixture extends FixtureFunctionValue<
     { serverTestContext, logger }: FixtureContext<CouchbaseTestContext>,
     params?: DataverseFixtureParams
   ) {
-    this.dataverseName = params?.dataverseName ?? serverTestContext.newUid();
+    this.dataverseName = params?.dataverseName ?? `test${serverTestContext.newUid()}`;
 
     logger?.debug(`DataverseFixture: ${this.dataverseName}`);
 

@@ -21,6 +21,7 @@ import { getApiConfig, type PromiseValue } from '@cbjs/shared';
 import { getDefaultServerTestContext } from '../context';
 import {
   AnalyticsIndexFixture,
+  AnalyticsLinkConnectionFixture,
   AnalyticsLinkFixture,
   DatasetFixture,
   DataverseFixture,
@@ -48,6 +49,7 @@ const couchbaseTestFixtures = {
   useDataverse: DataverseFixture,
   useDataset: DatasetFixture,
   useAnalyticsIndex: AnalyticsIndexFixture,
+  useAnalyticsLinkConnection: AnalyticsLinkConnectionFixture,
   useAnalyticsLink: AnalyticsLinkFixture,
   useLogger: LoggerFixture,
   useUser: UserFixture,

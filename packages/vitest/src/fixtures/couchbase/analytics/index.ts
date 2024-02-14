@@ -18,3 +18,4 @@ export * from './DataverseFixture';
 export * from './DatasetFixture';
 export * from './AnalyticsIndexFixture';
 export * from './AnalyticsLinkFixture';
+export * from './AnalyticsLinkConnectionFixture';
