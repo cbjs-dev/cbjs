@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '@cbjs/shared';
+import { Pretty } from '../utils';
 
-import { ApiPoolNodes } from './types/Api';
+type MergeableObject = Record<string, unknown>;
 
-export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
-  poolNodes?: ApiPoolNodes;
-
-  /**
-   * Client timeout in milliseconds.
-   */
-  timeout?: number;
-};
-
-export type URLSearchParamsConstructor = ConstructorParameters<typeof URLSearchParams>;
+// prettier-ignore
+export type OptionalMerge<
+  T extends MergeableObject,
+  M extends MergeableObject | ReadonlyArray<MergeableObject>,
+> =
+  M extends MergeableObject ?
+    OptionalMerge<T, [M]> :
+  Pretty<
+    M extends [infer Head, ...infer Rest extends ReadonlyArray<MergeableObject>] ?
+      OptionalMerge<T & (Head | NonNullable<unknown>), Rest> :
+    T
+  >
+;

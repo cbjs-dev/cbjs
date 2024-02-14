@@ -22,7 +22,7 @@ export type IsUnion<T> = [T] extends [UnionToIntersection<T>] ? false : true;
 export type Pretty<T> = {
   [Key in keyof T]: T[Key];
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-} & unknown;
+} & NonNullable<unknown>;
 
 /**
  * Node.js primitive types.
@@ -86,7 +86,7 @@ export type IsExactly<X, Y> =
  * UnionToIntersection<{ foo: string } | { bar: string }> =
  *  { foo: string } & { bar: string }.
  */
-type UnionToIntersection<U> = (U extends unknown ? (arg: U) => 0 : never) extends (
+export type UnionToIntersection<U> = (U extends unknown ? (arg: U) => 0 : never) extends (
   arg: infer I
 ) => 0
   ? I
@@ -164,8 +164,8 @@ export type Class<Instance> = new (...args: never[]) => Instance;
 
 export type InstanceOf<T> = T extends Class<infer Instance> ? Instance : never;
 
-export type OptionalProps<T extends object, K extends keyof T> = Pretty<
-  Omit<T, K> & Partial<Pick<T, K>>
+export type OptionalProps<T extends NonNullable<unknown>, K extends keyof T> = Pretty<
+  T extends unknown ? Omit<T, K> & Partial<Pick<T, K>> : never
 >;
 
 export type RequiredProps<T, K extends keyof T> = Pretty<

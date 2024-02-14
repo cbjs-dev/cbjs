@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-export * from './mapEntry';
+export * from './MapEntry';
+export * from './OptionalMerge';
+export * from './RelaxedUnion';
+export * from './UnionKeys';
+export * from './OneOf';

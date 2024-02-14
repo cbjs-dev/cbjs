@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { OneOf } from '@cbjs/shared';
 
 type DiscriminatingPrimaryIndexProps =
   | {
@@ -30,17 +31,17 @@ type DiscriminatingPrimaryIndexProps =
       index_key: [string, ...string[]];
     };
 
-type DiscriminatingKeyspaceProps =
-  // Cluster level index
-  | {
+type DiscriminatingKeyspaceProps = OneOf<
+  [
+    // Cluster level index
+    {
       /**
        * Bucket name.
        */
       keyspace_id: string;
-    }
-
-  // Collection level index
-  | {
+    },
+    // Collection level index
+    {
       /**
        * Bucket name
        */
@@ -55,16 +56,25 @@ type DiscriminatingKeyspaceProps =
        * Collection name.
        */
       keyspace_id: string;
-    };
+    },
+  ]
+>;
+
+type GsiProps = {
+  using: 'gsi';
+  metadata: {
+    num_replica: number;
+  };
+};
+
+type FtsProps = {
+  using: 'fts';
+};
 
 export type ApiQueryIndex = DiscriminatingPrimaryIndexProps &
   DiscriminatingKeyspaceProps & {
     datastore_id: string;
     id: string;
-
-    metadata: {
-      num_replica: number;
-    };
 
     /**
      * Index name.
@@ -72,5 +82,4 @@ export type ApiQueryIndex = DiscriminatingPrimaryIndexProps &
     name: '#primary' | (string & NonNullable<unknown>);
     namespace_id: 'default';
     state: 'online' | 'deferred' | (string & NonNullable<unknown>);
-    using: 'gsi' | (string & NonNullable<unknown>);
-  };
+  } & OneOf<[GsiProps, FtsProps]>;

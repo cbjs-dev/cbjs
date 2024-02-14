@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '@cbjs/shared';
+import { Pretty } from '../utils';
 
-import { ApiPoolNodes } from './types/Api';
+// Credits https://github.com/Microsoft/TypeScript/issues/14094#issuecomment-373782604
 
-export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
-  poolNodes?: ApiPoolNodes;
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+type XOR<T, U> =
+  T | U extends NonNullable<unknown> ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-  /**
-   * Client timeout in milliseconds.
-   */
-  timeout?: number;
-};
-
-export type URLSearchParamsConstructor = ConstructorParameters<typeof URLSearchParams>;
+// prettier-ignore
+export type OneOf<T extends ReadonlyArray<unknown>> = Pretty<
+  T extends readonly [infer Head] ?
+    Head :
+  T extends readonly [infer A, infer B, ...infer Rest extends unknown[]] ?
+    OneOf<[XOR<A, B>, ...Rest]>:
+  never
+>;

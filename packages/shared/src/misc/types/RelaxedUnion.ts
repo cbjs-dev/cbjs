@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '@cbjs/shared';
+import { Pretty, UnionToTuple } from '../utils';
 
-import { ApiPoolNodes } from './types/Api';
+type SoftIntersection<T, V> = Pretty<
+  {
+    [Key in keyof T & keyof V]: T[Key] | V[Key];
+  } & {
+    [Key in Exclude<keyof T, keyof V>]?: T[Key];
+  } & {
+    [Key in Exclude<keyof V, keyof T>]?: V[Key];
+  }
+>;
 
-export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
-  poolNodes?: ApiPoolNodes;
-
-  /**
-   * Client timeout in milliseconds.
-   */
-  timeout?: number;
-};
-
-export type URLSearchParamsConstructor = ConstructorParameters<typeof URLSearchParams>;
+// prettier-ignore
+export type RelaxedUnion<T> =
+  UnionToTuple<T> extends infer UT extends ReadonlyArray<unknown> ?
+    UT extends readonly [infer Head, ...infer Rest extends [unknown, ...unknown[]]] ?
+       SoftIntersection<Head, RelaxedUnion<Rest[number]>> :
+    UT[number] :
+  NonNullable<unknown>
+;

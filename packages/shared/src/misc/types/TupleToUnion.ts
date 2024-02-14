@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '@cbjs/shared';
 
-import { ApiPoolNodes } from './types/Api';
-
-export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
-  poolNodes?: ApiPoolNodes;
-
-  /**
-   * Client timeout in milliseconds.
-   */
-  timeout?: number;
-};
-
-export type URLSearchParamsConstructor = ConstructorParameters<typeof URLSearchParams>;
+export type TupleToUnion<T extends ReadonlyArray<unknown>> = {
+  [K in keyof T]: T[K];
+}[number];
