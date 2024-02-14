@@ -16,9 +16,8 @@ outline: deep
 ## Compatible with the official client
 
 Cbjs is fully compatible with the official client.
-However, you should be aware that Cbjs fixes a lot of issues, therefore it is likely that you face some issue.
-Most of them are TypeScript issues, so you will be able to catch them immediately.
-We have very few (1) runtime issue fix. In order bad surprises, we track them in [this list](runtime-fixes)
+The main goal of Cbjs is to bring TypeScript support.
+We have a single runtime change. See [runtime changes](runtime-changes).
 
 ## KV Supercharged Types
 
