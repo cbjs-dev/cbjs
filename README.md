@@ -22,8 +22,7 @@ Uninstall `couchnode` and install `cbjs`. Enjoy !
 - Function overloads
 - Discriminated unions for callbacks and options
 - Support for all lambdas
-- Bundled for both ESM and CommonJS
 
 ## License
 
-Apache 2.0
+All the packages are released under the Apache 2.0 license.
