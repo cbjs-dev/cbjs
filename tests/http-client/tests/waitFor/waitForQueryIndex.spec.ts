@@ -45,6 +45,10 @@ describe('waitForQueryIndex', async () => {
     'wait for the index to be created',
     async ({ expect, serverTestContext, apiConfig }) => {
       const indexName = getRandomId();
+
+      // Wait for bucket to be visible by the query service
+      await sleep(200);
+
       await serverTestContext.collection.queryIndexes().createIndex(indexName, ['name']);
 
       await expect(
@@ -56,10 +60,43 @@ describe('waitForQueryIndex', async () => {
             scope: serverTestContext.scope.name,
             collection: serverTestContext.collection.name,
           },
-          { awaitMutations: false }
+          { awaitMutations: false, timeout: 14_000 }
         )
       ).resolves.toBeUndefined();
     },
-    { timeout: 10_000 }
+    { timeout: 15_000 }
+  );
+
+  test(
+    'wait for the index to have no mutations pending',
+    async ({ expect, serverTestContext, apiConfig }) => {
+      const indexName = getRandomId();
+
+      await Promise.all(
+        Array(100)
+          .fill(null)
+          .map((_, i) =>
+            serverTestContext.collection.insert(`indexMe_${i}`, {
+              name: 'test',
+            })
+          )
+      );
+
+      await serverTestContext.collection.queryIndexes().createIndex(indexName, ['name']);
+
+      await expect(
+        waitForQueryIndex(
+          apiConfig,
+          indexName,
+          {
+            bucket: serverTestContext.bucket.name,
+            scope: serverTestContext.scope.name,
+            collection: serverTestContext.collection.name,
+          },
+          { timeout: 14_000 }
+        )
+      ).resolves.toBeUndefined();
+    },
+    { timeout: 15_000 }
   );
 });

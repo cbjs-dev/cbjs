@@ -208,13 +208,82 @@ describe
     );
 
     test(
+      'should successfully create & drop a link',
+      async function ({ useDataverse, useAnalyticsLink }) {
+        const dataverseName = await useDataverse();
+
+        await useAnalyticsLink({
+          type: 's3',
+          name: 'testLink',
+          scope: dataverseName,
+          accessKeyId: 'testAccessKeyId',
+          region: 'eu-west-3',
+          secretAccessKey: 'testSecretAccessKey',
+        });
+      },
+      { timeout: 10_000 }
+    );
+
+    test(
+      'should successfully replace a link',
+      async function ({ expect, useDataverse, useAnalyticsLink, serverTestContext }) {
+        const dataverseName = await useDataverse();
+
+        await useAnalyticsLink({
+          type: 's3',
+          name: 'testLink',
+          scope: dataverseName,
+          accessKeyId: 'testAccessKeyId',
+          region: 'eu-west-3',
+          secretAccessKey: 'testSecretAccessKey',
+        });
+
+        await expect(
+          serverTestContext.cluster.analyticsIndexes().replaceLink({
+            name: 'testLink',
+            scope: dataverseName,
+            accessKeyId: 'testAccessKeyId',
+            region: 'eu-west-1',
+            secretAccessKey: 'testSecretAccessKey',
+          })
+        ).resolves.toBeUndefined();
+      },
+      { timeout: 10_000 }
+    );
+
+    test(
       'should successfully connect & disconnect a link',
-      async function ({ useDataverse, useAnalyticsLink, serverTestContext }) {
+      async function ({ useDataverse, useAnalyticsLinkConnection, serverTestContext }) {
         // The link name must start with a letter, therefore the dv must also start with a letter
         const dv = await useDataverse({
           dataverseName: `test${serverTestContext.newUid()}`,
         });
-        await useAnalyticsLink({ dataverseName: dv });
+        await useAnalyticsLinkConnection({ dataverseName: dv });
+      },
+      { timeout: 10_000 }
+    );
+
+    test(
+      'should successfully list all links',
+      async function ({ expect, useDataverse, useAnalyticsLink, serverTestContext }) {
+        const dv = await useDataverse();
+        await useAnalyticsLink({
+          type: 's3',
+          name: 'testLink',
+          scope: dv,
+          accessKeyId: 'testAccessKeyId',
+          region: 'eu-west-3',
+          secretAccessKey: 'testSecretAccessKey',
+        });
+
+        await waitFor(
+          async () => {
+            const res = await serverTestContext.cluster.analyticsIndexes().getAllLinks();
+
+            expect(res).toHaveLength(1);
+          },
+          { timeout: 10_000 }
+        );
       },
       { timeout: 10_000 }
     );

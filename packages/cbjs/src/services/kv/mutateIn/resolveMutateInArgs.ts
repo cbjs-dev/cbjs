@@ -38,7 +38,7 @@ export function resolveMutateInArgs<
 >(args: MutateInArgs<Doc, SpecDefinitions>): ResolvedArgs<SpecDefinitions> {
   if (!isArray(args[0])) {
     return {
-      options: args[0] ?? {},
+      options: (args[0] as MutateInOptions) ?? {},
       specs: undefined,
       callback: undefined,
     } satisfies ResolvedArgs<SpecDefinitions>;

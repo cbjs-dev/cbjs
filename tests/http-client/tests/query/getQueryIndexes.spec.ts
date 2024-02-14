@@ -31,7 +31,9 @@ describe(
     }) => {
       const name = await usePrimaryIndex({ bucketName: serverTestContext.bucket.name });
 
-      await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
+      await expect(
+        getQueryIndexes(apiConfig, { bucket: serverTestContext.bucket.name })
+      ).resolves.toEqual(
         expect.arrayContaining([
           {
             id: expect.any(String),
@@ -60,7 +62,9 @@ describe(
         fields: ['name'],
       });
 
-      await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
+      await expect(
+        getQueryIndexes(apiConfig, { bucket: serverTestContext.bucket.name })
+      ).resolves.toEqual(
         expect.arrayContaining([
           {
             id: expect.any(String),
@@ -90,7 +94,13 @@ describe(
         collectionName: serverTestContext.collection.name,
       });
 
-      await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
+      await expect(
+        getQueryIndexes(apiConfig, {
+          bucket: serverTestContext.bucket.name,
+          scope: serverTestContext.scope.name,
+          collection: serverTestContext.collection.name,
+        })
+      ).resolves.toEqual(
         expect.arrayContaining([
           {
             id: expect.any(String),
@@ -115,22 +125,78 @@ describe(
       useIndex,
       serverTestContext,
       apiConfig,
+      useCollection,
     }) => {
-      const name = await useIndex({
+      const collectionName = await useCollection();
+
+      const indexName1 = await useIndex({
         bucketName: serverTestContext.bucket.name,
         scopeName: serverTestContext.scope.name,
         collectionName: serverTestContext.collection.name,
         fields: ['name'],
       });
 
-      await expect(getQueryIndexes(apiConfig)).resolves.toEqual(
+      const indexName2 = await useIndex({
+        bucketName: serverTestContext.bucket.name,
+        scopeName: serverTestContext.scope.name,
+        collectionName,
+        fields: ['name'],
+      });
+
+      // Get the indexes on a single collection
+      await expect(
+        getQueryIndexes(apiConfig, {
+          bucket: serverTestContext.bucket.name,
+          scope: serverTestContext.scope.name,
+          collection: serverTestContext.collection.name,
+        })
+      ).resolves.toEqual(
         expect.arrayContaining([
           {
             id: expect.any(String),
-            name,
+            name: indexName1,
             bucketName: serverTestContext.bucket.name,
             scopeName: serverTestContext.scope.name,
             collectionName: serverTestContext.collection.name,
+            isPrimary: false,
+            fields: ['name'],
+            node: 'http://127.0.0.1:8091',
+            numReplicas: 0,
+            namespace: 'default',
+            state: 'online',
+            using: 'gsi',
+          },
+        ])
+      );
+
+      // Get the indexes on all the collections of a scope
+      await expect(
+        getQueryIndexes(apiConfig, {
+          bucket: serverTestContext.bucket.name,
+          scope: serverTestContext.scope.name,
+        })
+      ).resolves.toEqual(
+        expect.arrayContaining([
+          {
+            id: expect.any(String),
+            name: indexName1,
+            bucketName: serverTestContext.bucket.name,
+            scopeName: serverTestContext.scope.name,
+            collectionName: serverTestContext.collection.name,
+            isPrimary: false,
+            fields: ['name'],
+            node: 'http://127.0.0.1:8091',
+            numReplicas: 0,
+            namespace: 'default',
+            state: 'online',
+            using: 'gsi',
+          },
+          {
+            id: expect.any(String),
+            name: indexName2,
+            bucketName: serverTestContext.bucket.name,
+            scopeName: serverTestContext.scope.name,
+            collectionName,
             isPrimary: false,
             fields: ['name'],
             node: 'http://127.0.0.1:8091',

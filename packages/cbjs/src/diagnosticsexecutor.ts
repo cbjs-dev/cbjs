@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/* eslint jsdoc/require-jsdoc: off */
 import {
   endpointStateFromCpp,
   errorFromCpp,
@@ -57,7 +55,7 @@ export class DiagnoticsExecutor {
         },
         (cppErr, resp) => {
           const err = errorFromCpp(cppErr);
-          if (err || !resp) {
+          if (err !== null || !resp) {
             reject(err);
             return;
           }
@@ -122,7 +120,7 @@ export class PingExecutor {
         },
         (cppErr, resp) => {
           const err = errorFromCpp(cppErr);
-          if (err || !resp) {
+          if (err !== null || !resp) {
             reject(err);
             return;
           }

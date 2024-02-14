@@ -16,10 +16,16 @@
  */
 import { promisify } from 'node:util';
 
-import { ApiSearchGetIndex, ApiSearchIndexDefinition } from '@cbjs/http-client';
+import {
+  ApiSearchGetIndex,
+  ApiSearchIndexAnalyzeDocument,
+  ApiSearchIndexCountDocuments,
+  ApiSearchIndexDefinition,
+  ApiSearchIndexSuccessfulAnalysis,
+} from '@cbjs/http-client';
 import { ApiSearchGetAllIndexes } from '@cbjs/http-client/dist/src/types/Api/search/ApiSearchGetAllIndexes';
 
-import { CppError } from './binding';
+import { CppError, CppManagementSearchIndex } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
 import {
@@ -46,15 +52,108 @@ export type ISearchIndex = ApiSearchIndexDefinition;
  */
 export class SearchIndex {
   /**
+   * The UUID of the search index.  Used for updates to ensure consistency.
+   */
+  uuid?: string;
+
+  /**
    * The name of the search index.
    */
   name: string;
 
   /**
+   * Name of the source of the data (ie: the bucket name).
+   */
+  sourceName: string;
+
+  /**
+   * The type of index to use (fulltext-index or fulltext-alias).
+   */
+  type: string;
+
+  /**
+   * Parameters to specify such as the store type and mappins.
+   */
+  params: { [key: string]: any };
+
+  /**
+   * The UUID of the data source.
+   */
+  sourceUuid: string;
+
+  /**
+   * Extra parameters for the source.  These are usually things like advanced
+   * connection options and tuning parameters.
+   */
+  sourceParams: { [key: string]: any };
+
+  /**
+   * The type of the source (couchbase or nil).
+   */
+  sourceType: string;
+
+  /**
+   * Plan properties such as the number of replicas and number of partitions.
+   */
+  planParams: { [key: string]: any };
+
+  /**
    * @internal
    */
   constructor(data: SearchIndex) {
+    this.uuid = data.uuid;
     this.name = data.name;
+    this.sourceName = data.sourceName;
+    this.type = data.type;
+    this.params = data.params;
+    this.sourceUuid = data.sourceUuid;
+    this.sourceParams = data.sourceParams;
+    this.sourceType = data.sourceType;
+    this.planParams = data.planParams;
+  }
+
+  /**
+   * @internal
+   */
+  static _toCppData(data: ISearchIndex): any {
+    return {
+      uuid: data.uuid,
+      name: data.name,
+      type: data.type,
+      params_json: JSON.stringify(data.params),
+      source_uuid: data.sourceUUID,
+      source_name: data.sourceName,
+      source_type: data.sourceType,
+      source_params_json: JSON.stringify(data.sourceParams),
+      plan_params_json: JSON.stringify(data.planParams),
+    };
+  }
+
+  /**
+   * @internal
+   */
+  static _fromCppData(data: CppManagementSearchIndex): SearchIndex {
+    const idx = new SearchIndex({
+      uuid: data.uuid,
+      name: data.name,
+      type: data.type,
+      params: {},
+      sourceUuid: data.source_uuid,
+      sourceName: data.source_name,
+      sourceType: data.source_type,
+      sourceParams: {},
+      planParams: {},
+    });
+    if (data.params_json) {
+      idx.params = JSON.parse(data.params_json);
+    }
+    if (data.source_params_json) {
+      idx.sourceParams = JSON.parse(data.source_params_json);
+    }
+    if (data.plan_params_json) {
+      idx.planParams = JSON.parse(data.plan_params_json);
+    }
+    return idx;
   }
 }
 
@@ -229,20 +328,21 @@ export class SearchIndexManager {
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Get,
-        path: `/api/index/${indexName}`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new IndexNotFoundError();
-      }
-
-      const indexData = JSON.parse(res.body.toString()) as ApiSearchGetIndex;
-      return indexData.indexDef;
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexGet(
+        {
+          index_name: indexName,
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const index = SearchIndex._fromCppData(resp.index);
+          wrapCallback(null, index);
+        }
+      );
     }, callback);
   }
 
@@ -271,22 +371,22 @@ export class SearchIndexManager {
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Get,
-        path: `/api/index`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to fetch search indices');
-      }
-
-      const idxsData = JSON.parse(res.body.toString()) as ApiSearchGetAllIndexes;
-      console.log(idxsData);
-
-      return Object.values(idxsData.indexDefs);
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexGetAll(
+        {
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const indexes = resp.indexes.map((indexData: any) =>
+            SearchIndex._fromCppData(indexData)
+          );
+          wrapCallback(null, indexes);
+        }
+      );
     }, callback);
   }
 
@@ -333,10 +433,13 @@ export class SearchIndexManager {
       });
 
       if (res.statusCode === 400) {
-        const body = JSON.parse(res.body.toString());
-        const reason = body.error;
+        const body = JSON.parse(res.body.toString()) as {
+          status: 'ok' | 'fail';
+          error?: string;
+        };
+
         throw new SearchIndexManagementError(
-          `failed to create index: ${reason}`,
+          `failed to create index: ${body.error}`,
           undefined,
           HttpExecutor.errorContextFromResponse(res)
         );
@@ -430,19 +533,20 @@ export class SearchIndexManager {
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Get,
-        path: `/api/index/${indexName}/count`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to get search indexed documents count');
-      }
-
-      return JSON.parse(res.body.toString()).count;
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexGetDocumentsCount(
+        {
+          index_name: indexName,
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          wrapCallback(null, resp.count);
+        }
+      );
     }, callback);
   }
 
@@ -668,19 +772,21 @@ export class SearchIndexManager {
     indexName: string,
     document: any,
     options: AnalyzeSearchDocumentOptions,
-    callback?: VoidNodeCallback
-  ): Promise<void>;
+    callback?: NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>
+  ): Promise<ApiSearchIndexSuccessfulAnalysis['analyzed']>;
   async analyzeDocument(
     indexName: string,
     document: any,
-    callback?: VoidNodeCallback
-  ): Promise<void>;
+    callback?: NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>
+  ): Promise<ApiSearchIndexSuccessfulAnalysis['analyzed']>;
   async analyzeDocument(
     indexName: string,
     document: any,
-    options?: AnalyzeSearchDocumentOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
-  ): Promise<void> {
+    options?:
+      | AnalyzeSearchDocumentOptions
+      | NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>,
+    callback?: NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>
+  ): Promise<ApiSearchIndexSuccessfulAnalysis['analyzed']> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
@@ -696,21 +802,26 @@ export class SearchIndexManager {
     ).bind(this._cluster.conn);
 
     try {
-      const result = (await analyze({
+      const response = await analyze({
         index_name: indexName,
         encoded_document: JSON.stringify(document),
         timeout: timeout,
-      })) as any; // TODO create type
+      });
+
+      const analysisResult = JSON.parse(
+        response.analysis
+      ) as ApiSearchIndexSuccessfulAnalysis['analyzed'];
+
       if (callback) {
-        callback(null, result);
+        callback(null, analysisResult);
       }
 
-      return result;
+      return analysisResult;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 
       if (callback) {
-        callback(err);
+        callback(err, null);
       }
 
       throw err;

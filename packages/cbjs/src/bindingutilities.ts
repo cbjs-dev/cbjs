@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DurabilityLevelName, invariant } from '@cbjs/shared';
+import { DurabilityLevelName, hasOwn, invariant } from '@cbjs/shared';
 
 import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes';
 import binding, {
@@ -87,6 +87,7 @@ import {
   DocumentLockedError,
   DocumentNotFoundError,
   DocumentNotJsonError,
+  DocumentNotLockedError,
   DocumentUnretrievableError,
   DurabilityAmbiguousError,
   DurabilityImpossibleError,
@@ -661,10 +662,8 @@ export function errorFromCpp(cppError: unknown): Error | null {
 
   if (isCppTxnError(cppError)) {
     const args = [
-      txnExternalExceptionStringFromCpp(cppError.cause as CppTxnExternalException),
-      new Error(
-        txnExternalExceptionStringFromCpp(cppError.cause as CppTxnExternalException)
-      ),
+      txnExternalExceptionStringFromCpp(cppError.cause),
+      new Error(txnExternalExceptionStringFromCpp(cppError.cause)),
     ] as const;
 
     switch (cppError.ctxtype) {
@@ -672,7 +671,7 @@ export function errorFromCpp(cppError: unknown): Error | null {
         return new TransactionOperationFailedError(...args);
       case 'transaction_op_exception':
         return txnOpExceptionFromCpp(
-          cppError as CppTxnOpException,
+          cppError,
           cppError.ctx?.cause ? contextFromCpp(cppError.ctx?.cause) : undefined
         );
       case 'transaction_exception': {
@@ -726,7 +725,7 @@ export function errorFromCpp(cppError: unknown): Error | null {
     case binding.errc_common.ambiguous_timeout:
       return new AmbiguousTimeoutError(cppError, context);
     case binding.errc_key_value.document_not_locked:
-      return new DocumentNotLockedError(baseErr, context);
+      return new DocumentNotLockedError(cppError, context);
     case binding.errc_common.feature_not_available:
       return new FeatureNotAvailableError(cppError, context);
     case binding.errc_common.scope_not_found:
@@ -905,16 +904,20 @@ export function scanTypeToCpp(
 export function bucketTypeToCpp(
   type: BucketType | string | undefined
 ): CppManagementClusterBucketType {
+  const { couchbase, memcached, ephemeral } = binding.management_cluster_bucket_type;
+
   if (type === null || type === undefined) {
-    return binding.management_cluster_bucket_type.couchbase;
+    return couchbase;
   }
 
-  if (type === BucketType.Couchbase) {
-    return binding.management_cluster_bucket_type.couchbase;
-  } else if (type === BucketType.Ephemeral) {
-    return binding.management_cluster_bucket_type.ephemeral;
-  } else if (type === BucketType.Memcached) {
-    return binding.management_cluster_bucket_type.memcached;
+  const cppMap = new Map<string, CppManagementClusterBucketType>([
+    [BucketType.Couchbase, couchbase],
+    [BucketType.Ephemeral, ephemeral],
+    [BucketType.Memcached, memcached],
+  ]);
+
+  if (cppMap.has(type)) {
+    return cppMap.get(type)!;
   }
 
   throw new InvalidArgumentError();
@@ -945,16 +948,20 @@ export function bucketTypeFromCpp(
 export function bucketCompressionModeToCpp(
   mode: CompressionMode | string | undefined
 ): CppManagementClusterBucketCompression {
+  const { unknown, off, passive, active } = binding.management_cluster_bucket_compression;
+
   if (mode === null || mode === undefined) {
-    return binding.management_cluster_bucket_compression.unknown;
+    return unknown;
   }
 
-  if (mode === CompressionMode.Active) {
-    return binding.management_cluster_bucket_compression.active;
-  } else if (mode === CompressionMode.Passive) {
-    return binding.management_cluster_bucket_compression.passive;
-  } else if (mode === CompressionMode.Off) {
-    return binding.management_cluster_bucket_compression.off;
+  const cppMap = new Map<string, CppManagementClusterBucketCompression>([
+    [CompressionMode.Off, off],
+    [CompressionMode.Active, active],
+    [CompressionMode.Passive, passive],
+  ]);
+
+  if (cppMap.has(mode)) {
+    return cppMap.get(mode)!;
   }
 
   throw new InvalidArgumentError();
@@ -985,18 +992,22 @@ export function bucketCompressionModeFromCpp(
 export function bucketEvictionPolicyToCpp(
   policy: EvictionPolicy | string | undefined
 ): CppManagementClusterBucketEvictionPolicy {
+  const { unknown, full, no_eviction, not_recently_used, value_only } =
+    binding.management_cluster_bucket_eviction_policy;
+
   if (policy === null || policy === undefined) {
-    return binding.management_cluster_bucket_eviction_policy.unknown;
+    return unknown;
   }
 
-  if (policy === EvictionPolicy.FullEviction) {
-    return binding.management_cluster_bucket_eviction_policy.full;
-  } else if (policy === EvictionPolicy.ValueOnly) {
-    return binding.management_cluster_bucket_eviction_policy.value_only;
-  } else if (policy === EvictionPolicy.NotRecentlyUsed) {
-    return binding.management_cluster_bucket_eviction_policy.not_recently_used;
-  } else if (policy === EvictionPolicy.NoEviction) {
-    return binding.management_cluster_bucket_eviction_policy.no_eviction;
+  const cppMap = new Map<string, CppManagementClusterBucketEvictionPolicy>([
+    [EvictionPolicy.FullEviction, full],
+    [EvictionPolicy.ValueOnly, value_only],
+    [EvictionPolicy.NotRecentlyUsed, not_recently_used],
+    [EvictionPolicy.NoEviction, no_eviction],
+  ]);
+
+  if (cppMap.has(policy)) {
+    return cppMap.get(policy)!;
   }
 
   throw new InvalidArgumentError();
@@ -1006,20 +1017,24 @@ export function bucketEvictionPolicyToCpp(
  * @internal
  */
 export function bucketEvictionPolicyFromCpp(
-  policy: CppManagementClusterBucketEvictionPolicy
+  cppPolicy: CppManagementClusterBucketEvictionPolicy
 ): EvictionPolicy | undefined {
-  if (policy === binding.management_cluster_bucket_eviction_policy.full) {
-    return EvictionPolicy.FullEviction;
-  } else if (policy === binding.management_cluster_bucket_eviction_policy.value_only) {
-    return EvictionPolicy.ValueOnly;
-  } else if (
-    policy === binding.management_cluster_bucket_eviction_policy.not_recently_used
-  ) {
-    return EvictionPolicy.NotRecentlyUsed;
-  } else if (policy === binding.management_cluster_bucket_eviction_policy.no_eviction) {
-    return EvictionPolicy.NoEviction;
-  } else if (policy === binding.management_cluster_bucket_eviction_policy.unknown) {
-    return undefined;
+  const { full, value_only, no_eviction, not_recently_used, unknown } =
+    binding.management_cluster_bucket_eviction_policy;
+
+  const cppMap = new Map<
+    CppManagementClusterBucketEvictionPolicy,
+    EvictionPolicy | undefined
+  >([
+    [unknown, undefined],
+    [full, EvictionPolicy.FullEviction],
+    [no_eviction, EvictionPolicy.NoEviction],
+    [not_recently_used, EvictionPolicy.NotRecentlyUsed],
+    [value_only, EvictionPolicy.ValueOnly],
+  ]);
+
+  if (cppMap.has(cppPolicy)) {
+    return cppMap.get(cppPolicy)!;
   }
 
   throw new InvalidArgumentError();
@@ -1031,14 +1046,20 @@ export function bucketEvictionPolicyFromCpp(
 export function bucketStorageBackendToCpp(
   backend: StorageBackend | string | undefined
 ): CppManagementClusterBucketStorageBackend {
+  const { unknown, couchstore, magma } =
+    binding.management_cluster_bucket_storage_backend;
+
   if (backend === null || backend === undefined) {
-    return binding.management_cluster_bucket_storage_backend.unknown;
+    return unknown;
   }
 
-  if (backend === StorageBackend.Couchstore) {
-    return binding.management_cluster_bucket_storage_backend.couchstore;
-  } else if (backend === StorageBackend.Magma) {
-    return binding.management_cluster_bucket_storage_backend.magma;
+  const cppMap = new Map<string, CppManagementClusterBucketStorageBackend>([
+    [StorageBackend.Couchstore, couchstore],
+    [StorageBackend.Magma, magma],
+  ]);
+
+  if (cppMap.has(backend)) {
+    return cppMap.get(backend)!;
   }
 
   throw new InvalidArgumentError();
@@ -1067,16 +1088,21 @@ export function bucketStorageBackendFromCpp(
 export function bucketConflictResolutionTypeToCpp(
   type: ConflictResolutionType | string | undefined
 ): CppManagementClusterBucketConflictResolution {
+  const { unknown, custom, sequence_number, timestamp } =
+    binding.management_cluster_bucket_conflict_resolution;
+
   if (type === null || type === undefined) {
-    return binding.management_cluster_bucket_conflict_resolution.unknown;
+    return unknown;
   }
 
-  if (type === ConflictResolutionType.SequenceNumber) {
-    return binding.management_cluster_bucket_conflict_resolution.sequence_number;
-  } else if (type === ConflictResolutionType.Timestamp) {
-    return binding.management_cluster_bucket_conflict_resolution.timestamp;
-  } else if (type === ConflictResolutionType.Custom) {
-    return binding.management_cluster_bucket_conflict_resolution.custom;
+  const cppMap = new Map<string, CppManagementClusterBucketConflictResolution>([
+    [ConflictResolutionType.SequenceNumber, sequence_number],
+    [ConflictResolutionType.Timestamp, timestamp],
+    [ConflictResolutionType.Custom, custom],
+  ]);
+
+  if (cppMap.has(type)) {
+    return cppMap.get(type)!;
   }
 
   throw new InvalidArgumentError();

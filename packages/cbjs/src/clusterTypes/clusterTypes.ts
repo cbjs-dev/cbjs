@@ -41,7 +41,9 @@ export type CouchbaseClusterTypes = {
  */
 export type DefaultClusterTypes = {
   [bucket: string]: {
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     [key in DefaultScopeName | NonNullable<string>]: {
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       [Key in DefaultCollectionName | NonNullable<string>]: DocDef<string, any>;
     };
   };

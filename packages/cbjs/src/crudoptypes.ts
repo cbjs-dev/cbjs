@@ -296,7 +296,7 @@ export class LookupInReplicaResult<Results extends ReadonlyArray<unknown> = any[
  *
  * @category Key-Value
  */
-export class MutateInResultEntry<Result extends number | undefined = any | undefined> {
+export class MutateInResultEntry<Result extends number | undefined = any> {
   /**
    * The resulting value after the completion of the sub-operation.  This namely
    * returned in the case of a counter operation (increment/decrement) and is not
@@ -318,7 +318,7 @@ export class MutateInResultEntry<Result extends number | undefined = any | undef
  * @category Key-Value
  */
 export class MutateInResult<
-  Results extends ReadonlyArray<number | undefined> = Array<any | undefined>,
+  Results extends ReadonlyArray<number | undefined> = Array<any>,
 > {
   /**
    * A list of result entries for each sub-operation performed.

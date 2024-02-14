@@ -587,7 +587,7 @@ export class Collection<
       options = {};
     }
 
-    if (options.project || options.withExpiry) {
+    if (options.project !== undefined || options.withExpiry === true) {
       return this._projectedGet(
         key,
         options as GetOptions<ExtractBodyByKey<Key, CT['ObjectDocument']>>,
@@ -595,8 +595,8 @@ export class Collection<
       );
     }
 
-    const transcoder = options.transcoder || this.transcoder;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const transcoder = options.transcoder ?? this.transcoder;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
     const docId = this.getDocId(key);
 
     const get = promisify(this.conn.get).bind(this.conn);
@@ -659,12 +659,11 @@ export class Collection<
         ? (options.project as LookupInGetPath<Doc>[])
         : ([options.project] as LookupInGetPath<Doc>[]);
 
-      for (let i = 0; i < projects.length; ++i) {
-        const projection = projects[i];
+      for (const projection of projects) {
         const specPath =
           projection instanceof LookupInMacro ? projection._value : projection;
         paths.push(specPath);
-        specs.push(LookupInSpec.get(projects[i]));
+        specs.push(LookupInSpec.get(projection));
       }
     }
 
@@ -713,8 +712,7 @@ export class Collection<
           content = {};
 
           const reprojRes = res.content[projStart] as LookupInResultEntry;
-          for (let j = 0; j < paths.length; ++j) {
-            const reprojPath = paths[j];
+          for (const reprojPath of paths) {
             const value = SdUtils.getByPath(reprojRes.value, reprojPath);
             content = SdUtils.insertByPath(content, reprojPath, value);
           }
@@ -777,7 +775,7 @@ export class Collection<
       options = {};
     }
 
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
     const exists = promisify(this.conn.exists).bind(this.conn);
 
     try {
@@ -853,8 +851,8 @@ export class Collection<
       GetReplicaResult<Doc>
     >((replicas: [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]]) => replicas);
 
-    const transcoder = options.transcoder || this.transcoder;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const transcoder = options.transcoder ?? this.transcoder;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
     const request = {
       id: this.getDocId(key),
       timeout: timeout,
@@ -1072,12 +1070,12 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry;
-    const transcoder = options.transcoder || this.transcoder;
+    const expiry = options.expiry ?? 0;
+    const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this._mutationTimeout(durabilityLevel);
+    const timeout = options.timeout ?? this._mutationTimeout(durabilityLevel);
 
     try {
       const [bytes, flags] = transcoder.encode(value);
@@ -1086,7 +1084,7 @@ export class Collection<
         id: this.getDocId(key),
         value: bytes,
         flags,
-        expiry: expiry || 0,
+        expiry,
         timeout,
         partition: 0,
         opaque: 0,
@@ -1094,7 +1092,7 @@ export class Collection<
 
       let insert: (() => Promise<CppInsertResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         insert = promisify(this.conn.insertWithLegacyDurability).bind(this.conn, {
           ...insertReq,
           persist_to: persistToToCpp(persistTo),
@@ -1173,13 +1171,13 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry;
-    const preserve_expiry = options.preserveExpiry;
-    const transcoder = options.transcoder || this.transcoder;
+    const expiry = options.expiry ?? 0;
+    const preserve_expiry = options.preserveExpiry ?? false;
+    const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this._mutationTimeout(durabilityLevel);
+    const timeout = options.timeout ?? this._mutationTimeout(durabilityLevel);
 
     try {
       const [bytes, flags] = transcoder.encode(value);
@@ -1187,8 +1185,8 @@ export class Collection<
         id: this.getDocId(key),
         value: bytes,
         flags,
-        expiry: expiry || 0,
-        preserve_expiry: preserve_expiry || false,
+        expiry,
+        preserve_expiry,
         timeout,
         partition: 0,
         opaque: 0,
@@ -1196,7 +1194,7 @@ export class Collection<
 
       let upsert: (() => Promise<CppUpsertResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         upsert = promisify(this.conn.upsertWithLegacyDurability).bind(this.conn, {
           ...upsertReq,
           persist_to: persistToToCpp(persistTo),
@@ -1273,14 +1271,14 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry || 0;
-    const cas = options.cas;
-    const preserve_expiry = options.preserveExpiry;
-    const transcoder = options.transcoder || this.transcoder;
+    const expiry = options.expiry ?? 0;
+    const cas = options.cas ?? zeroCas;
+    const preserve_expiry = options.preserveExpiry ?? false;
+    const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this._mutationTimeout(durabilityLevel);
+    const timeout = options.timeout ?? this._mutationTimeout(durabilityLevel);
 
     try {
       const [bytes, flags] = transcoder.encode(value);
@@ -1289,8 +1287,8 @@ export class Collection<
         value: bytes,
         flags,
         expiry,
-        cas: cas || zeroCas,
-        preserve_expiry: preserve_expiry || false,
+        cas,
+        preserve_expiry,
         timeout,
         partition: 0,
         opaque: 0,
@@ -1298,7 +1296,7 @@ export class Collection<
 
       let replace: (() => Promise<CppReplaceResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         replace = promisify(this.conn.replaceWithLegacyDurability).bind(this.conn, {
           ...replaceReq,
           persist_to: persistToToCpp(persistTo),
@@ -1362,16 +1360,16 @@ export class Collection<
       options = {};
     }
 
-    const cas = options.cas;
+    const cas = options.cas ?? zeroCas;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this._mutationTimeout(durabilityLevel);
+    const timeout = options.timeout ?? this._mutationTimeout(durabilityLevel);
 
     try {
       const removeReq = {
         id: this.getDocId(key),
-        cas: cas || zeroCas,
+        cas,
         timeout,
         partition: 0,
         opaque: 0,
@@ -1379,7 +1377,7 @@ export class Collection<
 
       let remove: (() => Promise<CppRemoveResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         remove = promisify(this.conn.removeWithLegacyDurability).bind(this.conn, {
           ...removeReq,
           persist_to: persistToToCpp(persistTo),
@@ -1457,8 +1455,8 @@ export class Collection<
       options = {};
     }
 
-    const transcoder = options.transcoder || this.transcoder;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const transcoder = options.transcoder ?? this.transcoder;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       const getAndTouch = promisify(this.conn.getAndTouch).bind(this.conn);
@@ -1527,7 +1525,7 @@ export class Collection<
       options = {};
     }
 
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       const touch = promisify(this.conn.touch).bind(this.conn);
@@ -1603,8 +1601,8 @@ export class Collection<
       options = {};
     }
 
-    const transcoder = options.transcoder || this.transcoder;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const transcoder = options.transcoder ?? this.transcoder;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       const getAndLock = promisify(this.conn.getAndLock).bind(this.conn);
@@ -1671,11 +1669,11 @@ export class Collection<
       options = {};
     }
 
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
     const unlock = promisify(this.conn.unlock).bind(this.conn);
 
     try {
-      const response = await unlock({
+      await unlock({
         id: this.getDocId(key),
         cas,
         timeout,
@@ -1831,16 +1829,16 @@ export class Collection<
       options = {};
     }
 
-    const transcoder = options.transcoder || this.transcoder;
-    const timeout = options.timeout || this.kvScanTimeout;
-    const idsOnly = options.idsOnly || false;
-    const batchByteLimit = options.batchByteLimit || this.scanBatchByteLimit;
-    const batchItemLimit = options.batchByteLimit || this.scanBatchItemLimit;
+    const transcoder = options.transcoder ?? this.transcoder;
+    const timeout = options.timeout ?? this.kvScanTimeout;
+    const idsOnly = options.idsOnly ?? false;
+    const batchByteLimit = options.batchByteLimit ?? this.scanBatchByteLimit;
+    const batchItemLimit = options.batchByteLimit ?? this.scanBatchItemLimit;
 
     if (typeof options.concurrency !== 'undefined' && options.concurrency < 1) {
       throw new InvalidArgumentError('Concurrency option must be positive');
     }
-    const concurrency = options.concurrency || 1;
+    const concurrency = options.concurrency ?? 1;
 
     if (scanType instanceof SamplingScan && scanType.limit < 1) {
       throw new InvalidArgumentError('Sampling scan limit must be positive');
@@ -1963,9 +1961,7 @@ export class Collection<
 
       const content: LookupInResultEntry[] = [];
 
-      for (let i = 0; i < response.fields.length; ++i) {
-        const itemRes = response.fields[i];
-
+      for (const itemRes of response.fields) {
         let error: Error | null = errorFromCpp(itemRes.ec);
 
         let value: any = undefined;
@@ -2047,7 +2043,7 @@ export class Collection<
       });
     }
 
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     const lookupIn = lookupInAllReplicas
       ? this.conn.lookupInAllReplicas
@@ -2071,8 +2067,8 @@ export class Collection<
         responses.forEach((response) => {
           const content: LookupInResultEntry[] = [];
 
-          for (let i = 0; i < response.fields.length; ++i) {
-            const { ec, value, opcode, exists } = response.fields[i];
+          for (const item of response.fields) {
+            const { ec, value, opcode, exists } = item;
 
             const error = errorFromCpp(ec);
 
@@ -2267,12 +2263,11 @@ export class Collection<
       >;
     }
 
-    return this._mutateIn(
-      key,
-      specs as SpecDefinitions,
-      options,
-      resolvedCallback
-    ) as MutateInReturnType<this, Key, SpecDefinitions>;
+    return this._mutateIn(key, specs, options, resolvedCallback) as MutateInReturnType<
+      this,
+      Key,
+      SpecDefinitions
+    >;
   }
 
   private async _mutateIn<
@@ -2296,12 +2291,12 @@ export class Collection<
       ? StoreSemantics.Upsert
       : options.storeSemantics;
     const expiry = options.expiry;
-    const preserveExpiry = options.preserveExpiry;
-    const cas = options.cas;
+    const preserveExpiry = options.preserveExpiry ?? false;
+    const cas = options.cas ?? zeroCas;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this._mutationTimeout(durabilityLevel);
+    const timeout = options.timeout ?? this._mutationTimeout(durabilityLevel);
 
     try {
       const mutateInReq = {
@@ -2309,8 +2304,8 @@ export class Collection<
         store_semantics: storeSemanticToCpp(storeSemantics),
         specs: cppSpecs,
         expiry,
-        preserve_expiry: preserveExpiry || false,
-        cas: cas || zeroCas,
+        preserve_expiry: preserveExpiry,
+        cas,
         timeout,
         partition: 0,
         opaque: 0,
@@ -2320,7 +2315,7 @@ export class Collection<
 
       let mutateIn: (() => Promise<CppMutateInResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         mutateIn = promisify(this.conn.mutateInWithLegacyDurability).bind(this.conn, {
           ...mutateInReq,
           persist_to: persistToToCpp(persistTo),
@@ -2465,18 +2460,18 @@ export class Collection<
     }
 
     const initial_value = options.initial;
-    const expiry = options.expiry;
+    const expiry = options.expiry ?? 0;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       const incrementReq = {
         id: this.getDocId(key),
         delta,
         initial_value,
-        expiry: expiry || 0,
+        expiry,
         timeout,
         partition: 0,
         opaque: 0,
@@ -2484,7 +2479,7 @@ export class Collection<
 
       let increment: (() => Promise<CppIncrementResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         increment = promisify(this.conn.incrementWithLegacyDurability).bind(this.conn, {
           ...incrementReq,
           persist_to: persistToToCpp(persistTo),
@@ -2549,18 +2544,18 @@ export class Collection<
     }
 
     const initial_value = options.initial;
-    const expiry = options.expiry;
+    const expiry = options.expiry ?? 0;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       const decrementReq = {
         id: this.getDocId(key),
         delta,
         initial_value,
-        expiry: expiry || 0,
+        expiry,
         timeout,
         partition: 0,
         opaque: 0,
@@ -2568,7 +2563,7 @@ export class Collection<
 
       let decrement: (() => Promise<CppDecrementResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         decrement = promisify(this.conn.decrementWithLegacyDurability).bind(this.conn, {
           ...decrementReq,
           persist_to: persistToToCpp(persistTo),
@@ -2635,7 +2630,7 @@ export class Collection<
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       if (!Buffer.isBuffer(value)) {
@@ -2652,7 +2647,7 @@ export class Collection<
 
       let append: (() => Promise<CppAppendResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         append = promisify(this.conn.appendWithLegacyDurability).bind(this.conn, {
           ...appendReq,
           persist_to: persistToToCpp(persistTo),
@@ -2718,7 +2713,7 @@ export class Collection<
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
-    const timeout = options.timeout || this.cluster.kvTimeout;
+    const timeout = options.timeout ?? this.cluster.kvTimeout;
 
     try {
       if (!Buffer.isBuffer(value)) {
@@ -2735,7 +2730,7 @@ export class Collection<
 
       let prepend: (() => Promise<CppPrependResponse>) | undefined = undefined;
 
-      if (persistTo || replicateTo) {
+      if (persistTo !== undefined || replicateTo !== undefined) {
         prepend = promisify(this.conn.prependWithLegacyDurability).bind(this.conn, {
           ...prependReq,
           persist_to: persistToToCpp(persistTo),

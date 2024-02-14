@@ -368,7 +368,7 @@ class InternalQueryIndexManager {
     },
     callback?: VoidNodeCallback
   ): Promise<void> {
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     try {
       const createIndex = promisify(this._cluster.conn.managementQueryIndexCreate).bind(
@@ -376,13 +376,13 @@ class InternalQueryIndexManager {
       );
       await createIndex({
         bucket_name: bucketName,
-        scope_name: options.scopeName || '',
-        collection_name: options.collectionName || '',
-        index_name: options.name || '',
-        fields: options.fields || [],
-        query_ctx: options.queryContext || this._queryContext,
+        scope_name: options.scopeName ?? '',
+        collection_name: options.collectionName ?? '',
+        index_name: options.name ?? '',
+        fields: options.fields ?? [],
+        query_ctx: options.queryContext ?? this._queryContext,
         is_primary: isPrimary,
-        ignore_if_exists: options.ignoreIfExists || false,
+        ignore_if_exists: options.ignoreIfExists ?? false,
         deferred: options.deferred,
         num_replicas: options.numReplicas,
         timeout: timeout,
@@ -416,7 +416,7 @@ class InternalQueryIndexManager {
     },
     callback?: VoidNodeCallback
   ): Promise<void> {
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     // BUG(JSCBC-1066): We need to use a normal drop index for named primary indexes.
     if (options.name) {
@@ -430,12 +430,12 @@ class InternalQueryIndexManager {
 
       await dropIndex({
         bucket_name: bucketName,
-        scope_name: options.scopeName || '',
-        collection_name: options.collectionName || '',
-        index_name: options.name || '',
-        query_ctx: options.queryContext || this._queryContext,
+        scope_name: options.scopeName ?? '',
+        collection_name: options.collectionName ?? '',
+        index_name: options.name ?? '',
+        query_ctx: options.queryContext ?? this._queryContext,
         is_primary: isPrimary,
-        ignore_if_does_not_exist: options.ignoreIfNotExists || false,
+        ignore_if_does_not_exist: options.ignoreIfNotExists ?? false,
         timeout: timeout,
       });
     } catch (cppError: unknown) {
@@ -463,15 +463,15 @@ class InternalQueryIndexManager {
     },
     callback?: NodeCallback<QueryIndex[]>
   ): Promise<QueryIndex[]> {
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementQueryIndexGetAll(
         {
           bucket_name: bucketName,
-          scope_name: options.scopeName || '',
-          collection_name: options.collectionName || '',
-          query_ctx: options.queryContext || this._queryContext,
+          scope_name: options.scopeName ?? '',
+          collection_name: options.collectionName ?? '',
+          query_ctx: options.queryContext ?? this._queryContext,
           timeout: timeout,
         },
         (cppErr, resp) => {
@@ -521,15 +521,15 @@ class InternalQueryIndexManager {
     },
     callback?: VoidNodeCallback
   ): Promise<void> {
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementQueryIndexBuildDeferred(
         {
           bucket_name: bucketName,
-          scope_name: options.scopeName || '',
-          collection_name: options.collectionName || '',
-          query_ctx: options.queryContext || this._queryContext,
+          scope_name: options.scopeName ?? '',
+          collection_name: options.collectionName ?? '',
+          query_ctx: options.queryContext ?? this._queryContext,
           timeout: timeout,
         },
         (cppErr) => {

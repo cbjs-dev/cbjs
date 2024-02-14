@@ -138,8 +138,8 @@ export class ConnSpec {
         if (typeof optVal === 'string') {
           optParts.push(qs.escape(optKey) + '=' + qs.escape(optVal));
         } else {
-          for (let optIdx = 0; optIdx < optVal.length; ++optIdx) {
-            optParts.push(qs.escape(optKey) + '=' + qs.escape(optVal[optIdx]));
+          for (const item of optVal) {
+            optParts.push(qs.escape(optKey) + '=' + qs.escape(item));
           }
         }
       }

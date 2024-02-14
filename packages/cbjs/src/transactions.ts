@@ -384,7 +384,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     }
     this._impl = new binding.Transaction(txns.impl, {
       durability_level: durabilityToCpp(config.durabilityLevel),
-      expiration_time: config.timeout,
+      timeout: config.timeout,
       query_scan_consistency: queryScanConsistencyToCpp(undefined),
     });
   }
@@ -662,8 +662,7 @@ export class Transactions<T extends CouchbaseClusterTypes> {
     const connImpl = cluster.conn;
     const txnsImpl = new binding.Transactions(connImpl, {
       durability_level: durabilityToCpp(config.durabilityLevel),
-      kv_timeout: config.kvTimeout,
-      expiration_time: config.timeout,
+      timeout: config.timeout ?? config.kvTimeout,
       query_scan_consistency: queryScanConsistencyToCpp(
         config.queryConfig.scanConsistency
       ),

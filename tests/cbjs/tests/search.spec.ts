@@ -89,32 +89,33 @@ describe
       { timeout: 30_000 }
     );
 
-    test('should successfully get an index', async ({
-      serverTestContext,
-      useCollection,
-      useSearchIndex,
-      expect,
-    }) => {
-      const collection = await useCollection();
-      await sleep(2_000);
+    test(
+      'should successfully get an index',
+      async ({ serverTestContext, useCollection, useSearchIndex, expect }) => {
+        const collection = await useCollection();
+        await sleep(2_000);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { name, ...indexConfig } = getSearchIndexConfig(
-        'willBeRemovedAndRandomized',
-        {
-          ...serverTestContext.getKeyspace(),
-          collection,
-        }
-      );
-      const indexName = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
-      const index = await serverTestContext.cluster.searchIndexes().getIndex(indexName);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { name, ...indexConfig } = getSearchIndexConfig(
+          'willBeRemovedAndRandomized',
+          {
+            ...serverTestContext.getKeyspace(),
+            collection,
+          }
+        );
+        const indexName = await useSearchIndex(indexConfig, {
+          waitSearchIndexTimeout: 0,
+        });
+        const index = await serverTestContext.cluster.searchIndexes().getIndex(indexName);
 
-      expect(index).toEqual(
-        expect.objectContaining({
-          name: indexName,
-        })
-      );
-    });
+        expect(index).toEqual(
+          expect.objectContaining({
+            name: indexName,
+          })
+        );
+      },
+      { timeout: 60_000 }
+    );
 
     test(
       'should see test data correctly',
@@ -140,7 +141,7 @@ describe
 
         const sampleData = await useSampleData(collection);
         const indexName = await useSearchIndex(indexConfig, {
-          waitSearchIndexTimeout: 20_000,
+          waitSearchIndexTimeout: 55_000,
         });
 
         const result = await serverTestContext.cluster.searchQuery(
@@ -158,7 +159,7 @@ describe
           expect(row.score).toBeTypeOf('number');
         });
       },
-      { timeout: 40_000 }
+      { timeout: 60_000 }
     );
 
     test(
@@ -254,7 +255,7 @@ describe
             },
             sourceParams: {},
           },
-          { waitSearchIndexTimeout: 40_000 }
+          { waitSearchIndexTimeout: 55_000 }
         );
 
         const result = await serverTestContext.cluster.searchQuery(

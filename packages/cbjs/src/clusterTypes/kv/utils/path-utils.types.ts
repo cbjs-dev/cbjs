@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+
 import type { IsFuzzyDocument } from "../mutation/mutateIn.types";
 import type { GuaranteedIndexes, IsArrayLengthKnown, ResolveNegativeIndex, TupleIndexes } from "./array-utils.types";
 import type {

@@ -14,9 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EventingFunctionScope } from '@cbjs/shared';
+import ts from 'typescript/lib/tsserverlibrary';
+
+import {
+  ApiEventingFunction,
+  ApiEventingFunctionBucketBinding,
+  ApiEventingFunctionConstantBinding,
+  ApiEventingFunctionCurlBinding,
+  ApiEventingFunctionStatus,
+  ApiFunctionStatusDescription,
+} from '@cbjs/http-client';
+import { ApiEventingFunctionSettings } from '@cbjs/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
+import {
+  EventingFunctionScope,
+  EventingFunctionUrlAuthData,
+  hasOwn,
+  invariant,
+} from '@cbjs/shared';
 
 import { Cluster } from './cluster';
+import { ArrayElement } from './clusterTypes/kv/utils/array-utils.types';
 import {
   CollectionNotFoundError,
   CouchbaseError,
@@ -30,6 +47,7 @@ import {
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import { QueryScanConsistency } from './querytypes';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+import { toEnumMember } from './utilities_internal';
 
 /**
  * Represents the various dcp boundary options for eventing functions.
@@ -279,7 +297,9 @@ export class EventingFunctionBucketBinding {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingFunctionBucketBinding {
+  static _fromEvtData(
+    data: ApiEventingFunctionBucketBinding
+  ): EventingFunctionBucketBinding {
     return new EventingFunctionBucketBinding({
       name: new EventingFunctionKeyspace({
         bucket: data.bucket_name,
@@ -287,7 +307,7 @@ export class EventingFunctionBucketBinding {
         collection: data.collection_name,
       }),
       alias: data.alias,
-      access: data.access,
+      access: toEnumMember(EventingFunctionBucketAccess, data.access),
     });
   }
 
@@ -434,26 +454,31 @@ export class EventingFunctionUrlBinding {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingFunctionUrlBinding {
-    let authObj;
-    if (data.auth_type === EventingFunctionUrlAuthMethod.None) {
-      authObj = undefined;
-    } else if (data.auth_type === EventingFunctionUrlAuthMethod.Basic) {
-      authObj = new EventingFunctionUrlAuthBasic({
-        username: data.username,
-        password: data.password,
-      });
-    } else if (data.auth_type === EventingFunctionUrlAuthMethod.Digest) {
-      authObj = new EventingFunctionUrlAuthDigest({
-        username: data.username,
-        password: data.password,
-      });
-    } else if (data.auth_type === EventingFunctionUrlAuthMethod.Bearer) {
-      authObj = new EventingFunctionUrlAuthBearer({
-        key: data.bearer_key,
-      });
-    } else {
-      throw new Error('invalid auth type specified');
+  static _fromEvtData(data: ApiEventingFunctionCurlBinding): EventingFunctionUrlBinding {
+    let authObj = undefined;
+
+    switch (data.auth_type) {
+      case 'no-auth':
+        break;
+      case EventingFunctionUrlAuthMethod.Basic:
+        authObj = new EventingFunctionUrlAuthBasic({
+          username: data.username,
+          password: data.password,
+        });
+        break;
+      case EventingFunctionUrlAuthMethod.Digest:
+        authObj = new EventingFunctionUrlAuthDigest({
+          username: data.username,
+          password: data.password,
+        });
+        break;
+      case EventingFunctionUrlAuthMethod.Bearer:
+        authObj = new EventingFunctionUrlAuthBearer({
+          key: data.bearer_key,
+        });
+        break;
+      default:
+        throw new Error('invalid auth type specified');
     }
 
     return {
@@ -468,16 +493,16 @@ export class EventingFunctionUrlBinding {
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunctionUrlBinding): any {
+  static _toEvtData(data: EventingFunctionUrlBinding) {
     return {
       hostname: data.hostname,
       value: data.alias,
       allow_cookies: data.allowCookies,
       validate_ssl_certificate: data.validateSslCertificate,
       auth_type: data.auth ? data.auth.method : EventingFunctionUrlAuthMethod.None,
-      username: (data as any).username,
-      password: (data as any).password,
-      bearer_key: (data as any).key,
+      username: hasOwn(data, 'username') ? data.username : undefined,
+      password: hasOwn(data, 'password') ? data.password : undefined,
+      bearer_key: hasOwn(data, 'key') ? data.key : undefined,
     };
   }
 }
@@ -506,7 +531,9 @@ export class EventingFunctionConstantBinding {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingFunctionConstantBinding {
+  static _fromEvtData(
+    data: ApiEventingFunctionConstantBinding
+  ): EventingFunctionConstantBinding {
     return new EventingFunctionConstantBinding({
       alias: data.value,
       literal: data.literal,
@@ -717,18 +744,33 @@ export class EventingFunctionSettings {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingFunctionSettings {
+  static _fromEvtData(data: ApiEventingFunctionSettings): EventingFunctionSettings {
+    // The function is not deployed yet.
+    // This case is ignored by upstream, recipe for headaches.
+    // Solvable once the classes are dropped for types.
+    if (data.deployment_status !== true) {
+      return new EventingFunctionSettings({} as any);
+    }
+
+    invariant(data.deployment_status === true, 'Function is not deployed yet.');
+
     return new EventingFunctionSettings({
       cppWorkerThreadCount: data.cpp_worker_thread_count,
-      dcpStreamBoundary: data.dcp_stream_boundary,
+      dcpStreamBoundary: toEnumMember(
+        EventingFunctionDcpBoundary,
+        data.dcp_stream_boundary
+      ),
       description: data.description,
-      logLevel: data.log_level,
-      languageCompatibility: data.language_compatibility,
+      logLevel: toEnumMember(EventingFunctionLogLevel, data.log_level),
+      languageCompatibility: toEnumMember(
+        EventingFunctionLanguageCompatibility,
+        data.language_compatibility
+      ),
       executionTimeout: data.execution_timeout,
       lcbInstCapacity: data.lcb_inst_capacity,
       lcbRetryCount: data.lcb_retry_count,
       lcbTimeout: data.lcb_timeout,
-      queryConsistency: data.n1ql_consistency,
+      queryConsistency: toEnumMember(QueryScanConsistency, data.n1ql_consistency),
       numTimerPartitions: data.num_timer_partitions,
       sockBatchSize: data.sock_batch_size,
       tickDuration: data.tick_duration,
@@ -758,7 +800,7 @@ export class EventingFunctionSettings {
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunctionSettings): any {
+  static _toEvtData(data: EventingFunctionSettings): ApiEventingFunctionSettings {
     if (!data) {
       return {
         deployment_status: false,
@@ -794,11 +836,9 @@ export class EventingFunctionSettings {
       app_log_max_files: data.appLogMaxFiles,
       checkpoint_interval: data.checkpointInterval,
       deployment_status:
-        data.deploymentStatus === EventingFunctionDeploymentStatus.Deployed
-          ? true
-          : false,
+        data.deploymentStatus === EventingFunctionDeploymentStatus.Deployed,
       processing_status:
-        data.processingStatus === EventingFunctionProcessingStatus.Running ? true : false,
+        data.processingStatus === EventingFunctionProcessingStatus.Running,
     };
   }
 }
@@ -899,7 +939,7 @@ export class EventingFunction {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingFunction {
+  static _fromEvtData(data: ApiEventingFunction): EventingFunction {
     return new EventingFunction({
       name: data.appname,
       functionScope: data.function_scope,
@@ -920,15 +960,15 @@ export class EventingFunction {
         collection: data.depcfg.source_collection,
       }),
       constantBindings:
-        data.depcfg.constants?.map((bindingData: any) =>
+        data.depcfg.constants?.map((bindingData) =>
           EventingFunctionConstantBinding._fromEvtData(bindingData)
         ) || [],
       bucketBindings:
-        data.depcfg.buckets?.map((bindingData: any) =>
+        data.depcfg.buckets?.map((bindingData) =>
           EventingFunctionBucketBinding._fromEvtData(bindingData)
         ) || [],
       urlBindings:
-        data.depcfg.curl?.map((bindingData: any) =>
+        data.depcfg.curl?.map((bindingData) =>
           EventingFunctionUrlBinding._fromEvtData(bindingData)
         ) || [],
     });
@@ -1016,10 +1056,10 @@ export class EventingFunctionState {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingFunctionState {
+  static _fromEvtData(data: ApiFunctionStatusDescription): EventingFunctionState {
     return new EventingFunctionState({
       name: data.name,
-      status: data.composite_status,
+      status: toEnumMember(EventingFunctionStatus, data.composite_status),
       numBootstrappingNodes: data.num_bootstrapping_nodes,
       numDeployedNodes: data.num_deployed_nodes,
       deploymentStatus: data.deployment_status
@@ -1056,10 +1096,10 @@ export class EventingState {
   /**
    * @internal
    */
-  static _fromEvtData(data: any): EventingState {
+  static _fromEvtData(data: ApiEventingFunctionStatus): EventingState {
     return new EventingState({
       numEventingNodes: data.num_eventing_nodes,
-      functions: data.apps.map((functionData: any) =>
+      functions: data.apps.map((functionData) =>
         EventingFunctionState._fromEvtData(functionData)
       ),
     });
@@ -1207,7 +1247,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = functionDefinition.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const encodedData = EventingFunction._toEvtData(functionDefinition);
@@ -1267,7 +1307,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1321,7 +1361,7 @@ export class EventingFunctionManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1337,11 +1377,11 @@ export class EventingFunctionManager {
         throw new CouchbaseError('failed to get functions', undefined, errCtx);
       }
 
-      const functionsData = JSON.parse(res.body.toString());
-      const functions = functionsData.map((functionData: any) =>
+      const functionsData = JSON.parse(res.body.toString()) as ApiEventingFunction[];
+
+      return functionsData.map((functionData) =>
         EventingFunction._fromEvtData(functionData)
       );
-      return functions;
     }, callback);
   }
 
@@ -1375,7 +1415,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1428,7 +1468,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1481,7 +1521,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1534,7 +1574,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1587,7 +1627,7 @@ export class EventingFunctionManager {
     }
 
     const functionName = name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({
@@ -1636,7 +1676,7 @@ export class EventingFunctionManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
       const res = await this._http.request({

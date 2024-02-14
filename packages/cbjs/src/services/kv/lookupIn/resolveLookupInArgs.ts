@@ -36,7 +36,7 @@ export function resolveLookupInArgs<
 ): ResolvedArgs<SpecDefinitions, OpResult> {
   if (!isArray(args[0])) {
     return {
-      options: args[0] ?? {},
+      options: (args[0] as LookupInOptions) ?? {},
       specs: undefined,
       callback: undefined,
     } satisfies ResolvedArgs<SpecDefinitions, OpResult>;

@@ -46,7 +46,7 @@ import { QueryExecutor } from './queryexecutor';
 import { QueryIndexManager } from './queryindexmanager';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
 import { SearchExecutor } from './searchexecutor';
-import { SearchIndexManager } from './searchindexmanager';
+import { SearchIndexManager, UnfreezeSearchPlanOptions } from './searchindexmanager';
 import { SearchQuery } from './searchquery';
 import {
   SearchMetaData,
@@ -61,13 +61,14 @@ import { DefaultTranscoder, Transcoder } from './transcoders';
 import { UserManager } from './usermanager';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
 import { generateClientString } from './utilities_internal';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 
 /**
  * Specifies the timeout options for the client.
  *
  * @category Core
  */
-export interface TimeoutConfig {
+export type TimeoutConfig = {
   /**
    * Specifies the default timeout for KV operations, specified in millseconds.
    */
@@ -117,20 +118,20 @@ export interface TimeoutConfig {
    * Specifies the default timeout to resolve DNS name of the node to IP address, specified in millseconds.
    */
   resolveTimeout?: number;
-}
+};
 
 /**
  * Specifies security options for the client.
  *
  * @category Core
  */
-export interface SecurityConfig {
+export type SecurityConfig = {
   /**
    * Specifies the path to a trust store file to be used when validating the
    * authenticity of the server when connecting over SSL.
    */
   trustStorePath?: string;
-}
+};
 
 /**
  * Specifies DNS options for the client.
@@ -139,7 +140,7 @@ export interface SecurityConfig {
  *
  * @category Core
  */
-export interface DnsConfig {
+export type DnsConfig = {
   /**
    * Specifies the nameserver to be used for DNS query when connecting.
    */
@@ -154,7 +155,7 @@ export interface DnsConfig {
    * Specifies the default timeout for DNS SRV operations, specified in millseconds.
    */
   dnsSrvTimeout?: number;
-}
+};
 
 /**
  * Specifies the options which can be specified when connecting
@@ -162,7 +163,7 @@ export interface DnsConfig {
  *
  * @category Core
  */
-export interface ConnectOptions {
+export type ConnectOptions = {
   /**
    * Specifies a username to use for an implicitly created IPasswordAuthenticator
    * used for authentication with the cluster.
@@ -216,7 +217,7 @@ export interface ConnectOptions {
    *
    */
   configProfile?: string;
-}
+};
 
 /**
  * Exposes the operations which are available to be performed against a cluster.
@@ -226,7 +227,6 @@ export interface ConnectOptions {
  * @category Core
  */
 export class Cluster<in out T extends CouchbaseClusterTypes = any> {
-  // <= We use `any` for backward compatibility.
   private _connStr: string;
   private _trustStorePath: string;
   private _kvTimeout: number;
@@ -348,18 +348,18 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
     }
 
     this._connStr = connStr;
-    this._trustStorePath = options.security.trustStorePath || '';
+    this._trustStorePath = options.security.trustStorePath ?? '';
 
     if (options.configProfile) {
       connectionProfiles.applyProfile(options.configProfile, options);
     }
-    this._kvTimeout = options.timeouts.kvTimeout || 2500;
-    this._kvDurableTimeout = options.timeouts.kvDurableTimeout || 10000;
-    this._viewTimeout = options.timeouts.viewTimeout || 75000;
-    this._queryTimeout = options.timeouts.queryTimeout || 75000;
-    this._analyticsTimeout = options.timeouts.analyticsTimeout || 75000;
-    this._searchTimeout = options.timeouts.searchTimeout || 75000;
-    this._managementTimeout = options.timeouts.managementTimeout || 75000;
+    this._kvTimeout = options.timeouts.kvTimeout ?? 2500;
+    this._kvDurableTimeout = options.timeouts.kvDurableTimeout ?? 10000;
+    this._viewTimeout = options.timeouts.viewTimeout ?? 75000;
+    this._queryTimeout = options.timeouts.queryTimeout ?? 75000;
+    this._analyticsTimeout = options.timeouts.analyticsTimeout ?? 75000;
+    this._searchTimeout = options.timeouts.searchTimeout ?? 75000;
+    this._managementTimeout = options.timeouts.managementTimeout ?? 75000;
     this._bootstrapTimeout = options.timeouts?.bootstrapTimeout;
     this._connectTimeout = options.timeouts?.connectTimeout;
     this._resolveTimeout = options.timeouts?.resolveTimeout;
@@ -376,14 +376,14 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
       this._txnConfig = {};
     }
 
-    if (options.username || options.password) {
+    if (options.username !== undefined || options.password !== undefined) {
       if (options.authenticator) {
         throw new Error('Cannot specify authenticator along with username/password.');
       }
 
       this._auth = {
-        username: options.username || '',
-        password: options.password || '',
+        username: options.username ?? '',
+        password: options.password ?? '',
       };
     } else if (options.authenticator) {
       this._auth = options.authenticator;
@@ -396,14 +396,14 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
 
     if (
       options.dnsConfig &&
-      (options.dnsConfig.nameserver ||
-        options.dnsConfig.port ||
+      (options.dnsConfig.nameserver ??
+        options.dnsConfig.port ??
         options.dnsConfig.dnsSrvTimeout)
     ) {
       this._dnsConfig = {
         nameserver: options.dnsConfig.nameserver,
         port: options.dnsConfig.port,
-        dnsSrvTimeout: options.dnsConfig.dnsSrvTimeout || 500,
+        dnsSrvTimeout: options.dnsConfig.dnsSrvTimeout ?? 500,
       };
     } else {
       this._dnsConfig = null;
@@ -646,16 +646,11 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
   search(
     indexName: string,
     request: SearchRequest,
-    options?: SearchQueryOptions | NodeCallback<SearchResult>,
-    callback?: NodeCallback<SearchResult>
+    ...args:
+      | [SearchQueryOptions, NodeCallback<SearchResult>?]
+      | [NodeCallback<SearchResult>?]
   ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData> {
-    if (options instanceof Function) {
-      callback = arguments[2];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
     const exec = new SearchExecutor(this);
 
@@ -759,7 +754,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
         !('trust_certificate' in dsnObj.options)
       ) {
         dsnObj.options.trust_certificate = dsnObj.options.trust_store_path;
-        delete dsnObj.options['trust_store_path'];
+        delete dsnObj.options.trust_store_path;
       }
       //if trust store was passed in via `SecurityConfig` override connstr
       if (this._trustStorePath) {
@@ -767,13 +762,13 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
       }
 
       if (this.bootstrapTimeout) {
-        dsnObj.options['bootstrap_timeout'] = this.bootstrapTimeout.toString();
+        dsnObj.options.bootstrap_timeout = this.bootstrapTimeout.toString();
       }
       if (this.connectTimeout) {
-        dsnObj.options['kv_connect_timeout'] = this.connectTimeout.toString();
+        dsnObj.options.kv_connect_timeout = this.connectTimeout.toString();
       }
       if (this.resolveTimeout) {
-        dsnObj.options['resolve_timeout'] = this.resolveTimeout.toString();
+        dsnObj.options.resolve_timeout = this.resolveTimeout.toString();
       }
 
       const connStr = dsnObj.toString();

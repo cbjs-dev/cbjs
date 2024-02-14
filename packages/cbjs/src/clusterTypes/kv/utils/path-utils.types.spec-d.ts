@@ -355,8 +355,10 @@ describe('TargetableArrayIndexes', function () {
   });
 
   it('should return a union of `number` and -1 for a variable-length array', function () {
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     expectTypeOf<TargetableArrayIndexes<string[]>>().toEqualTypeOf<number | -1>();
     expectTypeOf<TargetableArrayIndexes<Array<{ foo: string }>>>().toEqualTypeOf<
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       number | -1
     >();
   });

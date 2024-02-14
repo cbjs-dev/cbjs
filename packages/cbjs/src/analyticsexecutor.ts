@@ -60,15 +60,15 @@ export class AnalyticsExecutor {
       });
     });
 
-    const timeout = options.timeout || this._cluster.analyticsTimeout;
+    const timeout = options.timeout ?? this._cluster.analyticsTimeout;
 
     this._cluster.conn.analytics(
       {
         statement: query,
         timeout,
         client_context_id: options.clientContextId,
-        readonly: options.readOnly || false,
-        priority: options.priority || false,
+        readonly: options.readOnly ?? false,
+        priority: options.priority ?? false,
         scope_qualifier: options.queryContext,
         scan_consistency: analyticsScanConsistencyToCpp(options.scanConsistency),
         raw: options.raw
@@ -110,7 +110,7 @@ export class AnalyticsExecutor {
           let warnings: AnalyticsWarning[];
           if (metaData.warnings) {
             warnings = metaData.warnings.map(
-              (warningData: any) =>
+              (warningData) =>
                 new AnalyticsWarning({
                   code: warningData.code,
                   message: warningData.message,

@@ -52,7 +52,12 @@ export const zeroCas = 0 as any as CppCas;
 
 export interface CppMutationToken {
   toString(): string;
-  toJSON(): any;
+  toJSON(): {
+    partition_uuid: string;
+    sequence_number: string;
+    partition_id: number;
+    bucket_name: string;
+  };
 }
 
 export interface CppQueryContext {
@@ -1283,6 +1288,8 @@ export interface CppManagementSearchIndexGetAllResponse {
   indexes: CppManagementSearchIndex[];
 }
 export interface CppManagementSearchIndexGetAllRequest {
+  bucket_name?: string;
+  scope_name?: string;
   client_context_id?: string;
   timeout?: number;
 }
@@ -3449,17 +3456,17 @@ export interface CppBinding extends CppBindingAutogen {
   enableProtocolLogger: (filename: string) => void;
   shutdownLogger: () => void;
 
-  Connection: {
-    new (): CppConnection;
-  };
+  Connection: new () => CppConnection;
 
-  Transactions: {
-    new (conn: CppConnection, config: CppTransactionsConfig): CppTransactions;
-  };
+  Transactions: new (
+    conn: CppConnection,
+    config: CppTransactionsConfig
+  ) => CppTransactions;
 
-  Transaction: {
-    new (txns: CppTransactions, options: CppTransactionOptions): CppTransaction;
-  };
+  Transaction: new (
+    txns: CppTransactions,
+    options: CppTransactionOptions
+  ) => CppTransaction;
 
   protocol_lookup_in_request_body_doc_flag: {
     access_deleted: number;

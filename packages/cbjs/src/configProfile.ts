@@ -76,7 +76,7 @@ export class WanDevelopmentProfile implements IConfigProfile {
  * Volatile: This API is subject to change at any time.
  */
 export class ConfigProfiles {
-  private profiles: Map<string, IConfigProfile> = new Map();
+  private profiles = new Map<string, IConfigProfile>();
 
   constructor() {
     this.resetProfiles();

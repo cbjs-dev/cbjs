@@ -167,7 +167,7 @@ export interface CreateCollectionSettings {
   /**
    * The maximum expiry for documents in this collection.
    *
-   * @see {@link IBucketSettings.maxExpiry}
+   * @see IBucketSettings.maxExpiry
    */
   maxExpiry?: number;
 
@@ -175,7 +175,7 @@ export interface CreateCollectionSettings {
    * The history retention override setting in this collection.
    * Only supported on Magma Buckets.
    *
-   * @see {@link StorageBackend.Magma}.
+   * @see StorageBackend.Magma
    */
   history?: boolean;
 }
@@ -189,7 +189,7 @@ export interface UpdateCollectionSettings {
   /**
    * The maximum expiry for documents in this collection.
    *
-   * @see {@link IBucketSettings.maxExpiry}
+   * @see IBucketSettings.maxExpiry
    */
   maxExpiry?: number;
 
@@ -197,7 +197,7 @@ export interface UpdateCollectionSettings {
    * The history retention override setting in this collection.
    * Only supported on Magma Buckets.
    *
-   * @see {@link StorageBackend.Magma}.
+   * @see StorageBackend.Magma.
    */
   history?: boolean;
 }
@@ -306,7 +306,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     }
 
     const bucketName = this._bucket.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementScopeGetAll(
@@ -394,9 +394,9 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
       resolveCreateCollectionArguments(args);
 
     const bucketName = this._bucket.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
-    const maxExpiry = settings.maxExpiry || 0;
-    const history = settings.history || undefined;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
+    const maxExpiry = settings.maxExpiry ?? 0;
+    const history = settings.history ?? undefined;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionCreate(
@@ -454,7 +454,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     }
 
     const bucketName = this._bucket.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionDrop(
@@ -514,7 +514,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     }
 
     const bucketName = this._bucket.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionUpdate(
@@ -564,7 +564,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     }
 
     const bucketName = this._bucket.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementScopeCreate(
@@ -612,7 +612,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     }
 
     const bucketName = this._bucket.name;
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementScopeDrop(

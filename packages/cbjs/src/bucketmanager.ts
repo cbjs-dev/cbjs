@@ -442,7 +442,7 @@ export class BucketSettings implements IBucketSettings {
       name: data.name,
       bucket_type: bucketTypeToCpp(data.bucketType),
       ram_quota_mb: data.ramQuotaMB,
-      max_expiry: data.maxTTL || data.maxExpiry,
+      max_expiry: data.maxTTL ?? data.maxExpiry,
       compression_mode: bucketCompressionModeToCpp(data.compressionMode),
       minimum_durability_level:
         durabilityToCpp(
@@ -639,7 +639,7 @@ export class BucketManager {
     if (!options) {
       options = {};
     }
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     try {
       const createBucket = promisify(this._cluster.conn.managementBucketCreate).bind(
@@ -692,7 +692,7 @@ export class BucketManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       const bucketData = BucketSettings._toCppData(settings as IBucketSettings);
@@ -739,7 +739,7 @@ export class BucketManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementBucketDrop(
@@ -788,7 +788,7 @@ export class BucketManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementBucketGet(
@@ -835,7 +835,7 @@ export class BucketManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementBucketGetAll(
@@ -884,7 +884,7 @@ export class BucketManager {
       options = {};
     }
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementBucketFlush(

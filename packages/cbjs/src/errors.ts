@@ -472,8 +472,24 @@ export class DocumentUnretrievableError extends CouchbaseError {
 export class DocumentLockedError extends CouchbaseError {
   declare cause: Error;
   declare context: KeyValueErrorContext;
+
   constructor(cause?: Error, context?: ServiceErrorContext) {
     super('document locked', cause, context);
+  }
+}
+
+/**
+ * Indicates that the referenced document is not locked.  Generally raised when an unlock
+ * operation is performed.
+ *
+ * @category Error Handling
+ */
+export class DocumentNotLockedError extends CouchbaseError {
+  declare cause: Error;
+  declare context: KeyValueErrorContext;
+
+  constructor(cause?: Error, context?: ServiceErrorContext) {
+    super('document not locked', cause, context);
   }
 }
 

@@ -467,39 +467,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
     );
 
     test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
-      'should create a collection with max expiry of 0 when an empty settings object is provided',
-      async function ({
-        serverTestContext,
-        apiConfig,
-        expect,
-        useBucket,
-        useScope,
-        useCollection,
-      }) {
-        const bucketName = await useBucket();
-        const scopeName = await useScope({ bucketName });
-        const collectionName = await useCollection({
-          scopeName,
-          bucketName,
-        });
-
-        const collections = await getCollections(apiConfig, bucketName, scopeName);
-        const testCollection = collections.find((c) => c.name === collectionName);
-
-        expect(testCollection?.maxExpiry).toEqual(0);
-      }
-    );
-
-    test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
-      'should create a collection with max expiry of 0 when an empty settings object is provided',
-      async function ({
-        serverTestContext,
-        apiConfig,
-        expect,
-        useBucket,
-        useScope,
-        useCollection,
-      }) {
+      'should create a collection with max expiry when an empty settings object is provided',
+      async function ({ apiConfig, expect, useBucket, useScope, useCollection }) {
         const bucketName = await useBucket();
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection({
@@ -514,104 +483,113 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
       }
     );
 
-    it('should successfully create a collection with no expiry', async function () {
-      H.skipIfMissingFeature(this, H.Features.NegativeCollectionMaxExpiry);
-      var cmgr = H.b.collections();
-      const localTestColl = H.genTestKey();
-      await cmgr.createCollection(localTestColl, testScope, { maxExpiry: -1 });
-      await H.consistencyUtils.waitUntilCollectionPresent(
-        H.bucketName,
-        testScope,
-        localTestColl
-      );
-      const scopes = await cmgr.getAllScopes();
-
-      const foundScope = scopes.find((v) => v.name === testScope);
-      assert.isOk(foundScope);
-
-      const foundColl = foundScope.collections.find((v) => v.name === localTestColl);
-      assert.isOk(foundColl);
-      assert.strictEqual(foundColl.maxExpiry, -1);
-    });
-
-    it('should fail to create a collection with invalid expiry', async function () {
-      H.skipIfMissingFeature(this, H.Features.NegativeCollectionMaxExpiry);
-      var cmgr = H.b.collections();
-      const localTestColl = H.genTestKey();
-      await H.throwsHelper(async () => {
-        await cmgr.createCollection(localTestColl, testScope, { maxExpiry: -20 });
-      }, H.lib.InvalidArgumentError);
-    });
-
-    it('should successfully update a collection with default max expiry', async function () {
-      H.skipIfMissingFeature(this, H.Features.NegativeCollectionMaxExpiry);
-      var cmgr = H.b.collections();
-      const localTestColl = H.genTestKey();
-      await cmgr.createCollection(localTestColl, testScope, { maxExpiry: 5 });
-      await H.consistencyUtils.waitUntilCollectionPresent(
-        H.bucketName,
-        testScope,
-        localTestColl
-      );
-      let scopes = await cmgr.getAllScopes();
-
-      let foundScope = scopes.find((v) => v.name === testScope);
-      assert.isOk(foundScope);
-
-      let foundColl = foundScope.collections.find((v) => v.name === localTestColl);
-      assert.isOk(foundColl);
-      assert.strictEqual(foundColl.maxExpiry, 5);
-
-      await cmgr.updateCollection(localTestColl, testScope, { maxExpiry: 0 });
-      scopes = await cmgr.getAllScopes();
-
-      foundScope = scopes.find((v) => v.name === testScope);
-      assert.isOk(foundScope);
-
-      foundColl = foundScope.collections.find((v) => v.name === localTestColl);
-      assert.isOk(foundColl);
-      assert.strictEqual(foundColl.maxExpiry, 0);
-    });
-
     test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
-      'should successfully update a collection with no expiry',
-      async () => {
-        var cmgr = H.b.collections();
-        const localTestColl = H.genTestKey();
-        await cmgr.createCollection(localTestColl, testScope, {});
-        await H.consistencyUtils.waitUntilCollectionPresent(
-          H.bucketName,
-          testScope,
-          localTestColl
+      'should successfully create a collection with no expiry (-1)',
+      async function ({ apiConfig, expect, useBucket, useScope, useCollection }) {
+        const bucketName = await useBucket();
+        const scopeName = await useScope({ bucketName });
+        const collectionName = await useCollection(
+          {
+            scopeName,
+            bucketName,
+          },
+          { maxExpiry: -1 }
         );
-        let scopes = await cmgr.getAllScopes();
 
-        let foundScope = scopes.find((v) => v.name === testScope);
-        assert.isOk(foundScope);
+        const collections = await getCollections(apiConfig, bucketName, scopeName);
+        const testCollection = collections.find((c) => c.name === collectionName);
 
-        let foundColl = foundScope.collections.find((v) => v.name === localTestColl);
-        assert.isOk(foundColl);
-        assert.strictEqual(foundColl.maxExpiry, 0);
-
-        await cmgr.updateCollection(localTestColl, testScope, { maxExpiry: -1 });
-        scopes = await cmgr.getAllScopes();
-
-        foundScope = scopes.find((v) => v.name === testScope);
-        assert.isOk(foundScope);
-
-        foundColl = foundScope.collections.find((v) => v.name === localTestColl);
-        assert.isOk(foundColl);
-        assert.strictEqual(foundColl.maxExpiry, -1);
+        expect(testCollection?.maxTTL).toEqual(0);
       }
     );
 
-    it('should fail to update a collection with invalid expiry', async function () {
-      H.skipIfMissingFeature(this, H.Features.NegativeCollectionMaxExpiry);
-      var cmgr = H.b.collections();
-      await H.throwsHelper(async () => {
-        await cmgr.updateCollection(testColl, testScope, { maxExpiry: -20 });
-      }, H.lib.InvalidArgumentError);
-    });
+    test
+      .runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))
+      .fails(
+        'should fail to create a collection with an invalid maxExpiry',
+        async function ({ apiConfig, expect, useBucket, useScope, useCollection }) {
+          const bucketName = await useBucket();
+          const scopeName = await useScope({ bucketName });
+          const collectionName = await useCollection(
+            {
+              scopeName,
+              bucketName,
+            },
+            { maxExpiry: -2 }
+          );
+
+          const collections = await getCollections(apiConfig, bucketName, scopeName);
+          const testCollection = collections.find((c) => c.name === collectionName);
+
+          expect(testCollection?.maxTTL).toEqual(0);
+        }
+      );
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
+      'should successfully update a collection with a custom maxExpiry to the default maxExpiry',
+      async function ({
+        apiConfig,
+        expect,
+        useBucket,
+        useScope,
+        useCollection,
+        serverTestContext,
+      }) {
+        const bucketName = await useBucket();
+        const scopeName = await useScope({ bucketName });
+        const collectionName = await useCollection(
+          {
+            scopeName,
+            bucketName,
+          },
+          { maxExpiry: 5 }
+        );
+
+        await expect(
+          serverTestContext.b.collections().updateCollection(collectionName, scopeName, {
+            maxExpiry: 0,
+          })
+        ).resolves.toBeUndefined();
+
+        const collections = await getCollections(apiConfig, bucketName, scopeName);
+        const testCollection = collections.find((c) => c.name === collectionName);
+
+        expect(testCollection?.maxTTL).toEqual(0);
+      }
+    );
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
+      'should successfully update a collection with a the default maxExpiry to no maxExpiry',
+      async function ({
+        apiConfig,
+        expect,
+        useBucket,
+        useScope,
+        useCollection,
+        serverTestContext,
+      }) {
+        const bucketName = await useBucket();
+        const scopeName = await useScope({ bucketName });
+        const collectionName = await useCollection(
+          {
+            scopeName,
+            bucketName,
+          },
+          { maxExpiry: 0 }
+        );
+
+        await expect(
+          serverTestContext.b.collections().updateCollection(collectionName, scopeName, {
+            maxExpiry: -1,
+          })
+        ).resolves.toBeUndefined();
+
+        const collections = await getCollections(apiConfig, bucketName, scopeName);
+        const testCollection = collections.find((c) => c.name === collectionName);
+
+        expect(testCollection?.maxTTL).toEqual(0);
+      }
+    );
   },
   { timeout: 10_000 }
 );

@@ -30,7 +30,7 @@ import { NodeCallback } from './utilities';
  * @category Core
  */
 export async function connect<T extends CouchbaseClusterTypes = DefaultClusterTypes>(
-  connStr: `couchbase://` | (string & unknown),
+  connStr: `couchbase://` | (string & NonNullable<unknown>),
   options?: ConnectOptions,
   callback?: NodeCallback<Cluster<T>>
 ): Promise<Cluster<T>> {

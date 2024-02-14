@@ -18,19 +18,19 @@ import { describe } from 'vitest';
 
 import { createCouchbaseTest } from '@cbjs/vitest';
 
-import vector from '../data/test_vector.json';
-import searchDocuments from '../data/test_vector_search_docs.json';
-import { getVectorSearchIndexConfig } from '../data/vectorSearchIndexConfig';
+// import vector from '../data/test_vector.json';
+// import searchDocuments from '../data/test_vector_search_docs.json';
+// import { getVectorSearchIndexConfig } from '../data/vectorSearchIndexConfig';
 import { DataSample } from '../utils/dataSample';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.VectorSearch))
   .todo('vector search', async () => {
-    const test = createCouchbaseTest(async ({ serverTestContext }) => {
-      const dataSample = new DataSample(serverTestContext, searchDocuments);
-      await dataSample.upsertSample(serverTestContext.defaultCollection);
-
-      return {};
-    });
+    // const test = createCouchbaseTest(async ({ serverTestContext }) => {
+    //   const dataSample = new DataSample(serverTestContext, searchDocuments);
+    //   await dataSample.upsertSample(serverTestContext.defaultCollection);
+    //
+    //   return {};
+    // });
   });

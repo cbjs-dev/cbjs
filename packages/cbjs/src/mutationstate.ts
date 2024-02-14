@@ -75,21 +75,24 @@ export class MutationState {
 
     const cppToken = token as CppMutationToken;
     const tokenData = cppToken.toJSON();
-    const vbId = parseInt(tokenData.partition_id, 10);
+    const vbId = tokenData.partition_id;
     const vbSeqNo = parseInt(tokenData.sequence_number, 10);
     const bucketName = tokenData.bucket_name;
 
     if (!this.data[bucketName]) {
       this.data[bucketName] = {};
     }
+
     if (!this.data[bucketName][vbId]) {
       this.data[bucketName][vbId] = cppToken;
-    } else {
-      const otherToken = this.data[bucketName][vbId];
-      const otherTokenSeqNo = parseInt(otherToken.toJSON().sequence, 10);
-      if (otherTokenSeqNo < vbSeqNo) {
-        this.data[bucketName][vbId] = cppToken;
-      }
+      this.tokenCount++;
+      return;
+    }
+
+    const existingToken = this.data[bucketName][vbId];
+    const existingTokenSeqNo = parseInt(existingToken.toJSON().sequence_number, 10);
+    if (existingTokenSeqNo < vbSeqNo) {
+      this.data[bucketName][vbId] = cppToken;
     }
 
     this.tokenCount++;

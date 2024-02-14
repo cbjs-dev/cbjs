@@ -20,6 +20,7 @@ import binding from './binding';
 import { CppConnection } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { HttpErrorContext } from './errorcontexts';
+import { TypedEmitter } from './utils/TypedEmitter';
 
 /**
  * @internal
@@ -81,8 +82,13 @@ export class HttpExecutor {
   /**
    * @internal
    */
-  streamRequest(options: HttpRequestOptions): EventEmitter {
-    const emitter = new EventEmitter();
+  streamRequest(options: HttpRequestOptions) {
+    const emitter = new EventEmitter() as TypedEmitter<{
+      meta: (metadata: { statusCode: number; headers: Record<string, string> }) => void;
+      data: (data: Buffer) => void;
+      error: (err: Error) => void;
+      end: () => void;
+    }>;
 
     let cppHttpType;
     if (options.type === HttpServiceType.Management) {
@@ -172,12 +178,20 @@ export class HttpExecutor {
         dataCache = Buffer.concat([dataCache, data]);
       });
 
-      let metaCache: any = null;
+      let metaCache: {
+        statusCode: number;
+        headers: Record<string, string>;
+      } | null = null;
       emitter.on('meta', (meta) => {
         metaCache = meta;
       });
 
       emitter.on('end', () => {
+        if (metaCache === null) {
+          reject(new Error('Unexpected null metadata'));
+          return;
+        }
+
         resolve({
           requestOptions: options,
           statusCode: metaCache.statusCode,

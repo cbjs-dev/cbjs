@@ -14,8 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
+import { ApiSearchIndexSuccessfulAnalysis } from '@cbjs/http-client';
+
+import { CppError } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
+import { GetResult } from './crudoptypes';
 import {
   AllowSearchQueryingOptions,
   AnalyzeSearchDocumentOptions,
@@ -32,7 +38,8 @@ import {
   UnfreezeSearchPlanOptions,
   UpsertSearchIndexOptions,
 } from './searchindexmanager';
-import { NodeCallback, PromiseHelper } from './utilities';
+import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 
 /**
  * SearchIndexManager provides an interface for managing the
@@ -65,37 +72,51 @@ export class ScopeSearchIndexManager {
    */
   async getIndex(
     indexName: string,
-    options?: GetSearchIndexOptions,
+    options: GetSearchIndexOptions,
     callback?: NodeCallback<SearchIndex>
+  ): Promise<SearchIndex>;
+  async getIndex(
+    indexName: string,
+    callback?: NodeCallback<SearchIndex>
+  ): Promise<SearchIndex>;
+  async getIndex(
+    indexName: string,
+    ...args:
+      | [GetSearchIndexOptions, NodeCallback<SearchIndex>?]
+      | [NodeCallback<SearchIndex>?]
   ): Promise<SearchIndex> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexGet(
-        {
-          index_name: indexName,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr, resp) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          const index = SearchIndex._fromCppData(resp.index);
-          wrapCallback(null, index);
-        }
-      );
-    }, callback);
+    const get = promisify(this._cluster.conn.managementSearchIndexGet).bind(
+      this._cluster.conn
+    );
+
+    try {
+      const response = await get({
+        index_name: indexName,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      const result = SearchIndex._fromCppData(response.index);
+
+      if (callback) {
+        callback(null, result);
+      }
+
+      return result;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err, null);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -105,38 +126,48 @@ export class ScopeSearchIndexManager {
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAllIndexes(
-    options?: GetAllSearchIndexesOptions,
+    options: GetAllSearchIndexesOptions,
     callback?: NodeCallback<SearchIndex[]>
+  ): Promise<SearchIndex[]>;
+  async getAllIndexes(callback?: NodeCallback<SearchIndex[]>): Promise<SearchIndex[]>;
+  async getAllIndexes(
+    ...args:
+      | [GetAllSearchIndexesOptions, NodeCallback<SearchIndex[]>?]
+      | [NodeCallback<SearchIndex[]>?]
   ): Promise<SearchIndex[]> {
-    if (options instanceof Function) {
-      callback = arguments[0];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexGetAll(
-        {
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr, resp) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          const indexes = resp.indexes.map((indexData: any) =>
-            SearchIndex._fromCppData(indexData)
-          );
-          wrapCallback(null, indexes);
-        }
+    const getAll = promisify(this._cluster.conn.managementSearchIndexGetAll).bind(
+      this._cluster.conn
+    );
+
+    try {
+      const response = await getAll({
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      const indexes = response.indexes.map((indexData) =>
+        SearchIndex._fromCppData(indexData)
       );
-    }, callback);
+
+      if (callback) {
+        callback(null, indexes);
+      }
+
+      return indexes;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err, null);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -148,36 +179,47 @@ export class ScopeSearchIndexManager {
    */
   async upsertIndex(
     indexDefinition: ISearchIndex,
-    options?: UpsertSearchIndexOptions,
-    callback?: NodeCallback<void>
+    options: UpsertSearchIndexOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async upsertIndex(
+    indexDefinition: ISearchIndex,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async upsertIndex(
+    indexDefinition: ISearchIndex,
+    ...args: [UpsertSearchIndexOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexUpsert(
-        {
-          index: SearchIndex._toCppData(indexDefinition),
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const upsert = promisify(this._cluster.conn.managementSearchIndexUpsert).bind(
+      this._cluster.conn
+    );
+
+    try {
+      await upsert({
+        index: SearchIndex._toCppData(indexDefinition),
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -189,36 +231,44 @@ export class ScopeSearchIndexManager {
    */
   async dropIndex(
     indexName: string,
-    options?: DropSearchIndexOptions,
-    callback?: NodeCallback<void>
+    options: DropSearchIndexOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async dropIndex(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async dropIndex(
+    indexName: string,
+    ...args: [DropSearchIndexOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexDrop(
-        {
-          index_name: indexName,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const drop = promisify(this._cluster.conn.managementSearchIndexDrop).bind(
+      this._cluster.conn
+    );
+
+    try {
+      await drop({
+        index_name: indexName,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -230,36 +280,49 @@ export class ScopeSearchIndexManager {
    */
   async getIndexedDocumentsCount(
     indexName: string,
-    options?: GetSearchIndexedDocumentsCountOptions,
+    options: GetSearchIndexedDocumentsCountOptions,
     callback?: NodeCallback<number>
+  ): Promise<number>;
+  async getIndexedDocumentsCount(
+    indexName: string,
+    callback?: NodeCallback<number>
+  ): Promise<number>;
+  async getIndexedDocumentsCount(
+    indexName: string,
+    ...args:
+      | [GetSearchIndexedDocumentsCountOptions, NodeCallback<number>?]
+      | [NodeCallback<number>?]
   ): Promise<number> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexGetDocumentsCount(
-        {
-          index_name: indexName,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr, resp) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(null, resp.count);
-        }
-      );
-    }, callback);
+    const count = promisify(
+      this._cluster.conn.managementSearchIndexGetDocumentsCount
+    ).bind(this._cluster.conn);
+
+    try {
+      const response = (await count({
+        index_name: indexName,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      })) as { count: number };
+
+      if (callback) {
+        callback(null, response.count);
+      }
+
+      return response.count;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err, null);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -271,37 +334,45 @@ export class ScopeSearchIndexManager {
    */
   async pauseIngest(
     indexName: string,
-    options?: PauseSearchIngestOptions,
-    callback?: NodeCallback<void>
+    options: PauseSearchIngestOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async pauseIngest(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async pauseIngest(
+    indexName: string,
+    ...args: [PauseSearchIngestOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexControlIngest(
-        {
-          index_name: indexName,
-          pause: true,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const pause = promisify(this._cluster.conn.managementSearchIndexControlIngest).bind(
+      this._cluster.conn
+    );
+
+    try {
+      await pause({
+        index_name: indexName,
+        pause: true,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -313,37 +384,45 @@ export class ScopeSearchIndexManager {
    */
   async resumeIngest(
     indexName: string,
-    options?: ResumeSearchIngestOptions,
-    callback?: NodeCallback<void>
+    options: ResumeSearchIngestOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async resumeIngest(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async resumeIngest(
+    indexName: string,
+    ...args: [ResumeSearchIngestOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexControlIngest(
-        {
-          index_name: indexName,
-          pause: false,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const resume = promisify(this._cluster.conn.managementSearchIndexControlIngest).bind(
+      this._cluster.conn
+    );
+
+    try {
+      await resume({
+        index_name: indexName,
+        pause: false,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -355,37 +434,45 @@ export class ScopeSearchIndexManager {
    */
   async allowQuerying(
     indexName: string,
-    options?: AllowSearchQueryingOptions,
-    callback?: NodeCallback<void>
+    options: AllowSearchQueryingOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async allowQuerying(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async allowQuerying(
+    indexName: string,
+    ...args: [AllowSearchQueryingOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexControlQuery(
-        {
-          index_name: indexName,
-          allow: true,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const allow = promisify(this._cluster.conn.managementSearchIndexControlQuery).bind(
+      this._cluster.conn
+    );
+
+    try {
+      await allow({
+        index_name: indexName,
+        allow: true,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -397,37 +484,45 @@ export class ScopeSearchIndexManager {
    */
   async disallowQuerying(
     indexName: string,
-    options?: DisallowSearchQueryingOptions,
-    callback?: NodeCallback<void>
+    options: DisallowSearchQueryingOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async disallowQuerying(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async disallowQuerying(
+    indexName: string,
+    ...args: [DisallowSearchQueryingOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexControlQuery(
-        {
-          index_name: indexName,
-          allow: false,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const disallow = promisify(this._cluster.conn.managementSearchIndexControlQuery).bind(
+      this._cluster.conn
+    );
+
+    try {
+      await disallow({
+        index_name: indexName,
+        allow: false,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -439,37 +534,45 @@ export class ScopeSearchIndexManager {
    */
   async freezePlan(
     indexName: string,
-    options?: FreezeSearchPlanOptions,
-    callback?: NodeCallback<void>
+    options: FreezeSearchPlanOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async freezePlan(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async freezePlan(
+    indexName: string,
+    ...args: [FreezeSearchPlanOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexControlPlanFreeze(
-        {
-          index_name: indexName,
-          freeze: true,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const freeze = promisify(
+      this._cluster.conn.managementSearchIndexControlPlanFreeze
+    ).bind(this._cluster.conn);
+
+    try {
+      await freeze({
+        index_name: indexName,
+        freeze: true,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -481,37 +584,46 @@ export class ScopeSearchIndexManager {
    */
   async unfreezePlan(
     indexName: string,
-    options?: UnfreezeSearchPlanOptions,
-    callback?: NodeCallback<void>
+    options: UnfreezeSearchPlanOptions,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+  async unfreezePlan(indexName: string, callback?: VoidNodeCallback): Promise<void>;
+  async unfreezePlan(
+    indexName: string,
+    ...args: [UnfreezeSearchPlanOptions, VoidNodeCallback?] | [VoidNodeCallback?]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = arguments[1];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexControlPlanFreeze(
-        {
-          index_name: indexName,
-          freeze: false,
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          wrapCallback(err);
-        }
-      );
-    }, callback);
+    const freeze = promisify(
+      this._cluster.conn.managementSearchIndexControlPlanFreeze
+    ).bind(this._cluster.conn);
+
+    try {
+      await freeze({
+        index_name: indexName,
+        freeze: false,
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      if (callback) {
+        callback(null);
+      }
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err);
+        return;
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -524,38 +636,57 @@ export class ScopeSearchIndexManager {
    */
   async analyzeDocument(
     indexName: string,
-    document: any,
-    options?: AnalyzeSearchDocumentOptions,
-    callback?: NodeCallback<any>
-  ): Promise<any> {
-    if (options instanceof Function) {
-      callback = arguments[2];
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    document: unknown,
+    options: AnalyzeSearchDocumentOptions,
+    callback?: NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>
+  ): Promise<ApiSearchIndexSuccessfulAnalysis['analyzed']>;
+  async analyzeDocument(
+    indexName: string,
+    document: unknown,
+    callback?: NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>
+  ): Promise<ApiSearchIndexSuccessfulAnalysis['analyzed']>;
+  async analyzeDocument(
+    indexName: string,
+    document: unknown,
+    ...args:
+      | [
+          AnalyzeSearchDocumentOptions,
+          NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>?,
+        ]
+      | [NodeCallback<ApiSearchIndexSuccessfulAnalysis['analyzed']>?]
+  ): Promise<ApiSearchIndexSuccessfulAnalysis['analyzed']> {
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const timeout = options.timeout || this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._cluster.conn.managementSearchIndexAnalyzeDocument(
-        {
-          index_name: indexName,
-          encoded_document: JSON.stringify(document),
-          timeout: timeout,
-          bucket_name: this._bucketName,
-          scope_name: this._scopeName,
-        },
-        (cppErr, resp) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
-          const result = JSON.parse(resp.analysis);
-          wrapCallback(result, null);
-        }
-      );
-    }, callback);
+    const analyze = promisify(
+      this._cluster.conn.managementSearchIndexAnalyzeDocument
+    ).bind(this._cluster.conn);
+
+    try {
+      const response = await analyze({
+        index_name: indexName,
+        encoded_document: JSON.stringify(document),
+        timeout: timeout,
+        bucket_name: this._bucketName,
+        scope_name: this._scopeName,
+      });
+
+      const result = JSON.parse(response.analysis);
+
+      if (callback) {
+        callback(null, result);
+      }
+
+      return result;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+
+      if (callback) {
+        callback(err, null);
+      }
+
+      throw err;
+    }
   }
 }

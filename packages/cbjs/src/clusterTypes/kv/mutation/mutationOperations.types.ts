@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
+import type { If } from '@cbjs/shared';
 import { CppProtocolSubdocOpcode } from '../../../binding';
-import { MutateInMacro, MutateInSpec } from '../../../sdspecs';
-import type { ArrayAppendElement, ArrayPrependElement } from "../utils/array-utils.types";
+import { MutateInSpec } from '../../../sdspecs';
+import type { ArrayAppendElement, ArrayPrependElement } from '../utils/array-utils.types';
 import type {
   ExtractPathToAppendableArray,
   ExtractPathToInsertableArrayIndex,
   ExtractPathToPrependableArray,
-  ExtractPathToRemovableArrayIndex, PathToRemovableProperty,
+  ExtractPathToRemovableArrayIndex,
   ExtractPathToType,
   ExtractPathToWritable,
   ExtractPathToWritableArrayIndex,
-  ExtractPathToWritableProperty
-} from "../utils/document-path.types";
-import type { DocumentPath, SubDocument } from "../utils/path-utils.types";
-import type { AnyMutateInPath, AnyMutateInValue, CompatibleMacro, IsFuzzyDocument, MutateInValue } from "./mutateIn.types";
-import type { If } from '@cbjs/shared';
-
-/**
- * Fallback value is the document is fuzzy.
- */
-type WildcardValue = any | MutateInMacro | undefined;
+  ExtractPathToWritableProperty,
+  PathToRemovableProperty,
+} from '../utils/document-path.types';
+import type { DocumentPath, SubDocument } from '../utils/path-utils.types';
+import type {
+  AnyMutateInPath,
+  AnyMutateInValue,
+  CompatibleMacro,
+  IsFuzzyDocument,
+  MutateInValue,
+} from './mutateIn.types';
 
 /**
  * Wrap the value in a `ReadonlyArray` if `Multi` is `true`.
@@ -48,7 +50,7 @@ type WithMulti<Multi extends boolean, Value> = Multi extends true ? ReadonlyArra
 type OperationValue<Doc, Multi extends boolean, Value> =
   If<
     IsFuzzyDocument<Doc>,
-    WithMulti<Multi, WildcardValue>,
+    WithMulti<Multi, any>,
     WithMulti<Multi, Value | CompatibleMacro<Value>>
   >
 ;
