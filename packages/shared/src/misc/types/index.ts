@@ -15,7 +15,8 @@
  */
 
 export * from './MapEntry';
+export * from './OneOf';
 export * from './OptionalMerge';
 export * from './RelaxedUnion';
 export * from './UnionKeys';
-export * from './OneOf';
+export * from './TupleToUnion';
