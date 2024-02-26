@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './stats';
-export * from './view';
+export type HttpClientSearchIndex = (
+  | {
+      bucketName: string;
+      scopeName: undefined;
+      collectionName: undefined;
+    }
+  | {
+      bucketName: string;
+      scopeName: string;
+      collectionName: string;
+    }
+) & {
+  id: string;
+  name: string;
+  fields: [string, ...string[]];
+  node: string;
+  namespace: string;
+  state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+  using: 'fts';
+};

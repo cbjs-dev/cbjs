@@ -13,7 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { OneOf } from '@cbjs/shared';
+import { OneOf } from '@cbjsdev/shared';
+
+export type QueryResultIndexes = QueryResultGsiIndex | QueryResultSearchIndex;
+
+export type QueryResultGsiIndex = DiscriminatingPrimaryIndexProps &
+  DiscriminatingKeyspaceProps & {
+    datastore_id: string;
+    id: string;
+
+    /**
+     * Index name.
+     */
+    name: string;
+    namespace_id: string;
+    state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+    using: 'gsi';
+    metadata: {
+      num_replica: number;
+    };
+  };
+
+/**
+ * Search index as described by the Query service.
+ */
+export type QueryResultSearchIndex = DiscriminatingKeyspaceProps & {
+  datastore_id: string;
+  id: string;
+
+  /**
+   * Index name.
+   */
+  name: string;
+  index_key: [string, ...string[]];
+  namespace_id: string;
+  state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+  using: 'fts';
+};
 
 type DiscriminatingPrimaryIndexProps =
   | {
@@ -24,7 +60,7 @@ type DiscriminatingPrimaryIndexProps =
       index_key: [];
     }
   | {
-      is_primary: undefined;
+      is_primary?: undefined;
       /**
        * Indexed fields.
        */
@@ -59,27 +95,3 @@ type DiscriminatingKeyspaceProps = OneOf<
     },
   ]
 >;
-
-type GsiProps = {
-  using: 'gsi';
-  metadata: {
-    num_replica: number;
-  };
-};
-
-type FtsProps = {
-  using: 'fts';
-};
-
-export type ApiQueryIndex = DiscriminatingPrimaryIndexProps &
-  DiscriminatingKeyspaceProps & {
-    datastore_id: string;
-    id: string;
-
-    /**
-     * Index name.
-     */
-    name: '#primary' | (string & NonNullable<unknown>);
-    namespace_id: 'default';
-    state: 'online' | 'deferred' | (string & NonNullable<unknown>);
-  } & OneOf<[GsiProps, FtsProps]>;

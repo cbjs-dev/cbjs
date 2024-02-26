@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../../types';
+import { requestExecuteStatement } from '../../query/requests/requestExecuteStatement';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './stats';
-export * from './view';
+export async function requestQuerySearchIndexes(params: CouchbaseHttpApiConfig) {
+  return await requestExecuteStatement(
+    params,
+    "SELECT RAW indexes FROM system:indexes WHERE `using` = 'fts'"
+  );
+}

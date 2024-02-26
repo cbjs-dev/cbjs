@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../../types';
+import { apiGET } from '../../../utils/apiGET';
+import { SEARCH_PORT } from '../../../utils/ports';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './stats';
-export * from './view';
+export async function requestGetSearchIndexes(params: CouchbaseHttpApiConfig) {
+  return apiGET({ ...params }, `/api/index`, SEARCH_PORT);
+}

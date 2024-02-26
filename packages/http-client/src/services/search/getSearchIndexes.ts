@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../types';
+import { ApiSearchGetAllIndexes } from '../../types/Api';
+import { createHttpError } from '../../utils/createHttpError';
+import { requestGetSearchIndexes } from './requests/requestGetSearchIndexes';
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './stats';
-export * from './view';
+export async function getSearchIndexes(params: CouchbaseHttpApiConfig) {
+  const response = await requestGetSearchIndexes(params);
+
+  if (response.status !== 200) {
+    throw await createHttpError('GET', response);
+  }
+
+  return (await response.json()) as ApiSearchGetAllIndexes;
+}

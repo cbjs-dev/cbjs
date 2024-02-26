@@ -22,21 +22,56 @@ import { CouchbaseHttpApiConfig } from '../types';
 import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';
 
-type WaitForSearchIndexOptions = WaitForOptions & { awaitMutations?: boolean };
+type WaitForSearchIndexOptions = WaitForOptions & {
+  awaitQueryVisibility?: boolean;
+  awaitMutations?: boolean;
+};
 
 export async function waitForSearchIndex(
   apiConfig: CouchbaseHttpApiConfig,
   indexName: string,
+  keyspace: Partial<Keyspace>,
   options?: WaitForSearchIndexOptions
+): Promise<void>;
+export async function waitForSearchIndex(
+  apiConfig: CouchbaseHttpApiConfig,
+  indexName: string,
+  options?: WaitForSearchIndexOptions
+): Promise<void>;
+export async function waitForSearchIndex(
+  apiConfig: CouchbaseHttpApiConfig,
+  indexName: string,
+  ...args: [Partial<Keyspace>, WaitForSearchIndexOptions?] | [WaitForSearchIndexOptions?]
 ): Promise<void> {
+  const [keyspace, options] = isPartialKeyspace(args[0])
+    ? (args as [Partial<Keyspace>, WaitForSearchIndexOptions])
+    : [undefined, args[0]];
+
   const resolvedOptions = {
     ...waitOptionsModerate,
     ...options,
   };
 
-  const { expectMissing, awaitMutations } = resolvedOptions;
+  const { expectMissing, awaitMutations, awaitQueryVisibility } = resolvedOptions;
 
   return await retry(async () => {
+    const index = awaitQueryVisibility
+      ? (await querySearchIndexes(apiConfig, { index: indexName }))[0]
+      : await getSearchIndex(apiConfig, indexName);
+
+    if (!index && !expectMissing) throw new Error('Search index is not visible yet');
+    if (index && expectMissing) throw new Error('Search index still exists');
+
+    const indexReady = hasOwn(index, 'state')
+      ? index.state === 'online'
+      : index.planPIndexes.length > 0;
+
+    if (!indexReady && !expectMissing) throw new Error('Search index is not ready yet');
+
+    if (!awaitMutations) {
+      return;
+    }
+
     const stats = await getStatistics(apiConfig, [
       {
         metric: [
@@ -56,10 +91,6 @@ export async function waitForSearchIndex(
 
     if (expectMissing) {
       throw new Error('Search index still exists');
-    }
-
-    if (!awaitMutations) {
-      return;
     }
 
     const values = stats[0].data[0].values;

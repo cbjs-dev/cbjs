@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './stats';
-export * from './view';
+export * from './getSearchIndex';
+export * from './getSearchIndexes';
+export * from './querySearchIndexes';
