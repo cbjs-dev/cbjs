@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnalyticsEncryptionLevelName, OneOf } from '@cbjs/shared';
+import { AnalyticsEncryptionLevelName, OneOf } from '@cbjsdev/shared';
 
 import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink';
 

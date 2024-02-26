@@ -15,7 +15,7 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { Keyspace } from '@cbjs/shared';
+import { Keyspace } from '@cbjsdev/shared';
 
 import { getQueryIndexes, getStatistics } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';

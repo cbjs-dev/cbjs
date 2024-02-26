@@ -16,7 +16,7 @@
  */
 import { satisfies } from 'semver';
 
-import { hasOwn, raise } from '@cbjs/shared';
+import { hasOwn, raise } from '@cbjsdev/shared';
 
 export type RuntimeName = 'node' | 'deno' | 'bun';
 

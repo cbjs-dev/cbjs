@@ -1,5 +1,5 @@
-import { getRoles } from '@cbjs/http-client';
-import { getApiConfig, hasOwn } from '@cbjs/shared';
+import { getRoles } from '@cbjsdev/http-client';
+import { getApiConfig, hasOwn } from '@cbjsdev/shared';
 
 const apiConfig = getApiConfig();
 

@@ -15,8 +15,8 @@
  */
 import { describe } from 'vitest';
 
-import { getQueryIndexes } from '@cbjs/http-client';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { getQueryIndexes } from '@cbjsdev/http-client';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe(
   'getQueryIndexes',

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { sleep } from '@cbjs/shared';
+import { sleep } from '@cbjsdev/shared';
 
 type WaitForOptions = {
   timeout?: number;

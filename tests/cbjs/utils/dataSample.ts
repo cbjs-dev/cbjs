@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UpsertOptions } from '@cbjs/cbjs';
-import { ServerTestContext } from '@cbjs/vitest';
+import { UpsertOptions } from '@cbjsdev/cbjs';
+import { ServerTestContext } from '@cbjsdev/vitest';
 
 export type SampleCollection = {
   upsert: (key: string, body: unknown, opts: UpsertOptions) => Promise<unknown>;

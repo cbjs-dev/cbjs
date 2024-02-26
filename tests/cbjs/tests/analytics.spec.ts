@@ -24,8 +24,8 @@ import {
   DataverseNotFoundError,
   IndexExistsError,
   IndexNotFoundError,
-} from '@cbjs/cbjs';
-import { createCouchbaseTest } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

@@ -25,10 +25,10 @@ import {
   InvalidDurabilityReplicateToLevel,
   MutateInSpec,
   MutationToken,
-} from '@cbjs/cbjs';
-import { getPool } from '@cbjs/http-client';
-import { hasOwn, invariant } from '@cbjs/shared';
-import { createCouchbaseTest, ServerTestContext } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { getPool } from '@cbjsdev/http-client';
+import { hasOwn, invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest, ServerTestContext } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 

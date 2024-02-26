@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CreateCollectionSettings, Scope } from '@cbjs/cbjs';
-import { waitForCollection } from '@cbjs/http-client';
-import { keyspacePath } from '@cbjs/shared';
+import { CreateCollectionSettings, Scope } from '@cbjsdev/cbjs';
+import { waitForCollection } from '@cbjsdev/http-client';
+import { keyspacePath } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';

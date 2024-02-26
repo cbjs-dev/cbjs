@@ -1,8 +1,7 @@
 {
-  "name": "@cbjs/shared",
-  "private": true,
+  "name": "@cbjsdev/shared",
   "version": "1.0.0",
-  "description": "Shared utils between packages",
+  "description": "Shared utils and types for Cbjs",
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
   "engines": {
@@ -10,7 +9,6 @@
   },
   "type": "module",
   "scripts": {
-    "prebuild": "[ -d dist/. ] || mkdir dist && cp package.json dist/package.json",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run"

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IAnalyticsLink } from '@cbjs/cbjs';
-import { ApiAnalyticsLink } from '@cbjs/http-client';
-import { OptionalProps } from '@cbjs/shared';
+import { IAnalyticsLink } from '@cbjsdev/cbjs';
+import { ApiAnalyticsLink } from '@cbjsdev/http-client';
+import { OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { getRandomId } from '../../../utils/getRandomId';

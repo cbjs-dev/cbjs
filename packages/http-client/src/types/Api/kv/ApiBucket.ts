@@ -22,7 +22,7 @@ import {
   EvictionPolicyName,
   ReplicaNumber,
   StorageBackendName,
-} from '@cbjs/shared';
+} from '@cbjsdev/shared';
 
 import type { ApiNode } from '../cluster/ApiNode';
 

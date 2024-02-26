@@ -1,5 +1,5 @@
 {
-  "name": "@cbjs/cbjs",
+  "name": "@cbjsdev/cbjs",
   "version": "1.0.0",
   "description": "Modern Couchbase client for JS runtimes.",
   "keywords": [
@@ -20,15 +20,11 @@
     "type": "git",
     "url": "https://github.com/cbjs-dev/cbjs.git"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "bugs": {
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "scripts": {
-    "install": "node ./scripts/install.mjs 4.2.8",
-    "prebuild": "[ -d dist/. ] || mkdir dist && cp package.json dist/package.json",
+    "install": "node ./scripts/install.mjs 4.2.10",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run"
@@ -54,11 +50,11 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjs/shared": "*",
+    "@cbjsdev/shared": "*",
+    "@cbjsdev/http-client": "*",
     "node-addon-api": "^7.0.0"
   },
   "devDependencies": {
-    "http-client": "^4.3.1",
     "segfault-handler": "^1.3.0",
     "tar": "^6.2.0",
     "zod": "^3.22.4"

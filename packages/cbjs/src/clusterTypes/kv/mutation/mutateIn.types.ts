@@ -37,7 +37,7 @@ import type {
   MutateInUpsertPath,
   MutateInUpsertValue,
 } from './mutationOperations.types';
-import type { IsExactly, IsAny, Try, Or } from '@cbjs/shared';
+import type { IsExactly, IsAny, Try, Or } from '@cbjsdev/shared';
 
 /**
  * Return `true` if sub-document information cannot be inferred from `T`.

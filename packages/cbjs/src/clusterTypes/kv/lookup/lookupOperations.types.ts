@@ -20,7 +20,7 @@ import type { IsFuzzyDocument } from '../mutation/mutateIn.types';
 import type { ExtractPathToArray, ExtractPathToObject } from '../utils/document-path.types';
 import type { DocumentPath } from '../utils/path-utils.types';
 import type { MakeLookupInSpec } from './lookupIn.types';
-import type { If } from '@cbjs/shared';
+import type { If } from '@cbjsdev/shared';
 
 /**
  * Helper to build the path of a lookup operation.

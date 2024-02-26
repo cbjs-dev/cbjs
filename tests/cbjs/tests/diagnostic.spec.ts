@@ -16,8 +16,8 @@
  */
 import { describe } from 'vitest';
 
-import { ServiceType } from '@cbjs/cbjs';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { ServiceType } from '@cbjsdev/cbjs';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('diagnostics', async function () {
   const test = await createCouchbaseTest();

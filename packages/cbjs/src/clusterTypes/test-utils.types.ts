@@ -16,7 +16,7 @@
 
 import { ResolveNegativeIndex } from "./kv/utils/array-utils.types";
 import { TargetableArrayIndexes } from "./kv/utils/path-utils.types";
-import { IsExactly, Extends, If } from '@cbjs/shared';
+import { IsExactly, Extends, If } from '@cbjsdev/shared';
 
 /**
  * THIS IS FOR TESTS PURPOSES ONLY.

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ICreateBucketSettings } from '@cbjs/cbjs';
-import { waitForBucket } from '@cbjs/http-client';
-import { OptionalProps, ReplicaNumber } from '@cbjs/shared';
+import { ICreateBucketSettings } from '@cbjsdev/cbjs';
+import { waitForBucket } from '@cbjsdev/http-client';
+import { OptionalProps, ReplicaNumber } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';

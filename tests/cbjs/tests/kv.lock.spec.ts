@@ -22,10 +22,10 @@ import {
   CouchbaseCas,
   DocumentLockedError,
   KeyValueErrorContext,
-} from '@cbjs/cbjs';
-import { getPool } from '@cbjs/http-client';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { getPool } from '@cbjsdev/http-client';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
@@ -176,7 +176,7 @@ describe.shuffle(
       ).resolves.toBeDefined();
     });
 
-    test('should throw DocumentLockedError when unlocking a document with the wrong CAS', async ({
+    test('should throw CasMismatchError when unlocking a document with the wrong CAS', async ({
       expect,
       serverTestContext,
       testDocKey,
@@ -186,8 +186,8 @@ describe.shuffle(
       try {
         await serverTestContext.collection.unlock(testDocKey, CouchbaseCas.from(100));
       } catch (err) {
-        expect(err).toBeInstanceOf(DocumentLockedError);
-        invariant(err instanceof DocumentLockedError);
+        expect(err).toBeInstanceOf(CasMismatchError);
+        invariant(err instanceof CasMismatchError);
         expect(err.context).toBeInstanceOf(KeyValueErrorContext);
       }
     });

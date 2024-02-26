@@ -18,7 +18,7 @@
 /* eslint @typescript-eslint/no-empty-interface: off */
 import { createRequire } from 'module';
 
-import { ReplicaNumber } from '@cbjs/shared';
+import { ReplicaNumber } from '@cbjsdev/shared';
 
 export type CppJsonString = string | Buffer;
 

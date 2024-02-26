@@ -15,7 +15,7 @@
  */
 import type { TaskContext } from 'vitest';
 
-import type { Class } from '@cbjs/shared';
+import type { Class } from '@cbjsdev/shared';
 
 import { registerContextCleanupAction, registerTestCleanupAction } from '../hook';
 import { getTestLogger } from '../logger';

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { jsonToUrlSearchParams } from '@cbjs/shared';
+import { jsonToUrlSearchParams } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../../types';
 import { ApiAnalyticsLink } from '../../../types/Api';

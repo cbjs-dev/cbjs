@@ -25,10 +25,16 @@ import {
   DefaultCollection,
   DefaultScope,
   Scope,
-} from '@cbjs/cbjs';
-import { waitForBucket, waitForCollection } from '@cbjs/http-client';
-import { CouchbaseLogger, invariant, Keyspace, keyspacePath, sleep } from '@cbjs/shared';
-import { ConnectionParams, getApiConfig, getConnectionParams } from '@cbjs/shared';
+} from '@cbjsdev/cbjs';
+import { waitForBucket, waitForCollection } from '@cbjsdev/http-client';
+import {
+  CouchbaseLogger,
+  invariant,
+  Keyspace,
+  keyspacePath,
+  sleep,
+} from '@cbjsdev/shared';
+import { ConnectionParams, getApiConfig, getConnectionParams } from '@cbjsdev/shared';
 
 import { getTestLogger } from './logger';
 import { getRandomId } from './utils/getRandomId';

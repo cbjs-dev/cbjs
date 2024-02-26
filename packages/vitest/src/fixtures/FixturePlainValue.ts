@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn } from '@cbjs/shared';
+import { hasOwn } from '@cbjsdev/shared';
 
 import { FixtureContext, UnknownContext } from './types';
 

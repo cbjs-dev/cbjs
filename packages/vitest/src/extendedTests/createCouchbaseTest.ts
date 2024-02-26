@@ -15,8 +15,8 @@
  */
 import type { TaskContext } from 'vitest';
 
-import type { CouchbaseApiConfig } from '@cbjs/shared';
-import { getApiConfig, type PromiseValue } from '@cbjs/shared';
+import type { CouchbaseApiConfig } from '@cbjsdev/shared';
+import { getApiConfig, type PromiseValue } from '@cbjsdev/shared';
 
 import { getDefaultServerTestContext } from '../context';
 import {

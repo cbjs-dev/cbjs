@@ -16,7 +16,7 @@
  */
 import { beforeEach, describe, vi } from 'vitest';
 
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';

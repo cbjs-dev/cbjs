@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IUser } from '@cbjs/cbjs';
-import { waitForUser } from '@cbjs/http-client';
-import { OptionalProps } from '@cbjs/shared';
+import { IUser } from '@cbjsdev/cbjs';
+import { waitForUser } from '@cbjsdev/http-client';
+import { OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { getRandomId } from '../../../utils/getRandomId';

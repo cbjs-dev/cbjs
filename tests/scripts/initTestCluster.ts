@@ -20,8 +20,8 @@ import {
   setIndexerSettings,
   waitForAnalyticsCluster,
   waitForIndexer,
-} from '@cbjs/http-client';
-import { getApiConfig, sleep } from '@cbjs/shared';
+} from '@cbjsdev/http-client';
+import { getApiConfig, sleep } from '@cbjsdev/shared';
 
 const apiConfig = getApiConfig();
 

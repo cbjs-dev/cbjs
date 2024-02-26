@@ -15,7 +15,9 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getStatistics } from '../services';
+import { hasOwn, isPartialKeyspace, Keyspace } from '@cbjsdev/shared';
+
+import { getSearchIndex, getStatistics, querySearchIndexes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';
 import { waitOptionsModerate } from './options';
 import { WaitForOptions } from './types';

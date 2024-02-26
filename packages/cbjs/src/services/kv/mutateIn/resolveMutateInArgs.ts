@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NoInfer } from '@cbjs/shared';
-import { isArray } from '@cbjs/shared/dist/src/misc/utils/isArray';
+import { NoInfer } from '@cbjsdev/shared';
+import { isArray } from '@cbjsdev/shared/dist/src/misc/utils/isArray';
 
 import { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types';
 import { MutateInOptions } from '../../../collection';

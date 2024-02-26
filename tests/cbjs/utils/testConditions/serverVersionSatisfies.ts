@@ -16,8 +16,8 @@
  */
 import { satisfies } from 'semver';
 
-import { ClusterReleaseFlavor } from '@cbjs/http-client';
-import { invariant } from '@cbjs/shared';
+import { ClusterReleaseFlavor } from '@cbjsdev/http-client';
+import { invariant } from '@cbjsdev/shared';
 
 import { clusterRelease } from '../clusterRelease';
 

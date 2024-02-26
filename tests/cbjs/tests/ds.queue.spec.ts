@@ -16,8 +16,8 @@
  */
 import { describe } from 'vitest';
 
-import { CouchbaseError, CouchbaseQueue } from '@cbjs/cbjs';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { CouchbaseError, CouchbaseQueue } from '@cbjsdev/cbjs';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe.shuffle('ds queue', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => ({

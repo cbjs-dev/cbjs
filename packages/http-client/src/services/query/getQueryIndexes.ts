@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, invariant, Keyspace } from '@cbjs/shared';
+import { hasOwn, invariant, Keyspace } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiQueryIndex } from '../../types/Api/query/ApiQueryIndex';
 import { ApiQueryResponseBody } from '../../types/Api/query/ApiQueryResponseBody';
-import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryInex';
+import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryIndex';
+import { QueryResultGsiIndex, QueryResultSearchIndex } from '../../types/QueryResult';
 import { createHttpError } from '../../utils/createHttpError';
 import { requestGetQueryIndexes } from './requests/requestGetQueryIndexes';
 
@@ -32,7 +32,7 @@ export async function getQueryIndexes(
     throw await createHttpError('GET', response);
   }
 
-  const body = (await response.json()) as ApiQueryResponseBody<ApiQueryIndex[]>;
+  const body = (await response.json()) as ApiQueryResponseBody<QueryResultGsiIndex[]>;
   const friendlyResult = body.results.map(toFriendlyFormat);
 
   return friendlyResult.filter((index) => {
@@ -44,33 +44,33 @@ export async function getQueryIndexes(
   });
 }
 
-function toFriendlyFormat(index: ApiQueryIndex): HttpClientQueryIndex {
-  invariant(index.using === 'gsi');
-  const friendly: Partial<HttpClientQueryIndex> = {};
+function toFriendlyFormat(index: QueryResultGsiIndex): HttpClientQueryIndex {
+  const scope = hasOwn(index, 'bucket_id')
+    ? {
+        bucketName: index.bucket_id,
+        scopeName: index.scope_id,
+        collectionName: index.keyspace_id,
+      }
+    : {
+        bucketName: index.keyspace_id,
+      };
 
-  if (hasOwn(index, 'bucket_id')) {
-    friendly.bucketName = index.bucket_id;
-    friendly.scopeName = index.scope_id;
-    friendly.collectionName = index.keyspace_id;
-  } else {
-    friendly.bucketName = index.keyspace_id;
-  }
+  return {
+    id: index.id,
+    name: index.name,
+    isPrimary: index.is_primary ?? false,
+    fields: index.index_key.map((field) => {
+      if (field.startsWith('`') && field.endsWith('`')) {
+        return field.substring(1, field.length - 1);
+      }
 
-  friendly.id = index.id;
-  friendly.name = index.name;
-  friendly.fields = index.index_key.map((field) => {
-    if (field.startsWith('`') && field.endsWith('`')) {
-      return field.substring(1, field.length - 1);
-    }
-
-    return field;
-  }) as [];
-  friendly.isPrimary = index.is_primary ?? false;
-  friendly.node = index.datastore_id;
-  friendly.numReplicas = index.metadata.num_replica;
-  friendly.state = index.state;
-  friendly.namespace = index.namespace_id;
-  friendly.using = index.using;
-
-  return friendly as HttpClientQueryIndex;
+      return field;
+    }) as [string, ...string[]],
+    node: index.datastore_id,
+    state: index.state,
+    namespace: index.namespace_id,
+    numReplicas: index.metadata.num_replica,
+    using: index.using,
+    ...(scope as any),
+  };
 }

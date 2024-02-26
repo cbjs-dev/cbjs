@@ -21,9 +21,9 @@ import {
   HttpErrorContext,
   SearchIndexNotFoundError,
   SearchQuery,
-} from '@cbjs/cbjs';
-import { invariant, sleep } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { invariant, sleep, waitFor } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { useSampleData } from '../fixtures/useSampleData';
@@ -142,6 +142,8 @@ describe
         const sampleData = await useSampleData(collection);
         const indexName = await useSearchIndex(indexConfig, {
           waitSearchIndexTimeout: 55_000,
+          // awaitQueryVisibility: true,
+          // awaitMutations: true,
         });
 
         const result = await serverTestContext.cluster.searchQuery(

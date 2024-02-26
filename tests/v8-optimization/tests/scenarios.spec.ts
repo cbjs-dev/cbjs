@@ -17,7 +17,7 @@ import { glob } from 'glob';
 import { resolve } from 'path';
 import { describe } from 'vitest';
 
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { rootDir } from '../constants';
 import { runCase } from '../utils/runCase';

@@ -16,9 +16,9 @@
  */
 import { describe, vi } from 'vitest';
 
-import { DocumentExistsError, KeyValueErrorContext } from '@cbjs/cbjs';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { DocumentExistsError, KeyValueErrorContext } from '@cbjsdev/cbjs';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { waitFor } from '../utils/waitFor';
 import { getLargeTestDocument } from './kv._helpers';

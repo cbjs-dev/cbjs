@@ -16,9 +16,9 @@
  */
 import { beforeEach, describe, vi } from 'vitest';
 
-import { DefaultTranscoder, DurabilityLevel } from '@cbjs/cbjs';
-import { getPool } from '@cbjs/http-client';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+import { DefaultTranscoder, DurabilityLevel } from '@cbjsdev/cbjs';
+import { getPool } from '@cbjsdev/http-client';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

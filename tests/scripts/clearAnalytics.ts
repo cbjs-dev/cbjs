@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { connect } from '@cbjs/cbjs';
-import { getConnectionParams, quoteIdentifier } from '@cbjs/shared';
+import { connect } from '@cbjsdev/cbjs';
+import { getConnectionParams, quoteIdentifier } from '@cbjsdev/shared';
 
 const params = getConnectionParams();
 const cluster = await connect(params.connectionString, {

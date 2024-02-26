@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnyCollection } from '@cbjs/cbjs';
-import { hasOwn } from '@cbjs/shared';
+import { AnyCollection } from '@cbjsdev/cbjs';
+import { hasOwn } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { If, IsExactly, Try } from '@cbjs/shared';
+import type { If, IsExactly, Try } from '@cbjsdev/shared';
 
 import type { CppProtocolSubdocOpcode } from '../../../binding';
 import type { LookupInResultEntry } from '../../../crudoptypes';

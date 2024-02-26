@@ -24,10 +24,10 @@ import {
   MutateInResult,
   MutateInSpec,
   StoreSemantics,
-} from '@cbjs/cbjs';
-import { getPool } from '@cbjs/http-client';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { getPool } from '@cbjsdev/http-client';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 
@@ -147,7 +147,7 @@ describe.shuffle('kv mutateIn', async () => {
         expectTypeOf(err).toEqualTypeOf<Error | null>();
         if (err) return;
         expectTypeOf(res).toEqualTypeOf<
-          MutateInResult<readonly [number, undefined, undefined, undefined, undefined]>
+          MutateInResult<[number, undefined, undefined, undefined, undefined]>
         >();
       }
     );
@@ -193,7 +193,7 @@ describe.shuffle('kv mutateIn', async () => {
         expectTypeOf(err).toEqualTypeOf<Error | null>();
         if (err) return;
         expectTypeOf(res).toEqualTypeOf<
-          MutateInResult<readonly [number, undefined, undefined, undefined, undefined]>
+          MutateInResult<[number, undefined, undefined, undefined, undefined]>
         >();
       }
     );

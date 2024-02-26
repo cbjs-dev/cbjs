@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { EventingFunctionScope } from '@cbjs/shared';
+import type { EventingFunctionScope } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types';
 import { createHttpError } from '../../utils/createHttpError';

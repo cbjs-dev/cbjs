@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CreatePrimaryQueryIndexOptions } from '@cbjs/cbjs';
+import { CreatePrimaryQueryIndexOptions } from '@cbjsdev/cbjs';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';

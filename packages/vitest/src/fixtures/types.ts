@@ -16,7 +16,8 @@
 
 /* eslint-disable prettier/prettier */
 import type { TaskContext, TestAPI } from 'vitest';
-import type { PromiseValue, CouchbaseLogger } from '@cbjs/shared';
+
+import type { CouchbaseLogger, PromiseValue } from '@cbjsdev/shared';
 
 import { CreateTestFixtureFunction } from './CreateTestFixtureFunction';
 import { FixtureFunctionValue } from './FixtureFunctionValue';
@@ -37,34 +38,42 @@ export type FixtureUseValues<Fixtures extends Record<string, unknown>> = {
   [Key in keyof Fixtures]: FixtureUseValue<Fixtures[Key]>;
 };
 
-export type FixtureUseValue<T> =
-  T extends (ctx: infer Ctx, use: (v: infer UseValue) => Promise<void>) => Promise<unknown> ?
-    Ctx extends Record<string, any> ? UseValue : never :
-  T extends CreateTestFixtureFunction<any, infer UseValue, UnknownContext> ?
-    PromiseValue<UseValue> :
-  T
-;
+export type FixtureUseValue<T> = T extends (
+  ctx: infer Ctx,
+  use: (v: infer UseValue) => Promise<void>
+) => Promise<unknown>
+  ? Ctx extends Record<string, any>
+    ? UseValue
+    : never
+  : T extends CreateTestFixtureFunction<any, infer UseValue, UnknownContext>
+    ? PromiseValue<UseValue>
+    : T;
 
 export type TestFixtures<T> = T extends TestAPI<infer F> ? F : never;
 
 export type CreateTestFixtureOf<T> =
-  T extends FixtureFunctionValue<infer Args extends ReadonlyArray<unknown>, infer UseValue, infer Context> ?
-    (...args: Args) => CreateTestFixtureFunction<Args, UseValue, Context> :
-  T extends FixturePlainValue<infer UseValue extends unknown, UnknownContext> ?
-    UseValue :
-  never
-;
+  T extends FixtureFunctionValue<
+    infer Args extends ReadonlyArray<unknown>,
+    infer UseValue,
+    infer Context
+  >
+    ? (...args: Args) => CreateTestFixtureFunction<Args, UseValue, Context>
+    : T extends FixturePlainValue<infer UseValue extends unknown, UnknownContext>
+      ? UseValue
+      : never;
 
 export type TestFixtureOf<T> =
-  T extends FixtureFunctionValue<infer Args extends ReadonlyArray<unknown>, infer UseValue, UnknownContext> ?
-    TestFixtureFn<Args, UseValue> :
-  T extends FixturePlainValue<infer UseValue, UnknownContext> ?
-    TestFixtureFn<[], UseValue> :
-  never
-;
+  T extends FixtureFunctionValue<
+    infer Args extends ReadonlyArray<unknown>,
+    infer UseValue,
+    UnknownContext
+  >
+    ? TestFixtureFn<Args, UseValue>
+    : T extends FixturePlainValue<infer UseValue, UnknownContext>
+      ? TestFixtureFn<[], UseValue>
+      : never;
 
-export type TestFixtureFn<Args extends ReadonlyArray<unknown>, UseValue> =
-  Args extends unknown[] ?
-    FixtureFunction<(...args: Args) => UseValue> :
-  never
-;
+export type TestFixtureFn<
+  Args extends ReadonlyArray<unknown>,
+  UseValue,
+> = Args extends unknown[] ? FixtureFunction<(...args: Args) => UseValue> : never;

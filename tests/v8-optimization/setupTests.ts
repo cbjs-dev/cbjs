@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
-import { getApiConfig, hasOwn } from '@cbjs/shared';
+import { getApiConfig, hasOwn } from '@cbjsdev/shared';
 import {
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
   setTestLogger,
-} from '@cbjs/vitest';
+} from '@cbjsdev/vitest';
 
 import { testLogger } from './setupLogger';
 

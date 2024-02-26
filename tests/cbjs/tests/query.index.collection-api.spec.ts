@@ -16,11 +16,11 @@
  */
 import { describe } from 'vitest';
 
-import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjs/cbjs';
-import { invariant } from '@cbjs/shared';
-import { sleep } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
-import { getRandomId } from '@cbjs/vitest';
+import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjsdev/cbjs';
+import { invariant } from '@cbjsdev/shared';
+import { sleep } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { getRandomId } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

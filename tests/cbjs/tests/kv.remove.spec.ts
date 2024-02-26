@@ -16,9 +16,9 @@
  */
 import { describe } from 'vitest';
 
-import { DocumentNotFoundError, KeyValueErrorContext } from '@cbjs/cbjs';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { DocumentNotFoundError, KeyValueErrorContext } from '@cbjsdev/cbjs';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { getLargeTestDocument } from './kv._helpers';
 

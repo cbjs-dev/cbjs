@@ -1,5 +1,5 @@
-import { connect } from '@cbjs/cbjs';
-import { getConnectionParams } from '@cbjs/shared';
+import { connect } from '@cbjsdev/cbjs';
+import { getConnectionParams } from '@cbjsdev/shared';
 
 import { isOptimized } from '../../utils/optimization';
 

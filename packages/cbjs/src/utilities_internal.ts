@@ -17,7 +17,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: the bundler will remove the assertion for CommonJS
 // eslint-disable-next-line prettier/prettier
-import { invariant } from '@cbjs/shared';
+import { invariant } from '@cbjsdev/shared';
 
 import packageJson from '../package.json' assert { type: 'json' };
 

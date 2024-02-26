@@ -18,7 +18,7 @@ import { Buffer } from 'node:buffer';
 import { ParsedUrlQueryInput } from 'querystring';
 import * as qs from 'querystring';
 
-import { DurabilityLevelName, durabilityLevels, NonVoid } from '@cbjs/shared';
+import { DurabilityLevelName, durabilityLevels, NonVoid } from '@cbjsdev/shared';
 
 import { AnyCollection } from './clusterTypes';
 import { DurabilityLevel } from './generaltypes';

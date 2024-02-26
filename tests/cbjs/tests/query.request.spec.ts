@@ -16,9 +16,9 @@
  */
 import { describe } from 'vitest';
 
-import { QueryMetaData, QueryProfileMode, QueryResult, QueryStatus } from '@cbjs/cbjs';
-import { keyspacePath } from '@cbjs/shared';
-import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjs/vitest';
+import { QueryMetaData, QueryProfileMode, QueryResult, QueryStatus } from '@cbjsdev/cbjs';
+import { keyspacePath } from '@cbjsdev/shared';
+import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

@@ -16,8 +16,8 @@
  */
 import { describe } from 'vitest';
 
-import { sleep } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { sleep } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { getLargeTestDocument } from './kv._helpers';
 

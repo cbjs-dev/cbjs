@@ -16,7 +16,7 @@
  */
 import { promisify } from 'node:util';
 
-import { ApiSearchIndexSuccessfulAnalysis } from '@cbjs/http-client';
+import { ApiSearchIndexSuccessfulAnalysis } from '@cbjsdev/http-client';
 
 import { CppError } from './binding';
 import { errorFromCpp } from './bindingutilities';

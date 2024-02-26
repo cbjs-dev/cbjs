@@ -25,7 +25,7 @@ import type {
   ToNumber,
   WrapEach
 } from "./misc-utils.types";
-import type { Join, Split, IsNever, Extends, If, Not, And, Or } from '@cbjs/shared';
+import type { Join, Split, IsNever, Extends, If, Not, And, Or } from '@cbjsdev/shared';
 
 /**
  * Key types you can access using {@link DocumentPath}.

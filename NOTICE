@@ -16,6 +16,6 @@ The initial reason of its creation is deployment automation.
 
 Tests :
 All the tests have been fixed, improved, reworked, completed and migrated to vitest.
-They also aim to run against the actual database instead of mocks.
-Also, many fixtures are made available for those who use vitest and want to setup their database accordingly.
+They run against the actual database, not mocks.
+Also, many fixtures are made available for those who use vitest and want to setup their integration test accordingly.
 

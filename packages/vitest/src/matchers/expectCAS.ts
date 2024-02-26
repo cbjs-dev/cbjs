@@ -18,7 +18,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { expect } from 'vitest';
 
-import { CouchbaseCas } from '@cbjs/cbjs';
+import { CouchbaseCas } from '@cbjsdev/cbjs';
 
 expect.extend({
   toBeNonZeroCAS(received) {

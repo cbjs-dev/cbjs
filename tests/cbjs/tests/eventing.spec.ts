@@ -25,10 +25,10 @@ import {
   EventingFunctionUrlAuthBasic,
   EventingFunctionUrlBinding,
   Scope,
-} from '@cbjs/cbjs';
-import { waitForEventingFunction } from '@cbjs/http-client';
-import { sleep } from '@cbjs/shared';
-import { createCouchbaseTest, getRandomId } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { waitForEventingFunction } from '@cbjsdev/http-client';
+import { sleep } from '@cbjsdev/shared';
+import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';

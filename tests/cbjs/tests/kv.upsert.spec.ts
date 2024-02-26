@@ -16,7 +16,7 @@
  */
 import { describe, vi } from 'vitest';
 
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitForFailure } from '../utils/waitForFailure';

@@ -15,8 +15,8 @@
  */
 import { describe } from 'vitest';
 
-import { getStatistics } from '@cbjs/http-client';
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { getStatistics } from '@cbjsdev/http-client';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('getStatistics', async () => {
   const test = await createCouchbaseTest();

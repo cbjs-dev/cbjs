@@ -16,7 +16,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { invariant } from '@cbjs/shared';
+import { invariant } from '@cbjsdev/shared';
 
 import { PasswordAuthenticator } from './authenticators';
 import { ConnSpec } from './connspec';

@@ -15,7 +15,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { CouchbaseCas } from '@cbjs/cbjs';
+import { CouchbaseCas } from '@cbjsdev/cbjs';
 
 import './expectCAS';
 

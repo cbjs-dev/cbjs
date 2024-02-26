@@ -18,10 +18,10 @@ import {
   ApiAnalyticsCouchbaseRemoteLink,
   ApiAnalyticsLink,
   createAnalyticsLink,
-} from '@cbjs/http-client';
-import { ApiAnalyticsAzureRemoteLink } from '@cbjs/http-client/dist/src/types/Api/analytics/ApiAnalyticsAzureRemoteLink';
-import { ApiAnalyticsS3RemoteLink } from '@cbjs/http-client/dist/src/types/Api/analytics/ApiAnalyticsS3RemoteLink';
-import { jsonToUrlSearchParams, RelaxedUnion } from '@cbjs/shared';
+} from '@cbjsdev/http-client';
+import { ApiAnalyticsAzureRemoteLink } from '@cbjsdev/http-client/dist/src/types/Api/analytics/ApiAnalyticsAzureRemoteLink';
+import { ApiAnalyticsS3RemoteLink } from '@cbjsdev/http-client/dist/src/types/Api/analytics/ApiAnalyticsS3RemoteLink';
+import { jsonToUrlSearchParams, RelaxedUnion } from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import {

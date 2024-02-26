@@ -15,7 +15,7 @@
  */
 import { test, TestAPI } from 'vitest';
 
-import { Class, CouchbaseLogger } from '@cbjs/shared';
+import { Class, CouchbaseLogger } from '@cbjsdev/shared';
 
 import { CreateTestFixtureFunction } from '../fixtures/CreateTestFixtureFunction';
 import {

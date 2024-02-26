@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { sleep } from '@cbjs/shared';
+import { sleep } from '@cbjsdev/shared';
 
 import { testLogger } from '../setupLogger';
 
@@ -31,6 +31,7 @@ type WaitForOptions = {
  * Retry until the operation succeeds.
  * Throws the last error if the operation never succeeds.
  *
+ * @deprecated
  * @returns the operation return value.
  * @example
  * await waitFor(async () => {

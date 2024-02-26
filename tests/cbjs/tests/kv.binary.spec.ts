@@ -17,10 +17,10 @@
 import { Buffer } from 'node:buffer';
 import { beforeEach, describe, vi } from 'vitest';
 
-import { DurabilityLevel } from '@cbjs/cbjs';
-import { getPool } from '@cbjs/http-client';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+import { DurabilityLevel } from '@cbjsdev/cbjs';
+import { getPool } from '@cbjsdev/http-client';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 import { waitFor } from '../utils/waitFor';

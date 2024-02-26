@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ISearchIndex } from '@cbjs/cbjs';
-import { waitForSearchIndex } from '@cbjs/http-client';
-import { OptionalProps } from '@cbjs/shared';
+import { ISearchIndex } from '@cbjsdev/cbjs';
+import { waitForSearchIndex } from '@cbjsdev/http-client';
+import { OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { getRandomId } from '../../../utils/getRandomId';
@@ -39,6 +39,8 @@ export type SearchIndexFixtureOptions = {
    * @default: 10_000
    */
   waitSearchIndexTimeout?: number;
+  awaitMutations?: boolean;
+  awaitQueryVisibility?: boolean;
 };
 
 export class SearchIndexFixture extends FixtureFunctionValue<
@@ -56,6 +58,7 @@ export class SearchIndexFixture extends FixtureFunctionValue<
   ) {
     await serverTestContext.start();
     const timeout = fixtureOptions.waitSearchIndexTimeout ?? 10_000;
+    const awaitMutations = fixtureOptions.awaitMutations ?? true;
     const searchIndexName = params.name ?? `searchIndex_${getRandomId()}`;
     const { sourceName } = params;
 
@@ -72,9 +75,15 @@ export class SearchIndexFixture extends FixtureFunctionValue<
       return this.params.name;
     }
 
-    await waitForSearchIndex(apiConfig, searchIndexName, {
-      timeout,
-    });
+    await waitForSearchIndex(
+      apiConfig,
+      searchIndexName,
+      {},
+      {
+        timeout,
+        awaitMutations,
+      }
+    );
 
     return this.params.name;
   }

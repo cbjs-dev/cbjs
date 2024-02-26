@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ISearchIndex } from '@cbjs/cbjs';
-import { Keyspace } from '@cbjs/shared';
+import { ISearchIndex } from '@cbjsdev/cbjs';
+import { Keyspace } from '@cbjsdev/shared';
 
 export function getVectorSearchIndexConfig(
   name: string,

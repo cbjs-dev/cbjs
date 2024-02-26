@@ -21,10 +21,10 @@ import {
   DesignDocumentNotFoundError,
   DesignDocumentView,
   HttpErrorContext,
-} from '@cbjs/cbjs';
-import { waitForViewDesignDocument } from '@cbjs/http-client';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { waitForViewDesignDocument } from '@cbjsdev/http-client';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

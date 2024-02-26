@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CaptureUntil, Split } from '@cbjs/shared';
+import { CaptureUntil, Split } from '@cbjsdev/shared';
 
 import { Json } from '../../clusterTypes';
 import { CircularReferences, ReferencesItself } from './misc-utils.types';

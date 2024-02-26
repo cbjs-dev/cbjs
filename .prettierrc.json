@@ -21,7 +21,7 @@
     "importAssertions",
     "typescript"
   ],
-  "importOrder": ["<THIRD_PARTY_MODULES>", "^@cbjs/(.*)$", "^[./]"],
+  "importOrder": ["<THIRD_PARTY_MODULES>", "^@cbjsdev/(.*)$", "^[./]"],
   "importOrderCaseInsensitive": true,
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true

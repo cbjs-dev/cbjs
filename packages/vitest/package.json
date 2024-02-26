@@ -1,5 +1,5 @@
 {
-  "name": "@cbjs/vitest",
+  "name": "@cbjsdev/vitest",
   "version": "1.0.0",
   "description": "Vitest extended tests and fixtures for your tests with Couchbase",
   "keywords": [
@@ -17,14 +17,10 @@
     "type": "git",
     "url": "https://github.com/cbjs-dev/cbjs.git"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "bugs": {
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "scripts": {
-    "prebuild": "[ -d dist/. ] || mkdir dist && cp package.json dist/package.json",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run"
@@ -39,12 +35,11 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjs/cbjs": "*",
-    "@cbjs/http-client": "*",
+    "@cbjsdev/cbjs": "*",
+    "@cbjsdev/http-client": "*",
     "vitest": "^1.2.0"
   },
   "devDependencies": {
-    "http-client": "^4.3.1",
     "zod": "^3.22.4"
   }
 }

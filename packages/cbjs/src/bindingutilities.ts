@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DurabilityLevelName, hasOwn, invariant } from '@cbjs/shared';
+import { DurabilityLevelName, hasOwn, invariant } from '@cbjsdev/shared';
 
 import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes';
 import binding, {

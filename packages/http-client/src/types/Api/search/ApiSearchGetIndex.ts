@@ -24,7 +24,7 @@ import {
 export type ApiSearchGetIndex = {
   status: 'ok' | (string & NonNullable<unknown>);
   indexDef: ApiSearchIndexDefinition;
-  planPIndexes: PlanPIndexes;
+  planPIndexes: PlanPIndexes[];
   warnings: unknown[];
 };
 

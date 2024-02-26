@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { If } from '@cbjs/shared';
+import type { If } from '@cbjsdev/shared';
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { MutateInSpec } from '../../../sdspecs';
 import type { ArrayAppendElement, ArrayPrependElement } from '../utils/array-utils.types';

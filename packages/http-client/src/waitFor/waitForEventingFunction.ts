@@ -15,7 +15,7 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { EventingFunctionStatusName } from '@cbjs/shared';
+import { EventingFunctionStatusName } from '@cbjsdev/shared';
 
 import { getEventingFunctionStatus, getPoolNodes } from '../services';
 import { CouchbaseHttpApiConfig } from '../types';

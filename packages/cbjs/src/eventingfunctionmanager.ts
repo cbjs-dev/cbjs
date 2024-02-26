@@ -23,14 +23,14 @@ import {
   ApiEventingFunctionCurlBinding,
   ApiEventingFunctionStatus,
   ApiFunctionStatusDescription,
-} from '@cbjs/http-client';
-import { ApiEventingFunctionSettings } from '@cbjs/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
+} from '@cbjsdev/http-client';
+import { ApiEventingFunctionSettings } from '@cbjsdev/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
 import {
   EventingFunctionScope,
   EventingFunctionUrlAuthData,
   hasOwn,
   invariant,
-} from '@cbjs/shared';
+} from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import { ArrayElement } from './clusterTypes/kv/utils/array-utils.types';

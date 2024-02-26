@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { downloadBinary } from './downloadBinary.mjs';
+import { downloadBinary } from './utils/downloadBinary.mjs';
 
 const packageAbsolutePath = process.cwd();
 const packageRelative = 'packages/cbjs';

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PromiseValue } from '@cbjs/shared';
+import { PromiseValue } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { AnyCollection } from '../../../clusterTypes';

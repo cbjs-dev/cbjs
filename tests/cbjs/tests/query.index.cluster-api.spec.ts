@@ -16,9 +16,9 @@
  */
 import { describe } from 'vitest';
 
-import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjs/cbjs';
-import { invariant, keyspacePath } from '@cbjs/shared';
-import { createCouchbaseTest, ServerTestContext } from '@cbjs/vitest';
+import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjsdev/cbjs';
+import { invariant, keyspacePath } from '@cbjsdev/shared';
+import { createCouchbaseTest, ServerTestContext } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

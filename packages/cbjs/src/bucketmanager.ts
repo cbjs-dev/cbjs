@@ -24,7 +24,7 @@ import {
   ReplicaNumber,
   RequiredProps,
   StorageBackendName,
-} from '@cbjs/shared';
+} from '@cbjsdev/shared';
 
 import { CppManagementClusterBucketSettings } from './binding';
 import {

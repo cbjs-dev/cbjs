@@ -27,19 +27,19 @@ module.exports = {
       {
         paths: [
           {
-            name: '@cbjs/cbjs',
+            name: '@cbjsdev/cbjs',
             message:
-              'This will created a cyclic dependency. You should probably move the module to @cbjs/shared instead.',
+              'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
           },
           {
-            name: '@cbjs/http-client',
+            name: '@cbjsdev/http-client',
             message:
-              'This will created a cyclic dependency. You should probably move the module to @cbjs/shared instead.',
+              'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
           },
           {
-            name: '@cbjs/vitest',
+            name: '@cbjsdev/vitest',
             message:
-              'This will created a cyclic dependency. You should probably move the module to @cbjs/shared instead.',
+              'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
           },
         ],
       },

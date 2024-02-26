@@ -2,17 +2,17 @@
   "name": "test-project-cbjs",
   "private": true,
   "version": "1.0.0",
-  "description": "Test project for @cbjs/cbjs",
+  "description": "Test project for @cbjsdev/cbjs",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "test": "vitest --run"
   },
   "dependencies": {
-    "@cbjs/cbjs": "*",
-    "@cbjs/http-client": "*",
-    "@cbjs/shared": "*",
-    "@cbjs/vitest": "*",
+    "@cbjsdev/cbjs": "*",
+    "@cbjsdev/http-client": "*",
+    "@cbjsdev/shared": "*",
+    "@cbjsdev/vitest": "*",
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
     "semver": "^7.5.4"

@@ -16,7 +16,7 @@
  */
 import { describe } from 'vitest';
 
-import { createCouchbaseTest } from '@cbjs/vitest';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 // import vector from '../data/test_vector.json';
 // import searchDocuments from '../data/test_vector_search_docs.json';

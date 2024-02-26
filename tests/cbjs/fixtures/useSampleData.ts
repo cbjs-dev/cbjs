@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { raise } from '@cbjs/shared';
-import { CouchbaseFixtures } from '@cbjs/vitest';
+import { raise } from '@cbjsdev/shared';
+import { CouchbaseFixtures } from '@cbjsdev/vitest';
 
 import { DataSample, SampleCollection } from '../utils/dataSample';
 

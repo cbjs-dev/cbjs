@@ -62,4 +62,4 @@ export * from './viewtypes';
 
 export type * from './clusterTypes';
 
-export type { Keyspace } from '@cbjs/shared';
+export type { Keyspace } from '@cbjsdev/shared';

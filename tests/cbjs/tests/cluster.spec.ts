@@ -21,9 +21,9 @@ import {
   connectionProfiles,
   ConnectOptions,
   lcbVersion,
-} from '@cbjs/cbjs';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { testLogger } from '../setupLogger';
 import { connectionParams } from '../setupTests';

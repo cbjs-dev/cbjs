@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IsExactly, IsNever, If, Or } from '@cbjs/shared';
+import type { IsExactly, IsNever, If, Or } from '@cbjsdev/shared';
 
 /**
  * A union of all the possible types in the array.

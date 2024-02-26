@@ -1,5 +1,5 @@
 {
-  "name": "@cbjs/http-client",
+  "name": "@cbjsdev/http-client",
   "version": "0.1.0",
   "description": "A type safe HTTP client for Couchbase.",
   "keywords": [
@@ -15,7 +15,6 @@
   "module": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "prebuild": "[ -d dist/. ] || mkdir dist && cp package.json dist/package.json",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run"
@@ -26,13 +25,11 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjs/shared": "*",
+    "@cbjsdev/shared": "*",
     "cross-fetch": "^4.0.0",
     "ts-retry-promise": "^0.8.0"
   },
   "devDependencies": {
-    "@types/promise-retry": "^1.1.6",
-    "http-client": "^4.3.1",
     "zod": "^3.22.4"
   }
 }

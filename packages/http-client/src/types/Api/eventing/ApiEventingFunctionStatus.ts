@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EventingFunctionStatusName } from '@cbjs/shared';
+import { EventingFunctionStatusName } from '@cbjsdev/shared';
 
 export type ApiFunctionStatusDescription = {
   composite_status: EventingFunctionStatusName;

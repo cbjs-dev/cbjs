@@ -15,9 +15,9 @@
  */
 import { describe } from 'vitest';
 
-import { getQueryIndexes, waitForQueryIndex } from '@cbjs/http-client';
-import { sleep } from '@cbjs/shared';
-import { createCouchbaseTest, getRandomId } from '@cbjs/vitest';
+import { waitForQueryIndex } from '@cbjsdev/http-client';
+import { sleep } from '@cbjsdev/shared';
+import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 describe('waitForQueryIndex', async () => {
   const test = await createCouchbaseTest();

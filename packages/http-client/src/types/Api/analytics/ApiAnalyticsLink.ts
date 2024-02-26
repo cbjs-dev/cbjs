@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { OneOf } from '@cbjs/shared';
+import { OneOf } from '@cbjsdev/shared';
 
 import { ApiAnalyticsAzureRemoteLink } from './ApiAnalyticsAzureRemoteLink';
 import { ApiAnalyticsCouchbaseRemoteLink } from './ApiAnalyticsCouchbaseRemoteLink';

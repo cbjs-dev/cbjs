@@ -16,9 +16,9 @@
  */
 import { beforeEach, describe, vi } from 'vitest';
 
-import { CasMismatchError, DefaultTranscoder, KeyValueErrorContext } from '@cbjs/cbjs';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest, TestFixtures } from '@cbjs/vitest';
+import { CasMismatchError, DefaultTranscoder, KeyValueErrorContext } from '@cbjsdev/cbjs';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { waitFor } from '../utils/waitFor';
 import { getLargeTestDocument } from './kv._helpers';

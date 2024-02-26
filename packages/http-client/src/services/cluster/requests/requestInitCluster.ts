@@ -15,7 +15,7 @@
  */
 import fetch from 'cross-fetch';
 
-import { jsonToUrlSearchParams, ServiceName } from '@cbjs/shared';
+import { jsonToUrlSearchParams, ServiceName } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../../types';
 import { MANAGEMENT_PORT } from '../../../utils/ports';

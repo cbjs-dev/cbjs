@@ -20,8 +20,8 @@ import {
   ApiUserGroup,
   ApiUserRole,
   ApiUserRoleOrigin,
-} from '@cbjs/http-client';
-import { getRoleScope, RoleName } from '@cbjs/shared';
+} from '@cbjsdev/http-client';
+import { getRoleScope, RoleName } from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors';

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IGroup, Role } from '@cbjs/cbjs';
-import { waitForUserGroup } from '@cbjs/http-client';
-import { OptionalProps } from '@cbjs/shared';
+import { IGroup, Role } from '@cbjsdev/cbjs';
+import { waitForUserGroup } from '@cbjsdev/http-client';
+import { OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';

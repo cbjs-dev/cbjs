@@ -21,7 +21,7 @@ export default mergeConfig(
   sharedProjectConfig,
   defineProject({
     test: {
-      name: 'project:@cbjs/http-client',
+      name: 'project:@cbjsdev/http-client',
       pool: 'forks',
       minWorkers: 1,
       maxWorkers: 1,

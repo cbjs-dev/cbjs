@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { hasOwn } from '../../misc';
 
 export function quoteIdentifier(name: string) {
   return '`' + name + '`';
@@ -23,6 +24,13 @@ export type Keyspace = {
   scope: string;
   collection: string;
 };
+
+export function isPartialKeyspace(v: unknown): v is Partial<Keyspace> {
+  if (!v) return false;
+  if (typeof v !== 'object') return false;
+
+  return hasOwn(v, 'bucket') || hasOwn(v, 'scope') || hasOwn(v, 'collection');
+}
 
 /**
  * Return a keyspace string with quoted identifiers.

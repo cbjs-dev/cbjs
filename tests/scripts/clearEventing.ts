@@ -17,8 +17,8 @@ import {
   dropEventingFunction,
   getEventingFunctions,
   undeployEventingFunction,
-} from '@cbjs/http-client';
-import { getApiConfig } from '@cbjs/shared';
+} from '@cbjsdev/http-client';
+import { getApiConfig } from '@cbjsdev/shared';
 
 const apiConfig = getApiConfig();
 

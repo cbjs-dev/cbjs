@@ -25,7 +25,7 @@ import {
   keyspacePath,
   NoInfer,
   Try,
-} from '@cbjs/shared';
+} from '@cbjsdev/shared';
 
 import {
   AppendOptions,

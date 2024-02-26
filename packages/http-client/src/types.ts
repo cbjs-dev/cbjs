@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseApiConfig } from '@cbjs/shared';
+import { CouchbaseApiConfig } from '@cbjsdev/shared';
 
 import { ApiPoolNodes } from './types/Api';
 

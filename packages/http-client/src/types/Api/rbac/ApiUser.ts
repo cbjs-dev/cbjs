@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RoleName } from '@cbjs/shared';
+import { RoleName } from '@cbjsdev/shared';
 
 export type ApiUser = {
   id: string;

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ISearchIndex } from '@cbjs/cbjs';
-import { Keyspace } from '@cbjs/shared';
+import { ISearchIndex } from '@cbjsdev/cbjs';
+import { Keyspace } from '@cbjsdev/shared';
 
 export function getSearchIndexConfig(name: string, keyspace: Keyspace): ISearchIndex {
   return {
@@ -25,10 +25,10 @@ export function getSearchIndexConfig(name: string, keyspace: Keyspace): ISearchI
     sourceType: 'couchbase',
     params: {
       doc_config: {
-        docid_prefix_delim: '_',
+        docid_prefix_delim: '::',
         docid_regexp: '',
         mode: 'scope.collection.docid_prefix',
-        type_field: 'type',
+        type_field: '',
       },
       mapping: {
         default_analyzer: 'standard',

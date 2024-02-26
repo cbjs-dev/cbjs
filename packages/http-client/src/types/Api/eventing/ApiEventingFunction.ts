@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EventingFunctionUrlAuthData } from '@cbjs/shared';
+import { EventingFunctionUrlAuthData } from '@cbjsdev/shared';
 
 import { ApiEventingFunctionSettings } from './ApiEventingFunctionSettings';
 

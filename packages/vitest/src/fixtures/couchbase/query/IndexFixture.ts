@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CreateQueryIndexOptions } from '@cbjs/cbjs';
-import { OptionalProps } from '@cbjs/shared';
+import { CreateQueryIndexOptions } from '@cbjsdev/cbjs';
+import { OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { getRandomId } from '../../../utils/getRandomId';

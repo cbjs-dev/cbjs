@@ -18,7 +18,7 @@ import {
   EventingFunctionLanguageCompatibilityName,
   EventingFunctionLogLevelName,
   QueryScanConsistencyName,
-} from '@cbjs/shared';
+} from '@cbjsdev/shared';
 
 export type ApiEventingFunctionSettings =
   | {

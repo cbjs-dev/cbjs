@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { If, IsExactly, IsNever, Join, Primitive, TrySafe, UnionToTuple } from '@cbjs/shared';
+import type { If, IsExactly, IsNever, Join, Primitive, TrySafe, UnionToTuple } from '@cbjsdev/shared';
 import type { ArrayEntries, TupleFilter } from './array-utils.types';
 
 /**

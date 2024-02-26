@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseLogger } from '@cbjs/shared';
+import { CouchbaseLogger } from '@cbjsdev/shared';
 
 let logger: CouchbaseLogger | undefined = undefined;
 

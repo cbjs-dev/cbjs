@@ -17,22 +17,14 @@
 import { promisify } from 'node:util';
 
 import {
-  ApiSearchGetIndex,
-  ApiSearchIndexAnalyzeDocument,
-  ApiSearchIndexCountDocuments,
   ApiSearchIndexDefinition,
   ApiSearchIndexSuccessfulAnalysis,
-} from '@cbjs/http-client';
-import { ApiSearchGetAllIndexes } from '@cbjs/http-client/dist/src/types/Api/search/ApiSearchGetAllIndexes';
+} from '@cbjsdev/http-client';
 
 import { CppError, CppManagementSearchIndex } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
-import {
-  IndexNotFoundError,
-  SearchIndexManagementError,
-  SearchIndexNotFoundError,
-} from './errors';
+import { SearchIndexManagementError, SearchIndexNotFoundError } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
 

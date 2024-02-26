@@ -23,10 +23,10 @@ import {
   HttpErrorContext,
   ScopeExistsError,
   ScopeNotFoundError,
-} from '@cbjs/cbjs';
-import { getCollections, waitForCollection } from '@cbjs/http-client';
-import { invariant } from '@cbjs/shared';
-import { createCouchbaseTest } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { getCollections, waitForCollection } from '@cbjsdev/http-client';
+import { invariant } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 

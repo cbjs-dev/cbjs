@@ -24,8 +24,8 @@ import {
   SamplingScan,
   ScanResult,
   ScanTerm,
-} from '@cbjs/cbjs';
-import { couchbaseFixture, createCouchbaseTest } from '@cbjs/vitest';
+} from '@cbjsdev/cbjs';
+import { couchbaseFixture, createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 

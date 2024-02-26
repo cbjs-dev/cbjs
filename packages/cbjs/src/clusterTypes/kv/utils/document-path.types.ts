@@ -34,7 +34,7 @@ import type {
   PathToParentAccessor,
   SubDocument
 } from "./path-utils.types";
-import type { IsExactly, IsNever } from '@cbjs/shared';
+import type { IsExactly, IsNever } from '@cbjsdev/shared';
 
 /**
  *  Extract document paths for which `Type` extends the target property type.

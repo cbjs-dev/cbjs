@@ -21,7 +21,7 @@ export default mergeConfig(
   sharedProjectConfig,
   defineProject({
     test: {
-      name: 'package:@cbjs/vitest',
+      name: 'package:@cbjsdev/vitest',
       pool: 'forks',
       minWorkers: 1,
       maxWorkers: 1,
