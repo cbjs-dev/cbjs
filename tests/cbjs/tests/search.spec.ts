@@ -142,23 +142,24 @@ describe
         const sampleData = await useSampleData(collection);
         const indexName = await useSearchIndex(indexConfig, {
           waitSearchIndexTimeout: 55_000,
-          // awaitQueryVisibility: true,
-          // awaitMutations: true,
+          awaitMutations: true,
         });
 
-        const result = await serverTestContext.cluster.searchQuery(
-          indexName,
-          SearchQuery.term(sampleData.testUid).field('testUid'),
-          { explain: true, fields: ['name'] }
-        );
+        await waitFor(async () => {
+          const result = await serverTestContext.cluster.searchQuery(
+            indexName,
+            SearchQuery.term(sampleData.testUid).field('testUid'),
+            { explain: true, fields: ['name'] }
+          );
 
-        expect(result.rows).toBeInstanceOf(Array);
-        expect(result.rows).toHaveLength(sampleData.sampleSize);
+          expect(result.rows).toBeInstanceOf(Array);
+          expect(result.rows).toHaveLength(sampleData.sampleSize);
 
-        result.rows.forEach((row) => {
-          expect(row.index).toBeTypeOf('string');
-          expect(row.id).toBeTypeOf('string');
-          expect(row.score).toBeTypeOf('number');
+          result.rows.forEach((row) => {
+            expect(row.index).toBeTypeOf('string');
+            expect(row.id).toBeTypeOf('string');
+            expect(row.score).toBeTypeOf('number');
+          });
         });
       },
       { timeout: 60_000 }
