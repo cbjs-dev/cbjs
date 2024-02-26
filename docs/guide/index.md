@@ -15,22 +15,20 @@ You can learn more about the rationale behind the project in the [Why Cbjs](./wh
 ::: code-group
 
 ```bash [npm]
-npm install cbjs
+npm install @cbjsdev/cbjs
 ```
 
 ```bash [yarn]
-yarn add cbjs
+yarn add @cbjsdev/cbjs
 ```
 
 ```bash [pnpm]
-pnpm add cbjs
+pnpm add @cbjsdev/cbjs
 ```
 
 ```bash [bun]
-bun add cbjs
+bun add @cbjsdev/cbjs
 ```
-
-:::
 
 :::tip
 Cbjs requires Node >=v18.00
