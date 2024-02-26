@@ -12,8 +12,8 @@
     "tests/v8-optimization"
   ],
   "scripts": {
-    "build": "npm run build -ws --if-present",
-    "dev": "lerna run dev --scope @cbjsdev/*",
+    "build": "lerna run --stream build --scope @cbjsdev/*",
+    "dev": "lerna run --parallel dev --scope @cbjsdev/*",
     "lint:check": "eslint --quiet --cache packages tests",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
