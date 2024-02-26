@@ -50,8 +50,8 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjsdev/shared": "*",
-    "@cbjsdev/http-client": "*",
+    "@cbjsdev/http-client": "^1.0.0",
+    "@cbjsdev/shared": "^1.0.0",
     "node-addon-api": "^7.0.0"
   },
   "devDependencies": {

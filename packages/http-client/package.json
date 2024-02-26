@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/http-client",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A type safe HTTP client for Couchbase.",
   "keywords": [
     "couchbase",
@@ -25,7 +25,7 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjsdev/shared": "*",
+    "@cbjsdev/shared": "^1.0.0",
     "cross-fetch": "^4.0.0",
     "ts-retry-promise": "^0.8.0"
   },
