@@ -56,6 +56,18 @@ type UserClusterTypes = {
 };
 
 describe('mutateIn', function () {
+  describe('Common', () => {
+    it('should reject arrayAddUnique with options.multi = true', async function () {
+      const cluster = await connect('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
+
+      await collection.mutateIn('test__document', [
+        // @ts-expect-error options.multi is not allowed with `arrayAddUnique`
+        MutateInSpec.arrayAddUnique('tags', ['foo', 'bar'], { multi: true }),
+      ]);
+    });
+  });
+
   describe('Default Cluster Types', function () {
     it('should accept any path and any value when given an array of typeless specs', async function () {
       const cluster = await connect('couchbase://127.0.0.1');
@@ -100,16 +112,37 @@ describe('mutateIn', function () {
         MutateInResult<[undefined, undefined, number]>
       >();
     });
+  });
 
-    describe('User-defined ClusterTypes', function () {
-      it("should accept any path of the collection's document and its matching value when given an array of typeless specs", async function () {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
+  describe('User-defined ClusterTypes', function () {
+    it("should accept any path of the collection's document and its matching value when given an array of typeless specs", async function () {
+      const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
 
-        await collection.mutateIn('test__document', [
+      await collection.mutateIn('test__document', [
+        MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
+        MutateInSpec.increment('sales[0]', 3),
+        // @ts-expect-error Invalid path
+        MutateInSpec.increment('sales[0]', 'three'),
+        // @ts-expect-error Invalid path
+        MutateInSpec.insert('metadata.tags[0]', 'whatever'),
+        // @ts-expect-error Invalid path
+        MutateInSpec.insert('metadata.tags', 'whatever'),
+        // @ts-expect-error Path does not exist
+        MutateInSpec.upsert('does_not_exists', 'whatever'),
+      ]);
+    });
+
+    it('should validate the specs when options are passed', async function () {
+      const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
+
+      await collection.mutateIn(
+        'test__document',
+        [
           MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
           MutateInSpec.increment('sales[0]', 3),
-          // @ts-expect-error Invalid path
+          // @ts-expect-error Invalid value
           MutateInSpec.increment('sales[0]', 'three'),
           // @ts-expect-error Invalid path
           MutateInSpec.insert('metadata.tags[0]', 'whatever'),
@@ -117,82 +150,61 @@ describe('mutateIn', function () {
           MutateInSpec.insert('metadata.tags', 'whatever'),
           // @ts-expect-error Path does not exist
           MutateInSpec.upsert('does_not_exists', 'whatever'),
-        ]);
-      });
+        ],
+        { timeout: 200 }
+      );
+    });
 
-      it('should validate the specs when options are passed', async function () {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
+    it('should validate the specs when a callback is passed', async function () {
+      const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
 
-        await collection.mutateIn(
-          'test__document',
-          [
-            MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
-            MutateInSpec.increment('sales[0]', 3),
-            // @ts-expect-error Invalid value
-            MutateInSpec.increment('sales[0]', 'three'),
-            // @ts-expect-error Invalid path
-            MutateInSpec.insert('metadata.tags[0]', 'whatever'),
-            // @ts-expect-error Invalid path
-            MutateInSpec.insert('metadata.tags', 'whatever'),
-            // @ts-expect-error Path does not exist
-            MutateInSpec.upsert('does_not_exists', 'whatever'),
-          ],
-          { timeout: 200 }
-        );
-      });
-
-      it('should validate the specs when a callback is passed', async function () {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        await collection.mutateIn(
-          'test__document',
-          [
-            MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
-            MutateInSpec.increment('sales[0]', 3),
-            // @ts-expect-error Invalid value
-            MutateInSpec.increment('sales[0]', 'three'),
-            // @ts-expect-error Invalid path
-            MutateInSpec.insert('metadata.tags[0]', 'whatever'),
-            // @ts-expect-error Invalid path
-            MutateInSpec.insert('metadata.tags', 'whatever'),
-            // @ts-expect-error Path does not exist
-            MutateInSpec.upsert('does_not_exists', 'whatever'),
-          ],
-          (err, result) => console.log(err, result)
-        );
-      });
-
-      it('should validate the specs when both options and a callback are passed', async function () {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        await collection.mutateIn(
-          'test__document',
-          [
-            MutateInSpec.increment('sales[0]', 3),
-            // @ts-expect-error Invalid value
-            MutateInSpec.increment('sales[0]', 'three'),
-            // @ts-expect-error Invalid value
-            MutateInSpec.increment('sales[1]', 'three'),
-          ],
-          { timeout: 3 },
-          (err, result) => console.log(err, result)
-        );
-      });
-
-      it('should infer the mutation result when given an array of typeless specs', async function () {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        const result = await collection.mutateIn('test__document', [
+      await collection.mutateIn(
+        'test__document',
+        [
           MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
           MutateInSpec.increment('sales[0]', 3),
-        ]);
+          // @ts-expect-error Invalid value
+          MutateInSpec.increment('sales[0]', 'three'),
+          // @ts-expect-error Invalid path
+          MutateInSpec.insert('metadata.tags[0]', 'whatever'),
+          // @ts-expect-error Invalid path
+          MutateInSpec.insert('metadata.tags', 'whatever'),
+          // @ts-expect-error Path does not exist
+          MutateInSpec.upsert('does_not_exists', 'whatever'),
+        ],
+        (err, result) => console.log(err, result)
+      );
+    });
 
-        expectTypeOf(result).toEqualTypeOf<MutateInResult<[undefined, number]>>();
-      });
+    it('should validate the specs when both options and a callback are passed', async function () {
+      const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
+
+      await collection.mutateIn(
+        'test__document',
+        [
+          MutateInSpec.increment('sales[0]', 3),
+          // @ts-expect-error Invalid value
+          MutateInSpec.increment('sales[0]', 'three'),
+          // @ts-expect-error Invalid value
+          MutateInSpec.increment('sales[1]', 'three'),
+        ],
+        { timeout: 3 },
+        (err, result) => console.log(err, result)
+      );
+    });
+
+    it('should infer the mutation result when given an array of typeless specs', async function () {
+      const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
+
+      const result = await collection.mutateIn('test__document', [
+        MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
+        MutateInSpec.increment('sales[0]', 3),
+      ]);
+
+      expectTypeOf(result).toEqualTypeOf<MutateInResult<[undefined, number]>>();
     });
   });
 

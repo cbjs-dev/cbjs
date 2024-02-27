@@ -144,7 +144,7 @@ export type MutateInValue<
   Opcode extends CppProtocolSubdocOpcode.array_push_last ? MutateInArrayAppendValue<Doc, Path & MutateInArrayAppendPath<Doc>, Multi> :
   Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependValue<Doc, Path & MutateInArrayPrependPath<Doc>, Multi> :
   Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertValue<Doc, Path & MutateInArrayInsertPath<Doc>, Multi> :
-  Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniqueValue<Doc, Path & MutateInArrayAddUniquePath<Doc>, Multi> :
+  Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniqueValue<Doc, Path & MutateInArrayAddUniquePath<Doc>> :
   Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterValue<Doc> :
   never
 ;

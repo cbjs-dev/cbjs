@@ -179,8 +179,9 @@ export class ChainableLookupIn<
   ): ThisAnd<this, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get, Path>>;
 
   /**
-   * Push a {@link LookupInSpec.get}() spec.
+   * Get a property from the document.
    *
+   * @see LookupInSpec.get
    * @param path The path to the field.
    * @param options Optional parameters for this operation.
    * @param options.xattr
@@ -196,8 +197,9 @@ export class ChainableLookupIn<
   }
 
   /**
-   * Push a {@link LookupInSpec.exists}() spec.
+   * Check if a property exists in the document.
    *
+   * @see LookupInSpec.exists
    * @param path The path to the field.
    * @param options Optional parameters for this operation.
    * @param options.xattr
@@ -213,8 +215,9 @@ export class ChainableLookupIn<
   }
 
   /**
-   * Push a {@link LookupInSpec.count}() spec.
+   * Count the number of elements in an array, or the number of keys in an object.
    *
+   * @see LookupInSpec.count
    * @param path The path to the field.
    * @param options Optional parameters for this operation.
    * @param options.xattr

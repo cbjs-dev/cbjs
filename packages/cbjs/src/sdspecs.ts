@@ -750,8 +750,8 @@ export class MutateInSpec<
   }
 
   /**
-   * Creates a MutateInSpec for adding unique values to an array in a document.  This
-   * operation will only add values if they do not already exist elsewhere in the array.
+   * Creates a MutateInSpec for adding a unique value to an array in a document.  This
+   * operation will only add the value if it does not already exist elsewhere in the array.
    *
    * @param path The path to the field.
    * @param value The value to add.
@@ -759,9 +759,6 @@ export class MutateInSpec<
    * @param options.createPath
    * Whether or not the path to the field should be created if it does not
    * already exist.
-   * @param options.multi
-   * If set, this enables an array of values to be passed as value, and each
-   * element of the passed array is added to the array.
    * @param options.xattr
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
@@ -773,15 +770,14 @@ export class MutateInSpec<
       Doc,
       CppProtocolSubdocOpcode.array_add_unique,
       Path,
-      Multi
+      false
     >,
-    Multi extends boolean = false,
   >(
     this: void,
     path: Path,
     value: Value,
-    options?: MutateInArrayAddUniqueOptions<Multi>
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value> {
+    options?: MutateInArrayAddUniqueOptions
+  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, false, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_add_unique,
       path,

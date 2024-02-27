@@ -562,23 +562,18 @@ export class MutationSpecs<
   arrayAddUnique<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_add_unique>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_add_unique, Path>,
-    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
-    options?: MutateInArrayAddUniqueOptions<Multi>
+    options?: MutateInArrayAddUniqueOptions
   ): MutationSpecs<
     Doc,
     [
       ...SpecDefinitions,
-      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value>,
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, false, Value>,
     ]
   > {
-    const spec = MutateInSpec.arrayAddUnique<Doc, Path, Value, Multi>(
-      path,
-      value,
-      options
-    );
+    const spec = MutateInSpec.arrayAddUnique<Doc, Path, Value>(path, value, options);
     return new MutationSpecs([...this.getSpecs(), spec]);
   }
 

@@ -123,9 +123,11 @@ export class ChainableMutateIn<
   }
 
   /**
-   * Creates a MutateInSpec for inserting a field into the document.  Failing if
-   * the field already exists at the specified path.
+   * Set the value of a non-existing property.
    *
+   * Fails if the field already exists at the specified path.
+   *
+   * @see MutateInSpec.insert
    * @param path The path to the field.
    * @param value The value to insert.
    * @param options Optional parameters for this operation.
@@ -215,9 +217,9 @@ export class ChainableMutateIn<
   >;
 
   /**
-   * Creates a MutateInSpec for upserting a field on a document.  This updates
-   * the value of the specified field, or creates the field if it does not exits.
+   * Set the value of a property. If the property does not exist, it is created.
    *
+   * @see MutateInSpec.upsert
    * @param path The path to the field.
    * @param value The value to write.
    * @param options Optional parameters for this operation.
@@ -261,9 +263,11 @@ export class ChainableMutateIn<
   }
 
   /**
-   * Creates a MutateInSpec for replacing a field on a document.  This updates
-   * the value of the specified field, failing if the field does not exits.
+   * Set the value of an existing property.
    *
+   * Fails if the property does not exits.
+   *
+   * @see MutateInSpec.replace
    * @param path The path to the field.
    * @param value The value to write.
    * @param options Optional parameters for this operation.
@@ -333,8 +337,11 @@ export class ChainableMutateIn<
   >;
 
   /**
-   * Creates a MutateInSpec for remove a field from a document.
+   * Remove a property from the document.
    *
+   * Fails if the property does not exist.
+   *
+   * @see MutateInSpec.remove
    * @param path The path to the field.
    * @param options Optional parameters for this operation.
    * @param options.xattr
@@ -355,8 +362,12 @@ export class ChainableMutateIn<
   }
 
   /**
-   * Creates a MutateInSpec for adding a value to the end of an array in a document.
+   * Add one or more values at end of an array.
    *
+   * Fails if the property does not exist, unless `{ createPath: true }`.
+   * Use `{ multi: true }` to add multiple values.
+   *
+   * @see MutateInSpec.arrayAppend
    * @param path The path to the field.
    * @param value The value to add.
    * @param options Optional parameters for this operation.
@@ -405,8 +416,12 @@ export class ChainableMutateIn<
   }
 
   /**
-   * Creates a MutateInSpec for adding a value to the beginning of an array in a document.
+   * Add one or more values at beginning of an array.
    *
+   * Fails if the property does not exist, unless `{ createPath: true }`.
+   * Use `{ multi: true }` to add multiple values.
+   *
+   * @see MutateInSpec.arrayPrepend
    * @param path The path to the field.
    * @param value The value to add.
    * @param options Optional parameters for this operation.
@@ -455,9 +470,12 @@ export class ChainableMutateIn<
   }
 
   /**
-   * Creates a MutateInSpec for adding a value to a specified location in an array in a
-   * document.  The path should specify a specific index in the array and the new values
-   * are inserted at this location.
+   * Add one or more values at a specific array index.
+   *
+   * Fails if the property does not exist, unless `{ createPath: true }`.
+   * Use `{ multi: true }` to add multiple values.
+   *
+   * @example arrayInsert('authors[1]', 'Luke');
    *
    * @param path The path to an element of an array.
    * @param value The value to add.
@@ -507,8 +525,10 @@ export class ChainableMutateIn<
   }
 
   /**
-   * Creates a MutateInSpec for adding unique values to an array in a document.  This
-   * operation will only add values if they do not already exist elsewhere in the array.
+   * Add a value to an array, only if it cannot be found elsewhere in the array.
+   * The position of the new elements is unknown.
+   *
+   * Fails if the property does not exist, unless `{ createPath: true }`.
    *
    * @param path The path to the field.
    * @param value The value to add.
@@ -516,9 +536,6 @@ export class ChainableMutateIn<
    * @param options.createPath
    * Whether or not the path to the field should be created if it does not
    * already exist.
-   * @param options.multi
-   * If set, this enables an array of values to be passed as value, and each
-   * element of the passed array is added to the array.
    * @param options.xattr
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
@@ -533,26 +550,24 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.array_add_unique,
       Path
     >,
-    Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
-    options?: MutateInArrayAddUniqueOptions<Multi>
+    options?: MutateInArrayAddUniqueOptions
   ): ThisAnd<
     this,
     MutateInSpec<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.array_add_unique,
       Path,
-      Multi,
+      false,
       Value
     >
   > {
     const spec = MutateInSpec.arrayAddUnique<
       ExtractCollectionJsonDocBody<C, Key>,
       Path,
-      Value,
-      Multi
+      Value
     >(path, value, options);
     return this.push(spec);
   }

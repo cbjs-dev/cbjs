@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, test } from 'vitest';
+import { describe, expectTypeOf, it, test } from 'vitest';
 
 import { Collection } from './collection';
+import { connect } from './couchbase';
 import { LookupInResult, MutateInResult } from './crudoptypes';
 import { LookupInSpec, MutateInSpec } from './sdspecs';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
@@ -114,5 +115,22 @@ describe('Collection', () => {
         }
       )
     ).resolves.toEqualTypeOf<MutateInResult<[undefined, number]>>();
+
+    it('should accept any path and any value when given an array of typeless specs', async function () {
+      const cluster = await connect('couchbase://127.0.0.1');
+      const collection = cluster.bucket('test').defaultCollection();
+
+      await collection.mutateIn('test__document', [
+        MutateInSpec.upsert('what', 'foo'),
+        MutateInSpec.arrayInsert('what', 'foo'),
+        MutateInSpec.insert('does_not_exists', 'foo'),
+        MutateInSpec.remove('does_not_exists'),
+        MutateInSpec.replace('does_not_exists', 'bar'),
+        MutateInSpec.arrayAppend('does_not_exists', 'bar'),
+        MutateInSpec.arrayPrepend('does_not_exists', 'bar'),
+        MutateInSpec.arrayInsert('does_not_exists[0]', 'bar'),
+        MutateInSpec.arrayAddUnique('does_not_exists[0]', 'bar'),
+      ]);
+    });
   });
 });

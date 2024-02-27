@@ -39,7 +39,7 @@ export class GetResult<T = any> {
   /**
    * The expiry of the document, if it was requested.
    *
-   * @see {@link GetOptions.withExpiry}
+   * @see GetOptions.withExpiry
    */
   expiryTime?: number;
 

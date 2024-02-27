@@ -329,15 +329,14 @@ export type MutateInArrayAddUniquePath<Doc extends object> =
 export type MutateInArrayAddUniqueValue<
   Doc extends object,
   Path extends MutateInArrayAddUniquePath<Doc>,
-  Multi extends boolean,
 > =
-  OperationValue<Doc, Multi, ArrayAppendElement<Extract<SubDocument<Doc, Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Doc, false, ArrayAppendElement<Extract<SubDocument<Doc, Path>, ReadonlyArray<unknown>>>>
 ;
 
 /**
  * Mutation options for an `arrayAddUnique` operation.
  */
-export type MutateInArrayAddUniqueOptions<Multi extends boolean> = { createPath?: boolean; xattr?: boolean, multi?: Multi };
+export type MutateInArrayAddUniqueOptions = { createPath?: boolean; xattr?: boolean };
 
 /**
  * Function that returns a {@link MutateInSpec} instance for an `arrayAddUnique` operation.
@@ -350,7 +349,7 @@ export type MutateInArrayAddUniqueFunction<in Doc extends object> =
   >(
     path: Path,
     value: Value,
-    options?: MutateInArrayAddUniqueOptions<Multi>
+    options?: MutateInArrayAddUniqueOptions
   ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value>
 ;
 
