@@ -24,7 +24,7 @@ import {
   Keyspace,
   keyspacePath,
   NoInfer,
-  Try,
+  OneOf,
 } from '@cbjsdev/shared';
 
 import {
@@ -95,7 +95,6 @@ import { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types
 import {
   MutateInResultEntries,
   MutateInSpecResults,
-  NarrowMutationSpecs,
 } from './clusterTypes/kv/mutation/mutateIn.types';
 import { ArrayElement } from './clusterTypes/kv/utils/array-utils.types';
 import {
@@ -119,10 +118,12 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
-import { CouchbaseList } from './services/kv/dataStructures/CouchbaseList';
-import { CouchbaseMap } from './services/kv/dataStructures/CouchbaseMap';
-import { CouchbaseQueue } from './services/kv/dataStructures/CouchbaseQueue';
-import { CouchbaseSet } from './services/kv/dataStructures/CouchbaseSet';
+import {
+  CouchbaseList,
+  CouchbaseMap,
+  CouchbaseQueue,
+  CouchbaseSet,
+} from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
 import { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
@@ -195,8 +196,6 @@ export type ClientDurabilityOptions = {
    * exclusive of {@link durabilityLevel}.
    */
   durabilityReplicateTo: number;
-
-  durabilityLevel?: undefined;
 };
 
 export type ServerDurabilityOptions = {
@@ -204,11 +203,9 @@ export type ServerDurabilityOptions = {
    * Specifies the level of synchronous durability for this operation.
    */
   durabilityLevel: DurabilityLevel;
-  durabilityReplicateTo?: undefined;
-  durabilityPersistTo?: undefined;
 };
 
-export type DurabilityOptions = ClientDurabilityOptions | ServerDurabilityOptions;
+export type DurabilityOptions = OneOf<[ClientDurabilityOptions, ServerDurabilityOptions]>;
 
 export type MutationOptions = Partial<DurabilityOptions> & {
   /**
