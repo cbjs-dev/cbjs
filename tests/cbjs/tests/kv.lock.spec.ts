@@ -57,6 +57,7 @@ describe.shuffle(
       const res = await serverTestContext.collection.getAndLock(testDocKey, 2);
 
       expect(res.cas).toBeNonZeroCAS();
+      expect(res.content).toEqual({ title: 'hello' });
       expect(res.value).toEqual({ title: 'hello' });
     });
 
