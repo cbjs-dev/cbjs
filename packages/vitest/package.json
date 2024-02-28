@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/vitest",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Vitest extended tests and fixtures for your tests with Couchbase",
   "keywords": [
     "couchbase",
@@ -35,8 +35,8 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjsdev/cbjs": "^1.0.0",
-    "@cbjsdev/http-client": "^1.0.0",
+    "@cbjsdev/cbjs": "^1.1.0",
+    "@cbjsdev/http-client": "^1.1.0",
     "vitest": "^1.2.0"
   },
   "devDependencies": {
