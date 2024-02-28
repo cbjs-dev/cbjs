@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { If } from '@cbjsdev/shared';
+
 import { DocDef } from './clusterTypes';
 import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types';
 import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types';
@@ -25,7 +27,7 @@ import { Cas } from './utilities';
  *
  * @category Key-Value
  */
-export class GetResult<T = any> {
+export class GetResult<T = any, WithExpiry extends boolean = boolean> {
   /**
    * The content of the document.
    */
@@ -38,18 +40,23 @@ export class GetResult<T = any> {
 
   /**
    * The expiry of the document, if it was requested.
+   * A value of `0` means the document has no expiration time.
    *
    * @see GetOptions.withExpiry
    */
-  expiryTime?: number;
+  expiryTime: If<WithExpiry, number, undefined>;
 
   /**
    * @internal
    */
-  constructor(data: { content: T; cas: Cas; expiryTime?: number }) {
+  constructor(data: {
+    content: T;
+    cas: Cas;
+    expiryTime?: If<WithExpiry, number, undefined>;
+  }) {
     this.content = data.content;
     this.cas = data.cas;
-    this.expiryTime = data.expiryTime;
+    this.expiryTime = data.expiryTime as If<WithExpiry, number, undefined>;
   }
 
   /**
@@ -69,7 +76,7 @@ export class GetResult<T = any> {
    *
    * @deprecated Use {@link GetResult.expiryTime} instead.
    */
-  get expiry(): number | undefined {
+  get expiry(): If<WithExpiry, number, undefined> {
     return this.expiryTime;
   }
 }

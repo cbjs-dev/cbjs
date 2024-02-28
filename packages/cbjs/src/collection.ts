@@ -143,7 +143,7 @@ import {
 /**
  * @category Key-Value
  */
-export interface GetOptions<Doc> {
+export interface GetOptions<Doc, WithExpiry extends boolean = boolean> {
   /**
    * Specifies a list of fields within the document which should be fetched.
    * This allows for easy retrieval of select fields without incurring the
@@ -159,7 +159,7 @@ export interface GetOptions<Doc> {
    * Indicates that the expiry of the document should be fetched alongside
    * the data itself.
    */
-  withExpiry?: boolean;
+  withExpiry?: WithExpiry;
 
   /**
    * Specifies an explicit transcoder to use for this specific operation.
@@ -548,19 +548,23 @@ export class Collection<
   async get<
     Doc extends ExtractBodyByKey<Key, CT['Document']>,
     Key extends CT['Key'] = CT['Key'],
+    WithExpiry extends boolean = false,
   >(
     key: Key,
-    callbackOrOptions?: GetOptions<Doc> | NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>>;
+    callbackOrOptions?:
+      | GetOptions<Doc, WithExpiry>
+      | NodeCallback<GetResult<Doc, WithExpiry>>
+  ): Promise<GetResult<Doc, WithExpiry>>;
 
   async get<
     Doc extends ExtractBodyByKey<Key, CT['Document']>,
     Key extends CT['Key'] = CT['Key'],
+    WithExpiry extends boolean = boolean,
   >(
     key: Key,
-    options: GetOptions<Doc>,
-    callback: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>>;
+    options: GetOptions<Doc, WithExpiry>,
+    callback: NodeCallback<GetResult<Doc, WithExpiry>>
+  ): Promise<GetResult<Doc, WithExpiry>>;
   /**
    * Retrieves the value of a document from the collection.
    *
@@ -571,11 +575,12 @@ export class Collection<
   async get<
     Doc extends ExtractBodyByKey<Key, CT['Document']>,
     Key extends CT['Key'] = CT['Key'],
+    WithExpiry extends boolean = boolean,
   >(
     key: Key,
-    options?: GetOptions<Doc> | NodeCallback<GetResult<Doc>>,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>> {
+    options?: GetOptions<Doc, WithExpiry> | NodeCallback<GetResult<Doc, WithExpiry>>,
+    callback?: NodeCallback<GetResult<Doc, WithExpiry>>
+  ): Promise<GetResult<Doc, WithExpiry>> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
@@ -631,9 +636,10 @@ export class Collection<
   private async _projectedGet<
     Doc extends ExtractBodyByKey<Key, CT['ObjectDocument']>,
     Key extends CT['Key'],
+    WithExpiry extends boolean = boolean,
   >(
     key: Key,
-    options: GetOptions<Doc>,
+    options: GetOptions<Doc, WithExpiry>,
     callback?: NodeCallback<GetResult>
   ): Promise<GetResult> {
     let expiryStart = -1;

@@ -144,6 +144,18 @@ describe.shuffle('kv get', async () => {
     await waitFor(() => expect(catchCallback).toHaveBeenCalled(), { timeout: 100 });
   });
 
+  test.runIf(serverSupportsFeatures(ServerFeatures.Xattr))(
+    'should return the expiryTime when requested',
+    async function ({ serverTestContext, expect, testKeyA }) {
+      const res = await serverTestContext.collection.get(testKeyA, {
+        withExpiry: true,
+      });
+
+      expect(res.expiry).toBeTypeOf('number');
+      expect(res.expiryTime).toBeTypeOf('number');
+    }
+  );
+
   test('should perform projected gets', async function ({
     serverTestContext,
     expect,
@@ -177,54 +189,53 @@ describe.shuffle('kv get', async () => {
     });
   });
 
-  test.runIf(serverSupportsFeatures(ServerFeatures.Xattr))(
-    'should fall back to full get projection',
-    async function ({ serverTestContext, expect, testKeyA }) {
-      const res = await serverTestContext.collection.get(testKeyA, {
-        project: [
-          'c',
-          'd',
-          'e',
-          'f',
-          'g',
-          'h',
-          'i',
-          'j',
-          'k',
-          'l',
-          'm',
-          'n',
-          'o',
-          'p',
-          'q',
-          'r',
-        ],
-        withExpiry: true,
-      });
+  test('projections larger than 16 should exactly return the requested projections', async function ({
+    serverTestContext,
+    expect,
+    testKeyA,
+  }) {
+    const res = await serverTestContext.collection.get(testKeyA, {
+      project: [
+        'c',
+        'd',
+        'e',
+        'f',
+        'g',
+        'h',
+        'i',
+        'j',
+        'k',
+        'l',
+        'm',
+        'n',
+        'o',
+        'p',
+        'q',
+        'r',
+      ],
+    });
 
-      expect(res.expiry).toBeTypeOf('number');
-      expect(res.content).toEqual({
-        c: 1,
-        d: 'str',
-        e: true,
-        f: false,
-        g: 5,
-        h: 6,
-        i: 7,
-        j: 8,
-        k: 9,
-        l: 10,
-        m: 11,
-        n: 12,
-        o: 13,
-        p: 14,
-        q: 15,
-        r: 16,
-      });
+    expect(res.content).toEqual({
+      c: 1,
+      d: 'str',
+      e: true,
+      f: false,
+      g: 5,
+      h: 6,
+      i: 7,
+      j: 8,
+      k: 9,
+      l: 10,
+      m: 11,
+      n: 12,
+      o: 13,
+      p: 14,
+      q: 15,
+      r: 16,
+    });
 
-      // BUG JSCBC-784: Check to make sure that the value property
-      // returns the same as the content property.
-      expect(res.value).toStrictEqual(res.content);
-    }
-  );
+    // BUG JSCBC-784: Check to make sure that the value property
+    // returns the same as the content property.
+    expect(res.value).toStrictEqual(res.content);
+  });
 });

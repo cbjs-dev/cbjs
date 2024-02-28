@@ -179,4 +179,21 @@ describe('Collection', async () => {
       ]);
     });
   });
+
+  describe('get', () => {
+    it('should type expiryTime as undefined when no option is given', async () => {
+      const result = await collection.get('book::001');
+      expectTypeOf(result.expiryTime).toEqualTypeOf<undefined>();
+    });
+
+    it('should type expiryTime as undefined when not requested', async () => {
+      const result = await collection.get('book::001', { withExpiry: false });
+      expectTypeOf(result.expiryTime).toEqualTypeOf<undefined>();
+    });
+
+    it('should type expiryTime as number when requested', async () => {
+      const result = await collection.get('book::001', { withExpiry: true });
+      expectTypeOf(result.expiryTime).toEqualTypeOf<number>();
+    });
+  });
 });
