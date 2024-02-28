@@ -49,6 +49,15 @@ export default defineConfig({
               text: 'Cluster Types',
               link: '/guide/cluster-types',
             },
+            {
+              text: 'Services',
+              items: [
+                {
+                  text: 'KeyValue',
+                  link: '/guide/services/kv.md',
+                },
+              ],
+            },
           ],
         },
       ],
