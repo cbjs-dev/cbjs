@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "prepack": "rm -rf dist && npm run build"
   },
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",

@@ -27,7 +27,8 @@
     "install": "node ./scripts/install.mjs 4.2.10",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "prepack": "rm -rf dist && npm run build"
   },
   "type": "module",
   "main": "dist/src/index.js",
