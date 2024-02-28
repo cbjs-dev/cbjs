@@ -45,6 +45,7 @@ describe.shuffle('kv touch', async () => {
       // Touch the document
       const touchResult = await serverTestContext.collection.touch(testDocKey, 8);
       expect(touchResult.cas).toBeNonZeroCAS();
+      expect(touchResult.token).toBeUndefined();
 
       // Check the key is there after the initial expiry value
       await sleep(4000);

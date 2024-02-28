@@ -1535,7 +1535,7 @@ export class Collection<
         opaque: 0,
       });
 
-      const result = new MutationResult<undefined>({
+      const result = new MutationResult({
         cas: response.cas,
         token: undefined,
       });
