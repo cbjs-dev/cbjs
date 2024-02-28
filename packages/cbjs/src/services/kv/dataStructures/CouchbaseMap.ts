@@ -205,6 +205,10 @@ export class CouchbaseMap<
         LookupInSpec.exists(item as string),
       ]);
 
+      if (res.content[0].error) {
+        throw res.content[0].error;
+      }
+
       const itemRes = res.content[0];
       return itemRes.value;
     }, callback);
@@ -244,6 +248,11 @@ export class CouchbaseMap<
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
       const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('')]);
+
+      if (res.content[0].error) {
+        throw res.content[0].error;
+      }
+
       return res.content[0].value;
     }, callback);
   }

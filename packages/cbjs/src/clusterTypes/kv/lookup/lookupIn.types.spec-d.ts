@@ -527,14 +527,14 @@ describe('LookupInSpecs', () => {
     it('should infer the array of result', () => {
       expectTypeOf<LookupInResultEntries<[string, number, boolean]>>().toEqualTypeOf<
         [
-          LookupInResultEntry<string>,
-          LookupInResultEntry<number>,
-          LookupInResultEntry<boolean>,
+          LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>,
+          LookupInResultEntry<number, null> | LookupInResultEntry<undefined, Error>,
+          LookupInResultEntry<boolean, null> | LookupInResultEntry<undefined, Error>,
         ]
       >();
 
       expectTypeOf<LookupInResultEntries<boolean[]>>().toEqualTypeOf<
-        LookupInResultEntry<boolean>[]
+        LookupInResultEntry<boolean, null> | LookupInResultEntry<undefined, Error>[]
       >();
     });
   });

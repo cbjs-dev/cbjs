@@ -16,58 +16,104 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { Collection } from './collection';
+import { DocDef } from './clusterTypes';
 import { connect } from './couchbase';
-import { LookupInResult, MutateInResult } from './crudoptypes';
+import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes';
 import { LookupInSpec, MutateInSpec } from './sdspecs';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
 
-describe('Collection', () => {
-  test('lookupIn', () => {
-    const collection: Collection = true as any;
+type TestDoc = {
+  title: string;
+  authors: [string, ...string[]];
+  sales: number;
+  metadata: {
+    tags: string[];
+  };
+};
 
-    expectTypeOf(collection.lookupIn('book::001')).toEqualTypeOf<
-      ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', []>
-    >();
+type UserClusterTypes = {
+  test: {
+    _default: {
+      _default: DocDef<`book::${string}`, TestDoc>;
+    };
+  };
+};
 
-    expectTypeOf(collection.lookupIn('book::001', { timeout: 200 })).toEqualTypeOf<
-      ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', []>
-    >();
+/**
+ * Here we test the API types, so essentially the overloads
+ * and the return types from a high-level perspective.
+ * The tests of the inferred types and done in the clusterTypes directory
+ */
 
-    expectTypeOf(
-      collection.lookupIn('book::001', [LookupInSpec.get('title')])
-    ).toEqualTypeOf<Promise<LookupInResult<[any]>>>();
+describe('Collection', async () => {
+  const cluster = await connect<UserClusterTypes>('');
+  const collection = cluster.bucket('test').defaultCollection();
 
-    expectTypeOf(
-      collection.lookupIn('book::001', [LookupInSpec.get('title')], { timeout: 200 })
-    ).toEqualTypeOf<Promise<LookupInResult<[any]>>>();
+  describe('lookupIn', async () => {
+    it('should have the correct return type', async () => {
+      expectTypeOf(collection.lookupIn('book::001')).toEqualTypeOf<
+        ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', []>
+      >();
 
-    expectTypeOf(
-      collection.lookupIn(
-        'book::001',
-        [LookupInSpec.get('title')],
-        { timeout: 200 },
-        (err, res) => {
+      expectTypeOf(collection.lookupIn('book::001', { timeout: 200 })).toEqualTypeOf<
+        ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', []>
+      >();
+
+      expectTypeOf(
+        collection.lookupIn('book::001', [LookupInSpec.get('title')])
+      ).toEqualTypeOf<Promise<LookupInResult<[string]>>>();
+
+      expectTypeOf(
+        collection.lookupIn('book::001', [LookupInSpec.get('title')], { timeout: 200 })
+      ).toEqualTypeOf<Promise<LookupInResult<[string]>>>();
+    });
+
+    it('should narrow the type of the callback arguments', async () => {
+      expectTypeOf(
+        collection.lookupIn(
+          'book::001',
+          [LookupInSpec.get('title')],
+          { timeout: 200 },
+          (err, res) => {
+            expectTypeOf(err).toEqualTypeOf<Error | null>();
+            expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]> | null>();
+
+            if (err) return;
+
+            expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]>>();
+          }
+        )
+      ).resolves.toEqualTypeOf<LookupInResult<[string]>>();
+
+      expectTypeOf(
+        collection.lookupIn('book::001', [LookupInSpec.get('title')], (err, res) => {
           expectTypeOf(err).toEqualTypeOf<Error | null>();
-          if (err) return;
-          expectTypeOf(res).toEqualTypeOf<LookupInResult<[any]>>();
-        }
-      )
-    ).resolves.toEqualTypeOf<LookupInResult<[any]>>();
+          expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]> | null>();
 
-    expectTypeOf(
-      collection.lookupIn('book::001', [LookupInSpec.get('title')], (err, res) => {
-        expectTypeOf(err).toEqualTypeOf<Error | null>();
-        if (err) return;
-        expectTypeOf(res).toEqualTypeOf<LookupInResult<[any]>>();
-      })
-    ).resolves.toEqualTypeOf<LookupInResult<[any]>>();
+          if (err) return;
+
+          expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]>>();
+        })
+      ).resolves.toEqualTypeOf<LookupInResult<[string]>>();
+    });
+
+    it('should narrow the type of LookupInResult properties', async () => {
+      const { content } = await collection.lookupIn('book::001', [
+        LookupInSpec.get('title'),
+      ]);
+      const [title] = content;
+      expectTypeOf(title).toEqualTypeOf<
+        LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>
+      >();
+
+      if (title.error) return;
+
+      expectTypeOf(title.value).toEqualTypeOf<string>();
+    });
   });
 
   test('mutateIn', () => {
-    const collection: Collection = true as any;
-
     expectTypeOf(collection.mutateIn('book::001')).toEqualTypeOf<
       ChainableMutateIn<typeof collection, 'book::001', []>
     >();
@@ -79,14 +125,14 @@ describe('Collection', () => {
     expectTypeOf(
       collection.mutateIn('book::001', [
         MutateInSpec.upsert('title', 'Hi'),
-        MutateInSpec.increment('sales', 'Hi'),
+        MutateInSpec.increment('sales', 1),
       ])
     ).toEqualTypeOf<Promise<MutateInResult<[undefined, number]>>>();
 
     expectTypeOf(
       collection.mutateIn(
         'book::001',
-        [MutateInSpec.upsert('title', 'Hi'), MutateInSpec.increment('sales', 'Hi')],
+        [MutateInSpec.upsert('title', 'Hi'), MutateInSpec.increment('sales', 1)],
         { timeout: 200 }
       )
     ).toEqualTypeOf<Promise<MutateInResult<[undefined, number]>>>();
@@ -94,7 +140,7 @@ describe('Collection', () => {
     expectTypeOf(
       collection.mutateIn(
         'book::001',
-        [MutateInSpec.upsert('title', 'Hi'), MutateInSpec.increment('sales', 'Hi')],
+        [MutateInSpec.upsert('title', 'Hi'), MutateInSpec.increment('sales', 1)],
         { timeout: 200 },
         (err, res) => {
           expectTypeOf(err).toEqualTypeOf<Error | null>();
@@ -107,7 +153,7 @@ describe('Collection', () => {
     expectTypeOf(
       collection.mutateIn(
         'book::001',
-        [MutateInSpec.upsert('title', 'Hi'), MutateInSpec.increment('sales', 'Hi')],
+        [MutateInSpec.upsert('title', 'Hi'), MutateInSpec.increment('sales', 1)],
         (err, res) => {
           expectTypeOf(err).toEqualTypeOf<Error | null>();
           if (err) return;

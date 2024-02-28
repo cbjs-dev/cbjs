@@ -15,7 +15,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { connect } from '..';
+import { connect } from './index';
 
 describe('DefaultClusterTypes', () => {
   it('Cluster should accept any bucket name', async () => {

@@ -204,21 +204,21 @@ export class GetReplicaResult<T = any> {
  *
  * @category Key-Value
  */
-export class LookupInResultEntry<Result = any> {
+export class LookupInResultEntry<Value = any, Err extends Error | null = Error | null> {
   /**
    * The error, if any, which occurred when attempting to perform this sub-operation.
    */
-  error: Error | null;
+  error: Err;
 
   /**
    * The value returned by the sub-operation.
    */
-  value: Result;
+  value: Value;
 
   /**
    * @internal
    */
-  constructor(data: { value: Result; error: Error | null }) {
+  constructor(data: { value: Value; error: Err }) {
     this.error = data.error;
     this.value = data.value;
   }
@@ -319,6 +319,7 @@ export class MutateInResultEntry<Result extends number | undefined = any> {
  */
 export class MutateInResult<
   Results extends ReadonlyArray<number | undefined> = Array<any>,
+  Token extends MutationToken | undefined = MutationToken,
 > {
   /**
    * A list of result entries for each sub-operation performed.

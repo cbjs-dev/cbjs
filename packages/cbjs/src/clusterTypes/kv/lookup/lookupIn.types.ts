@@ -81,10 +81,10 @@ export type LookupInSpecResult<Spec extends LookupInSpec, CollectionDocuments> =
  */
 export type LookupInResultEntries<Results extends ReadonlyArray<unknown>> =
   Results extends readonly [infer Head extends unknown, ...infer Rest extends ReadonlyArray<unknown>] ?
-    [LookupInResultEntry<Head>, ...LookupInResultEntries<Rest>] :
+    [LookupInResultEntry<Head, null> | LookupInResultEntry<undefined, Error>, ...LookupInResultEntries<Rest>] :
   IsArrayLengthFixed<Results> extends true ?
     [] :
-  LookupInResultEntry<ArrayElement<Results>>[]
+  LookupInResultEntry<ArrayElement<Results>, null> | LookupInResultEntry<undefined, Error>[]
 ;
 
 /**
