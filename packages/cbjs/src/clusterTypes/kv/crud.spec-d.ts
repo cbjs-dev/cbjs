@@ -24,7 +24,6 @@ import {
 } from '../../crudoptypes';
 import { PrefixScan, SamplingScan } from '../../rangeScan';
 import { LookupInSpec } from '../../sdspecs';
-import { lookupSpec } from '../../specBuilders';
 import { StreamableReplicasPromise } from '../../streamablepromises';
 import { DocDef } from '../clusterTypes';
 
@@ -55,7 +54,7 @@ describe('Collection.get', function () {
     const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
     const collection = cluster.bucket('test').defaultCollection();
     const doc = await collection.get('book::001');
-    expectTypeOf(doc).toEqualTypeOf<GetResult<Book>>();
+    expectTypeOf(doc).toEqualTypeOf<GetResult<Book, false>>();
   });
 });
 
