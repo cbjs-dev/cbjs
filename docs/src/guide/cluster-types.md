@@ -1,5 +1,8 @@
 ---
 title: Cluster Types | Guide
+next:
+  text: 'KeyValue Service'
+  link: '/guide/services/kv'
 ---
 
 # Cluster Types
@@ -24,20 +27,19 @@ type CouchbaseClusterTypes = {
 };
 ```
 
-The following example describe the keyspace `store.library.books` that can contain two types of documents.  
+The following example describe the keyspace `store.library.books` that can contain two types of documents.
 
 :::tip
-Document keys are expressed as a template literal.  
-This enables key validation and more powerful type narrowing.
+Express documents keys as a template literal to enable key validation and more powerful type narrowing.
 :::
 
 ```ts
 type MyClusterTypes = {
-  storey: {
+  store: {
     library: {
       books:
         | DocDef<`author::${string}`, { firstname: string; lastname: string; }>
-        | DocDef<`book::${string}`, { type: 'book'; authors: string[] }>;
+        | DocDef<`book::${string}`, { title: string; authors: string[]; }>;
     };
   };
 };
@@ -51,13 +53,23 @@ Given the previous definitions, the following type safety arise :
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
 
-collection.get('book::001'); // { type: 'book'; authors: string[] }
-collection.insert('book::002', 1); // ❌ TS Error: The value is invalid
-collection.lookupIn('book::01', [
-  LookupInSpec.get('authors'), // Autocomplete the path
-  LookupInSpec.count('authors'), // Autocomplete with the only possible path for a count
-  LookupInSpec.get('author'), // TS Error : Path is invalid
-]);
+const bookId = 'book::001';
+
+// All Good 👌
+await collection.get(bookId); // Book
+await collection.lookupIn(bookId).get('title'); // string
+await collection.lookupIn(bookId).get('authors'); // string[]
+await collection.lookupIn(bookId).get('authors[0]'); // string
+
+await collection.mutateIn(bookId).arrayAddUnique('metadata.tags', 'database');
+
+// TS Error ❌
+await collection.get('vegetable::001'); // invalid key
+await collection.lookupIn(bookId).get('tite'); // property does not exist
+await collection.lookupIn(bookId).get('quaterSales[4]'); // quaterSales is a tuple with 4 members maximum
+
+await collection.mutateIn(bookId).insert('title'); // `title` is a required property, therefore it already exist
+await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467'); // invalid value. `quaterSales` is a tuple of numbers
 ```
 
 ## Incremental adoption
@@ -73,7 +85,7 @@ type MyClusterTypes = DefaultClusterTypes & {
   store: {
     library: {
       books: {
-        /* ... */
+        /* Document definitions */
       };
     };
   };
@@ -90,24 +102,21 @@ The purpose of the path autocompletion is to prevent small mistakes and to write
 It does not guarantee that the document path will exist at runtime. Consider the following :
 
 ```ts
-type MyDoc = { title: string; metadata: { tags?: string[] } };
-const result = collection.lookupIn('myDoc', [
-  LookupInSpec.get('metadata.tags[2]')
-]);
+type Doc = { metadata: { tags?: string[] } };
+const result = await collection.lookupIn('docKey').get('metadata.tags[2]');
 ```
 
 The path is valid because it may exist, but you may very well receive an error at runtime if the array index does not exist.
 The same logic applies when you use optional properties or union types:
 
 ```ts
-type MyDoc = {
+type Doc = {
   description?: string;
   sales: number[] | Record<string, number>;
 };
-const result = collection.lookupIn('myDoc', [
-  LookupInSpec.get('description'),
-  LookupInSpec.get('sales.2024')
-]);
+const result = await collection.lookupIn('docKey')
+  .get('description')
+  .get('sales.2024');
 ```
 
 ### IDE autocompletion
@@ -115,9 +124,8 @@ const result = collection.lookupIn('myDoc', [
 Because of IDEs current limitations, autocomplete will not be offered for array indexes. Using the previous example :
 
 ```ts
-const result = collection.lookupIn('myDoc', [
-  LookupInSpec.get('metadata.tags[0]')
-]);
+const result = await collection.lookupIn('docKey')
+  .get('metadata.tags[0]');
 ```
 
 Because the path is expressed as a template literal, `metadata.tags[${number}]`, your IDE will not offer `metadata.tags[0]` but only `metadata.tags`.  
@@ -135,5 +143,5 @@ type PathToDeepStringArray = `[${number}]` | `[${number}][${number}]${string}`;
 
 ### Tuples
 
-Cbjs considers that tuples cannot change in length, regardless of them being readonly or not.  
+Cbjs considers that tuples cannot change in length, regardless of them being readonly or not.
 The values themselves can be modified, unless the tuple is `readonly`.

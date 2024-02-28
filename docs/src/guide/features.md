@@ -6,8 +6,8 @@ outline: deep
 # Features
 
 - Compatible with the official client
-- Proper TypeScript signatures
-- KV type safety for doc and sub-document operation
+- Improved TypeScript function signatures
+- KeyValue type safety for document and sub-document operation
 - Path autocomplete for sub-document operation
 - Chainable sub-document operations
 - HTTP Client
@@ -17,9 +17,9 @@ outline: deep
 
 Cbjs is compatible with the official client.  
 The main goal of Cbjs is to bring TypeScript support.
-We have a single runtime change. See [runtime changes](runtime-changes).
+Cbjs also bring more sound and consistent behaviour, sometimes leading to small runtime changes. See [runtime changes](runtime-changes).
 
-## KV Supercharged Types
+## KeyValue Supercharged Types
 
 Once you have defined your [Cluster Types](cluster-types), you will unlock many powers :
 
