@@ -319,7 +319,6 @@ export class MutateInResultEntry<Result extends number | undefined = any> {
  */
 export class MutateInResult<
   Results extends ReadonlyArray<number | undefined> = Array<any>,
-  Token extends MutationToken | undefined = MutationToken,
 > {
   /**
    * A list of result entries for each sub-operation performed.
@@ -334,7 +333,7 @@ export class MutateInResult<
   /**
    * The token representing the mutation performed.
    */
-  token?: MutationToken;
+  token: MutationToken;
 
   /**
    * @internal
@@ -342,7 +341,7 @@ export class MutateInResult<
   constructor(data: {
     content: MutateInResultEntries<Results>;
     cas: Cas;
-    token?: MutationToken;
+    token: MutationToken;
   }) {
     this.content = data.content;
     this.cas = data.cas;
