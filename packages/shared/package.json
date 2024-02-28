@@ -24,5 +24,7 @@
   "devDependencies": {
     "zod": "^3.22.4"
   },
-  "gitHead": "cbabff53477375bc19faf2df36983b3d28b09cd0"
+  "publishConfig": {
+    "access": "public"
+  }
 }
