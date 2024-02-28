@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { z } from 'zod';
+import { invariant } from '../../misc';
 
-const zConnectionParams = z.object({
-  connectionString: z.string({
-    required_error: 'Missing env connection string (CB_CONNECTION_STRING)',
-  }),
-  credentials: z.object({
-    username: z.string({ required_error: 'Missing env username (CB_USER)' }),
-    password: z.string({ required_error: 'Missing env password (CB_PASSWORD)' }),
-  }),
-});
-
-export type ConnectionParams = z.output<typeof zConnectionParams>;
+export type ConnectionParams = {
+  connectionString: string;
+  credentials: {
+    username: string;
+    password: string;
+  };
+};
 
 export function getConnectionParams(): ConnectionParams {
   const env = {
@@ -36,5 +32,9 @@ export function getConnectionParams(): ConnectionParams {
     },
   };
 
-  return zConnectionParams.parse(env);
+  invariant(env.connectionString, 'Missing env connection string (CB_CONNECTION_STRING)');
+  invariant(env.credentials.username, 'Missing env username (CB_USER)');
+  invariant(env.credentials.password, 'Missing env password (CB_PASSWORD)');
+
+  return env as ConnectionParams;
 }
