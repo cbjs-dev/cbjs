@@ -96,4 +96,14 @@ describe.shuffle('ds queue', async () => {
 
     await expect(queue.pop()).rejects.toThrow(CouchbaseError);
   });
+
+  test('should throw CouchbaseError when getting the size of a binary document', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    await serverTestContext.collection.insert(testDocKey, 'hello');
+    const queue = serverTestContext.collection.queue(testDocKey);
+    await expect(queue.size()).rejects.toThrowError(CouchbaseError);
+  });
 });

@@ -86,4 +86,23 @@ describe.shuffle('ds set', async () => {
 
     await expect(set.remove(99)).rejects.toThrowError(CouchbaseError);
   });
+
+  test('should throw CouchbaseError when operating on a missing document', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const set = serverTestContext.collection.set('missingDoc');
+    await expect(set.size()).rejects.toThrowError(CouchbaseError);
+  });
+
+  test('should throw CouchbaseError when getting the size of a binary document', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    await serverTestContext.collection.insert(testDocKey, 'hello');
+    const set = serverTestContext.collection.set(testDocKey);
+    await expect(set.size()).rejects.toThrowError(CouchbaseError);
+  });
 });
