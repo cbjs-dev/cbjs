@@ -15,18 +15,32 @@
  */
 import { defineConfig } from 'vitepress';
 
-// https://vitepress.dev/reference/site-config
+import { version } from '../../packages/cbjs/package.json';
+
+const repositoryUrl = 'https://github.com/cbjs-dev/cbjs/';
+
 export default defineConfig({
   srcDir: 'src',
   title: 'Cbjs',
   description: 'Modern Couchbase client for JS runtimes',
   lastUpdated: true,
   themeConfig: {
-    // https://vitepress.dev/reference/default-theme-config
     search: {
       provider: 'local',
     },
-    nav: [{ text: 'Guide', link: '/guide/' }],
+
+    editLink: {
+      pattern: `${repositoryUrl}/edit/main/docs/:path`,
+      text: 'Suggest changes to this page',
+    },
+
+    nav: [
+      { text: 'Guide', link: '/guide/', activeMatch: '^/guide/' },
+      {
+        text: `v${version}`,
+        link: `${repositoryUrl}/releases`,
+      },
+    ],
 
     sidebar: {
       '/': [
