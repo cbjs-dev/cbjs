@@ -17,6 +17,7 @@ import { defineConfig } from 'vitepress';
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  srcDir: 'src',
   title: 'Cbjs',
   description: 'Modern Couchbase client for JS runtimes',
   lastUpdated: true,
@@ -25,7 +26,7 @@ export default defineConfig({
     search: {
       provider: 'local',
     },
-    nav: [{ text: 'Guide', link: '/getting-started' }],
+    nav: [{ text: 'Guide', link: '/guide/' }],
 
     sidebar: {
       '/': [

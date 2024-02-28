@@ -9,20 +9,19 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /guide
+      link: /guide/
     - theme: alt
       text: Why Cbjs?
       link: /guide/why
 
 features:
   - title: Autocompletion
+    icon: <span class="autocompletion"><span>T</span><span class="prediction">itle</span></span>
     details: Your IDE will autocomplete document keys and document path for sub-document operations.
-  - title: Typed return values
-    icon:
-      src: /typescript-logo.svg
+  - title: Amazing TypeScript support
+    icon: <span><img src="/typescript-logo.svg" /></span>
     details: Cluster connections are typed so you know what you are getting back.
-  - title: 100% Compatible
-    icon:
-      src: /couchbase-logo.svg
+  - title: Compatible with the official client
+    icon: <span class="couchbase-logo"></span>
     details: Drop-in replacement for the official library.
 ---

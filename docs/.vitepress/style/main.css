@@ -1,12 +1,37 @@
-.icon-padding {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    background-color: var(--vp-c-default-soft);
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
-    transition: background-color .25s;
+.is-home .icon > span {
+    background-size: 100% 100%;
+    background-color: transparent;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.is-home .icon > span.couchbase-logo {
+    border-radius: 9999px;
+}
+
+.is-home .icon > span.couchbase-logo {
+    border-radius: 9999px;
+    background-color: white;
+    background-image: url("/couchbase-logo-light.svg");
+    color: #EC1218FF;
+}
+
+html.dark .is-home .icon > span.couchbase-logo {
+    border-radius: 9999px;
+    background-color: #EC1218FF;
+    background-image: url("/couchbase-logo-dark.svg");
+}
+
+.is-home .icon > span.autocompletion {
+    height: 29px;
+    width: 29px;
+    font-size: 0.6em;
+    font-weight: bolder;
+    color: var(--vp-button-brand-hover-bg);
+}
+
+.is-home .icon > span.autocompletion span.prediction {
+    /*color: lightblue;*/
+    padding-left: 0.1em;
+    opacity: 40%;
 }

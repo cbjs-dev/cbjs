@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "latest",
+    "svg-path-reverse": "^1.7.0",
     "vite": "^5.0.0",
     "vitepress": "^1.0.0-rc.40"
   }
