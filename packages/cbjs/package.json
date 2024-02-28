@@ -45,7 +45,7 @@
   },
   "files": [
     "dist/**/*.{js,js.map,d.ts}",
-    "scripts/*.mjs",
+    "scripts/**/*.mjs",
     "LICENSE",
     "NOTICE"
   ],
