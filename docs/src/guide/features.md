@@ -39,3 +39,36 @@ await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467'); // inva
 ```
 
 You can learn more about this topic on the page dedicated to [Cluster Types](cluster-types).
+
+
+## Discriminated Unions
+
+Because Cbjs uses discriminated unions, type guards emerge naturally.
+
+Sub-document lookup :
+```ts
+const result = collection.lookupIn('docKey').get('title');
+const [ title ] = result.content;
+// Before : { value?: any; error: Error | null }
+// Cbjs : 
+//  | { value: string; error: null } 
+//  | { value: undefined; error: Error }  
+```
+
+Callbacks : 
+
+```ts
+const result = await collection.get('docKey', (err, res) => {
+  if (err) return;
+  // `res` is now of type : { title: string }
+});
+```
+
+## Better overall result types
+
+```ts
+const result = await collection.get('docKey', { withExpiry: true });
+const { expiryTime } = result;
+//       ?^ Before : number | undefined
+//          Cbjs : number
+```
