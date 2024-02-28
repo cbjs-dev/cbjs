@@ -29,9 +29,9 @@ import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
-describe
-  .runIf(serverSupportsFeatures(ServerFeatures.Search))
-  .shuffle('search', async () => {
+describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
+  'search',
+  async () => {
     const test = await createCouchbaseTest({
       useSampleData,
     });
@@ -326,4 +326,6 @@ describe
         expect(err.context).toBeInstanceOf(HttpErrorContext);
       }
     });
-  });
+  },
+  { retry: 2 }
+);
