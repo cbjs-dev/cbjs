@@ -44,6 +44,9 @@
       "types": "./dist/src/internal.d.ts"
     }
   },
+  "imports": {
+    "#packageJson": "./package.json"
+  },
   "files": [
     "dist/**/*.{js,js.map,d.ts}",
     "scripts/**/*.mjs",
