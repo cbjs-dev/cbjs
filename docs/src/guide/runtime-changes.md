@@ -18,11 +18,7 @@ When using a data structure helper like `CouchbaseSet`, you can get the size of 
 Cbjs will throw an error.
 
 ```ts
-const ds = collection.set(binaryDocumentKey);
-
-// Before
-const dsSize = collection.set(binaryDocumentKey).size(); // undefined
-
-// Now
-const dsSize = collection.set(binaryDocumentKey).size(); // throws
+// Before : undefined
+// Cbjs : throws an error
+const dsSize = collection.set(binaryDocumentKey).size();
 ```
