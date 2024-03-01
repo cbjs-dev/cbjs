@@ -41,6 +41,7 @@
     "vitest": "^1.2.0"
   },
   "devDependencies": {
+    "antlr4": "4.13.1-patch-1",
     "zod": "^3.22.4"
   },
   "publishConfig": {
