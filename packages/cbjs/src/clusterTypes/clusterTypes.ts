@@ -165,15 +165,18 @@ export type ObjectDocumentDef<T extends DocDef> = T extends infer Doc extends Do
 /**
  * Extract document definitions where the body extends `E`.
  */
-export type ExtractDefByBody<Def extends DocDef, E> = Def extends unknown
-  ? Def['Body'] extends infer Body
-    ? Body extends E
+export type ExtractDefByBody<Def extends DocDef, Body> = Def extends unknown
+  ? Def['Body'] extends infer DocBody
+    ? DocBody extends Body
       ? Def
       : never
     : never
   : never;
 
-export type ExtractDefByKey<Key extends string, Def extends DocDef> = Key extends unknown
+export type ExtractDocDefByKey<
+  Def extends DocDef,
+  Key extends string,
+> = Key extends unknown
   ? Def extends unknown
     ? Key extends Def['Key']
       ? Def
@@ -181,7 +184,10 @@ export type ExtractDefByKey<Key extends string, Def extends DocDef> = Key extend
     : never
   : never;
 
-export type ExtractBodyByKey<Key extends string, Def extends DocDef> = Key extends unknown
+export type ExtractDocBodyByKey<
+  Def extends DocDef,
+  Key extends string,
+> = Key extends unknown
   ? Def extends unknown
     ? Key extends Def['Key']
       ? Def['Body']
@@ -210,9 +216,16 @@ export type ExtractCollectionDocumentDef<C> =
     ? Defs
     : never;
 
-export type ExtractCollectionJsonDocBody<C, Key extends string> = ExtractBodyByKey<
-  Key,
-  ExtractCollectionDocumentBag<C>['ObjectDocument']
+export type KeyspaceDocDef<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = any,
+  S extends ScopeName<T, B> = any,
+  C extends CollectionName<T, B, S> = any,
+> = T[B][S][C];
+
+export type ExtractCollectionJsonDocBody<C, Key extends string> = ExtractDocBodyByKey<
+  ExtractCollectionDocumentBag<C>['ObjectDocument'],
+  Key
 >;
 
 export type ExtractCollectionJsonDocKey<C> =

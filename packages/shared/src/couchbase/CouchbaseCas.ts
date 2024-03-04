@@ -29,5 +29,67 @@ export type Cas = {
   /**
    * Generates a JSON representation of this CAS.
    */
-  toJSON(): Record<string, unknown>;
+  toJSON(): string;
 };
+
+/**
+ * Create, parse and compare CAS objects.
+ */
+export class CouchbaseCas implements Cas {
+  private raw: Buffer;
+
+  constructor(value: string | bigint | number) {
+    this.raw = CouchbaseCas.toBuffer(value);
+  }
+
+  private static toBuffer(value: string | bigint | number): Buffer {
+    let binaryString = BigInt(value).toString(2);
+
+    // Byte padding
+    const padding = 8 - (binaryString.length % 8);
+    binaryString = '0'.repeat(padding) + binaryString;
+
+    const bytes = [];
+    for (let i = 0; i < binaryString.length; i += 8) {
+      bytes.push(parseInt(binaryString.substring(i, i + 8), 2));
+    }
+
+    return Buffer.from(bytes.reverse());
+  }
+
+  public static from(value: string | bigint | number) {
+    return new CouchbaseCas(value);
+  }
+
+  toJSON(): string {
+    return this.toString();
+  }
+
+  toString(): string {
+    const binaryString = Array.from(this.raw)
+      .reverse()
+      .map((byte) => byte.toString(2).padStart(8, '0'))
+      .join('');
+
+    return BigInt('0b' + binaryString).toString(10);
+  }
+
+  isEqual(cas: Cas | string | bigint | number) {
+    return CouchbaseCas.isEqual(this, cas);
+  }
+
+  isZeroCas(): boolean {
+    return CouchbaseCas.isZeroCas(this);
+  }
+
+  public static isZeroCas(cas: Cas | string | bigint | number): boolean {
+    return CouchbaseCas.isEqual('0', cas);
+  }
+
+  public static isEqual(
+    cas1: Cas | string | bigint | number,
+    cas2: Cas | string | bigint | number
+  ): boolean {
+    return cas1.toString() === cas2.toString();
+  }
+}

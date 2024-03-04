@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '@cbjsdev/shared';
+import { Cas, If, invariant } from '@cbjsdev/shared';
 
 import binding, {
-  CppQueryResponse,
   CppTransaction,
   CppTransactionGetMetaData,
   CppTransactionGetResult,
@@ -31,13 +30,24 @@ import {
   queryScanConsistencyToCpp,
 } from './bindingutilities';
 import { Cluster } from './cluster';
-import { CollectionAmong, CouchbaseClusterTypes } from './clusterTypes';
 import {
-  ExtractBodyByKey,
-  ExtractCollectionDocumentBag,
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  ScopeName,
+} from './clusterTypes';
+import {
   ExtractCollectionDocumentDef,
+  ExtractDocBodyByKey,
+  KeyspaceDocDef,
 } from './clusterTypes/clusterTypes';
-import { TransactionFailedError, TransactionOperationFailedError } from './errors';
+import { Collection } from './collection';
+import {
+  DocumentNotFoundError,
+  TransactionFailedError,
+  TransactionOperationFailedError,
+} from './errors';
 import { DurabilityLevel } from './generaltypes';
 import { QueryExecutor } from './queryexecutor';
 import {
@@ -47,40 +57,46 @@ import {
   QueryScanConsistency,
 } from './querytypes';
 import { Scope } from './scope';
-import { Cas, NodeCallback, PromiseHelper } from './utilities';
+import { NodeCallback, PromiseHelper } from './utilities';
 
 /**
  * Represents the path to a document.
  *
  * @category Transactions
  */
-export class DocumentId {
-  constructor() {
-    this.bucket = '';
-    this.scope = '';
-    this.collection = '';
-    this.key = '';
-  }
-
+export class DocumentId<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = any,
+  S extends ScopeName<T, B> = any,
+  C extends CollectionName<T, B, S> = any,
+  const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+> {
   /**
    * The name of the bucket containing the document.
    */
-  bucket: string;
+  bucket: B;
 
   /**
    * The name of the scope containing the document.
    */
-  scope: string;
+  scope: S;
 
   /**
    * The name of the collection containing the document.
    */
-  collection: string;
+  collection: C;
 
   /**
-   * The key of the docuemnt.
+   * The key of the document.
    */
-  key: string;
+  key: Key;
+
+  constructor(bucket: B, scope: S, collection: C, key: Key) {
+    this.bucket = bucket;
+    this.scope = scope;
+    this.collection = collection;
+    this.key = key;
+  }
 }
 
 /**
@@ -194,21 +210,55 @@ export class TransactionResult {
   unstagingComplete: boolean;
 }
 
+export type TransactionDocInfo<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = any,
+  S extends ScopeName<T, B> = any,
+  C extends CollectionName<T, B, S> = any,
+  Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+> = {
+  /**
+   * The id of the document.
+   */
+  id: DocumentId<T, B, S, C, Key>;
+
+  /**
+   * The CAS of the document.
+   */
+  cas: Cas;
+
+  /**
+   * @internal
+   */
+  _links: CppTransactionLinks;
+
+  /**
+   * @internal
+   */
+  _metadata: CppTransactionGetMetaData;
+};
+
 /**
  * Contains the results of a transactional Get operation.
  *
  * @category Transactions
  */
-export class TransactionGetResult<Doc> {
+export class TransactionGetResult<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = any,
+  S extends ScopeName<T, B> = any,
+  C extends CollectionName<T, B, S> = any,
+  Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+> {
   /**
    * The id of the document.
    */
-  id: DocumentId;
+  id: DocumentId<T, B, S, C, Key>;
 
   /**
    * The content of the document.
    */
-  content: Doc;
+  content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>;
 
   /**
    * The CAS of the document.
@@ -228,9 +278,65 @@ export class TransactionGetResult<Doc> {
   /**
    * @internal
    */
-  constructor(data: TransactionGetResult<Doc>) {
+  constructor(data: TransactionGetResult<T, B, S, C, Key>) {
     this.id = data.id;
     this.content = data.content;
+    this.cas = data.cas;
+    this._links = data._links;
+    this._metadata = data._metadata;
+  }
+}
+
+/**
+ * Contains the results of a transactional Exists operation.
+ *
+ * @category Transactions
+ */
+export class TransactionExistsResult<
+  const Exists extends boolean,
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = any,
+  S extends ScopeName<T, B> = any,
+  C extends CollectionName<T, B, S> = any,
+  const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+> {
+  /**
+   * The id of the document.
+   */
+  id: DocumentId<T, B, S, C, Key>;
+
+  /**
+   * Indicates whether the document existed or not.
+   */
+  exists: Exists;
+
+  /**
+   * The CAS of the document.
+   */
+  cas: If<Exists, Cas, undefined>;
+
+  /**
+   * @internal
+   */
+  _links: If<Exists, CppTransactionLinks, undefined>;
+
+  /**
+   * @internal
+   */
+  _metadata: If<Exists, CppTransactionGetMetaData, undefined>;
+
+  /**
+   * @internal
+   */
+  constructor(data: {
+    id: DocumentId<T, B, S, C, Key>;
+    exists: Exists;
+    cas: If<Exists, Cas, undefined>;
+    _links: If<Exists, CppTransactionLinks, undefined>;
+    _metadata: If<Exists, CppTransactionGetMetaData, undefined>;
+  }) {
+    this.id = data.id;
+    this.exists = data.exists;
     this.cas = data.cas;
     this._links = data._links;
     this._metadata = data._metadata;
@@ -352,11 +458,15 @@ export interface TransactionQueryOptions {
 /**
  * @internal
  */
-function translateGetResult<Doc>(
-  cppRes: CppTransactionGetResult
-): TransactionGetResult<Doc> {
+function translateGetResult<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = any,
+  S extends ScopeName<T, B> = any,
+  C extends CollectionName<T, B, S> = any,
+  Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+>(cppRes: CppTransactionGetResult): TransactionGetResult<T, B, S, C, Key> {
   return new TransactionGetResult({
-    id: cppRes.id,
+    id: cppRes.id as DocumentId<T, B, S, C, Key>,
     content:
       cppRes.content && cppRes.content.length > 0
         ? JSON.parse(cppRes.content.toString('utf8'))
@@ -415,30 +525,87 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param key The document key to retrieve.
    */
   async get<
-    C extends CollectionAmong<T>,
-    Key extends ExtractCollectionDocumentBag<C>['Key'],
-    Doc extends ExtractBodyByKey<Key, ExtractCollectionDocumentDef<C>> = ExtractBodyByKey<
-      Key,
-      ExtractCollectionDocumentDef<C>
-    >,
-  >(collection: C, key: Key): Promise<TransactionGetResult<Doc>> {
-    return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult<Doc>>) => {
-      const id = collection.getDocId(key);
-      this._impl.get(
-        {
-          id,
-        },
-        (cppErr, cppRes) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
+    T extends CouchbaseClusterTypes = DefaultClusterTypes,
+    B extends BucketName<T> = any,
+    S extends ScopeName<T, B> = any,
+    C extends CollectionName<T, B, S> = any,
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+      T,
+      B,
+      S,
+      C
+    >['Key'],
+  >(
+    collection: Collection<T, B, S, C>,
+    key: Key
+  ): Promise<TransactionGetResult<T, B, S, C, Key>> {
+    return PromiseHelper.wrap(
+      (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
+        const id = collection.getDocId(key);
+        this._impl.get(
+          {
+            id,
+          },
+          (cppErr, cppRes) => {
+            const err = errorFromCpp(cppErr);
+            if (err) {
+              return wrapCallback(err, null);
+            }
 
-          invariant(cppRes);
-          wrapCallback(null, translateGetResult(cppRes));
-        }
-      );
-    });
+            invariant(cppRes);
+            wrapCallback(null, translateGetResult(cppRes));
+          }
+        );
+      }
+    );
+  }
+
+  /**
+   * Check if a specific document exists in the collection or not.
+   *
+   * @param collection The collection the document may lives in.
+   * @param key The document key to check.
+   */
+  async exists<
+    T extends CouchbaseClusterTypes = DefaultClusterTypes,
+    B extends BucketName<T> = any,
+    S extends ScopeName<T, B> = any,
+    C extends CollectionName<T, B, S> = any,
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+      T,
+      B,
+      S,
+      C
+    >['Key'],
+  >(
+    collection: Collection<T, B, S, C>,
+    key: Key
+  ): Promise<
+    | TransactionExistsResult<true, T, B, S, C, Key>
+    | TransactionExistsResult<false, T, B, S, C, Key>
+  > {
+    try {
+      const { cas, id, _metadata, _links } = await this.get(collection, key);
+      return new TransactionExistsResult({
+        exists: true,
+        cas,
+        id,
+        _metadata,
+        _links,
+      });
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) {
+        return new TransactionExistsResult({
+          exists: false,
+          id: collection.getDocId(key) as DocumentId<T, B, S, C, Key>,
+          cas: undefined,
+          _links: undefined,
+          _metadata: undefined,
+        });
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -449,31 +616,41 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param content The document content to insert.
    */
   async insert<
-    C extends CollectionAmong<T>,
-    Key extends ExtractCollectionDocumentBag<C>['Key'],
-    Doc extends ExtractBodyByKey<Key, ExtractCollectionDocumentDef<C>> = ExtractBodyByKey<
-      Key,
-      ExtractCollectionDocumentDef<C>
-    >,
-  >(collection: C, key: Key, content: Doc): Promise<TransactionGetResult<Doc>> {
-    return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult<Doc>>) => {
-      const id = collection.getDocId(key);
-      this._impl.insert(
-        {
-          id,
-          content: Buffer.from(JSON.stringify(content)),
-        },
-        (cppErr, cppRes) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
+    T extends CouchbaseClusterTypes = DefaultClusterTypes,
+    B extends BucketName<T> = any,
+    S extends ScopeName<T, B> = any,
+    C extends CollectionName<T, B, S> = any,
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+      T,
+      B,
+      S,
+      C
+    >['Key'],
+  >(
+    collection: Collection<T, B, S, C>,
+    key: Key,
+    content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>
+  ): Promise<TransactionGetResult<T, B, S, C, Key>> {
+    return PromiseHelper.wrap(
+      (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
+        const id = collection.getDocId(key);
+        this._impl.insert(
+          {
+            id,
+            content: Buffer.from(JSON.stringify(content)),
+          },
+          (cppErr, cppRes) => {
+            const err = errorFromCpp(cppErr);
+            if (err) {
+              return wrapCallback(err, null);
+            }
 
-          invariant(cppRes);
-          wrapCallback(null, translateGetResult(cppRes));
-        }
-      );
-    });
+            invariant(cppRes);
+            wrapCallback(null, translateGetResult(cppRes));
+          }
+        );
+      }
+    );
   }
 
   /**
@@ -482,34 +659,47 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param doc The document to replace.
    * @param content The document content to insert.
    */
-  async replace<Doc>(
-    doc: TransactionGetResult<Doc>,
-    content: Doc
-  ): Promise<TransactionGetResult<Doc>> {
-    return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult<Doc>>) => {
-      this._impl.replace(
-        {
-          doc: {
-            id: doc.id,
-            content: Buffer.from(''),
-            cas: doc.cas,
-            links: doc._links,
-            metadata: doc._metadata,
+  async replace<
+    T extends CouchbaseClusterTypes = DefaultClusterTypes,
+    B extends BucketName<T> = any,
+    S extends ScopeName<T, B> = any,
+    C extends CollectionName<T, B, S> = any,
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+      T,
+      B,
+      S,
+      C
+    >['Key'],
+  >(
+    doc: TransactionDocInfo<T, B, S, C, Key>,
+    content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>
+  ): Promise<TransactionGetResult<T, B, S, C, Key>> {
+    return PromiseHelper.wrap(
+      (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
+        this._impl.replace(
+          {
+            doc: {
+              id: doc.id,
+              content: Buffer.from(''),
+              cas: doc.cas,
+              links: doc._links,
+              metadata: doc._metadata,
+            },
+            content: Buffer.from(JSON.stringify(content)),
           },
-          content: Buffer.from(JSON.stringify(content)),
-        },
-        (cppErr, cppRes) => {
-          const err = errorFromCpp(cppErr);
+          (cppErr, cppRes) => {
+            const err = errorFromCpp(cppErr);
 
-          if (err !== null) {
-            return wrapCallback(err, null);
+            if (err !== null) {
+              return wrapCallback(err, null);
+            }
+
+            invariant(cppRes);
+            wrapCallback(null, translateGetResult(cppRes));
           }
-
-          invariant(cppRes);
-          wrapCallback(null, translateGetResult(cppRes));
-        }
-      );
-    });
+        );
+      }
+    );
   }
 
   /**
@@ -517,7 +707,18 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    *
    * @param doc The document to remove.
    */
-  async remove<Doc>(doc: TransactionGetResult<Doc>): Promise<void> {
+  async remove<
+    T extends CouchbaseClusterTypes = DefaultClusterTypes,
+    B extends BucketName<T> = any,
+    S extends ScopeName<T, B> = any,
+    C extends CollectionName<T, B, S> = any,
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+      T,
+      B,
+      S,
+      C
+    >['Key'],
+  >(doc: TransactionDocInfo<T, B, S, C, Key>): Promise<void> {
     return PromiseHelper.wrap((wrapCallback) => {
       this._impl.remove(
         {

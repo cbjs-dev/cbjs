@@ -113,6 +113,39 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
       { timeout: 15_000 }
     );
 
+    test(
+      'should be able to check if a document exists within transaction',
+      async function ({ expect, serverTestContext, useDocumentKey }) {
+        const testDocKeyExists = useDocumentKey();
+
+        await serverTestContext.collection.insert(testDocKeyExists, {
+          op: 'testDocKeyExists.kv.exists',
+        });
+
+        await serverTestContext.cluster.transactions().run(
+          async (attempt) => {
+            const docExists = await attempt.exists(
+              serverTestContext.collection,
+              testDocKeyExists
+            );
+
+            expect(docExists.exists).toBe(true);
+            expect(docExists.cas).toBeNonZeroCAS();
+
+            const missingDocExists = await attempt.exists(
+              serverTestContext.collection,
+              'missingDoc'
+            );
+
+            expect(missingDocExists.exists).toBe(false);
+            expect(missingDocExists.cas).toBeUndefined();
+          },
+          { timeout: 5000 }
+        );
+      },
+      { timeout: 15_000 }
+    );
+
     test('should work with query', async function ({
       expect,
       serverTestContext,

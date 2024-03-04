@@ -22,3 +22,8 @@ Cbjs will throw an error.
 // Cbjs : throws an error
 const dsSize = collection.set(binaryDocumentKey).size();
 ```
+
+**DocumentId**
+
+When creating a new instance of the class `DocumentId`, its properties were initialized to an empty string. This is no longer the case with Cbjs.
+If you never create such instance yourself (you should not), you are not affected by this.
