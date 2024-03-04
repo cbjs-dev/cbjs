@@ -18,12 +18,23 @@ import { ParserRuleContext } from 'antlr4';
 import {
   ExprContext,
   From_termContext,
+  Keyspace_pathContext,
+  Keyspace_refContext,
   n1qlListener,
+  Path_partContext,
+  PathContext,
   Simple_from_termContext,
-} from './index';
+  Simple_keyspace_refContext,
+  UpdateContext,
+} from './generated';
 
 export class N1qlParserListener extends n1qlListener {
   private readonly keyspaces: string[][] = [];
+
+  getKeyspaces() {
+    return this.keyspaces;
+  }
+
   exitEveryRule(ctx: ParserRuleContext) {
     super.exitEveryRule(ctx);
   }
@@ -34,13 +45,14 @@ export class N1qlParserListener extends n1qlListener {
   };
 
   exitSimple_from_term = (ctx: Simple_from_termContext) => {
-    const keyspace = ctx
-      .expr()
-      .children?.map((c) => c.getText())
-      .filter((s) => s !== '.');
+    const keyspace = ctx.expr().getText().split('.');
+    this.keyspaces.push(keyspace);
+  };
 
-    if (keyspace === undefined) return;
-
+  exitSimple_keyspace_ref = (ctx: Simple_keyspace_refContext) => {
+    const keyspaceChildren =
+      ctx.children?.filter((c) => c instanceof Path_partContext) ?? [];
+    const keyspace = keyspaceChildren.map((c) => c.getText());
     this.keyspaces.push(keyspace);
   };
 

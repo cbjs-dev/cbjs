@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { parseN1QL } from './parseN1QL';
 
-export * from './generated';
-
-export * from './N1qlParserListener';
-export * from './N1qlParserError';
-export * from './N1qlParserErrorListener';
+export function getQueryKeyspaces(query: string) {
+  const result = parseN1QL(query);
+  return result.getKeyspaces();
+}

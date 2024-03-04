@@ -16,7 +16,7 @@
 import { RecognitionException } from 'antlr4';
 
 type N1qlParserErrorContext = {
-  offendingSymbol: string;
+  offendingSymbol: unknown;
   line: number;
   column: number;
   message: string;

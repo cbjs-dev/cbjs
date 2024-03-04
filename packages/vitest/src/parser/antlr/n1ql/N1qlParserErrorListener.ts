@@ -17,10 +17,10 @@ import { ErrorListener, RecognitionException, Recognizer } from 'antlr4';
 
 import { N1qlParserError } from './N1qlParserError';
 
-export class N1qlParserErrorListener extends ErrorListener<string> {
+export class N1qlParserErrorListener extends ErrorListener<unknown> {
   syntaxError(
-    recognizer: Recognizer<string>,
-    offendingSymbol: string,
+    recognizer: Recognizer<unknown>,
+    offendingSymbol: unknown,
     line: number,
     column: number,
     message: string,
