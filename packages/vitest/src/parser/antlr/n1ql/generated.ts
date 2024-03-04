@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import n1qlLexer from './generated/antlr/n1ql/n1qlLexer';
+import n1qlListener from './generated/antlr/n1ql/n1qlListener';
+import n1qlParser from './generated/antlr/n1ql/n1qlParser';
 
-export * from './generated';
+export { n1qlLexer, n1qlListener, n1qlParser };
 
-export * from './N1qlParserListener';
-export * from './N1qlParserError';
-export * from './N1qlParserErrorListener';
+export * from './generated/antlr/n1ql/n1qlParser';
