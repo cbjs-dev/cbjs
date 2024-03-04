@@ -1122,7 +1122,6 @@ export class Collection<
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 
-      // TODO: this thing throw a CouchbaseError instead of CppError
       if (callback) {
         callback(err, null);
       }

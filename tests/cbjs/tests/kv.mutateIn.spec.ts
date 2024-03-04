@@ -31,6 +31,8 @@ import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 
+// TODO create test file for MutateInMacro
+
 describe.shuffle('kv mutateIn', async () => {
   const test = await createCouchbaseTest(async ({ useDocumentKey }) => {
     return {

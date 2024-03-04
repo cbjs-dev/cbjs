@@ -149,21 +149,21 @@ export class MutateInMacro<
    * A macro which references the cas of a document.
    */
   static get Cas(): MutateInMacro {
-    return new MutateInMacro('${document.CAS}');
+    return new MutateInMacro('${Mutation.CAS}');
   }
 
   /**
    * A macro which references the seqno of a document.
    */
   static get SeqNo(): MutateInMacro {
-    return new MutateInMacro('${document.seqno}');
+    return new MutateInMacro('${Mutation.seqno}');
   }
 
   /**
    * A macro which references the crc32 of the value of a document.
    */
   static get ValueCrc32c(): MutateInMacro {
-    return new MutateInMacro('${document.value_crc32c}');
+    return new MutateInMacro('${Mutation.value_crc32c}');
   }
 }
 
