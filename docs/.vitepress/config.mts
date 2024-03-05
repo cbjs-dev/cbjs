@@ -16,21 +16,23 @@
 import { defineConfig } from 'vitepress';
 
 import { version } from '../../packages/cbjs/package.json';
+import { gaHeadScript } from './ga-scripts';
 
-const repositoryUrl = 'https://github.com/cbjs-dev/cbjs/';
+const repositoryUrl = 'https://github.com/cbjs-dev/cbjs';
 
 export default defineConfig({
   srcDir: 'src',
   title: 'Cbjs',
-  description: 'Modern Couchbase client for JS runtimes',
+  description: 'A modern Couchbase client for JS runtimes',
   lastUpdated: true,
+  head: [['script', {}, gaHeadScript]],
   themeConfig: {
     search: {
       provider: 'local',
     },
 
     editLink: {
-      pattern: `${repositoryUrl}/edit/main/docs/:path`,
+      pattern: `${repositoryUrl}/edit/main/docs/src/:path`,
       text: 'Suggest changes to this page',
     },
 
@@ -80,7 +82,7 @@ export default defineConfig({
     socialLinks: [{ icon: 'github', link: 'https://github.com/cbjs-dev/cbjs' }],
 
     footer: {
-      copyright: 'Copyright © 2023-PRESENT Jonathan Massuchetti',
+      copyright: 'Copyright © 2023-Present Jonathan Massuchetti',
     },
   },
 });
