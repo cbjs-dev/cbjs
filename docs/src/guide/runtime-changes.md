@@ -8,11 +8,15 @@ outline: deep
 While Cbjs aims to be compatible with the official client, if you rely on unsound behavior, a tiny change may result in a different runtime.
 For this reason we list here the tiny changes in Cbjs that may affect your existing project.
 
-**Timeout of 0**
+## Timeout
+
+**You are affected if**: you pass a timeout of `0` in some operation.
 
 If you pass a timeout of `0` to the official library, it will fallback to the default timeout. Cbjs will use your value of `0`.
 
-**Data structure `.size()`**
+## Data structure size
+
+**You are affected if**: you use `CouchbaseSet`, `CouchbaseList`, `CouchbaseQueue` or `CouchbaseList` on a invalid document and try to get its size.
 
 When using a data structure helper like `CouchbaseSet`, you can get the size of it by calling `CouchbaseSet.size()`. But if this document is a binary document for example, the official library will return `undefined`.
 Cbjs will throw an error.
@@ -23,7 +27,8 @@ Cbjs will throw an error.
 const dsSize = collection.set(binaryDocumentKey).size();
 ```
 
-**DocumentId**
+## DocumentId
+
+**You are affected if**: you create an instance of `DocumentId` and test the properties before you've set them.
 
 When creating a new instance of the class `DocumentId`, its properties were initialized to an empty string. This is no longer the case with Cbjs.
-If you never create such instance yourself (you should not), you are not affected by this.

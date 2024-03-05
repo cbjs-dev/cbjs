@@ -3,7 +3,7 @@ title: KeyValue Service | Guide
 outline: [2, 3]
 ---
 
-# KV Service
+# KeyValue Service
 
 The KV service allow you to perform atomic operations on the documents of a collection.  
 Learn more about more mechanisms like durability or locks in the [advanced mechanisms](/guide/services/kv-advanced) page.

@@ -7,11 +7,15 @@ Couchbase offers both optimistic and pessimistic locking.
 ### Optimistic locking
 
 When mutating a document, you may want to be sure you don't overwrite some changes made since you fetched that document.
-To do that, you can use the `cas` return while fetching the document, and use that `cas` during the mutation.
+To do that, you can use the `cas` returned while fetching the document, and use that `cas` during the mutation.
 
-```ts
+```ts{5}
 const { content, cas } = await collection.get('docKey');
-await collection.replace('docKey', { ...content, title: 'New Title' }, { cas });
+await collection.replace(
+  'docKey', 
+  { ...content, title: 'New Title' },
+  { cas }
+);
 ```
 
 By doing so, the mutation will fail if the document's `cas` is not longer the one you have been given, preventing you from overwriting changes that occurred in the mean time.
@@ -36,7 +40,7 @@ As you can see, the `cas` returned by the `Collection.getAndLock` operation is r
 Any mutation you perform on the document, given the correct `cas`, will unlock it.
 :::
 
-If the document is fetched while it is locked, the result will include a random `cas` value, making sure nobody can mutate the document.
+If the document is fetched while it is locked, the result will include a random `cas` value, preventing anybody from unlocking or mutating the document.
 
 ## Durability
 
