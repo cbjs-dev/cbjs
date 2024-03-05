@@ -16,7 +16,6 @@
 import { defineConfig } from 'vitepress';
 
 import { version } from '../../packages/cbjs/package.json';
-import { gaHeadScript } from './ga-scripts';
 
 const repositoryUrl = 'https://github.com/cbjs-dev/cbjs';
 
@@ -25,7 +24,20 @@ export default defineConfig({
   title: 'Cbjs',
   description: 'A modern Couchbase client for JS runtimes',
   lastUpdated: true,
-  head: [['script', {}, gaHeadScript]],
+  head: [
+    [
+      'script',
+      { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-0TFQ0L2SG1' },
+    ],
+    [
+      'script',
+      {},
+      `window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-0TFQ0L2SG1');`,
+    ],
+  ],
   themeConfig: {
     search: {
       provider: 'local',
