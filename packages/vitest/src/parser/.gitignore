@@ -1,2 +1,2 @@
 antlr/*/generated
-antlr/n1ql/n1ql.g4
+!antlr/*/generated/**/*.ts
