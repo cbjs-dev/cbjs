@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RecognitionException } from 'antlr4';
+import { RecognitionException, Recognizer, Token } from 'antlr4';
 
-type N1qlParserErrorContext = {
-  offendingSymbol: unknown;
+type N1qlParserErrorContext<T> = {
+  recognizer: Recognizer<T>;
+  offendingSymbol: T;
   line: number;
   column: number;
   message: string;
 };
 
-export class N1qlParserError extends Error {
-  public readonly context: N1qlParserErrorContext;
-
-  constructor(context: N1qlParserErrorContext, cause: RecognitionException) {
+export class N1qlParserError<T> extends Error {
+  constructor(context: N1qlParserErrorContext<T>, cause?: RecognitionException) {
     const { offendingSymbol, line, column, message } = context;
 
-    super(
-      `Failed to parse n1ql query : ${offendingSymbol}, ${line}, ${column}, ${message}, ${cause.message}`,
-      {
-        cause: cause,
-      }
-    );
+    if (offendingSymbol instanceof Token) {
+      const query = offendingSymbol.getInputStream().toString();
+      const messageAtErrorLocation = ' '.repeat(column) + `^ ${message}`;
 
-    this.context = context;
+      super(
+        `Failed to parse n1ql query at ${line}:${column} : \n\t${query}\n\t${messageAtErrorLocation}`,
+        { cause }
+      );
+      return;
+    }
+
+    super(message);
   }
 }

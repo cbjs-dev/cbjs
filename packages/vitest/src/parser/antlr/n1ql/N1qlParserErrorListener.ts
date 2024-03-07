@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorListener, RecognitionException, Recognizer } from 'antlr4';
+import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4';
 
 import { N1qlParserError } from './N1qlParserError';
 
-export class N1qlParserErrorListener extends ErrorListener<unknown> {
+export class N1qlParserErrorListener<T> extends ErrorListener<T> {
+  constructor() {
+    super();
+  }
+
   syntaxError(
-    recognizer: Recognizer<unknown>,
-    offendingSymbol: unknown,
+    recognizer: Recognizer<T>,
+    offendingSymbol: T,
     line: number,
     column: number,
     message: string,
-    e: RecognitionException
+    e?: RecognitionException
   ) {
     throw new N1qlParserError(
       {
+        recognizer,
         offendingSymbol,
         line,
         column,

@@ -19,6 +19,13 @@ export function quoteIdentifier(name: string) {
   return '`' + name + '`';
 }
 
+export type NamespacedKeyspace = {
+  namespace: string;
+  bucket: string;
+  scope: string;
+  collection: string;
+};
+
 export type Keyspace = {
   bucket: string;
   scope: string;

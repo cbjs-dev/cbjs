@@ -15,7 +15,12 @@
  */
 import { parseN1QL } from './parseN1QL';
 
-export function getQueryKeyspaces(query: string) {
+export function getQueryKeyspaces(
+  query: string,
+  context?: { bucket: string; scope: string }
+) {
   const result = parseN1QL(query);
+  // TODO use `context` to turn the keyspaceParts into a NamespacedKeyspace
+  const keyspaces = result.getKeyspaces();
   return result.getKeyspaces();
 }

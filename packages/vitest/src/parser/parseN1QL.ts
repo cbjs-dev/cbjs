@@ -8,7 +8,7 @@
  * be governed by the Apache License, Version 2.0, included in the file
  * licenses/APL2.txt.
  */
-import { CharStream, CommonTokenStream, ParseTreeWalker } from 'antlr4';
+import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4';
 
 import {
   n1qlLexer,
@@ -26,12 +26,11 @@ export function parseN1QL(query: string): N1qlParserListener {
   const lexer = new n1qlLexer(charStream);
   const tokenStream = new CommonTokenStream(lexer);
   const parser = new n1qlParser(tokenStream);
-  const errorListener = new N1qlParserErrorListener();
 
   lexer.removeErrorListeners();
   parser.removeErrorListeners();
-  lexer.addErrorListener(errorListener);
-  parser.addErrorListener(errorListener);
+  lexer.addErrorListener(new N1qlParserErrorListener<number>());
+  parser.addErrorListener(new N1qlParserErrorListener<Token>());
 
   const tree = parser.input();
   const listener = new N1qlParserListener();

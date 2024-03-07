@@ -13,23 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ParserRuleContext } from 'antlr4';
+import { ParserRuleContext, RuleContext } from 'antlr4';
+
+import { invariant, NamespacedKeyspace } from '@cbjsdev/shared';
 
 import {
+  C_exprContext,
   ExprContext,
-  From_termContext,
+  IdentContext,
+  Keyspace_nameContext,
   Keyspace_pathContext,
   Keyspace_refContext,
   n1qlListener,
+  Named_keyspace_refContext,
+  Namespace_nameContext,
+  Namespace_termContext,
   Path_partContext,
-  PathContext,
+  Permitted_identifiersContext,
   Simple_from_termContext,
   Simple_keyspace_refContext,
-  UpdateContext,
+  Simple_named_keyspace_refContext,
 } from './generated';
 
 export class N1qlParserListener extends n1qlListener {
-  private readonly keyspaces: string[][] = [];
+  private readonly consumedContexts = new Set<ParserRuleContext>();
+  private readonly keyspaces: Array<{
+    namespace: string | undefined;
+    keyspaceParts: string[];
+  }> = [];
 
   getKeyspaces() {
     return this.keyspaces;
@@ -39,41 +50,79 @@ export class N1qlParserListener extends n1qlListener {
     super.exitEveryRule(ctx);
   }
 
-  // Keyspaces from SELECT statements
-  exitFrom_term = (ctx: From_termContext) => {
+  // This handle the case where an alias has been used
+  exitSimple_from_term = (ctx: Simple_from_termContext) => {
+    invariant(ctx.children);
+    // const containsIdentifier = ctx.children.children.some(c => c instanceof IdentContext);
+    const firstChild = ctx.getChild(0);
+    invariant(firstChild instanceof ParserRuleContext);
+
+    const grandChild = firstChild.getChild(0);
+    invariant(grandChild instanceof ParserRuleContext);
+
+    if (
+      firstChild.getChild(0) instanceof C_exprContext &&
+      !(grandChild.getChild(0) instanceof Permitted_identifiersContext)
+    )
+      return;
+
+    if (ctx.children && ctx.children.length > 1) {
+      this.keyspaces.push({
+        namespace: undefined,
+        keyspaceParts: ctx.getChild(0).getText().split('.'),
+      });
+    }
+  };
+
+  exitKeyspace_ref = (ctx: Keyspace_refContext) => {
     console.log();
   };
 
-  exitSimple_from_term = (ctx: Simple_from_termContext) => {
-    const keyspace = ctx.expr().getText().split('.');
-    this.keyspaces.push(keyspace);
+  getKeyspaceFromChildren = (ctx: ParserRuleContext) => {
+    invariant(ctx.children);
+
+    let namespace: string | undefined = undefined;
+    const keyspaceParts: string[] = [];
+
+    for (const child of ctx.children) {
+      if (
+        child instanceof Namespace_nameContext ||
+        child instanceof Namespace_termContext
+      ) {
+        const childText = child.getText();
+        namespace = childText.substring(0, childText.length - 1);
+        continue;
+      }
+
+      if (child instanceof Path_partContext || child instanceof Keyspace_nameContext) {
+        keyspaceParts.push(child.getText());
+      }
+    }
+
+    return {
+      namespace,
+      keyspaceParts,
+    };
   };
 
-  exitSimple_keyspace_ref = (ctx: Simple_keyspace_refContext) => {
-    const keyspaceChildren =
-      ctx.children?.filter((c) => c instanceof Path_partContext) ?? [];
-    const keyspace = keyspaceChildren.map((c) => c.getText());
-    this.keyspaces.push(keyspace);
+  // path_part || keyspace_name => filter namespace_name || path_part || keyspace_name
+  exitPath_part = (ctx: Path_partContext) => {
+    invariant(ctx.parentCtx);
+    invariant(ctx.parentCtx.children);
+
+    if (this.consumedContexts.has(ctx.parentCtx)) return;
+    this.consumedContexts.add(ctx.parentCtx);
+
+    this.keyspaces.push(this.getKeyspaceFromChildren(ctx.parentCtx));
   };
 
-  // Exit a parse tree produced by n1qlParser#expr.
-  exitExpr = (ctx: ExprContext) => {
-    let DOT = ctx.DOT();
-    let IDENT = ctx.ident();
-    let LBRACKET = ctx.LBRACKET();
+  exitKeyspace_name = (ctx: Keyspace_nameContext) => {
+    invariant(ctx.parentCtx);
+    invariant(ctx.parentCtx.children);
 
-    // if (DOT && IDENT) this.currentParseResult.path_expr.push(IDENT.getText());
-    // if (LBRACKET) this.currentParseResult.path_expr.push('[]');
+    if (this.consumedContexts.has(ctx.parentCtx)) return;
+    this.consumedContexts.add(ctx.parentCtx);
+
+    this.keyspaces.push(this.getKeyspaceFromChildren(ctx.parentCtx));
   };
-
-  // Exit a parse tree produced by n1qlParser#c_expr.
-  // exitC_expr(ctx) {
-  //   var IDENT = ctx.IDENT();
-  //   var IDENT_ICASE = ctx.IDENT_ICASE();
-  //   var SELF = ctx.SELF();
-  //   // whenever we see an IDENT, it is a field name used in an expression
-  //   if (IDENT || IDENT_ICASE) {
-  //     this.currentParseResult.newPath(ctx.getText());
-  //   }
-  // }
 }
