@@ -1,8 +1,5 @@
-import binding from './binding';
-
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
- * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +14,3 @@ import binding from './binding';
  * limitations under the License.
  */
 
-export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
-export type * from './binding';
-
-export { binding };

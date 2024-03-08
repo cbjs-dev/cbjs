@@ -1,8 +1,5 @@
-import binding from './binding';
-
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
- * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +13,17 @@ import binding from './binding';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { vi } from 'vitest';
 
-export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
-export type * from './binding';
+import { Collection } from '@cbjsdev/cbjs';
 
-export { binding };
+export function mockCollection() {
+  // const OriginalPrototype = Collection.prototype;
+  //
+  // vi.importActual()
+  //
+  // vi.spyOn(Collection.prototype, 'insert').mockImplementation((...args) => {
+  //   console.log('mocked');
+  //   return 'someMethodMocked';
+  // });
+}
