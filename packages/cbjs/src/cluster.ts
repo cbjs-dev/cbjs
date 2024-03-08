@@ -698,9 +698,12 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  ping(callback?: NodeCallback<PingResult>): Promise<PingResult>;
-  ping(options: PingOptions, callback?: NodeCallback<PingResult>): Promise<PingResult>;
-  ping(
+  async ping(callback?: NodeCallback<PingResult>): Promise<PingResult>;
+  async ping(
+    options: PingOptions,
+    callback?: NodeCallback<PingResult>
+  ): Promise<PingResult>;
+  async ping(
     options?: PingOptions | NodeCallback<PingResult>,
     callback?: NodeCallback<PingResult>
   ): Promise<PingResult> {
@@ -715,7 +718,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     const exec = new PingExecutor(this);
 
     const options_ = options;
-    return PromiseHelper.wrapAsync(() => exec.ping(options_), callback);
+    return await PromiseHelper.wrapAsync(() => exec.ping(options_), callback);
   }
 
   /**

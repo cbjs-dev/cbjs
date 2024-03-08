@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
- * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { vi } from 'vitest';
 
-export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
-export type * from './binding.js';
+import { Cluster, Collection } from '@cbjsdev/cbjs';
 
-export { binding };
+export function mockConnection() {
+  const Cbjs = vi.importActual('@cbjsdev/cbjs');
+
+  vi.mock('@cbjsdev/cbjs', async (importOriginal) => {});
+}
