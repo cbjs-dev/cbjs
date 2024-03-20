@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject, mergeConfig } from 'vitest/config';
 
-import sharedProjectConfig from '../../vitest.shared.packages';
-
-export default mergeConfig(
-  sharedProjectConfig,
-  defineProject({
-    test: {
-      name: 'package:@cbjsdev/vitest',
-      pool: 'forks',
-      minWorkers: 1,
-      maxWorkers: 1,
-      runner: './src/CbjsTestRunner',
-      restoreMocks: true,
-      mockReset: true,
-      clearMocks: true,
-    },
-  })
-);
+export type CbjsAsyncContextData = {
+  asyncId: number;
+  taskName?: string;
+  keyspaceIsolation?: boolean;
+  [key: string]: any;
+};

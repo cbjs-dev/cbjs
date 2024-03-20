@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject, mergeConfig } from 'vitest/config';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
 
-import sharedProjectConfig from '../../vitest.shared.packages';
+export function getCbjsContextTracking() {
+  if (global.cbjsContextTracking !== undefined) {
+    return global.cbjsContextTracking;
+  }
 
-export default mergeConfig(
-  sharedProjectConfig,
-  defineProject({
-    test: {
-      name: 'package:@cbjsdev/vitest',
-      pool: 'forks',
-      minWorkers: 1,
-      maxWorkers: 1,
-      runner: './src/CbjsTestRunner',
-      restoreMocks: true,
-      mockReset: true,
-      clearMocks: true,
-    },
-  })
-);
+  global.cbjsContextTracking = {
+    trackingEnabled: false,
+    parentMap: new Map<number, number>(),
+    parentReversedMap: new Map<number, number[]>(),
+    taskAsyncIdMap: new Map<string, number>(),
+    taskAsyncIdReversedMap: new Map<number, string>(),
+    contextMap: new Map<number, CbjsAsyncContextData>(),
+  };
+
+  return global.cbjsContextTracking;
+}

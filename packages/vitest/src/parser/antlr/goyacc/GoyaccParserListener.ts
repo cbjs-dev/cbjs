@@ -51,16 +51,16 @@ export class GoyaccParserListener extends goyaccListener {
     return word;
   }
 
-  enterParser_rule = (ctx: Parser_ruleContext) => {
+  override enterParser_rule = (ctx: Parser_ruleContext) => {
     this.currentProductions = [];
   };
 
-  exitParser_rule = (ctx: Parser_ruleContext) => {
+  override exitParser_rule = (ctx: Parser_ruleContext) => {
     const ruleName = this.rewriteRestrictedName(ctx.Word().getText());
     this.obuf.push(`${ruleName}: ${this.currentProductions.join('\n\t| ')} \n;\n`);
   };
 
-  exitProduction = (ctx: ProductionContext) => {
+  override exitProduction = (ctx: ProductionContext) => {
     // Collect words, ignore the code blocks, rename reservedWords
     const words = ctx.Word_list().map((w) => this.rewriteRestrictedName(w.getText()));
 

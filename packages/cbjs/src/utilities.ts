@@ -18,11 +18,19 @@ import { Buffer } from 'node:buffer';
 import { ParsedUrlQueryInput } from 'querystring';
 import * as qs from 'querystring';
 
-import { DurabilityLevelName, durabilityLevels, NonVoid } from '@cbjsdev/shared';
+import {
+  DurabilityLevelName,
+  durabilityLevels,
+  NodeCallback,
+  NonVoid,
+  VoidNodeCallback,
+} from '@cbjsdev/shared';
 
 import { AnyCollection } from './clusterTypes';
 import { DurabilityLevel } from './generaltypes';
 import { toEnumMember } from './utilities_internal';
+
+export type { NodeCallback, VoidNodeCallback };
 
 /**
  * CAS represents an opaque value which can be used to compare documents to
@@ -103,14 +111,6 @@ export class CouchbaseCas implements Cas {
     return cas1.toString() === cas2.toString();
   }
 }
-
-/**
- * A node-style callback which receives an optional error or result.
- *
- * @category Utilities
- */
-export type NodeCallback<T> = (...args: [null, T] | [Error, null]) => void;
-export type VoidNodeCallback = (err: Error | null) => void;
 
 /**
  * @internal

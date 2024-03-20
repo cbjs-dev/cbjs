@@ -18,6 +18,10 @@ import binding from './binding';
  */
 
 export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
-export type * from './binding';
+export { errorFromCpp } from './bindingutilities';
+export { ConnSpec } from './connspec';
+export { generateClientString } from './utilities_internal';
+
+export * from './binding';
 
 export { binding };

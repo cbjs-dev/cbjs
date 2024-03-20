@@ -15,8 +15,13 @@
  */
 
 export * from './MapEntry';
+export * from './RecordEntry';
 export * from './OneOf';
 export * from './OptionalMerge';
 export * from './RelaxedUnion';
 export * from './UnionKeys';
 export * from './TupleToUnion';
+export * from './NodeCallback';
+export * from './KeysByValue';
+export * from './ObjectMethods';
+export * from './AnyFunction';

@@ -227,25 +227,25 @@ export type ConnectOptions = {
  * @category Core
  */
 export class Cluster<in out T extends CouchbaseClusterTypes = any> {
-  private _connStr: string;
-  private _trustStorePath: string;
-  private _kvTimeout: number;
-  private _kvDurableTimeout: number;
-  private _viewTimeout: number;
-  private _queryTimeout: number;
-  private _analyticsTimeout: number;
-  private _searchTimeout: number;
-  private _managementTimeout: number;
-  private _connectTimeout: number | undefined;
-  private _bootstrapTimeout: number | undefined;
-  private _resolveTimeout: number | undefined;
-  private _auth: Authenticator;
-  private _conn: CppConnection;
-  private _transcoder: Transcoder;
-  private _txnConfig: TransactionsConfig;
-  private _transactions?: Transactions<T>;
-  private _openBuckets: BucketName<T>[];
-  private _dnsConfig: DnsConfig | null;
+  protected _connStr: string;
+  protected _trustStorePath: string;
+  protected _kvTimeout: number;
+  protected _kvDurableTimeout: number;
+  protected _viewTimeout: number;
+  protected _queryTimeout: number;
+  protected _analyticsTimeout: number;
+  protected _searchTimeout: number;
+  protected _managementTimeout: number;
+  protected _connectTimeout: number | undefined;
+  protected _bootstrapTimeout: number | undefined;
+  protected _resolveTimeout: number | undefined;
+  protected _auth: Authenticator;
+  protected _conn: CppConnection;
+  protected _transcoder: Transcoder;
+  protected _txnConfig: TransactionsConfig;
+  protected _transactions?: Transactions<T>;
+  protected _openBuckets: BucketName<T>[];
+  protected _dnsConfig: DnsConfig | null;
 
   /**
    * @internal
@@ -436,7 +436,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    */
   bucket<B extends BucketName<T>>(bucketName: B): Bucket<T, B> {
     if (!this._openBuckets.includes(bucketName)) {
-      this._conn.openBucket(bucketName, (err) => {
+      this.conn.openBucket(bucketName, (err) => {
         if (err) {
           // BUG(JSCBC-1011): Move this to log framework once it is implemented.
           // console.error('failed to open bucket: %O', err);
@@ -735,7 +735,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
     }
 
     return PromiseHelper.wrap((wrapCallback) => {
-      this._conn.shutdown((cppErr) => {
+      this.conn.shutdown((cppErr) => {
         wrapCallback(errorFromCpp(cppErr));
       });
     }, callback);
@@ -743,9 +743,9 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
 
   /**
    * @throws AuthenticationFailureError
-   * @private
+   * @protected
    */
-  private async _connect() {
+  protected async _connect() {
     return new Promise((resolve, reject) => {
       const dsnObj = ConnSpec.parse(this._connStr);
 
@@ -809,7 +809,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
         }
       }
 
-      this._conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
+      this.conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
         if (cppErr) {
           const err = errorFromCpp(cppErr);
           return reject(err);
