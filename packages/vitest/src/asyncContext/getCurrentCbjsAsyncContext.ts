@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject, mergeConfig } from 'vitest/config';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
+import { getCbjsAsyncContexts } from './getCbjsAsyncContexts';
 
-import sharedProjectConfig from '../../vitest.shared.packages';
-
-export default mergeConfig(
-  sharedProjectConfig,
-  defineProject({
-    test: {
-      name: 'package:@cbjsdev/vitest',
-      pool: 'forks',
-      minWorkers: 1,
-      maxWorkers: 1,
-      runner: './src/CbjsTestRunner',
-      restoreMocks: true,
-      mockReset: true,
-      clearMocks: true,
-    },
-  })
-);
+/**
+ * Returns the Cbjs context tied to the task.
+ */
+export function getCurrentCbjsAsyncContext(): CbjsAsyncContextData {
+  const contexts = getCbjsAsyncContexts();
+  return contexts[0];
+}

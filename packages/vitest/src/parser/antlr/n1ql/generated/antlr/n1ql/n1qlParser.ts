@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Generated from antlr/n1ql/n1ql.g4 by ANTLR 4.13.1
 // noinspection ES6UnusedImports,JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 

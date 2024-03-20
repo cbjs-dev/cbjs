@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject, mergeConfig } from 'vitest/config';
 
-import sharedProjectConfig from '../../vitest.shared.packages';
-
-export default mergeConfig(
-  sharedProjectConfig,
-  defineProject({
-    test: {
-      name: 'package:@cbjsdev/vitest',
-      pool: 'forks',
-      minWorkers: 1,
-      maxWorkers: 1,
-      runner: './src/CbjsTestRunner',
-      restoreMocks: true,
-      mockReset: true,
-      clearMocks: true,
-    },
-  })
-);
+export type RecordEntry<
+  T extends object,
+  K extends keyof T = keyof T,
+> = keyof T extends infer Keys
+  ? Keys extends keyof T & K
+    ? [Keys, T[Keys]]
+    : never
+  : never;

@@ -15,8 +15,13 @@
  */
 
 export * from './MapEntry.js';
+export * from './RecordEntry';
 export * from './OneOf.js';
 export * from './OptionalMerge.js';
 export * from './RelaxedUnion.js';
 export * from './UnionKeys.js';
 export * from './TupleToUnion.js';
+export * from './NodeCallback.js';
+export * from './KeysByValue.js';
+export * from './ObjectMethods.js';
+export * from './AnyFunction.js';

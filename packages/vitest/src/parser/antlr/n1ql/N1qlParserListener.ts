@@ -46,12 +46,8 @@ export class N1qlParserListener extends n1qlListener {
     return this.keyspaces;
   }
 
-  exitEveryRule(ctx: ParserRuleContext) {
-    super.exitEveryRule(ctx);
-  }
-
   // This handle the case where an alias has been used
-  exitSimple_from_term = (ctx: Simple_from_termContext) => {
+  override exitSimple_from_term = (ctx: Simple_from_termContext) => {
     invariant(ctx.children);
     // const containsIdentifier = ctx.children.children.some(c => c instanceof IdentContext);
     const firstChild = ctx.getChild(0);
@@ -72,10 +68,6 @@ export class N1qlParserListener extends n1qlListener {
         keyspaceParts: ctx.getChild(0).getText().split('.'),
       });
     }
-  };
-
-  exitKeyspace_ref = (ctx: Keyspace_refContext) => {
-    console.log();
   };
 
   getKeyspaceFromChildren = (ctx: ParserRuleContext) => {
@@ -106,7 +98,7 @@ export class N1qlParserListener extends n1qlListener {
   };
 
   // path_part || keyspace_name => filter namespace_name || path_part || keyspace_name
-  exitPath_part = (ctx: Path_partContext) => {
+  override exitPath_part = (ctx: Path_partContext) => {
     invariant(ctx.parentCtx);
     invariant(ctx.parentCtx.children);
 
@@ -116,7 +108,7 @@ export class N1qlParserListener extends n1qlListener {
     this.keyspaces.push(this.getKeyspaceFromChildren(ctx.parentCtx));
   };
 
-  exitKeyspace_name = (ctx: Keyspace_nameContext) => {
+  override exitKeyspace_name = (ctx: Keyspace_nameContext) => {
     invariant(ctx.parentCtx);
     invariant(ctx.parentCtx.children);
 

@@ -22,7 +22,7 @@ export class N1qlParserErrorListener<T> extends ErrorListener<T> {
     super();
   }
 
-  syntaxError(
+  override syntaxError(
     recognizer: Recognizer<T>,
     offendingSymbol: T,
     line: number,

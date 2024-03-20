@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject, mergeConfig } from 'vitest/config';
+import { AnyFunction } from './AnyFunction';
+import { KeysByValue } from './KeysByValue';
 
-import sharedProjectConfig from '../../vitest.shared.packages';
-
-export default mergeConfig(
-  sharedProjectConfig,
-  defineProject({
-    test: {
-      name: 'package:@cbjsdev/vitest',
-      pool: 'forks',
-      minWorkers: 1,
-      maxWorkers: 1,
-      runner: './src/CbjsTestRunner',
-      restoreMocks: true,
-      mockReset: true,
-      clearMocks: true,
-    },
-  })
-);
+export type ObjectMethods<T> =
+  KeysByValue<T, AnyFunction> extends infer FunctionKeys extends keyof T
+    ? FunctionKeys extends unknown
+      ? T[FunctionKeys] extends (...args: any) => any
+        ? T[FunctionKeys]
+        : never
+      : never
+    : never;
