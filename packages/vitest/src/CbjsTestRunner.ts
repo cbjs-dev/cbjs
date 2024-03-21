@@ -25,10 +25,11 @@ import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
 import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking';
 import { getChildrenTower } from './asyncContext/getChildrenTower';
 import { getCurrentCbjsAsyncContext } from './asyncContext/getCurrentCbjsAsyncContext';
+import { KeyspaceIsolationLevel } from './keyspaceIsolation/types';
 
 export type CbjsTestContext = {
   cbjs: CbjsAsyncContextData;
-  useKeyspaceIsolation: (isolateKeyspace: boolean) => void;
+  useKeyspaceIsolation: (isolateKeyspace: KeyspaceIsolationLevel) => void;
 };
 
 const logs: unknown[][] = [];
@@ -47,8 +48,13 @@ export default class CbjsTestRunner extends VitestTestRunner {
     super(config);
   }
 
-  onBeforeCollect() {
+  async onBeforeCollect() {
     getCbjsContextTracking().trackingEnabled = true;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    await super.onBeforeCollect?.(); // This may be implemented by VitestTestRunner in the future.
   }
 
   override async onBeforeRunSuite(suite: Suite): Promise<void> {
@@ -81,6 +87,8 @@ export default class CbjsTestRunner extends VitestTestRunner {
     }
 
     contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsAsyncContextData);
+
+    await super.onBeforeRunSuite(suite);
   }
 
   override async onBeforeRunTask(test: Test): Promise<void> {
@@ -107,10 +115,12 @@ export default class CbjsTestRunner extends VitestTestRunner {
     };
 
     contextTracking.contextMap.set(testAsyncId, resolvedContext as CbjsAsyncContextData);
+    await super.onBeforeRunTask(test);
   }
 
-  override onAfterRunTask(test: Task) {
-    super.onAfterRunTask(test);
+  override async onAfterRunTask(test: Task) {
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await super.onAfterRunTask(test);
     this.clearTaskContextTracking(test.id);
   }
 
@@ -139,11 +149,14 @@ export default class CbjsTestRunner extends VitestTestRunner {
     contextTracking.taskAsyncIdMap.delete(taskId);
   }
 
-  override onAfterRunFiles() {
+  override async onAfterRunFiles() {
     // Debug statement
     for (const log of logs) {
       console.log(...log);
     }
+
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await super.onAfterRunFiles();
   }
 
   // Executed during collection
@@ -151,12 +164,6 @@ export default class CbjsTestRunner extends VitestTestRunner {
     context: TaskContext<T>
   ): ExtendedContext<T> {
     const ec = super.extendTaskContext(context);
-
-    Object.defineProperty(ec, 'cbjs', {
-      get() {
-        return getCurrentCbjsAsyncContext();
-      },
-    });
 
     Object.defineProperty(ec, 'useKeyspaceIsolation', {
       get() {

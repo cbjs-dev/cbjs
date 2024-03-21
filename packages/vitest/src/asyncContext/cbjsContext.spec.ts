@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { executionAsyncId } from 'node:async_hooks';
 import { setImmediate } from 'timers/promises';
 // eslint-disable-next-line no-restricted-imports
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import { getCbjsAsyncContexts } from '../asyncContext/getCbjsAsyncContexts';
-import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
-import { appendLog, CbjsTestContext } from '../CbjsTestRunner';
-import { TestFixtures } from '../fixtures/types';
+import { getCurrentCbjsAsyncContext } from './getCurrentCbjsAsyncContext';
 
 describe('cbjsContext', { concurrent: true }, () => {
   describe('context access', () => {
