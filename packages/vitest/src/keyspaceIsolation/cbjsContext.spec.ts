@@ -16,7 +16,7 @@
 import { executionAsyncId } from 'node:async_hooks';
 import { setImmediate } from 'timers/promises';
 // eslint-disable-next-line no-restricted-imports
-import { beforeAll, beforeEach, describe, expect, it, TestContext } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { getCbjsAsyncContexts } from '../asyncContext/getCbjsAsyncContexts';
 import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
@@ -24,40 +24,102 @@ import { appendLog, CbjsTestContext } from '../CbjsTestRunner';
 import { TestFixtures } from '../fixtures/types';
 
 describe('cbjsContext', { concurrent: true }, () => {
-  appendLog('cbjsContext process.pid', process.pid);
-  const test = it.extend({});
+  describe('context access', () => {
+    beforeAll((suite) => {
+      expect(getCurrentCbjsAsyncContext().taskName).toEqual(suite.name);
 
-  type SuiteTestsContext = TestContext & TestFixtures<typeof test> & CbjsTestContext;
+      getCurrentCbjsAsyncContext().testValue = 1;
+      getCurrentCbjsAsyncContext().keyspaceIsolation = true;
+    });
 
-  beforeAll((suite) => {
-    expect(getCurrentCbjsAsyncContext().taskName).toEqual(suite.name);
+    beforeEach(async ({ task, expect }) => {
+      expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
+      expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+      expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toEqual(true);
+
+      getCurrentCbjsAsyncContext().keyspaceIsolation = false;
+    });
+
+    test('the first test task should access the right context', async function ({
+      task,
+      expect,
+    }) {
+      expect(getCurrentCbjsAsyncContext()).toBeDefined();
+      expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
+      expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+      expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+
+      // Artificially make the test async
+      await setImmediate();
+    });
+
+    test('the second test task should access the right context', async function ({
+      task,
+      expect,
+    }) {
+      expect(getCurrentCbjsAsyncContext()).toBeDefined();
+      expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
+      expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+      expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+
+      // Artificially make the test async
+      await setImmediate();
+    });
   });
 
-  beforeEach<SuiteTestsContext>(async ({ task, expect }) => {
-    expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
-    appendLog('beforeEach eid', executionAsyncId());
-    appendLog('beforeEach async', getCbjsAsyncContexts());
+  describe('context inheritance', () => {
+    beforeAll(() => {
+      getCurrentCbjsAsyncContext().testValue = 1;
+      getCurrentCbjsAsyncContext().keyspaceIsolation = true;
+    });
+
+    describe('inner suite without context overwrite', () => {
+      beforeAll(() => {
+        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+      });
+
+      beforeEach(() => {
+        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+      });
+
+      test('should inherit outer suite context', () => {
+        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+      });
+    });
   });
 
-  test<SuiteTestsContext>('the first test task should access the right context', async function ({
-    task,
-    expect,
-  }) {
-    expect(getCurrentCbjsAsyncContext()).toBeDefined();
-    expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
+  describe('context merging', () => {
+    beforeAll(() => {
+      getCurrentCbjsAsyncContext().testValue = 1;
+      getCurrentCbjsAsyncContext().keyspaceIsolation = true;
+    });
 
-    // Artificially make the test async
-    await setImmediate();
-  });
+    describe('inner suite with updated context', () => {
+      beforeAll(() => {
+        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+        expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(true);
 
-  test<SuiteTestsContext>('the second test task should access the right context', async function ({
-    task,
-    expect,
-  }) {
-    expect(getCurrentCbjsAsyncContext()).toBeDefined();
-    expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
+        getCurrentCbjsAsyncContext().keyspaceIsolation = false;
+      });
 
-    // Artificially make the test async
-    await setImmediate();
+      test('should merge and overwrite outer suite context', () => {
+        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+        expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+      });
+
+      describe('deeper suite', () => {
+        beforeAll(() => {
+          expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+          expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+
+          getCurrentCbjsAsyncContext().testValue = 3;
+        });
+
+        test('context should be merged top down', () => {
+          expect(getCurrentCbjsAsyncContext().testValue).toEqual(3);
+          expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+        });
+      });
+    });
   });
 });

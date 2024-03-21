@@ -53,8 +53,9 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
   override async onBeforeRunSuite(suite: Suite): Promise<void> {
     const suiteAsyncId = executionAsyncId();
-    getCbjsContextTracking().taskAsyncIdMap.set(suite.id, suiteAsyncId);
-    getCbjsContextTracking().taskAsyncIdReversedMap.set(suiteAsyncId, suite.id);
+    const contextTracking = getCbjsContextTracking();
+    contextTracking.taskAsyncIdMap.set(suite.id, suiteAsyncId);
+    contextTracking.taskAsyncIdReversedMap.set(suiteAsyncId, suite.id);
 
     const suiteContext = {
       asyncId: suiteAsyncId,
@@ -70,38 +71,34 @@ export default class CbjsTestRunner extends VitestTestRunner {
      * A suite is created for each file ; it has an empty id. We skip it.
      */
     if (suite.suite && suite.suite.id !== '') {
-      const parentSuiteAsyncId = getCbjsContextTracking().taskAsyncIdMap.get(
-        suite.suite.id
-      );
+      const parentSuiteAsyncId = contextTracking.taskAsyncIdMap.get(suite.suite.id);
       invariant(parentSuiteAsyncId, `AsyncId of suite ${suite.suite.id} not found`);
 
-      const parentSuiteContext =
-        getCbjsContextTracking().contextMap.get(parentSuiteAsyncId);
+      const parentSuiteContext = contextTracking.contextMap.get(parentSuiteAsyncId);
       invariant(suiteContext, `Context of suite ${suiteAsyncId} not found`);
 
-      Object.assign(resolvedContext, parentSuiteContext);
+      Object.assign(resolvedContext, parentSuiteContext, suiteContext);
     }
 
-    getCbjsContextTracking().contextMap.set(
-      suiteAsyncId,
-      resolvedContext as CbjsAsyncContextData
-    );
+    contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsAsyncContextData);
   }
 
   override async onBeforeRunTask(test: Test): Promise<void> {
     const testAsyncId = executionAsyncId();
-    getCbjsContextTracking().taskAsyncIdMap.set(test.id, testAsyncId);
-    getCbjsContextTracking().taskAsyncIdReversedMap.set(testAsyncId, test.id);
+    const contextTracking = getCbjsContextTracking();
+
+    contextTracking.taskAsyncIdMap.set(test.id, testAsyncId);
+    contextTracking.taskAsyncIdReversedMap.set(testAsyncId, test.id);
 
     const testContext = {
       asyncId: testAsyncId,
       taskName: test.name,
     };
 
-    const suiteAsyncId = getCbjsContextTracking().taskAsyncIdMap.get(test.suite.id);
+    const suiteAsyncId = contextTracking.taskAsyncIdMap.get(test.suite.id);
     invariant(suiteAsyncId, `AsyncId of suite ${test.suite.id} not found`);
 
-    const suiteContext = getCbjsContextTracking().contextMap.get(suiteAsyncId);
+    const suiteContext = contextTracking.contextMap.get(suiteAsyncId);
     invariant(suiteContext, `Context of suite ${suiteAsyncId} not found`);
 
     const resolvedContext = {
@@ -109,10 +106,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
       ...testContext,
     };
 
-    getCbjsContextTracking().contextMap.set(
-      testAsyncId,
-      resolvedContext as CbjsAsyncContextData
-    );
+    contextTracking.contextMap.set(testAsyncId, resolvedContext as CbjsAsyncContextData);
   }
 
   override onAfterRunTask(test: Task) {
