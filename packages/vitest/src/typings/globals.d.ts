@@ -15,37 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CbjsAsyncContextData } from '../asyncContext/CbjsAsyncContextData';
+import { CbjsContextTracking } from '../asyncContext/getCbjsContextTracking';
 
 declare global {
-  var cbjsContextTracking:
-    | undefined
-    | {
-        trackingEnabled: boolean;
-
-        /**
-         * Async call stack hierarchy: <asyncId, triggerAsyncId>
-         */
-        parentMap: Map<number, number>;
-
-        /**
-         * Async call stack hierarchy: <triggerAsyncId, asyncId[]>
-         */
-        parentReversedMap: Map<number, number[]>;
-
-        /**
-         * Execution context id for each task: <taskId, asyncId>
-         */
-        taskAsyncIdMap: Map<string, number>;
-
-        /**
-         * Execution context id for each task: <asyncId, taskId>
-         */
-        taskAsyncIdReversedMap: Map<number, string>;
-
-        /**
-         * Context per scope: <asyncId, context_data>
-         */
-        contextMap: Map<number, CbjsAsyncContextData>;
-      };
+  var cbjsContextTracking: undefined | CbjsContextTracking;
 }

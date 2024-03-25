@@ -17,33 +17,52 @@ import { setImmediate } from 'timers/promises';
 // eslint-disable-next-line no-restricted-imports
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
+import { invariant } from '@cbjsdev/shared';
+
+import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
 import { getCurrentCbjsAsyncContext } from './getCurrentCbjsAsyncContext';
+
+function setAsyncContext(ctx: Partial<CbjsTaskAsyncContextData & { testValue: number }>) {
+  const currentContext = getCurrentCbjsAsyncContext();
+  invariant(currentContext);
+  Object.assign(currentContext, ctx);
+}
+
+function getAsyncContext() {
+  return getCurrentCbjsAsyncContext() as CbjsTaskAsyncContextData & {
+    testValue: number;
+  };
+}
 
 describe('cbjsContext', { concurrent: true }, () => {
   describe('context access', () => {
     beforeAll((suite) => {
-      expect(getCurrentCbjsAsyncContext().taskName).toEqual(suite.name);
+      expect(getAsyncContext().task.name).toEqual(suite.name);
 
-      getCurrentCbjsAsyncContext().testValue = 1;
-      getCurrentCbjsAsyncContext().keyspaceIsolation = true;
+      setAsyncContext({
+        testValue: 1,
+        keyspaceIsolationScope: 'per-suite',
+      });
     });
 
     beforeEach(async ({ task, expect }) => {
-      expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
-      expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
-      expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toEqual(true);
+      expect(getAsyncContext().task.name).toEqual(task.name);
+      expect(getAsyncContext().testValue).toEqual(1);
+      expect(getAsyncContext().keyspaceIsolationScope).toEqual('per-suite');
 
-      getCurrentCbjsAsyncContext().keyspaceIsolation = false;
+      setAsyncContext({
+        keyspaceIsolationScope: false,
+      });
     });
 
     test('the first test task should access the right context', async function ({
       task,
       expect,
     }) {
-      expect(getCurrentCbjsAsyncContext()).toBeDefined();
-      expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
-      expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
-      expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+      expect(getAsyncContext()).toBeDefined();
+      expect(getAsyncContext().task.name).toEqual(task.name);
+      expect(getAsyncContext().keyspaceIsolationScope).toBe(false);
+      expect(getAsyncContext().testValue).toEqual(1);
 
       // Artificially make the test async
       await setImmediate();
@@ -53,10 +72,10 @@ describe('cbjsContext', { concurrent: true }, () => {
       task,
       expect,
     }) {
-      expect(getCurrentCbjsAsyncContext()).toBeDefined();
-      expect(getCurrentCbjsAsyncContext().taskName).toEqual(task.name);
-      expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
-      expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+      expect(getAsyncContext()).toBeDefined();
+      expect(getAsyncContext().task.name).toEqual(task.name);
+      expect(getAsyncContext().keyspaceIsolationScope).toBe(false);
+      expect(getAsyncContext().testValue).toEqual(1);
 
       // Artificially make the test async
       await setImmediate();
@@ -65,55 +84,63 @@ describe('cbjsContext', { concurrent: true }, () => {
 
   describe('context inheritance', () => {
     beforeAll(() => {
-      getCurrentCbjsAsyncContext().testValue = 1;
-      getCurrentCbjsAsyncContext().keyspaceIsolation = true;
+      setAsyncContext({
+        testValue: 1,
+        keyspaceIsolationScope: 'per-suite',
+      });
     });
 
     describe('inner suite without context overwrite', () => {
       beforeAll(() => {
-        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+        expect(getAsyncContext().testValue).toEqual(1);
       });
 
       beforeEach(() => {
-        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+        expect(getAsyncContext().testValue).toEqual(1);
       });
 
       test('should inherit outer suite context', () => {
-        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
+        expect(getAsyncContext().testValue).toEqual(1);
       });
     });
   });
 
   describe('context merging', () => {
     beforeAll(() => {
-      getCurrentCbjsAsyncContext().testValue = 1;
-      getCurrentCbjsAsyncContext().keyspaceIsolation = true;
+      setAsyncContext({
+        keyspaceIsolationScope: 'per-suite',
+      });
     });
 
     describe('inner suite with updated context', () => {
       beforeAll(() => {
-        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
-        expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(true);
+        expect(getAsyncContext().testValue).toBeUndefined();
+        expect(getAsyncContext().keyspaceIsolationScope).toBe('per-suite');
 
-        getCurrentCbjsAsyncContext().keyspaceIsolation = false;
+        setAsyncContext({
+          testValue: 4,
+          keyspaceIsolationScope: false,
+        });
       });
 
       test('should merge and overwrite outer suite context', () => {
-        expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
-        expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+        expect(getAsyncContext().testValue).toEqual(4);
+        expect(getAsyncContext().keyspaceIsolationScope).toBe(false);
       });
 
       describe('deeper suite', () => {
         beforeAll(() => {
-          expect(getCurrentCbjsAsyncContext().testValue).toEqual(1);
-          expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+          expect(getAsyncContext().testValue).toEqual(4);
+          expect(getAsyncContext().keyspaceIsolationScope).toBe(false);
 
-          getCurrentCbjsAsyncContext().testValue = 3;
+          setAsyncContext({
+            testValue: 5,
+          });
         });
 
         test('context should be merged top down', () => {
-          expect(getCurrentCbjsAsyncContext().testValue).toEqual(3);
-          expect(getCurrentCbjsAsyncContext().keyspaceIsolation).toBe(false);
+          expect(getAsyncContext().testValue).toEqual(5);
+          expect(getAsyncContext().keyspaceIsolationScope).toBe(false);
         });
       });
     });

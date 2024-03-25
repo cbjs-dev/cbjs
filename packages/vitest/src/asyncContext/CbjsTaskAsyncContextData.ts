@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Task } from 'vitest';
 
-export type CbjsAsyncContextData = {
+import { KeyspaceIsolationMap } from '../keyspaceIsolation/KeyspaceIsolationMap';
+import {
+  KeyspaceIsolationLevel,
+  KeyspaceIsolationScope,
+} from '../keyspaceIsolation/types';
+
+export type CbjsTaskAsyncContextData = {
   asyncId: number;
-  taskName?: string;
-  keyspaceIsolation?: boolean;
-  [key: string]: any;
+  taskId: string;
+  task: Task;
+  keyspaceIsolationScope: KeyspaceIsolationScope;
+  keyspaceIsolationLevel: KeyspaceIsolationLevel;
+  keyspaceIsolationMap: KeyspaceIsolationMap | null;
 };

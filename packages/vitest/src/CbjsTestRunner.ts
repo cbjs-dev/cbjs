@@ -20,17 +20,13 @@ import { VitestTestRunner } from 'vitest/runners';
 
 import { invariant } from '@cbjsdev/shared';
 
-import { CbjsAsyncContextData } from './asyncContext/CbjsAsyncContextData';
 import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
+import { CbjsTaskAsyncContextData } from './asyncContext/CbjsTaskAsyncContextData';
 import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking';
 import { getChildrenTower } from './asyncContext/getChildrenTower';
-import { getCurrentCbjsAsyncContext } from './asyncContext/getCurrentCbjsAsyncContext';
-import { KeyspaceIsolationLevel } from './keyspaceIsolation/types';
+import { KeyspaceIsolationMap } from './keyspaceIsolation/KeyspaceIsolationMap';
 
-export type CbjsTestContext = {
-  cbjs: CbjsAsyncContextData;
-  useKeyspaceIsolation: (isolateKeyspace: KeyspaceIsolationLevel) => void;
-};
+export type CbjsTestContext = NonNullable<unknown>;
 
 const logs: unknown[][] = [];
 
@@ -60,16 +56,25 @@ export default class CbjsTestRunner extends VitestTestRunner {
   override async onBeforeRunSuite(suite: Suite): Promise<void> {
     const suiteAsyncId = executionAsyncId();
     const contextTracking = getCbjsContextTracking();
+
     contextTracking.taskAsyncIdMap.set(suite.id, suiteAsyncId);
     contextTracking.taskAsyncIdReversedMap.set(suiteAsyncId, suite.id);
 
-    const suiteContext = {
-      asyncId: suiteAsyncId,
-      taskName: suite.name,
+    const defaultContextValues: Partial<CbjsTaskAsyncContextData> = {
+      keyspaceIsolationScope: false,
+      keyspaceIsolationLevel: 'collection',
+      keyspaceIsolationMap: null,
     };
 
-    const resolvedContext = {
+    const suiteContext: Partial<CbjsTaskAsyncContextData> = {
+      asyncId: suiteAsyncId,
+      taskId: suite.id,
+      task: suite,
+    };
+
+    const resolvedContext: Partial<CbjsTaskAsyncContextData> = {
       ...suiteContext,
+      ...defaultContextValues,
     };
 
     /**
@@ -81,12 +86,27 @@ export default class CbjsTestRunner extends VitestTestRunner {
       invariant(parentSuiteAsyncId, `AsyncId of suite ${suite.suite.id} not found`);
 
       const parentSuiteContext = contextTracking.contextMap.get(parentSuiteAsyncId);
-      invariant(suiteContext, `Context of suite ${suiteAsyncId} not found`);
+      invariant(parentSuiteContext, `Context of suite ${suiteAsyncId} not found`);
 
       Object.assign(resolvedContext, parentSuiteContext, suiteContext);
     }
 
-    contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsAsyncContextData);
+    /*
+      scope local: the map is inherited
+      scope per-test: the test will have its own map
+      level bucket: the test will have its own map
+     */
+    if (
+      resolvedContext.keyspaceIsolationScope === 'per-suite' &&
+      resolvedContext.keyspaceIsolationLevel === 'collection'
+    ) {
+      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationMap();
+    }
+
+    contextTracking.contextMap.set(
+      suiteAsyncId,
+      resolvedContext as CbjsTaskAsyncContextData
+    );
 
     await super.onBeforeRunSuite(suite);
   }
@@ -98,9 +118,10 @@ export default class CbjsTestRunner extends VitestTestRunner {
     contextTracking.taskAsyncIdMap.set(test.id, testAsyncId);
     contextTracking.taskAsyncIdReversedMap.set(testAsyncId, test.id);
 
-    const testContext = {
+    const testContext: Partial<CbjsTaskAsyncContextData> = {
       asyncId: testAsyncId,
-      taskName: test.name,
+      taskId: test.id,
+      task: test,
     };
 
     const suiteAsyncId = contextTracking.taskAsyncIdMap.get(test.suite.id);
@@ -112,9 +133,17 @@ export default class CbjsTestRunner extends VitestTestRunner {
     const resolvedContext = {
       ...suiteContext,
       ...testContext,
-    };
+    } satisfies CbjsTaskAsyncContextData;
 
-    contextTracking.contextMap.set(testAsyncId, resolvedContext as CbjsAsyncContextData);
+    const privateKeyspace =
+      resolvedContext.keyspaceIsolationScope === 'per-test' ||
+      resolvedContext.keyspaceIsolationLevel === 'bucket';
+
+    if (privateKeyspace) {
+      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationMap();
+    }
+
+    contextTracking.contextMap.set(testAsyncId, resolvedContext);
     await super.onBeforeRunTask(test);
   }
 
@@ -165,13 +194,13 @@ export default class CbjsTestRunner extends VitestTestRunner {
   ): ExtendedContext<T> {
     const ec = super.extendTaskContext(context);
 
-    Object.defineProperty(ec, 'useKeyspaceIsolation', {
-      get() {
-        return (keyspaceIsolation: boolean) => {
-          getCurrentCbjsAsyncContext().keyspaceIsolation = keyspaceIsolation;
-        };
-      },
-    });
+    // Object.defineProperty(ec, 'useKeyspaceIsolation', {
+    //   get() {
+    //     return (keyspaceIsolation: KeyspaceIsolationScope) => {
+    //       getCurrentCbjsAsyncContext().keyspaceIsolationScope = keyspaceIsolation;
+    //     };
+    //   },
+    // });
 
     return ec;
   }

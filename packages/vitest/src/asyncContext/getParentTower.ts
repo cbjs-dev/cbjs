@@ -25,9 +25,9 @@ import { getCbjsContextTracking } from './getCbjsContextTracking';
  * @returns an array of asyncId from the closest to the `eid` to the furthest
  * @internal
  */
-export function getParentTower(eid?: number, stopId?: number): number[] {
+export function getParentTower(eid?: number, stopId?: number): [number, ...number[]] {
   const callerEid = eid ?? executionAsyncId();
-  const parents: number[] = [callerEid];
+  const parents: [number, ...number[]] = [callerEid];
   let parent = getCbjsContextTracking().parentMap.get(callerEid);
 
   while (parent) {

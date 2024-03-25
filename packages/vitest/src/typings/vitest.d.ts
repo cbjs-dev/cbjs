@@ -15,7 +15,7 @@
  */
 import { TaskMeta } from 'vitest';
 
-import { CbjsAsyncContextData } from '../CbjsTestRunner';
+import { CbjsTaskAsyncContextData } from '../CbjsTestRunner';
 
 declare module 'vitest' {
   interface TaskMeta {

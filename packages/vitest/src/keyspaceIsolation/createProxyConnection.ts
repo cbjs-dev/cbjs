@@ -32,7 +32,7 @@ export function createProxyConnection(conn: CppConnection) {
 
       if (prop === 'openBucket') {
         return proxifyFunction(target, receiver, target[prop], (bucketName, cb) => {
-          const bucketIsolatedName = isolationMap.isolateBucket(bucketName);
+          const bucketIsolatedName = isolationMap.isolateBucketName(bucketName);
           console.log(bucketIsolatedName);
           return [bucketIsolatedName, cb] as const;
         });

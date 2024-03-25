@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { executionAsyncId } from 'node:async_hooks';
+import { invariant } from '@cbjsdev/shared';
 
 import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
 import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { getCbjsTaskAsyncContexts } from './getCbjsTaskAsyncContexts';
 
 /**
- * Returns the Cbjs context tied to the task. This is NOT the resolved context.
- * What is returned is an object containing the properties set for/within this context.
+ *
+ * Returns the context of all the tasks that are parent to the given task id.
+ * The context of the given task is included.
+ *
+ * @param taskId Task id from which to retrieve parent contexts.
  */
-export function getCurrentCbjsAsyncContext(): CbjsTaskAsyncContextData {
-  const { parentMap, taskAsyncIdReversedMap, contextMap } = getCbjsContextTracking();
-  let asyncId: number | undefined = executionAsyncId();
 
-  while (asyncId) {
-    if (taskAsyncIdReversedMap.has(asyncId)) {
-      return contextMap.get(asyncId)!;
-    }
-    asyncId = parentMap.get(asyncId);
-  }
+export function getTaskAsyncContext(taskId: string): CbjsTaskAsyncContextData {
+  const { taskAsyncIdMap, contextMap } = getCbjsContextTracking();
 
-  throw new Error('No cbjs async context found');
+  const taskAsyncId = taskAsyncIdMap.get(taskId);
+  invariant(taskAsyncId);
+
+  const asyncContext = contextMap.get(taskAsyncId);
+  invariant(asyncContext);
+
+  return asyncContext;
 }

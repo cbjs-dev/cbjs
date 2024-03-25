@@ -38,7 +38,7 @@ export class KeyspaceIsolationMap {
    * @param bucketName The original name of the bucket.
    * @returns The isolated name of the bucket.
    */
-  isolateBucket(bucketName: string): string {
+  isolateBucketName(bucketName: string): string {
     if (this.isBucketIsolated(bucketName)) {
       return this.getIsolatedBucketName(bucketName)!;
     }
@@ -61,12 +61,12 @@ export class KeyspaceIsolationMap {
    * @param scopeName The original name of the scope.
    * @returns The isolated name of the scope.
    */
-  isolateScope(bucketName: string, scopeName: string): string {
+  isolateScopeName(bucketName: string, scopeName: string): string {
     if (this.isScopeIsolated(bucketName, scopeName)) {
       return this.getIsolatedScopeName(bucketName, scopeName)!;
     }
 
-    this.isolateBucket(bucketName);
+    this.isolateBucketName(bucketName);
 
     const isolatedName = `${scopeName}_${getRandomId()}`;
 
@@ -87,7 +87,7 @@ export class KeyspaceIsolationMap {
    * @param collectionName The original name of the collection.
    * @returns The isolated name of the collection.
    */
-  isolateCollection(
+  isolateCollectionName(
     bucketName: string,
     scopeName: string,
     collectionName: string
@@ -96,7 +96,7 @@ export class KeyspaceIsolationMap {
       return this.getIsolatedCollectionName(bucketName, scopeName, collectionName)!;
     }
 
-    this.isolateScope(bucketName, scopeName);
+    this.isolateScopeName(bucketName, scopeName);
 
     const isolatedName = `${collectionName}_${getRandomId()}`;
 
