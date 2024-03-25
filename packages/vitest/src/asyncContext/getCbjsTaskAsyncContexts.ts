@@ -15,20 +15,27 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { CbjsAsyncContextData } from './CbjsAsyncContextData';
+import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
 import { getCbjsContextTracking } from './getCbjsContextTracking';
 import { getParentTower } from './getParentTower';
 
 /**
  *
- * Returns the
+ * Returns the contexts of the task's parents.
  *
  * @param eid Execution context id from which to retrieve parent contexts.
  * Default to the current context id.
  */
 
-export function getCbjsAsyncContexts(eid?: number): CbjsAsyncContextData[] {
+export function getCbjsTaskAsyncContexts(
+  eid?: number
+): [CbjsTaskAsyncContextData, ...CbjsTaskAsyncContextData[]] {
+  const contextTracking = getCbjsContextTracking();
+
   return getParentTower(eid ?? executionAsyncId()) // all parents
-    .filter((p) => getCbjsContextTracking().taskAsyncIdReversedMap.has(p)) // pick parents that are tasks
-    .map((p) => getCbjsContextTracking().contextMap.get(p)!); // get parent contexts
+    .filter((p) => contextTracking.taskAsyncIdReversedMap.has(p)) // pick parents that are tasks
+    .map((p) => contextTracking.contextMap.get(p)!) as [
+    CbjsTaskAsyncContextData,
+    ...CbjsTaskAsyncContextData[],
+  ]; // get parent contexts
 }

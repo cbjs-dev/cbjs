@@ -13,21 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CbjsAsyncContextData } from './CbjsAsyncContextData';
+import { Task } from 'vitest';
 
-export function getCbjsContextTracking() {
+import { KeyspaceIsolationMap } from '../keyspaceIsolation/KeyspaceIsolationMap';
+import { KeyspaceIsolationScope } from '../keyspaceIsolation/types';
+import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
+
+export type CbjsContextTracking = {
+  trackingEnabled: boolean;
+
+  /**
+   * Async call stack hierarchy: <asyncId, triggerAsyncId>
+   */
+  parentMap: Map<number, number>;
+
+  /**
+   * Async call stack hierarchy: <triggerAsyncId, asyncId[]>
+   */
+  parentReversedMap: Map<number, number[]>;
+
+  /**
+   * Execution context id for each task: <taskId, asyncId>
+   */
+  taskAsyncIdMap: Map<string, number>;
+
+  /**
+   * Execution context id for each task: <asyncId, taskId>
+   */
+  taskAsyncIdReversedMap: Map<number, string>;
+
+  /**
+   * Context per scope: <asyncId, context_data>
+   */
+  contextMap: Map<number, CbjsTaskAsyncContextData>;
+};
+
+export function getCbjsContextTracking(): CbjsContextTracking {
   if (global.cbjsContextTracking !== undefined) {
     return global.cbjsContextTracking;
   }
 
-  global.cbjsContextTracking = {
+  const contextTracking = {
     trackingEnabled: false,
     parentMap: new Map<number, number>(),
     parentReversedMap: new Map<number, number[]>(),
     taskAsyncIdMap: new Map<string, number>(),
     taskAsyncIdReversedMap: new Map<number, string>(),
-    contextMap: new Map<number, CbjsAsyncContextData>(),
+    contextMap: new Map<number, CbjsTaskAsyncContextData>(),
   };
 
-  return global.cbjsContextTracking;
+  Object.defineProperty(global, 'cbjsContextTracking', {
+    value: contextTracking,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+
+  return contextTracking;
 }

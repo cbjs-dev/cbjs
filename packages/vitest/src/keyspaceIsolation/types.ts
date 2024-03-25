@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
-export type KeyspaceIsolationLevel = 'suite' | 'test' | true | false;
+export type KeyspaceIsolationScope = 'local' | 'per-suite' | 'per-test' | false;
+export type KeyspaceIsolationLevel = 'bucket' | 'collection';

@@ -23,7 +23,7 @@ describe('KeyspaceIsolationMap', () => {
 
     expect(kim.isBucketIsolated('b')).toBe(false);
 
-    kim.isolateBucket('b');
+    kim.isolateBucketName('b');
     expect(kim.isBucketIsolated('b')).toBe(true);
   });
 
@@ -32,7 +32,7 @@ describe('KeyspaceIsolationMap', () => {
 
     expect(kim.isScopeIsolated('b', 's')).toBe(false);
 
-    kim.isolateScope('b', 's');
+    kim.isolateScopeName('b', 's');
     expect(kim.isScopeIsolated('b', 's')).toBe(true);
   });
 
@@ -41,14 +41,14 @@ describe('KeyspaceIsolationMap', () => {
 
     expect(kim.isCollectionIsolated('b', 's', 'c')).toBe(false);
 
-    kim.isolateCollection('b', 's', 'c');
+    kim.isolateCollectionName('b', 's', 'c');
     expect(kim.isCollectionIsolated('b', 's', 'c')).toBe(true);
   });
 
   it('should isolate the bucket when isolating a scope', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
 
-    kim.isolateScope('b', 's');
+    kim.isolateScopeName('b', 's');
 
     expect(kim.isScopeIsolated('b', 's')).toBe(true);
     expect(kim.isBucketIsolated('b')).toBe(true);
@@ -57,7 +57,7 @@ describe('KeyspaceIsolationMap', () => {
   it('should isolate the bucket and scope when isolating a collection', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
 
-    kim.isolateCollection('b', 's', 'c');
+    kim.isolateCollectionName('b', 's', 'c');
 
     expect(kim.isCollectionIsolated('b', 's', 'c')).toBe(true);
     expect(kim.isScopeIsolated('b', 's')).toBe(true);
@@ -67,73 +67,73 @@ describe('KeyspaceIsolationMap', () => {
   it('should return the isolated name of a bucket', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
 
-    expect(kim.isolateBucket('b')).toBeTypeOf('string');
-    expect(kim.isolateBucket('b')).not.equal('b');
+    expect(kim.isolateBucketName('b')).toBeTypeOf('string');
+    expect(kim.isolateBucketName('b')).not.equal('b');
   });
 
   it('should return the isolated name of a scope', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
 
-    expect(kim.isolateScope('b', 's')).toBeTypeOf('string');
-    expect(kim.isolateScope('b', 's')).not.equal('s');
+    expect(kim.isolateScopeName('b', 's')).toBeTypeOf('string');
+    expect(kim.isolateScopeName('b', 's')).not.equal('s');
   });
 
   it('should return the isolated name of a collection', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
 
-    expect(kim.isolateCollection('b', 's', 'c')).toBeTypeOf('string');
-    expect(kim.isolateCollection('b', 's', 'c')).not.equal('c');
+    expect(kim.isolateCollectionName('b', 's', 'c')).toBeTypeOf('string');
+    expect(kim.isolateCollectionName('b', 's', 'c')).not.equal('c');
   });
 
   it('should keep the existing isolated name when isolating a bucket twice', ({
     expect,
   }) => {
     const kim = new KeyspaceIsolationMap();
-    const isolatedName = kim.isolateBucket('b');
+    const isolatedName = kim.isolateBucketName('b');
 
-    expect(kim.isolateBucket('b')).toEqual(isolatedName);
+    expect(kim.isolateBucketName('b')).toEqual(isolatedName);
   });
 
   it('should keep the existing isolated name when isolating a scope twice', ({
     expect,
   }) => {
     const kim = new KeyspaceIsolationMap();
-    const isolatedName = kim.isolateScope('b', 's');
+    const isolatedName = kim.isolateScopeName('b', 's');
 
-    expect(kim.isolateScope('b', 's')).toEqual(isolatedName);
+    expect(kim.isolateScopeName('b', 's')).toEqual(isolatedName);
   });
 
   it('should keep the existing isolated name when isolating a bucket twice', ({
     expect,
   }) => {
     const kim = new KeyspaceIsolationMap();
-    const isolatedName = kim.isolateCollection('b', 's', 'c');
+    const isolatedName = kim.isolateCollectionName('b', 's', 'c');
 
-    expect(kim.isolateCollection('b', 's', 'c')).toEqual(isolatedName);
+    expect(kim.isolateCollectionName('b', 's', 'c')).toEqual(isolatedName);
   });
 
   it('should return the original name of the bucket', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
-    const isolatedName = kim.isolateBucket('b');
-    kim.isolateBucket('foo');
+    const isolatedName = kim.isolateBucketName('b');
+    kim.isolateBucketName('foo');
 
     expect(kim.getOriginalBucketName(isolatedName)).toEqual('b');
   });
 
   it('should return the original name of the scope', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
-    const isolatedName = kim.isolateScope('b', 's');
+    const isolatedName = kim.isolateScopeName('b', 's');
 
-    kim.isolateScope('b', 'foo');
+    kim.isolateScopeName('b', 'foo');
 
     expect(kim.getOriginalScopeName('b', isolatedName)).toEqual('s');
   });
 
   it('should return the original name of the collection', ({ expect }) => {
     const kim = new KeyspaceIsolationMap();
-    const isolatedName = kim.isolateCollection('b', 's', 'c');
+    const isolatedName = kim.isolateCollectionName('b', 's', 'c');
 
-    kim.isolateCollection('b', 's', 'foo');
+    kim.isolateCollectionName('b', 's', 'foo');
 
     expect(kim.getOriginalCollectionName('b', 's', isolatedName)).toEqual('c');
   });
@@ -142,11 +142,11 @@ describe('KeyspaceIsolationMap', () => {
     expect,
   }) => {
     const kim = new KeyspaceIsolationMap();
-    kim.isolateScope('b', 's');
+    kim.isolateScopeName('b', 's');
 
     const isolatedName = kim.getIsolatedBucketName('b');
 
-    kim.isolateScope('b', 'foo');
+    kim.isolateScopeName('b', 'foo');
 
     expect(isolatedName).toEqual(kim.getIsolatedBucketName('b'));
   });
@@ -155,11 +155,11 @@ describe('KeyspaceIsolationMap', () => {
     expect,
   }) => {
     const kim = new KeyspaceIsolationMap();
-    kim.isolateCollection('b', 's', 'c');
+    kim.isolateCollectionName('b', 's', 'c');
 
     const isolatedName = kim.getIsolatedScopeName('b', 's');
 
-    kim.isolateCollection('b', 's', 'foo');
+    kim.isolateCollectionName('b', 's', 'foo');
 
     expect(isolatedName).toEqual(kim.getIsolatedScopeName('b', 's'));
   });

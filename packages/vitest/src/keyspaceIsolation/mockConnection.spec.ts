@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it, TestContext, vi } from 'vitest';
+import { beforeAll, describe, it, TestContext, vi } from 'vitest';
 
 import { Cluster } from '@cbjsdev/cbjs';
 import { CppConnection } from '@cbjsdev/cbjs/internal';
@@ -25,6 +25,7 @@ import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncC
 import { CbjsTestContext } from '../CbjsTestRunner';
 import { TestFixtures } from '../fixtures/types';
 import { createProxyConnection } from './createProxyConnection';
+import { setKeyspaceIsolation } from './setKeyspaceIsolation';
 
 const { connectionProxySymbol } = vi.hoisted(() => {
   return {
@@ -37,7 +38,7 @@ vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
 
   Object.defineProperty(Cluster.prototype, 'conn', {
     get: function (this: { _conn: CppConnection; connectionProxy: CppConnection }) {
-      if (!getCurrentCbjsAsyncContext().keyspaceIsolation) return this._conn;
+      if (!getCurrentCbjsAsyncContext().keyspaceIsolationScope) return this._conn;
 
       if (this.connectionProxy === undefined) {
         this.connectionProxy = createProxyConnection(this._conn);
@@ -60,13 +61,13 @@ describe('mockConnection', () => {
 
   type SuiteTestsContext = TestContext & TestFixtures<typeof test> & CbjsTestContext;
 
-  test<SuiteTestsContext>('should mock connection when keyspaceIsolation is activated', async function ({
-    task,
-    expect,
-    useKeyspaceIsolation,
-  }) {
-    useKeyspaceIsolation(true);
+  beforeAll(() => {
+    setKeyspaceIsolation('test');
+  });
 
+  test<SuiteTestsContext>('should mock connection when keyspaceIsolation is activated', async function ({
+    expect,
+  }) {
     const cluster = await Cluster.connect('couchbase://localhost', {
       ...getConnectionParams().credentials,
     });
@@ -76,13 +77,7 @@ describe('mockConnection', () => {
     expect(cluster.conn[connectionProxySymbol]).toBe(true);
   });
 
-  test<SuiteTestsContext>('should isolate conn.openBucket', async function ({
-    task,
-    expect,
-    useKeyspaceIsolation,
-  }) {
-    useKeyspaceIsolation(true);
-
+  test<SuiteTestsContext>('should isolate conn.openBucket', async function ({ expect }) {
     const cluster = await Cluster.connect('couchbase://localhost', {
       ...getConnectionParams().credentials,
     });
