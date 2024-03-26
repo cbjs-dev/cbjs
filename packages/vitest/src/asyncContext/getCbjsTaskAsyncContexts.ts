@@ -15,7 +15,7 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
 import { getCbjsContextTracking } from './getCbjsContextTracking';
 import { getParentTower } from './getParentTower';
 
@@ -29,13 +29,13 @@ import { getParentTower } from './getParentTower';
 
 export function getCbjsTaskAsyncContexts(
   eid?: number
-): [CbjsTaskAsyncContextData, ...CbjsTaskAsyncContextData[]] {
+): [CbjsAsyncContextData, ...CbjsAsyncContextData[]] {
   const contextTracking = getCbjsContextTracking();
 
   return getParentTower(eid ?? executionAsyncId()) // all parents
     .filter((p) => contextTracking.taskAsyncIdReversedMap.has(p)) // pick parents that are tasks
     .map((p) => contextTracking.contextMap.get(p)!) as [
-    CbjsTaskAsyncContextData,
-    ...CbjsTaskAsyncContextData[],
+    CbjsAsyncContextData,
+    ...CbjsAsyncContextData[],
   ]; // get parent contexts
 }

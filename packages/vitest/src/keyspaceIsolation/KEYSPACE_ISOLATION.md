@@ -1,13 +1,12 @@
 # Keyspace Isolation
 
-## Task Isolation
+## Isolation Scope
 
 The task isolation can take the following values :  `'suite' | 'test' | true | false`.
 
-`suite`: the same keyspaces will be shared by the current suite and all its children, unless overwritten.
-`test`: each test will have its own isolation.
-
-[//]: # (`true`: if the suite is `sequential`, it will share the keyspace isolation, otherwise each test will have their own isolation.)
+`'per-suite'`: the same keyspaces will be shared by the current suite and all its children, unless overwritten.  
+`'per-test'`: each test will have its own isolation.  
+`'local'`: the isolation is shared by this suite and all its children.  
 `false`: no isolation will be provided. 
 
 

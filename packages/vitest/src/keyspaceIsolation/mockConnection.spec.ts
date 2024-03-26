@@ -21,32 +21,25 @@ import { Cluster } from '@cbjsdev/cbjs';
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { getConnectionParams, waitFor } from '@cbjsdev/shared';
 
-import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
 import { CbjsTestContext } from '../CbjsTestRunner';
 import { TestFixtures } from '../fixtures/types';
-import { createProxyConnection } from './createProxyConnection';
+import { connectionProxySymbol, createProxyConnection } from './createProxyConnection';
 import { setKeyspaceIsolation } from './setKeyspaceIsolation';
-
-const { connectionProxySymbol } = vi.hoisted(() => {
-  return {
-    connectionProxySymbol: Symbol('CppConnectionProxy'),
-  };
-});
 
 vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
   const { Cluster, ...rest } = await importOriginal<typeof import('@cbjsdev/cbjs')>();
+  const clusterConnectionProxy = Symbol('ClusterConnectionProxy');
 
   Object.defineProperty(Cluster.prototype, 'conn', {
-    get: function (this: { _conn: CppConnection; connectionProxy: CppConnection }) {
-      if (!getCurrentCbjsAsyncContext().keyspaceIsolationScope) return this._conn;
-
-      if (this.connectionProxy === undefined) {
-        this.connectionProxy = createProxyConnection(this._conn);
-        // @ts-ignore
-        this.connectionProxy[connectionProxySymbol] = true;
+    get: function (this: {
+      _conn: CppConnection;
+      [clusterConnectionProxy]: CppConnection;
+    }) {
+      if (this[clusterConnectionProxy] === undefined) {
+        this[clusterConnectionProxy] = createProxyConnection(this._conn);
       }
 
-      return this.connectionProxy;
+      return this[clusterConnectionProxy];
     },
   });
 
@@ -62,7 +55,7 @@ describe('mockConnection', () => {
   type SuiteTestsContext = TestContext & TestFixtures<typeof test> & CbjsTestContext;
 
   beforeAll(() => {
-    setKeyspaceIsolation('test');
+    setKeyspaceIsolation('per-test');
   });
 
   test<SuiteTestsContext>('should mock connection when keyspaceIsolation is activated', async function ({
@@ -72,23 +65,36 @@ describe('mockConnection', () => {
       ...getConnectionParams().credentials,
     });
 
-    expect(connectionProxySymbol).toBeDefined();
     // @ts-ignore
     expect(cluster.conn[connectionProxySymbol]).toBe(true);
   });
 
-  test<SuiteTestsContext>('should isolate conn.openBucket', async function ({ expect }) {
+  test<SuiteTestsContext>('should preserve original names in runtime objects', async function ({
+    expect,
+  }) {
     const cluster = await Cluster.connect('couchbase://localhost', {
       ...getConnectionParams().credentials,
     });
 
-    const done = vi.fn();
-
-    // TODO check the bucket has been isolated.
     const bucket = cluster.bucket('ci');
-
-    await waitFor(() => {
-      expect(done).toHaveBeenCalled();
-    });
+    expect(bucket.name).toEqual('ci');
   });
+
+  test.todo<SuiteTestsContext>(
+    'should isolate conn.openBucket',
+    async function ({ expect }) {
+      const cluster = await Cluster.connect('couchbase://localhost', {
+        ...getConnectionParams().credentials,
+      });
+
+      const done = vi.fn();
+
+      // TODO check the bucket has been isolated.
+      const bucket = cluster.bucket('ci');
+
+      await waitFor(() => {
+        expect(done).toHaveBeenCalled();
+      });
+    }
+  );
 });

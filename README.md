@@ -88,4 +88,4 @@ Unlike the official library, Cbjs doesn't use the filesystem, which is sometimes
 
 ## License
 
-All the packages are released under the Apache 2.0 license.
+Cbjs packages are released under the Apache 2.0 license.

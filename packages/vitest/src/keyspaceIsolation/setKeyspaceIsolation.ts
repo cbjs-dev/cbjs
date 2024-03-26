@@ -15,7 +15,7 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
+import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext';
 import { KeyspaceIsolationMap } from './KeyspaceIsolationMap';
 import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from './types';
 
@@ -23,7 +23,7 @@ export function setKeyspaceIsolation(
   isolationScope: KeyspaceIsolationScope,
   isolationLevel: KeyspaceIsolationLevel = 'collection'
 ) {
-  const asyncContext = getCurrentCbjsAsyncContext();
+  const asyncContext = getCurrentTaskAsyncContext();
 
   asyncContext.keyspaceIsolationScope = isolationScope;
   asyncContext.keyspaceIsolationLevel = isolationLevel;

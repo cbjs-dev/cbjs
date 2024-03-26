@@ -13,32 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorListener, RecognitionException, Recognizer, Token } from 'antlr4';
+import { AnyFunction } from '@cbjsdev/shared';
 
-import { N1qlParserError } from './N1qlParserError';
+import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
 
-export class N1qlParserErrorListener<T> extends ErrorListener<T> {
-  constructor() {
-    super();
+export async function runWithoutKeyspaceIsolation(fn: AnyFunction) {
+  const asyncContext = getCurrentCbjsAsyncContext();
+
+  if (asyncContext === undefined) {
+    return await fn();
   }
 
-  override syntaxError(
-    recognizer: Recognizer<T>,
-    offendingSymbol: T,
-    line: number,
-    column: number,
-    message: string,
-    e?: RecognitionException
-  ) {
-    throw new N1qlParserError(
-      {
-        recognizer,
-        offendingSymbol,
-        line,
-        column,
-        message,
-      },
-      e
-    );
-  }
+  const currentIsolation = asyncContext.keyspaceIsolationScope;
+  asyncContext.keyspaceIsolationScope = false;
+
+  const result = await fn();
+
+  asyncContext.keyspaceIsolationScope = currentIsolation ?? false;
+  return result;
 }

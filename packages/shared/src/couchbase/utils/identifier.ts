@@ -27,6 +27,14 @@ export function quoteIdentifier(name: string) {
   return '`' + name + '`';
 }
 
+export function trimIdentifier(name: string) {
+  if (name.startsWith('`') && name.endsWith('`')) {
+    return name.substring(1, name.length - 1);
+  }
+
+  return name;
+}
+
 /**
  * Represent a keyspace within a cluster.
  *
@@ -113,6 +121,66 @@ export function namespacedKeyspacePath(
 }
 
 export function isValidBucketName(name: string): boolean {
-  const regexp = /[^a-zA-Z0-9_.%-]+/;
-  return !regexp.test(name);
+  const regexp = /^[a-zA-Z0-9_%-][a-zA-Z0-9_.%-]{0,99}$/;
+  return regexp.test(name);
+}
+
+export function isValidScopeName(name: string): boolean {
+  const regexp = /^[a-zA-Z0-9-][a-zA-Z0-9_%-]{0,99}$/;
+  return regexp.test(name);
+}
+
+export function isValidCollectionName(name: string): boolean {
+  const regexp = /^[a-zA-Z0-9-][a-zA-Z0-9_%-]{0,99}$/;
+  return regexp.test(name);
+}
+
+/**
+ * Takes a keyspace path and returns a tuple of identifiers. It's up to you to apply a query context to it.
+ *
+ * The path must be a valid and may contain quoted identifiers.
+ * An invalid path will result in an undefined behaviour.
+ *
+ * @param keyspacePath
+ */
+
+export function parseKeyspacePath(keyspacePath: string): [string, string?, string?] {
+  const keyspaceChars = keyspacePath.trim().split('');
+
+  if (keyspaceChars[0] === '`') {
+    const nextBackTickIndex = keyspaceChars.findIndex((char, i) => i > 0 && char === '`');
+    invariant(nextBackTickIndex !== -1, 'Unable to parse the keyspace path.');
+
+    const bucket = keyspaceChars.slice(1, nextBackTickIndex).join('');
+
+    const remainingPath = keyspaceChars.slice(nextBackTickIndex + 1).join('');
+    const pathChunks = remainingPath
+      .split('.')
+      .filter((c) => c !== '')
+      .map(trimIdentifier);
+
+    return [bucket, ...pathChunks] as [string, string?, string?];
+  }
+
+  return keyspacePath.trim().split('.').map(trimIdentifier) as [string, string?, string?];
+}
+
+export function resolveKeyspace(
+  keyspaceParts: string[],
+  queryContext?: Pick<Keyspace, 'bucket' | 'scope'>
+): Partial<Keyspace> {
+  if (queryContext && keyspaceParts.length === 1) {
+    return {
+      ...queryContext,
+      collection: keyspaceParts[0],
+    };
+  }
+
+  if (keyspaceParts.length === 1 && keyspaceParts[0]) {
+    return { bucket: keyspaceParts[0] };
+  }
+
+  const [bucket, scope, collection] = keyspaceParts;
+
+  return { bucket, scope, collection };
 }

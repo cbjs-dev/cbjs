@@ -10,18 +10,12 @@
  */
 import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4';
 
-import {
-  n1qlLexer,
-  n1qlParser,
-  N1qlParserErrorListener,
-  N1qlParserListener,
-} from './antlr/n1ql';
+import n1qlLexer from './antlr/n1ql/n1qlLexer';
+import n1qlParser from './antlr/n1ql/n1qlParser';
+import { n1qlListener } from './index';
+import { N1qlParserErrorListener } from './N1qlParserErrorListener';
 
-export type ParseResult = {
-  keyspaces: string[][];
-};
-
-export function parseN1QL(query: string): N1qlParserListener {
+export function walkN1ql(query: string, listener: n1qlListener): void {
   const charStream = new CharStream(query);
   const lexer = new n1qlLexer(charStream);
   const tokenStream = new CommonTokenStream(lexer);
@@ -33,9 +27,6 @@ export function parseN1QL(query: string): N1qlParserListener {
   parser.addErrorListener(new N1qlParserErrorListener<Token>());
 
   const tree = parser.input();
-  const listener = new N1qlParserListener();
 
   ParseTreeWalker.DEFAULT.walk(listener, tree);
-
-  return listener;
 }

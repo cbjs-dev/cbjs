@@ -8,5 +8,14 @@
  * be governed by the Apache License, Version 2.0, included in the file
  * licenses/APL2.txt.
  */
+import n1qlLexer from './antlr/n1ql/n1qlLexer';
+import n1qlListener from './antlr/n1ql/n1qlListener';
+import n1qlParser from './antlr/n1ql/n1qlParser';
 
-export * from './getQueryKeyspaces';
+export { n1qlLexer, n1qlListener, n1qlParser };
+export * from './antlr/n1ql/n1qlParser'; // Export all expression classes
+
+export * from './N1qlParserError';
+export * from './N1qlParserErrorListener';
+
+export * from './walkN1ql';

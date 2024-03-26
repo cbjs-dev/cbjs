@@ -488,13 +488,7 @@ class InternalQueryIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
                 name: row.name,
                 state: row.state,
                 type: row.type,
-                indexKey: row.index_key.map((field) => {
-                  if (field.startsWith('`') && field.endsWith('`')) {
-                    return field.substring(1, field.length - 1);
-                  }
-
-                  return field;
-                }),
+                indexKey: row.index_key.map(trimIdentifier),
                 partition: row.partition,
                 condition: row.condition,
                 bucketName: row.bucket_name,

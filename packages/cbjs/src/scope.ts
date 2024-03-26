@@ -20,6 +20,7 @@ import {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   ScopeName,
+  quoteIdentifier
 } from '@cbjsdev/shared';
 
 import { AnalyticsExecutor } from './analyticsexecutor.js';
@@ -155,7 +156,7 @@ export class Scope<
       () =>
         exec.query<TRow>(statement, {
           ...options_,
-          queryContext: `${bucket.name}.${this.name}`,
+          queryContext: `${quoteIdentifier(bucket.name)}.${quoteIdentifier(this.name)}`,
         }),
       callback
     );

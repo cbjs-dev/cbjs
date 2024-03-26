@@ -15,7 +15,7 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
 import { getCbjsContextTracking } from './getCbjsContextTracking';
 import { getCbjsTaskAsyncContexts } from './getCbjsTaskAsyncContexts';
 
@@ -27,7 +27,7 @@ import { getCbjsTaskAsyncContexts } from './getCbjsTaskAsyncContexts';
  * @param taskId Task id from which to retrieve parent contexts.
  */
 
-export function getTaskAsyncContext(taskId: string): CbjsTaskAsyncContextData {
+export function getTaskAsyncContext(taskId: string): CbjsAsyncContextData {
   const { taskAsyncIdMap, contextMap } = getCbjsContextTracking();
 
   const taskAsyncId = taskAsyncIdMap.get(taskId);

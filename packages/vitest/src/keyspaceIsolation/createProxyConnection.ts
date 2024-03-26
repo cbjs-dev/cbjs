@@ -15,30 +15,73 @@
  */
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 
+import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
 import { proxifyFunction } from '../utils/proxifyFunction';
 import { KeyspaceIsolationMap } from './KeyspaceIsolationMap';
+import { transformArgs as kvTransformArgs } from './proxyFunctions/kv';
+import { transformArgs as queryTransformArgs } from './proxyFunctions/query';
+import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel';
+
+export const connectionProxySymbol = Symbol('CppConnectionProxy');
 
 export function createProxyConnection(conn: CppConnection) {
   const isolationMap = new KeyspaceIsolationMap();
 
   return new Proxy(conn, {
-    get: (target, prop: keyof CppConnection, receiver: CppConnection) => {
+    get: (
+      target,
+      prop: keyof CppConnection | typeof connectionProxySymbol,
+      receiver: CppConnection
+    ) => {
+      if (prop === connectionProxySymbol) {
+        return true;
+      }
+
       const value = target[prop];
 
       // Future proofing
+      // noinspection SuspiciousTypeOfGuard
       if (!(value instanceof Function)) {
         return value;
       }
 
-      if (prop === 'openBucket') {
-        return proxifyFunction(target, receiver, target[prop], (bucketName, cb) => {
-          const bucketIsolatedName = isolationMap.isolateBucketName(bucketName);
-          console.log(bucketIsolatedName);
-          return [bucketIsolatedName, cb] as const;
+      const asyncContext = getCurrentCbjsAsyncContext();
+      const shouldIsolateKeyspace =
+        asyncContext && asyncContext.keyspaceIsolationScope !== false;
+
+      if (shouldIsolateKeyspace) {
+        return proxifyFunction(target, prop, receiver);
+      }
+
+      // TODO split the proxy functions by service
+      // TODO create a type to make sure every method is handled
+      // TODO so yes, create an array of methods to ignore/passthrough to satisfies the type
+
+      const transformArgs = {
+        ...topLevelTransformArgs,
+        ...kvTransformArgs,
+        ...queryTransformArgs,
+      };
+
+      const passthrough = ['connect', 'shutdown', 'httpNoop', 'diagnostics'] as const;
+
+      type MissingHandlers = Exclude<
+        keyof CppConnection,
+        keyof typeof transformArgs | (typeof passthrough)[number]
+      >;
+
+      if (Object.keys(transformArgs).includes(prop)) {
+        const targetMethod = prop as keyof typeof transformArgs;
+        return proxifyFunction(target, targetMethod, receiver, (...args) => {
+          const transformFunction = transformArgs[targetMethod] as (
+            m: KeyspaceIsolationMap,
+            ...tArgs: typeof args
+          ) => typeof args;
+          return transformFunction(isolationMap, ...args);
         });
       }
 
-      return proxifyFunction(target, receiver, target[prop]);
+      return proxifyFunction(target, prop, receiver);
     },
   });
 }

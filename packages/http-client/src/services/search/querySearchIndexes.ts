@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, invariant, Keyspace } from '@cbjsdev/shared';
+import { hasOwn, invariant, Keyspace, trimIdentifier } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types.js';
 import { ApiQueryResponseBody } from '../../types/Api/index.js';
@@ -61,13 +61,7 @@ function toFriendlyFormat(index: QueryResultSearchIndex): HttpClientSearchIndex 
   return {
     id: index.id,
     name: index.name,
-    fields: index.index_key.map((field) => {
-      if (field.startsWith('`') && field.endsWith('`')) {
-        return field.substring(1, field.length - 1);
-      }
-
-      return field;
-    }) as [string, ...string[]],
+    fields: index.index_key.map(trimIdentifier) as [string, ...string[]],
     node: index.datastore_id,
     state: index.state,
     namespace: index.namespace_id,

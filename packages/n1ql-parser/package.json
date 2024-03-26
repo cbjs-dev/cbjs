@@ -1,0 +1,48 @@
+{
+  "name": "@cbjsdev/n1ql-parser",
+  "version": "1.1.3",
+  "description": "Parse N1QL queries",
+  "keywords": [
+    "couchbase",
+    "query",
+    "n1ql",
+    "sql++",
+    "sqlpp"
+  ],
+  "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cbjs-dev/cbjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cbjs-dev/cbjs/issues"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "npm run build -- --watch",
+    "test": "vitest --run",
+    "prepack": "rm -rf dist && npm run build",
+    "postinstall": "patch-package"
+  },
+  "type": "module",
+  "main": "dist/src/index.js",
+  "module": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "patches/*",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@cbjsdev/shared": "^1.1.3",
+    "antlr4": "4.13.1-patch-1",
+    "patch-package": "^8.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -13,10 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import goyaccLexer from './generated/antlr/goyacc/goyaccLexer';
-import goyaccListener from './generated/antlr/goyacc/goyaccListener';
-import goyaccParser from './generated/antlr/goyacc/goyaccParser';
+import { Task } from 'vitest';
 
-export { goyaccLexer, goyaccParser, goyaccListener };
+import { KeyspaceIsolationMap } from '../keyspaceIsolation/KeyspaceIsolationMap';
+import {
+  KeyspaceIsolationLevel,
+  KeyspaceIsolationScope,
+} from '../keyspaceIsolation/types';
 
-export type * from './generated/antlr/goyacc/goyaccParser';
+export type CbjsContextKeyspaceIsolation = {
+  keyspaceIsolationScope: KeyspaceIsolationScope;
+  keyspaceIsolationLevel: KeyspaceIsolationLevel;
+  keyspaceIsolationMap: KeyspaceIsolationMap | null;
+};
+
+export type CbjsAsyncContextData = {
+  asyncId: number;
+  taskId: string;
+  task: Task;
+} & CbjsContextKeyspaceIsolation;

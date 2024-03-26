@@ -155,6 +155,22 @@ export class KeyspaceIsolationMap {
       .isolatedCollections.get(collectionName);
   }
 
+  getIsolatedKeyspaceNames(keyspace: Keyspace) {
+    if (!this.isKeyspaceIsolated(keyspace)) {
+      return undefined;
+    }
+
+    return {
+      bucket: this.getIsolatedBucketName(keyspace.bucket),
+      scope: this.getIsolatedScopeName(keyspace.bucket, keyspace.scope),
+      collection: this.getIsolatedCollectionName(
+        keyspace.bucket,
+        keyspace.scope,
+        keyspace.collection
+      ),
+    } as Keyspace;
+  }
+
   isBucketIsolated(bucketName: string): boolean {
     return this.isolatedBuckets.has(bucketName);
   }

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
- * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ErrorListener, RecognitionException, Recognizer } from 'antlr4';
 
-module.exports = {
-  extends: ['../../../../.eslintrc.cjs'],
-  ignorePatterns: ['antlr/**/generated'],
-};
+import { N1qlParserError } from './N1qlParserError';
+
+export class N1qlParserErrorListener<T> extends ErrorListener<T> {
+  constructor() {
+    super();
+  }
+
+  override syntaxError(
+    recognizer: Recognizer<T>,
+    offendingSymbol: T,
+    line: number,
+    column: number,
+    message: string,
+    e?: RecognitionException
+  ) {
+    throw new N1qlParserError(
+      {
+        recognizer,
+        offendingSymbol,
+        line,
+        column,
+        message,
+      },
+      e
+    );
+  }
+}

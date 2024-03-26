@@ -13,19 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Task } from 'vitest';
 
-import { KeyspaceIsolationMap } from '../keyspaceIsolation/KeyspaceIsolationMap';
-import {
-  KeyspaceIsolationLevel,
-  KeyspaceIsolationScope,
-} from '../keyspaceIsolation/types';
-
-export type CbjsTaskAsyncContextData = {
-  asyncId: number;
-  taskId: string;
-  task: Task;
-  keyspaceIsolationScope: KeyspaceIsolationScope;
-  keyspaceIsolationLevel: KeyspaceIsolationLevel;
-  keyspaceIsolationMap: KeyspaceIsolationMap | null;
-};

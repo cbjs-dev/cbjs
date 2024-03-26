@@ -1,4 +1,4 @@
-// Generated from antlr/n1ql/n1ql.g4 by ANTLR 4.13.1
+// Generated from src/antlr/n1ql/n1ql.g4 by ANTLR 4.13.1
 
 import {ParseTreeListener} from "antlr4";
 

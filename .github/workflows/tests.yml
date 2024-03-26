@@ -70,6 +70,14 @@ jobs:
           restore-keys: |
             vitest-cache-main
 
+      - name: Vitest cache
+        uses: actions/cache@v4
+        with:
+          path: ./node_modules/.vite/vitest/results.json
+          key: vitest-cache-${{ github.ref_name }}
+          restore-keys: |
+            vitest-cache-main
+
       - name: Run all tests
         run: NODE_OPTIONS="--max-old-space-size=8192" ./node_modules/.bin/vitest --run --bail 5
 

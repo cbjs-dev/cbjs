@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +15,7 @@
  * limitations under the License.
  */
 
-type HasOwn<T, K extends PropertyKey> = [Extract<T, { [Key in K]: unknown }>] extends [
-  never,
-]
-  ? T & (K extends keyof T ? Record<K, T[K]> : Record<K, unknown>)
-  : Extract<T, { [Key in K]: unknown }>;
-
-export function hasOwn<T, K extends PropertyKey>(obj: T, prop: K): obj is HasOwn<T, K> {
-  if (typeof obj !== 'object' || obj === null) return false;
-  return Object.hasOwn(obj, prop);
-}
+module.exports = {
+  extends: ['../../.eslintrc.cjs'],
+  ignorePatterns: ['src/antlr/**/generated'],
+};

@@ -13,9 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { defineProject, mergeConfig } from 'vitest/config';
 
-export * from './generated';
+import sharedProjectConfig from '../../vitest.shared.packages';
 
-export * from './N1qlParserListener';
-export * from './N1qlParserError';
-export * from './N1qlParserErrorListener';
+export default mergeConfig(
+  sharedProjectConfig,
+  defineProject({
+    test: {
+      name: 'package:@cbjsdev/n1ql-parser',
+      pool: 'forks',
+      minWorkers: 1,
+      maxWorkers: 1,
+      restoreMocks: true,
+      mockReset: true,
+      clearMocks: true,
+    },
+  })
+);

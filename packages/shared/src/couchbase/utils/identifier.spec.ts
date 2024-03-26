@@ -13,24 +13,117 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, it, test } from 'vitest';
+import { describe, expectTypeOf, it } from 'vitest';
 
 import { ClusterTypes, DocDef } from '../clusterTypes/index.js';
-import { isValidBucketName, Keyspace } from './identifier.js';
+import { isValidBucketName, parseKeyspacePath, resolveKeyspace, Keyspace } from './identifier.js';
 
 describe('isValidBucketName', () => {
-  test('should return true with a valid identifier', ({ expect }) => {
-    expect(isValidBucketName('valid')).toBeTruthy();
-    expect(isValidBucketName('bond007')).toBeTruthy();
-    expect(isValidBucketName('my.dad.text.like.that')).toBeTruthy();
-    expect(isValidBucketName('30%_of_the_time-it.works.all.the.time')).toBeTruthy();
+  it('should return true with a valid bucket name', ({ expect }) => {
+    expect(isValidBucketName('valid')).toBe(true);
+    expect(isValidBucketName('bond007')).toBe(true);
+    expect(isValidBucketName('my.dad.text.like.that')).toBe(true);
+    expect(isValidBucketName('30%_of_the_time-it.works.all.the.time')).toBe(true);
   });
 
-  test('should return false with an invalid identifier', ({ expect }) => {
-    expect(isValidBucketName('foo`bar')).toBeFalsy();
-    expect(isValidBucketName('yo/lo')).toBeFalsy();
+  it('should return false with an invalid bucket name', ({ expect }) => {
+    expect(isValidBucketName('.net')).toBe(false);
+    expect(isValidBucketName('foo`bar')).toBe(false);
+    expect(isValidBucketName('yo/lo')).toBe(false);
   });
 });
+
+
+describe('parseKeyspacePath', () => {
+  it('should parse bucket name', ({ expect }) => {
+    expect(parseKeyspacePath('store')).toEqual(['store']);
+  });
+
+  it('should parse quoted bucket name', ({ expect }) => {
+    expect(parseKeyspacePath('`store`')).toEqual(['store']);
+  });
+
+  it('should parse quoted bucket name containing a dot', ({ expect }) => {
+    expect(parseKeyspacePath('`this.dot`')).toEqual(['this.dot']);
+  });
+
+  it('should parse bucket name and a scope name', ({ expect }) => {
+    expect(parseKeyspacePath('store.library')).toEqual(['store', 'library']);
+  });
+
+  it('should parse a quoted bucket name containing a dot and a scope name', ({
+    expect,
+  }) => {
+    expect(parseKeyspacePath('`this.dot`.library')).toEqual(['this.dot', 'library']);
+  });
+
+  it('should parse a quoted bucket name and a quoted scope name', ({ expect }) => {
+    expect(parseKeyspacePath('`store`.`library`')).toEqual(['store', 'library']);
+  });
+
+  it('should parse a quoted bucket name containing a dot and a quoted scope name', ({
+    expect,
+  }) => {
+    expect(parseKeyspacePath('`this.dot`.`library`')).toEqual(['this.dot', 'library']);
+  });
+
+  it('should parse bucket name and a quoted scope name', ({ expect }) => {
+    expect(parseKeyspacePath('store.`library`')).toEqual(['store', 'library']);
+  });
+
+  it('should parse a full path', ({ expect }) => {
+    expect(parseKeyspacePath('store.library.books')).toEqual([
+      'store',
+      'library',
+      'books',
+    ]);
+  });
+
+  it('should parse a full path with quoted identifiers', ({ expect }) => {
+    expect(parseKeyspacePath('`store`.`library`.`books`')).toEqual([
+      'store',
+      'library',
+      'books',
+    ]);
+  });
+
+  it('should parse a full path with bucket name containing a dot', ({ expect }) => {
+    expect(parseKeyspacePath('`this.dot`.library.books')).toEqual([
+      'this.dot',
+      'library',
+      'books',
+    ]);
+  });
+});
+
+describe('resolveKeyspace', () => {
+  it('should return full keyspace with context untouched', ({ expect }) => {
+    expect(
+      resolveKeyspace(['store', 'library', 'books'], {
+        bucket: 'foo',
+        scope: 'bar',
+      })
+    ).toEqual({ bucket: 'store', scope: 'library', collection: 'books' });
+  });
+
+  it('should return apply the context to keyspace when unscoped', ({ expect }) => {
+    expect(
+      resolveKeyspace(['books'], {
+        bucket: 'foo',
+        scope: 'bar',
+      })
+    ).toEqual({ bucket: 'foo', scope: 'bar', collection: 'books' });
+  });
+
+  it('should return the keyspace as is when no context is provided', ({ expect }) => {
+    expect(resolveKeyspace(['store', 'library', 'books'])).toEqual({
+      bucket: 'store',
+      scope: 'library',
+      collection: 'books',
+    });
+  });
+});
+
 
 type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = ClusterTypes<{

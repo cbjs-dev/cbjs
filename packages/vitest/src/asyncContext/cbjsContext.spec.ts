@@ -19,17 +19,17 @@ import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { invariant } from '@cbjsdev/shared';
 
-import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
-import { getCurrentCbjsAsyncContext } from './getCurrentCbjsAsyncContext';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
+import { getCurrentTaskAsyncContext } from './getCurrentTaskAsyncContext';
 
-function setAsyncContext(ctx: Partial<CbjsTaskAsyncContextData & { testValue: number }>) {
-  const currentContext = getCurrentCbjsAsyncContext();
+function setAsyncContext(ctx: Partial<CbjsAsyncContextData & { testValue: number }>) {
+  const currentContext = getCurrentTaskAsyncContext();
   invariant(currentContext);
   Object.assign(currentContext, ctx);
 }
 
 function getAsyncContext() {
-  return getCurrentCbjsAsyncContext() as CbjsTaskAsyncContextData & {
+  return getCurrentTaskAsyncContext() as CbjsAsyncContextData & {
     testValue: number;
   };
 }
