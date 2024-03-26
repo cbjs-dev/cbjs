@@ -13,34 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ParserRuleContext, RuleContext } from 'antlr4';
-
-import { invariant, NamespacedKeyspace } from '@cbjsdev/shared';
+import { ParserRuleContext } from 'antlr4';
 
 import {
   C_exprContext,
-  ExprContext,
-  IdentContext,
   Keyspace_nameContext,
-  Keyspace_pathContext,
-  Keyspace_refContext,
   n1qlListener,
-  Named_keyspace_refContext,
   Namespace_nameContext,
   Namespace_termContext,
   Path_partContext,
   Permitted_identifiersContext,
   Simple_from_termContext,
-  Simple_keyspace_refContext,
-  Simple_named_keyspace_refContext,
-} from './generated';
+} from '@cbjsdev/n1ql-parser';
+import { invariant } from '@cbjsdev/shared';
 
-export class N1qlParserListener extends n1qlListener {
+type FoundKeyspace = {
+  namespace: string | undefined;
+  keyspaceParts: [string] | [string, string] | [string, string, string];
+};
+
+export class N1qlListener extends n1qlListener {
   private readonly consumedContexts = new Set<ParserRuleContext>();
-  private readonly keyspaces: Array<{
-    namespace: string | undefined;
-    keyspaceParts: string[];
-  }> = [];
+  private readonly keyspaces: FoundKeyspace[] = [];
 
   getKeyspaces() {
     return this.keyspaces;
@@ -66,7 +60,7 @@ export class N1qlParserListener extends n1qlListener {
       this.keyspaces.push({
         namespace: undefined,
         keyspaceParts: ctx.getChild(0).getText().split('.'),
-      });
+      } as FoundKeyspace);
     }
   };
 
@@ -94,7 +88,7 @@ export class N1qlParserListener extends n1qlListener {
     return {
       namespace,
       keyspaceParts,
-    };
+    } as FoundKeyspace;
   };
 
   // path_part || keyspace_name => filter namespace_name || path_part || keyspace_name

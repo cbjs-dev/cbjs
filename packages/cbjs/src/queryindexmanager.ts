@@ -16,6 +16,8 @@
  */
 import { promisify } from 'node:util';
 
+import { trimIdentifier } from '@cbjsdev/shared';
+
 import { CppError, CppQueryContext } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
@@ -487,13 +489,7 @@ class InternalQueryIndexManager {
                 name: row.name,
                 state: row.state,
                 type: row.type,
-                indexKey: row.index_key.map((field) => {
-                  if (field.startsWith('`') && field.endsWith('`')) {
-                    return field.substring(1, field.length - 1);
-                  }
-
-                  return field;
-                }),
+                indexKey: row.index_key.map(trimIdentifier),
                 partition: row.partition,
                 condition: row.condition,
                 bucketName: row.bucket_name,

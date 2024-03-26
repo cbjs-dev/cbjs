@@ -12,7 +12,7 @@ Modern Couchbase client for JS runtimes
 ## Compatibility
 
 The library is a drop-in replacement for the official client.  
-Uninstall `couchnode` and install `@cbjsdev/cbjs`. Enjoy !
+Uninstall `couchbase` and install `@cbjsdev/cbjs`. Enjoy !
 
 ## Features
 
@@ -24,4 +24,4 @@ Uninstall `couchnode` and install `@cbjsdev/cbjs`. Enjoy !
 
 ## License
 
-All the packages are released under the Apache 2.0 license.
+Cbjs packages are released under the Apache 2.0 license.

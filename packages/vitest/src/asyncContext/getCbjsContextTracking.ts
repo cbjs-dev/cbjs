@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Task } from 'vitest';
-
-import { KeyspaceIsolationMap } from '../keyspaceIsolation/KeyspaceIsolationMap';
-import { KeyspaceIsolationScope } from '../keyspaceIsolation/types';
-import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
 
 export type CbjsContextTracking = {
   trackingEnabled: boolean;
@@ -45,7 +41,7 @@ export type CbjsContextTracking = {
   /**
    * Context per scope: <asyncId, context_data>
    */
-  contextMap: Map<number, CbjsTaskAsyncContextData>;
+  contextMap: Map<number, CbjsAsyncContextData>;
 };
 
 export function getCbjsContextTracking(): CbjsContextTracking {
@@ -59,7 +55,7 @@ export function getCbjsContextTracking(): CbjsContextTracking {
     parentReversedMap: new Map<number, number[]>(),
     taskAsyncIdMap: new Map<string, number>(),
     taskAsyncIdReversedMap: new Map<number, string>(),
-    contextMap: new Map<number, CbjsTaskAsyncContextData>(),
+    contextMap: new Map<number, CbjsAsyncContextData>(),
   };
 
   Object.defineProperty(global, 'cbjsContextTracking', {

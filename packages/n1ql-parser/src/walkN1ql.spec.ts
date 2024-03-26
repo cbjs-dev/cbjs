@@ -15,26 +15,27 @@
  */
 import { describe, it } from 'vitest';
 
-import { invariant } from '@cbjsdev/shared';
-
-import { parseN1QL, ParseResult } from './parseN1QL';
+import n1qlListener from './antlr/n1ql/n1qlListener';
+import { Simple_from_termContext } from './antlr/n1ql/n1qlParser';
+import { walkN1ql } from './walkN1ql';
 
 describe('parseN1QL', () => {
   it('should parse a simple SELECT query', ({ expect }) => {
-    // SELECT sub.title FROM (SELECT * FROM bookStore) as sub;
+    const listener = new (class extends n1qlListener {
+      result?: string;
 
-    const [result] = parseN1QL(
+      override exitSimple_from_term = (ctx: Simple_from_termContext) => {
+        this.result = ctx.getChild(0).getText();
+      };
+    })();
+
+    walkN1ql(
       `
       SELECT b.title, b.authors[0] FROM story.library.books as b WHERE lastModifiedBy >= 17000000;
-      `
-    ) as ParseResult[];
+      `,
+      listener
+    );
 
-    // console.log(result);
-    // console.log(result.all_paths_used);
-
-    // const astRoot = result.functions_used[0].parentCtx;
-
-    console.log(result);
-    expect(result).toBeDefined();
+    expect(listener.result).toEqual('story.library.books');
   });
 });

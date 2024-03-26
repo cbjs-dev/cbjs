@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { quoteIdentifier } from '@cbjsdev/shared';
+
 import { AnalyticsExecutor } from './analyticsexecutor';
 import {
   AnalyticsMetaData,
@@ -132,7 +134,7 @@ export class Scope<
       () =>
         exec.query<TRow>(statement, {
           ...options_,
-          queryContext: `${bucket.name}.${this.name}`,
+          queryContext: `${quoteIdentifier(bucket.name)}.${quoteIdentifier(this.name)}`,
         }),
       callback
     );

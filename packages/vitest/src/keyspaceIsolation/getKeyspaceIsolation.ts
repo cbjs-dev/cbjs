@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
+import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext';
 
 export function getKeyspaceIsolation() {
   const { keyspaceIsolationLevel, keyspaceIsolationScope, keyspaceIsolationMap } =
-    getCurrentCbjsAsyncContext();
+    getCurrentTaskAsyncContext();
   return {
     scope: keyspaceIsolationScope,
     level: keyspaceIsolationLevel,

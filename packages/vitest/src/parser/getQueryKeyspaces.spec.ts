@@ -18,6 +18,15 @@ import { describe, test } from 'vitest';
 import { getQueryKeyspaces } from './getQueryKeyspaces';
 
 describe('getQueryKeyspaces', () => {
+  test('should trim quoted identifiers', ({ expect }) => {
+    expect(getQueryKeyspaces('SELECT title FROM `foo`')).toEqual([
+      {
+        namespace: undefined,
+        keyspaceParts: ['foo'],
+      },
+    ]);
+  });
+
   describe('select', () => {
     test('from bucket', ({ expect }) => {
       expect(getQueryKeyspaces('SELECT title FROM foo')).toEqual([

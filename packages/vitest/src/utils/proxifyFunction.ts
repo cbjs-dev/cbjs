@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ObjectMethods } from '@cbjsdev/shared';
+import { AnyFunction, KeysByValue, Try } from '@cbjsdev/shared';
 
 /**
  * Returns a function that properly handles the value of `this` within a proxy handler,
@@ -21,19 +21,24 @@ import { ObjectMethods } from '@cbjsdev/shared';
  * This function allow the access to native private properties.
  *
  * @example
- * return proxifyFunction(target, receiver, target[prop]);
+ * return proxifyFunction(target, receiver, prop);
  * @param target
+ * @param prop
  * @param receiver
- * @param fn
  * @param transformArgs
  */
-export function proxifyFunction<T, Fn extends ObjectMethods<T>>(
+export function proxifyFunction<
+  T,
+  K extends KeysByValue<T, AnyFunction>,
+  Fn extends Try<T[K], AnyFunction> = Try<T[K], AnyFunction>,
+>(
   target: T,
+  prop: K,
   receiver: T,
-  fn: Fn,
   transformArgs?: (...args: Parameters<Fn>) => Readonly<Parameters<Fn>>
 ) {
   return function (this: T, ...args: Parameters<Fn>) {
+    const fn = target[prop] as Fn;
     const transformedArgs = transformArgs ? transformArgs(...args) : args;
     return fn.apply(this === receiver ? target : this, transformedArgs);
   };

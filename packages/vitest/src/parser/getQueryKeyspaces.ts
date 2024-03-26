@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { parseN1QL } from './parseN1QL';
+import { walkN1ql } from '@cbjsdev/n1ql-parser';
+import { trimIdentifier } from '@cbjsdev/shared';
 
-export function getQueryKeyspaces(
-  query: string,
-  context?: { bucket: string; scope: string }
-) {
-  const result = parseN1QL(query);
-  // TODO use `context` to turn the keyspaceParts into a NamespacedKeyspace
-  const keyspaces = result.getKeyspaces();
-  return result.getKeyspaces();
+import { N1qlListener } from './N1qlListener';
+
+export function getQueryKeyspaces(query: string) {
+  const listener = new N1qlListener();
+  walkN1ql(query, listener);
+
+  return listener.getKeyspaces().map((k) => ({
+    namespace: k.namespace,
+    keyspaceParts: k.keyspaceParts.map(trimIdentifier),
+  }));
 }

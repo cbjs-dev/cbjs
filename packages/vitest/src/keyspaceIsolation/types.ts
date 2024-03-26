@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CppConnection } from '@cbjsdev/cbjs/internal';
+
+import { KeyspaceIsolationMap } from './KeyspaceIsolationMap';
 
 export type KeyspaceIsolationScope = 'local' | 'per-suite' | 'per-test' | false;
 export type KeyspaceIsolationLevel = 'bucket' | 'collection';
+
+export type TransformArgsMap = {
+  [MethodName in keyof CppConnection]: (
+    isolationMap: KeyspaceIsolationMap,
+    ...args: Readonly<Parameters<CppConnection[MethodName]>>
+  ) => Readonly<Parameters<CppConnection[MethodName]>>;
+};

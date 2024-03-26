@@ -1,0 +1,4 @@
+Makefile
+n1ql.y
+src/antlr
+!src/antlr/n1ql/**/*.ts

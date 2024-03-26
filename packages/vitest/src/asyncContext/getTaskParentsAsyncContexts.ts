@@ -15,7 +15,7 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { CbjsTaskAsyncContextData } from './CbjsTaskAsyncContextData';
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
 import { getCbjsContextTracking } from './getCbjsContextTracking';
 import { getTaskAsyncContext } from './getTaskAsyncContext';
 
@@ -29,7 +29,7 @@ import { getTaskAsyncContext } from './getTaskAsyncContext';
 
 export function getTaskParentsAsyncContexts(
   taskId: string
-): [CbjsTaskAsyncContextData, ...CbjsTaskAsyncContextData[]] {
+): [CbjsAsyncContextData, ...CbjsAsyncContextData[]] {
   const { taskAsyncIdMap, contextMap } = getCbjsContextTracking();
 
   const taskAsyncId = taskAsyncIdMap.get(taskId);
@@ -40,10 +40,7 @@ export function getTaskParentsAsyncContexts(
 
   const { task } = contextMap.get(taskAsyncId)!;
 
-  const contexts = [taskContext] as [
-    CbjsTaskAsyncContextData,
-    ...CbjsTaskAsyncContextData[],
-  ];
+  const contexts = [taskContext] as [CbjsAsyncContextData, ...CbjsAsyncContextData[]];
 
   let currentTask = task;
 

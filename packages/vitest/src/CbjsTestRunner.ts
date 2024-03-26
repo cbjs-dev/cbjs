@@ -21,7 +21,7 @@ import { VitestTestRunner } from 'vitest/runners';
 import { invariant } from '@cbjsdev/shared';
 
 import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
-import { CbjsTaskAsyncContextData } from './asyncContext/CbjsTaskAsyncContextData';
+import { CbjsAsyncContextData } from './asyncContext/CbjsAsyncContextData';
 import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking';
 import { getChildrenTower } from './asyncContext/getChildrenTower';
 import { KeyspaceIsolationMap } from './keyspaceIsolation/KeyspaceIsolationMap';
@@ -60,19 +60,19 @@ export default class CbjsTestRunner extends VitestTestRunner {
     contextTracking.taskAsyncIdMap.set(suite.id, suiteAsyncId);
     contextTracking.taskAsyncIdReversedMap.set(suiteAsyncId, suite.id);
 
-    const defaultContextValues: Partial<CbjsTaskAsyncContextData> = {
+    const defaultContextValues: Partial<CbjsAsyncContextData> = {
       keyspaceIsolationScope: false,
       keyspaceIsolationLevel: 'collection',
       keyspaceIsolationMap: null,
     };
 
-    const suiteContext: Partial<CbjsTaskAsyncContextData> = {
+    const suiteContext: Partial<CbjsAsyncContextData> = {
       asyncId: suiteAsyncId,
       taskId: suite.id,
       task: suite,
     };
 
-    const resolvedContext: Partial<CbjsTaskAsyncContextData> = {
+    const resolvedContext: Partial<CbjsAsyncContextData> = {
       ...suiteContext,
       ...defaultContextValues,
     };
@@ -105,7 +105,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
     contextTracking.contextMap.set(
       suiteAsyncId,
-      resolvedContext as CbjsTaskAsyncContextData
+      resolvedContext as CbjsAsyncContextData
     );
 
     await super.onBeforeRunSuite(suite);
@@ -118,7 +118,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
     contextTracking.taskAsyncIdMap.set(test.id, testAsyncId);
     contextTracking.taskAsyncIdReversedMap.set(testAsyncId, test.id);
 
-    const testContext: Partial<CbjsTaskAsyncContextData> = {
+    const testContext: Partial<CbjsAsyncContextData> = {
       asyncId: testAsyncId,
       taskId: test.id,
       task: test,
@@ -133,7 +133,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
     const resolvedContext = {
       ...suiteContext,
       ...testContext,
-    } satisfies CbjsTaskAsyncContextData;
+    } satisfies CbjsAsyncContextData;
 
     const privateKeyspace =
       resolvedContext.keyspaceIsolationScope === 'per-test' ||

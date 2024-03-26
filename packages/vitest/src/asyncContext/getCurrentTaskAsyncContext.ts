@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import n1qlLexer from './generated/antlr/n1ql/n1qlLexer';
-import n1qlListener from './generated/antlr/n1ql/n1qlListener';
-import n1qlParser from './generated/antlr/n1ql/n1qlParser';
+import { executionAsyncId } from 'node:async_hooks';
 
-export { n1qlLexer, n1qlListener, n1qlParser };
+import { CbjsAsyncContextData } from './CbjsAsyncContextData';
+import { getCbjsContextTracking } from './getCbjsContextTracking';
 
-export * from './generated/antlr/n1ql/n1qlParser';
+export function getCurrentTaskAsyncContext(): CbjsAsyncContextData {
+  const { parentMap, taskAsyncIdReversedMap, contextMap } = getCbjsContextTracking();
+  let asyncId: number | undefined = executionAsyncId();
+
+  while (asyncId) {
+    if (taskAsyncIdReversedMap.has(asyncId)) {
+      return contextMap.get(asyncId)!;
+    }
+    asyncId = parentMap.get(asyncId);
+  }
+
+  throw new Error('No cbjs async context found');
+}

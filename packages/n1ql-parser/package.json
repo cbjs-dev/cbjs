@@ -1,12 +1,13 @@
 {
-  "name": "@cbjsdev/vitest",
+  "name": "@cbjsdev/n1ql-parser",
   "version": "1.1.3",
-  "description": "Vitest extended tests and fixtures for your tests with Couchbase",
+  "description": "Parse N1QL queries",
   "keywords": [
     "couchbase",
-    "vitest",
-    "fixture",
-    "test"
+    "query",
+    "n1ql",
+    "sql++",
+    "sqlpp"
   ],
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
@@ -24,7 +25,8 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run",
-    "prepack": "rm -rf dist && npm run build"
+    "prepack": "rm -rf dist && npm run build",
+    "postinstall": "patch-package"
   },
   "type": "module",
   "main": "dist/src/index.js",
@@ -32,17 +34,13 @@
   "types": "dist/src/index.d.ts",
   "files": [
     "dist/**/*",
-    "LICENSE",
-    "NOTICE"
+    "patches/*",
+    "LICENSE"
   ],
   "dependencies": {
-    "@cbjsdev/cbjs": "^1.1.3",
-    "@cbjsdev/http-client": "^1.1.3",
-    "@cbjsdev/n1ql-parser": "^1.1.3",
-    "vitest": "^1.2.0"
-  },
-  "devDependencies": {
-    "zod": "^3.22.4"
+    "@cbjsdev/shared": "^1.1.3",
+    "antlr4": "4.13.1-patch-1",
+    "patch-package": "^8.0.0"
   },
   "publishConfig": {
     "access": "public"

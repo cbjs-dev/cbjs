@@ -1,2 +1,0 @@
-antlr/*/generated
-!antlr/*/generated/**/*.ts

@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": [
     "packages/shared",
+    "packages/n1ql-parser",
     "packages/http-client",
     "packages/cbjs",
     "packages/vitest",
