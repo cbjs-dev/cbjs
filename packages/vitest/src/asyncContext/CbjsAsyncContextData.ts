@@ -15,7 +15,7 @@
  */
 import { Task } from 'vitest';
 
-import { KeyspaceIsolationMap } from '../keyspaceIsolation/KeyspaceIsolationMap';
+import { KeyspaceIsolationPool } from '../keyspaceIsolation/KeyspaceIsolationPool';
 import {
   KeyspaceIsolationLevel,
   KeyspaceIsolationScope,
@@ -24,7 +24,7 @@ import {
 export type CbjsContextKeyspaceIsolation = {
   keyspaceIsolationScope: KeyspaceIsolationScope;
   keyspaceIsolationLevel: KeyspaceIsolationLevel;
-  keyspaceIsolationMap: KeyspaceIsolationMap | null;
+  keyspaceIsolationMap: KeyspaceIsolationPool | null;
 };
 
 export type CbjsAsyncContextData = {

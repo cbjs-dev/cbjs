@@ -20,11 +20,11 @@ import { VitestTestRunner } from 'vitest/runners';
 
 import { invariant } from '@cbjsdev/shared';
 
-import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
 import { CbjsAsyncContextData } from './asyncContext/CbjsAsyncContextData';
+import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
 import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking';
 import { getChildrenTower } from './asyncContext/getChildrenTower';
-import { KeyspaceIsolationMap } from './keyspaceIsolation/KeyspaceIsolationMap';
+import { KeyspaceIsolationPool } from './keyspaceIsolation/KeyspaceIsolationPool';
 
 export type CbjsTestContext = NonNullable<unknown>;
 
@@ -100,13 +100,10 @@ export default class CbjsTestRunner extends VitestTestRunner {
       resolvedContext.keyspaceIsolationScope === 'per-suite' &&
       resolvedContext.keyspaceIsolationLevel === 'collection'
     ) {
-      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationMap();
+      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationPool();
     }
 
-    contextTracking.contextMap.set(
-      suiteAsyncId,
-      resolvedContext as CbjsAsyncContextData
-    );
+    contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsAsyncContextData);
 
     await super.onBeforeRunSuite(suite);
   }
@@ -140,7 +137,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
       resolvedContext.keyspaceIsolationLevel === 'bucket';
 
     if (privateKeyspace) {
-      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationMap();
+      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationPool();
     }
 
     contextTracking.contextMap.set(testAsyncId, resolvedContext);

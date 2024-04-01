@@ -16,7 +16,7 @@
 import { invariant } from '@cbjsdev/shared';
 
 import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext';
-import { KeyspaceIsolationMap } from './KeyspaceIsolationMap';
+import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
 import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from './types';
 
 export function setKeyspaceIsolation(
@@ -30,7 +30,7 @@ export function setKeyspaceIsolation(
 
   if (isolationLevel === 'bucket') {
     asyncContext.keyspaceIsolationMap =
-      asyncContext.task.type === 'suite' ? null : new KeyspaceIsolationMap();
+      asyncContext.task.type === 'suite' ? null : new KeyspaceIsolationPool();
     return;
   }
 
@@ -40,11 +40,11 @@ export function setKeyspaceIsolation(
       `You cannot define the isolation scope to "${isolationScope}" outside of a suite.`
     );
 
-    asyncContext.keyspaceIsolationMap = new KeyspaceIsolationMap();
+    asyncContext.keyspaceIsolationMap = new KeyspaceIsolationPool();
   }
 
   if (isolationScope === 'per-test') {
     asyncContext.keyspaceIsolationMap =
-      asyncContext.task.type === 'suite' ? null : new KeyspaceIsolationMap();
+      asyncContext.task.type === 'suite' ? null : new KeyspaceIsolationPool();
   }
 }

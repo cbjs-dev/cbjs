@@ -17,7 +17,7 @@ import { CppConnection } from '@cbjsdev/cbjs/internal';
 
 import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
 import { proxifyFunction } from '../utils/proxifyFunction';
-import { KeyspaceIsolationMap } from './KeyspaceIsolationMap';
+import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
 import { transformArgs as kvTransformArgs } from './proxyFunctions/kv';
 import { transformArgs as queryTransformArgs } from './proxyFunctions/query';
 import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel';
@@ -25,7 +25,7 @@ import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLeve
 export const connectionProxySymbol = Symbol('CppConnectionProxy');
 
 export function createProxyConnection(conn: CppConnection) {
-  const isolationMap = new KeyspaceIsolationMap();
+  const isolationMap = new KeyspaceIsolationPool();
 
   return new Proxy(conn, {
     get: (
@@ -74,7 +74,7 @@ export function createProxyConnection(conn: CppConnection) {
         const targetMethod = prop as keyof typeof transformArgs;
         return proxifyFunction(target, targetMethod, receiver, (...args) => {
           const transformFunction = transformArgs[targetMethod] as (
-            m: KeyspaceIsolationMap,
+            m: KeyspaceIsolationPool,
             ...tArgs: typeof args
           ) => typeof args;
           return transformFunction(isolationMap, ...args);

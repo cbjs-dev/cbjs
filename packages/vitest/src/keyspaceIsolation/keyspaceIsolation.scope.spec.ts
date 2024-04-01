@@ -2,7 +2,7 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { getKeyspaceIsolation } from './getKeyspaceIsolation';
-import { KeyspaceIsolationMap } from './KeyspaceIsolationMap';
+import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
 import { setKeyspaceIsolation } from './setKeyspaceIsolation';
 
 /* eslint-disable no-restricted-imports */
@@ -39,14 +39,14 @@ describe('keyspace isolation scope', () => {
   });
 
   describe('suite keyspace isolation scope: local', () => {
-    let rootSuiteIsolationMap: KeyspaceIsolationMap | null = null;
+    let rootSuiteIsolationMap: KeyspaceIsolationPool | null = null;
 
     beforeAll(() => {
       setKeyspaceIsolation('local');
 
       expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
       expect(getKeyspaceIsolation()).toHaveProperty('scope', 'local');
-      expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+      expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
 
       rootSuiteIsolationMap = getKeyspaceIsolation().map;
     });
@@ -60,19 +60,19 @@ describe('keyspace isolation scope', () => {
       beforeAll(() => {
         expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
         expect(getKeyspaceIsolation()).toHaveProperty('scope', 'local');
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(rootSuiteIsolationMap);
       });
 
       beforeEach(() => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
         expect(getKeyspaceIsolation().map).toBe(rootSuiteIsolationMap);
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
       });
 
       test('test should have the same isolation map object as the direct parent suite', () => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(rootSuiteIsolationMap);
       });
 
@@ -80,7 +80,7 @@ describe('keyspace isolation scope', () => {
         setKeyspaceIsolation('per-test');
 
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).not.toBe(rootSuiteIsolationMap);
       });
     });
@@ -89,32 +89,32 @@ describe('keyspace isolation scope', () => {
       beforeAll(() => {
         expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
         expect(getKeyspaceIsolation()).toHaveProperty('scope', 'local');
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(rootSuiteIsolationMap);
       });
 
       beforeEach(() => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
         expect(getKeyspaceIsolation().map).toBe(rootSuiteIsolationMap);
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
       });
 
       test('test should have the same isolation map object as the direct parent suite', () => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(rootSuiteIsolationMap);
       });
     });
 
     describe('child suite redefining a local scope', () => {
-      let childSuiteLocalScopeMap: KeyspaceIsolationMap | null = null;
+      let childSuiteLocalScopeMap: KeyspaceIsolationPool | null = null;
 
       beforeAll(() => {
         setKeyspaceIsolation('local');
 
         expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
         expect(getKeyspaceIsolation()).toHaveProperty('scope', 'local');
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).not.toBe(rootSuiteIsolationMap);
 
         childSuiteLocalScopeMap = getKeyspaceIsolation().map;
@@ -123,28 +123,28 @@ describe('keyspace isolation scope', () => {
       beforeEach(() => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
         expect(getKeyspaceIsolation().map).toBe(childSuiteLocalScopeMap);
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
       });
 
       test('test should have the same isolation map object as the direct parent suite', () => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(childSuiteLocalScopeMap);
       });
     });
   });
 
   describe('suite keyspace isolation scope: per-suite', () => {
-    let rootSuiteIsolationMap: KeyspaceIsolationMap | null = null;
-    let childSuiteIsolationMap: KeyspaceIsolationMap | null = null;
-    let anotherChildSuiteIsolationMap: KeyspaceIsolationMap | null = null;
+    let rootSuiteIsolationMap: KeyspaceIsolationPool | null = null;
+    let childSuiteIsolationMap: KeyspaceIsolationPool | null = null;
+    let anotherChildSuiteIsolationMap: KeyspaceIsolationPool | null = null;
 
     beforeAll(() => {
       setKeyspaceIsolation('per-suite');
 
       expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
       expect(getKeyspaceIsolation()).toHaveProperty('scope', 'per-suite');
-      expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+      expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
 
       rootSuiteIsolationMap = getKeyspaceIsolation().map;
     });
@@ -160,7 +160,7 @@ describe('keyspace isolation scope', () => {
 
         expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
         expect(getKeyspaceIsolation()).toHaveProperty('scope', 'per-suite');
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).not.toBe(rootSuiteIsolationMap);
 
         childSuiteIsolationMap = getKeyspaceIsolation().map;
@@ -169,12 +169,12 @@ describe('keyspace isolation scope', () => {
       beforeEach(() => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
         expect(getKeyspaceIsolation().map).toBe(childSuiteIsolationMap);
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
       });
 
       test('test should have the same isolation map object as the direct parent suite', () => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(childSuiteIsolationMap);
       });
 
@@ -182,7 +182,7 @@ describe('keyspace isolation scope', () => {
         setKeyspaceIsolation('per-test');
 
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).not.toBe(childSuiteIsolationMap);
       });
     });
@@ -193,7 +193,7 @@ describe('keyspace isolation scope', () => {
 
         expect(getKeyspaceIsolation()).toHaveProperty('level', 'collection');
         expect(getKeyspaceIsolation()).toHaveProperty('scope', 'per-suite');
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).not.toBe(rootSuiteIsolationMap);
         expect(getKeyspaceIsolation().map).not.toBe(childSuiteIsolationMap);
 
@@ -203,12 +203,12 @@ describe('keyspace isolation scope', () => {
       beforeEach(() => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
         expect(getKeyspaceIsolation().map).toBe(anotherChildSuiteIsolationMap);
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
       });
 
       test('test should have the same isolation map object as the direct parent suite', () => {
         expect(getKeyspaceIsolation().map).not.toBeNull();
-        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationMap);
+        expect(getKeyspaceIsolation().map).toBeInstanceOf(KeyspaceIsolationPool);
         expect(getKeyspaceIsolation().map).toBe(anotherChildSuiteIsolationMap);
       });
     });

@@ -18,7 +18,7 @@ import { CppConnection, CppDocumentId } from '@cbjsdev/cbjs/internal';
 import { invariant, UnionToTuple } from '@cbjsdev/shared';
 
 import { proxifyFunction } from '../../utils/proxifyFunction';
-import { KeyspaceIsolationMap } from '../KeyspaceIsolationMap';
+import { KeyspaceIsolationPool } from '../KeyspaceIsolationPool';
 
 type CppConnectionScopedFunction =
   keyof CppConnection extends infer CppConnectionMethodName extends keyof CppConnection
@@ -71,7 +71,7 @@ const scopedMethods = [
 ] as const satisfies ReadonlyArray<CppConnectionScopedFunction>;
 
 const scopedMethodTransformArgsFunction = (
-  isolationMap: KeyspaceIsolationMap,
+  isolationMap: KeyspaceIsolationPool,
   options: { id: DocumentId },
   ...rest: never[]
 ) => {
