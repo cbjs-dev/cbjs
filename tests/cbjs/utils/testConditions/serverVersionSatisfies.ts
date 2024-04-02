@@ -21,22 +21,22 @@ import { invariant } from '@cbjsdev/shared';
 
 import { clusterRelease } from '../clusterRelease';
 
-export async function serverVersionSatisfies(version: string): Promise<boolean>;
-export async function serverVersionSatisfies(
+export function serverVersionSatisfies(version: string): boolean;
+export function serverVersionSatisfies(
   version: string,
   flavor: ClusterReleaseFlavor
-): Promise<boolean>;
-export async function serverVersionSatisfies(
+): boolean;
+export function serverVersionSatisfies(
   version: string,
   build: string,
   flavor: ClusterReleaseFlavor
-): Promise<boolean>;
-export async function serverVersionSatisfies(
+): boolean;
+export function serverVersionSatisfies(
   ...args:
     | [string]
     | [string, ClusterReleaseFlavor]
     | [string, string, ClusterReleaseFlavor]
-): Promise<boolean> {
+): boolean {
   let expectedVersion, expectedBuild, expectedFlavor;
 
   if (args.length === 1) {

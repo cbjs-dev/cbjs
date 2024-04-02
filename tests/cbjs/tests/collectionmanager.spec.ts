@@ -29,6 +29,7 @@ import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
   'collection manager',
@@ -97,7 +98,9 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
         .collections()
         .getAllScopes();
 
-      expect(scopes).toHaveLength(2); // _default + ours
+      const defaultScopeCount = serverVersionSatisfies('>=7.6.0') ? 3 : 2; // _default + _system + ours
+
+      expect(scopes).toHaveLength(defaultScopeCount);
       expect(scopes).toContainEqual(expect.objectContaining({ name: '_default' }));
       expect(scopes).toContainEqual(expect.objectContaining({ name: scopeName }));
 
@@ -559,7 +562,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
     );
 
     test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
-      'should successfully update a collection with a the default maxExpiry to no maxExpiry',
+      'should successfully update a collection with the default maxExpiry to no maxExpiry',
       async function ({
         apiConfig,
         expect,
