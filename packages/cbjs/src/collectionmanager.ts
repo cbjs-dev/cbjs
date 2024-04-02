@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
+
 import {
   CppTopologyCollectionsManifestCollection,
   CppTopologyCollectionsManifestScope,
 } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Bucket } from './bucket';
-import { BucketName, CouchbaseClusterTypes } from './clusterTypes';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
 
 /**

@@ -15,10 +15,11 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+
 import { connect } from '../../..';
 import { Collection } from '../../../collection';
 import { CouchbaseQueue } from '../../../services/kv/dataStructures/CouchbaseQueue';
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '../../clusterTypes';
 
 describe('CouchbaseQueue', function () {
   describe('Default ClusterTypes', function () {

@@ -16,9 +16,7 @@
  */
 import { EventEmitter } from 'events';
 
-import { hasOwn } from '@cbjsdev/shared';
-
-import { EventMap, TypedEmitter } from './utils/TypedEmitter';
+import type { EventMap, TypedEmitter } from './utils/TypedEmitter';
 
 /**
  * @internal

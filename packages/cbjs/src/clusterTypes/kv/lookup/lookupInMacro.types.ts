@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import { StringDigits, StringHex, TimestampSeconds } from '@cbjsdev/shared';
 import type { LookupInMacro } from "../../../sdspecs";
-import type { StringDigits, StringHex, TimestampSeconds } from "../utils/string-utils.types";
 
 /**
  * Return the result type of the given {@link LookupInMacro}.

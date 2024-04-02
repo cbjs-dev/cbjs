@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
+
 import binding from './binding';
 import {
   errorFromCpp,
@@ -22,7 +24,6 @@ import {
 } from './bindingutilities';
 import { Bucket } from './bucket';
 import { Cluster } from './cluster';
-import { BucketName, CouchbaseClusterTypes } from './clusterTypes';
 import { StreamableRowPromise } from './streamablepromises';
 import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes';
 
@@ -42,7 +43,7 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
   /**
   @internal
   */
-  get _cluster(): Cluster {
+  get _cluster(): Cluster<T> {
     return this._bucket.cluster;
   }
 

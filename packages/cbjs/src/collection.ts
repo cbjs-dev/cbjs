@@ -16,25 +16,37 @@
  */
 import { promisify } from 'node:util';
 
-import {
-  hasOwn,
+import type {
+  ArrayElement,
+  BucketName,
+  CollectionDocumentBag,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  DocDef,
+  ExtractDefByBody,
+  ExtractDocBodyByKey,
+  ExtractDocDefByKey,
   If,
-  invariant,
   IsAny,
+  JsonObject,
   Keyspace,
-  keyspacePath,
   NoInfer,
+  ObjectDocument,
   OneOf,
+  PickCollectionDocDef,
+  ScopeName,
 } from '@cbjsdev/shared';
+import { hasOwn, invariant, keyspacePath } from '@cbjsdev/shared';
 
-import {
+import type {
   AppendOptions,
-  BinaryCollection,
   DecrementOptions,
   IncrementOptions,
   PrependOptions,
 } from './binarycollection';
-import binding, {
+import { BinaryCollection } from './binarycollection';
+import type {
   CppAppendResponse,
   CppConnection,
   CppDecrementResponse,
@@ -50,8 +62,8 @@ import binding, {
   CppReplaceResponse,
   CppScanIterator,
   CppUpsertResponse,
-  zeroCas,
 } from './binding';
+import binding, { zeroCas } from './binding';
 import {
   durabilityToCpp,
   errorFromCpp,
@@ -61,42 +73,26 @@ import {
   scanTypeToCpp,
   storeSemanticToCpp,
 } from './bindingutilities';
-import { Cluster } from './cluster';
+import type { Cluster } from './cluster';
+import { AnyCollection } from './clusterTypes';
 import {
-  AnyCollection,
-  BucketName,
-  CollectionName,
-  DefaultClusterTypes,
-  DocDef,
-  ScopeName,
-} from './clusterTypes';
-import {
-  CollectionDocumentBag,
-  CouchbaseClusterTypes,
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
-  ExtractDefByBody,
-  ExtractDocBodyByKey,
-  ExtractDocDefByKey,
   IfCollectionContains,
-  JsonObject,
-  ObjectDocument,
-  PickCollectionDocument,
   ValidateCollectionContainsAny,
 } from './clusterTypes/clusterTypes';
-import {
+import type {
   LookupInResultEntries,
   LookupInSpecResults,
   NarrowLookupSpecs,
   ValidateLookupInSpecs,
 } from './clusterTypes/kv/lookup/lookupIn.types';
-import { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types';
-import { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types';
-import {
+import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types';
+import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types';
+import type {
   MutateInResultEntries,
   MutateInSpecResults,
 } from './clusterTypes/kv/mutation/mutateIn.types';
-import { ArrayElement } from './clusterTypes/kv/utils/array-utils.types';
 import {
   CounterResult,
   ExistsResult,
@@ -115,7 +111,7 @@ import { DurabilityLevel, StoreSemantics } from './generaltypes';
 import { MutationState } from './mutationstate';
 import { CollectionQueryIndexManager } from './queryindexmanager';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
-import { Scope } from './scope';
+import type { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
 import {
@@ -126,19 +122,14 @@ import {
 } from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
-import { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
+import type { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
 import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs';
-import { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
+import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
 import { StreamableReplicasPromise, StreamableScanPromise } from './streamablepromises';
-import { Transcoder } from './transcoders';
-import {
-  Cas,
-  getDocId,
-  NodeCallback,
-  PromiseHelper,
-  VoidNodeCallback,
-} from './utilities';
+import type { Transcoder } from './transcoders';
+import type { Cas, NodeCallback, VoidNodeCallback } from './utilities';
+import { getDocId, PromiseHelper } from './utilities';
 
 /**
  * @category Key-Value
@@ -452,12 +443,12 @@ export interface ScanOptions {
  */
 export class Collection<
   in out T extends CouchbaseClusterTypes = DefaultClusterTypes,
-  in out B extends BucketName<T> = any,
-  in out S extends ScopeName<T, B> = any,
-  in out C extends CollectionName<T, B, S> = any,
+  in out B extends BucketName<T> = BucketName<T>,
+  in out S extends ScopeName<T, B> = ScopeName<T, B>,
+  in out C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   out CT extends CollectionDocumentBag<
-    PickCollectionDocument<T, B, S, C>
-  > = CollectionDocumentBag<PickCollectionDocument<T, B, S, C>>,
+    PickCollectionDocDef<T, B, S, C>
+  > = CollectionDocumentBag<PickCollectionDocDef<T, B, S, C>>,
 > implements Collection<T, B, S, C, CT>
 {
   /**

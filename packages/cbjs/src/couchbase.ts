@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
+
 import binding from './binding';
 import { Cluster, ConnectOptions } from './cluster';
-import { CouchbaseClusterTypes, DefaultClusterTypes } from './clusterTypes';
 import { NodeCallback } from './utilities';
 
 /**

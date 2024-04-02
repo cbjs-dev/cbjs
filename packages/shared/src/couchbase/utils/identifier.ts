@@ -13,17 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn } from '../../misc';
+import { hasOwn, If, IsNever } from '../../misc';
+import type {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  ScopeName,
+} from '../clusterTypes';
 
 export function quoteIdentifier(name: string) {
   return '`' + name + '`';
 }
 
-export type Keyspace = {
-  bucket: string;
-  scope: string;
-  collection: string;
-};
+/**
+ * Represent a keyspace within a cluster.
+ *
+ * You can restrict the keyspace by passing cluster types along with a bucket/scope/collection name.
+ *
+ * @example
+ * type AnyKeyspace = Keyspace
+ * //    ^? { bucket: string; scope: string; collection: string ;}
+ *
+ * type BucketKeyspace = Keyspace<MyClusterTypes, 'b1'>
+ * //    ^? | { bucket: 'b1'; scope: 'b1s1'; collection: 'b1s1c1'; }
+ * //       | { bucket: 'b1'; scope: 'b1s1'; collection: 'b1s1c2'; }
+ * //       | { bucket: 'b1'; scope: 'b1s2'; collection: 'b1s2c1'; }
+ *
+ */
+export type Keyspace<
+  T extends CouchbaseClusterTypes = never,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
+  C extends CollectionName<T, B, S> = never,
+> =
+  IsNever<T> extends true
+    ? { bucket: string; scope: string; collection: string }
+    : If<IsNever<B>, BucketName<T>, B> extends infer AllBuckets extends BucketName<T>
+      ? AllBuckets extends unknown
+        ? If<IsNever<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes extends
+            ScopeName<T, AllBuckets>
+          ? AllScopes extends unknown
+            ? If<
+                IsNever<C>,
+                CollectionName<T, AllBuckets, AllScopes>,
+                C
+              > extends infer AllCollections extends CollectionName<
+                T,
+                AllBuckets,
+                AllScopes
+              >
+              ? AllCollections extends unknown
+                ? { bucket: AllBuckets; scope: AllScopes; collection: AllCollections }
+                : never
+              : never
+            : never
+          : never
+        : never
+      : never;
 
 export function isPartialKeyspace(v: unknown): v is Partial<Keyspace> {
   if (!v) return false;

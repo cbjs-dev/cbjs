@@ -15,17 +15,14 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
+
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { connect } from '../../../couchbase';
 import { MutateInResult, MutateInResultEntry } from '../../../crudoptypes';
 import { MutateInSpec } from '../../../sdspecs';
 import { mutationSpec } from '../../../specBuilders';
-import { DocDef } from '../../clusterTypes';
-import {
-  IsFuzzyDocument,
-  MutateInResultEntries,
-  MutateInSpecResults,
-} from './mutateIn.types';
+import { MutateInResultEntries, MutateInSpecResults } from './mutateIn.types';
 
 type TestDoc = {
   title: string;

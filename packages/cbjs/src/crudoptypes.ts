@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If } from '@cbjsdev/shared';
+import { DocDef, If } from '@cbjsdev/shared';
 
-import { DocDef } from './clusterTypes';
 import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types';
 import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types';
 import { MutationToken } from './mutationstate';

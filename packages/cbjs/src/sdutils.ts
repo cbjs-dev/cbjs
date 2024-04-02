@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '@cbjsdev/shared';
-import { isArray } from '@cbjsdev/shared/dist/src/misc/utils/isArray';
+import { isArray } from '@cbjsdev/shared';
 
 interface SdPathPartProp {
   type: 'property';

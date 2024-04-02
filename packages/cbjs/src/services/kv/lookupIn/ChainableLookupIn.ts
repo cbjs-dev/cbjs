@@ -14,27 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PromiseValue } from '@cbjsdev/shared';
+import type { PromiseValue } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding';
-import { AnyCollection } from '../../../clusterTypes';
-import {
+import type { AnyCollection } from '../../../clusterTypes';
+import type {
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes';
-import {
+import type {
   LookupInSpecResults,
   MakeLookupInSpec,
 } from '../../../clusterTypes/kv/lookup/lookupIn.types';
-import {
+import type {
   LookupInCountPath,
   LookupInExistsPath,
   LookupInGetPath,
 } from '../../../clusterTypes/kv/lookup/lookupOperations.types';
-import { LookupInOptions } from '../../../collection';
+import type { LookupInOptions } from '../../../collection';
 import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';
-import { LookupMethodName } from './types';
+import type { LookupMethodName } from './types';
 
 type LookupMethod<
   Method extends LookupMethodName,

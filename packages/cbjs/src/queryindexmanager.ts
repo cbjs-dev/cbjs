@@ -16,15 +16,16 @@
  */
 import { promisify } from 'node:util';
 
-import { CppError, CppQueryContext } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Cluster } from './cluster';
 import {
   BucketName,
   CollectionName,
   CouchbaseClusterTypes,
   ScopeName,
-} from './clusterTypes';
+} from '@cbjsdev/shared';
+
+import { CppError, CppQueryContext } from './binding';
+import { errorFromCpp } from './bindingutilities';
+import { Cluster } from './cluster';
 import { Collection } from './collection';
 import { CouchbaseError, IndexNotFoundError } from './errors';
 import {
@@ -334,14 +335,14 @@ export interface WatchQueryIndexOptions {
 /**
  * @internal
  */
-class InternalQueryIndexManager {
-  private _cluster: Cluster;
+class InternalQueryIndexManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
   private _queryContext: CppQueryContext;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
     this._queryContext = {
       bucket_name: '',
@@ -626,7 +627,7 @@ export class CollectionQueryIndexManager<
   private _bucketName: B;
   private _scopeName: S;
   private _collectionName: C;
-  private _manager: InternalQueryIndexManager;
+  private _manager: InternalQueryIndexManager<T>;
 
   /**
    * @internal
@@ -635,7 +636,7 @@ export class CollectionQueryIndexManager<
     this._bucketName = collection.scope.bucket.name;
     this._collectionName = collection.name;
     this._scopeName = collection.scope.name;
-    this._manager = new InternalQueryIndexManager(collection.cluster);
+    this._manager = new InternalQueryIndexManager<T>(collection.cluster);
   }
 
   /**
@@ -940,13 +941,13 @@ export class CollectionQueryIndexManager<
  *
  * @category Management
  */
-export class QueryIndexManager {
-  private _manager: InternalQueryIndexManager;
+export class QueryIndexManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _manager: InternalQueryIndexManager<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._manager = new InternalQueryIndexManager(cluster);
   }
 

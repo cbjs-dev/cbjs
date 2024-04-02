@@ -14,19 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant, MapEntry } from '@cbjsdev/shared';
+import { CollectionDocumentBag, DocDef, invariant, type MapEntry } from '@cbjsdev/shared';
 
 import {
   CollectionContaining,
-  CollectionDocumentBag,
-  DocDef,
   ValidateCollectionContainsAll,
 } from '../../../clusterTypes/clusterTypes';
-import { Collection } from '../../../collection';
+import type { Collection } from '../../../collection';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from '../../../utilities';
+import {
+  type NodeCallback,
+  PromiseHelper,
+  type VoidNodeCallback,
+} from '../../../utilities';
 
 /**
  * CouchbaseMap provides a simplified interface for storing a map

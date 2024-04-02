@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { IsFuzzyDocument, Try } from '@cbjsdev/shared';
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { MutateInResultEntry } from '../../../crudoptypes';
 import { MutateInMacro, MutateInSpec } from '../../../sdspecs';
@@ -37,19 +38,6 @@ import type {
   MutateInUpsertPath,
   MutateInUpsertValue,
 } from './mutationOperations.types';
-import type { IsExactly, IsAny, Try, Or } from '@cbjsdev/shared';
-
-/**
- * Return `true` if sub-document information cannot be inferred from `T`.
- */
-export type IsFuzzyDocument<T> = Or<[
-  IsExactly<T, object>,
-  IsExactly<string, keyof T>,
-  IsExactly<string | number, keyof T>,
-  IsExactly<string | number | symbol, keyof T>,
-  IsExactly<never, keyof T>,
-  IsAny<T>
-]>;
 
 /**
  * Results of a {@link Collection.mutateIn} operation.

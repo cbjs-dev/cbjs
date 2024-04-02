@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isArray } from '@cbjsdev/shared/dist/src/misc/utils/isArray';
+import { isArray } from '@cbjsdev/shared';
 
-import { LookupInOptions } from '../../../collection';
+import type { LookupInOptions } from '../../../collection';
 import { LookupInSpec } from '../../../sdspecs';
-import { NodeCallback } from '../../../utilities';
-import { LookupInArgs } from './types';
+import type { NodeCallback } from '../../../utilities';
+import type { LookupInArgs } from './types';
 
 type ResolvedArgs<SpecDefinitions extends ReadonlyArray<LookupInSpec>, OpResult> = {
   options: LookupInOptions;

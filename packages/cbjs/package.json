@@ -42,6 +42,10 @@
     "./internal": {
       "default": "./dist/src/internal.js",
       "types": "./dist/src/internal.d.ts"
+    },
+    "./cluster-types": {
+      "default": "./dist/src/clusterTypes/index.js",
+      "types": "./dist/src/clusterTypes/index.d.ts"
     }
   },
   "imports": {

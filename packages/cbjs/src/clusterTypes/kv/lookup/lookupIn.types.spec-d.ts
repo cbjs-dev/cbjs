@@ -15,6 +15,8 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { DocDef } from '@cbjsdev/shared';
+
 import {
   connect,
   LookupInMacro,
@@ -25,7 +27,6 @@ import { CppProtocolSubdocOpcode } from '../../../binding';
 import { LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';
 import { lookupSpec, LookupSpecs } from '../../../specBuilders';
-import { DocDef } from '../../clusterTypes';
 import {
   LookupInInternalPath,
   LookupInResultEntries,

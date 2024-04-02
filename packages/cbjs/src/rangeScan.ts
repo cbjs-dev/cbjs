@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from './clusterTypes';
+import { DocDef } from '@cbjsdev/shared';
 
 /**
  * Represents a search term for a RangeScan.

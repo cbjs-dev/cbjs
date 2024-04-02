@@ -14,15 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NoInfer } from '@cbjsdev/shared';
-import { isArray } from '@cbjsdev/shared/dist/src/misc/utils/isArray';
+import type { NoInfer } from '@cbjsdev/shared';
+import { isArray } from '@cbjsdev/shared';
 
-import { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types';
-import { MutateInOptions } from '../../../collection';
-import { MutateInResult } from '../../../crudoptypes';
-import { MutateInSpec } from '../../../sdspecs';
-import { NodeCallback } from '../../../utilities';
-import { MutateInArgs } from './types';
+import type { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types';
+import type { MutateInOptions } from '../../../collection';
+import type { MutateInResult } from '../../../crudoptypes';
+import type { MutateInSpec } from '../../../sdspecs';
+import type { NodeCallback } from '../../../utilities';
+import type { MutateInArgs } from './types';
 
 type ResolvedArgs<SpecDefinitions extends ReadonlyArray<MutateInSpec>> = {
   options: MutateInOptions;

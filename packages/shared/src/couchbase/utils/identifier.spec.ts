@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, test } from 'vitest';
+import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { isValidBucketName } from './identifier';
+import { DocDef } from '../clusterTypes';
+import { isValidBucketName, Keyspace } from './identifier';
 
-describe('validateIdentifier', () => {
+describe('isValidBucketName', () => {
   test('should return true with a valid identifier', ({ expect }) => {
     expect(isValidBucketName('valid')).toBeTruthy();
     expect(isValidBucketName('bond007')).toBeTruthy();
@@ -28,5 +29,107 @@ describe('validateIdentifier', () => {
   test('should return false with an invalid identifier', ({ expect }) => {
     expect(isValidBucketName('foo`bar')).toBeFalsy();
     expect(isValidBucketName('yo/lo')).toBeFalsy();
+  });
+});
+
+type Doc<T extends string> = { [K in T]: string };
+type UserClusterTypes = {
+  BucketOne: {
+    ScopeOne: {
+      CollectionOne: DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>;
+      CollectionFour: DocDef<string, Doc<'b1s1c4d1'>> | DocDef<string, Doc<'b1s1c4d2'>>;
+    };
+    ScopeTwo: {
+      CollectionOne: DocDef<string, Doc<'b1s2c1d1'>> | DocDef<string, Doc<'b1s2c1d2'>>;
+      CollectionTwo: DocDef<string, Doc<'b1s2c2d1'>> | DocDef<string, Doc<'b1s2c2d2'>>;
+    };
+  };
+  BucketTwo: {
+    ScopeOne: {
+      CollectionSix: DocDef<string, Doc<'b2s1c6d1'>> | DocDef<string, Doc<'b2s1c6d2'>>;
+    };
+    ScopeThree: NonNullable<unknown>;
+    ScopeFour: NonNullable<unknown>;
+  };
+};
+
+describe('Keyspace', () => {
+  it('should return a string keyspace when no cluster types are given', () => {
+    expectTypeOf<Keyspace>().toEqualTypeOf<{
+      bucket: string;
+      scope: string;
+      collection: string;
+    }>();
+  });
+
+  it('should return a union of keyspaces among the given cluster', () => {
+    expectTypeOf<Keyspace<UserClusterTypes>>().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
+      | { bucket: 'BucketTwo'; scope: 'ScopeOne'; collection: 'CollectionSix' }
+    >();
+  });
+
+  it('should return a union of keyspaces among the given bucket names', () => {
+    expectTypeOf<Keyspace<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
+    >();
+
+    expectTypeOf<Keyspace<UserClusterTypes, 'BucketOne' | 'BucketTwo'>>().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
+      | { bucket: 'BucketTwo'; scope: 'ScopeOne'; collection: 'CollectionSix' }
+    >();
+  });
+
+  it('should return a union of keyspaces among the given scope names', () => {
+    expectTypeOf<Keyspace<UserClusterTypes, 'BucketOne', 'ScopeOne'>>().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
+    >();
+
+    expectTypeOf<
+      Keyspace<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
+    >().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
+    >();
+
+    expectTypeOf<Keyspace<UserClusterTypes, 'BucketTwo', 'ScopeOne'>>().toEqualTypeOf<{
+      bucket: 'BucketTwo';
+      scope: 'ScopeOne';
+      collection: 'CollectionSix';
+    }>();
+  });
+
+  it('should return a union of keyspaces among the given collection names', () => {
+    expectTypeOf<
+      Keyspace<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+    >().toEqualTypeOf<{
+      bucket: 'BucketOne';
+      scope: 'ScopeOne';
+      collection: 'CollectionOne';
+    }>();
+
+    expectTypeOf<
+      Keyspace<
+        UserClusterTypes,
+        'BucketOne',
+        'ScopeOne',
+        'CollectionOne' | 'CollectionFour'
+      >
+    >().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
+    >();
   });
 });

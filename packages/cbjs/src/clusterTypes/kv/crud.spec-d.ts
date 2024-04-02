@@ -15,6 +15,8 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { DocDef } from '@cbjsdev/shared';
+
 import { connect } from '../../couchbase';
 import {
   GetReplicaResult,
@@ -25,7 +27,6 @@ import {
 import { PrefixScan, SamplingScan } from '../../rangeScan';
 import { LookupInSpec } from '../../sdspecs';
 import { StreamableReplicasPromise } from '../../streamablepromises';
-import { DocDef } from '../clusterTypes';
 
 type Book = { title: string };
 type QuarterSales = { sales: number[] };

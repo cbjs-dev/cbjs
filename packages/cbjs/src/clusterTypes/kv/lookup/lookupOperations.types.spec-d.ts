@@ -15,8 +15,8 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import type { AssertTests } from '../../test-utils.types';
-import type { DocumentPath } from '../utils/path-utils.types';
+import { AssertTests, DocumentPath } from '@cbjsdev/shared';
+
 import type {
   LookupInCountPath,
   LookupInExistsPath,

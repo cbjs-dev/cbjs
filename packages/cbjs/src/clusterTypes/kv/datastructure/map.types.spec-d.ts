@@ -15,8 +15,9 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+
 import { Collection, connect, CouchbaseMap } from '../../..';
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '../../clusterTypes';
 
 describe('CouchbaseMap', function () {
   describe('Default ClusterTypes', function () {

@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-export { isLookupInMacro, isMutateInMacro } from './guards';
-export {
-  CouchbaseClusterTypes,
-  DefaultClusterTypes,
+export type {
   ClusterTypesWith,
-  BucketName,
-  ScopeName,
-  CollectionName,
   DefaultScope,
   DefaultCollection,
-  DocDef,
   AnyCollection,
-  CollectionAmong,
+  ClusterCollection,
 } from './clusterTypes';
+
+export type { BucketName, ScopeName, CollectionName, DocDef } from '@cbjsdev/shared';

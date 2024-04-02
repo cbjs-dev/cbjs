@@ -25,22 +25,21 @@ module.exports = {
     'no-restricted-imports': [
       'error',
       {
-        paths: [
+        patterns: [
           {
-            name: '@cbjsdev/cbjs',
+            group: ['@cbjsdev/cbjs/*'],
+            message: 'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
+          },
+          {
+            group: ['@cbjsdev/http-client'],
             message:
               'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
           },
           {
-            name: '@cbjsdev/http-client',
+            group: ['@cbjsdev/vitest'],
             message:
               'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
-          },
-          {
-            name: '@cbjsdev/vitest',
-            message:
-              'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
-          },
+          }
         ],
       },
     ],

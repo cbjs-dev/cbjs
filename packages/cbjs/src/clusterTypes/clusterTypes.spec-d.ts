@@ -15,17 +15,17 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { BucketName, CollectionDocumentBag, DocDef, ScopeName } from '@cbjsdev/shared';
+
+import { Bucket } from '../bucket';
 import { Collection } from '../collection';
+import { Scope } from '../scope';
 import {
   AugmentClusterTypes,
-  BucketName,
-  CollectionAmong,
-  CollectionDocumentBag,
-  CollectionName,
-  DocDef,
+  ClusterBucket,
+  ClusterCollection,
+  ClusterScope,
   ExtractCollectionDocumentBag,
-  PickCollectionDocument,
-  ScopeName,
   ValidateCollectionContainsAll,
   ValidateCollectionContainsAny,
 } from './clusterTypes';
@@ -51,151 +51,6 @@ type UserClusterTypes = {
     ScopeFour: NonNullable<unknown>;
   };
 };
-
-describe('ClusterTypes', () => {
-  it('should describe the bucket names', () => {
-    expectTypeOf<BucketName<UserClusterTypes>>().toEqualTypeOf<
-      'BucketOne' | 'BucketTwo'
-    >();
-  });
-
-  it('should describe the scope names', () => {
-    expectTypeOf<ScopeName<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeTwo'
-    >();
-    expectTypeOf<ScopeName<UserClusterTypes, 'BucketOne' | 'BucketTwo'>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeTwo' | 'ScopeThree' | 'ScopeFour'
-    >();
-    expectTypeOf<ScopeName<UserClusterTypes>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeTwo' | 'ScopeThree' | 'ScopeFour'
-    >();
-  });
-
-  it('should describe the collection names', () => {
-    expectTypeOf<
-      CollectionName<UserClusterTypes, 'BucketOne', 'ScopeOne'>
-    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour'>();
-
-    expectTypeOf<
-      CollectionName<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
-    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour' | 'CollectionTwo'>();
-
-    expectTypeOf<CollectionName<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
-      'CollectionOne' | 'CollectionFour' | 'CollectionTwo'
-    >();
-
-    expectTypeOf<
-      CollectionName<UserClusterTypes, 'BucketOne' | 'BucketTwo'>
-    >().toEqualTypeOf<
-      'CollectionOne' | 'CollectionFour' | 'CollectionTwo' | 'CollectionSix'
-    >();
-
-    expectTypeOf<CollectionName<UserClusterTypes>>().toEqualTypeOf<
-      'CollectionOne' | 'CollectionFour' | 'CollectionTwo' | 'CollectionSix'
-    >();
-
-    expectTypeOf<
-      CollectionName<UserClusterTypes, 'BucketOne' | 'BucketTwo', 'ScopeOne'>
-    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour' | 'CollectionSix'>();
-  });
-
-  it('should describe the collection documents', () => {
-    expectTypeOf<
-      PickCollectionDocument<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
-    >().toEqualTypeOf<
-      DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>
-    >();
-
-    expectTypeOf<
-      PickCollectionDocument<
-        UserClusterTypes,
-        'BucketOne',
-        'ScopeOne',
-        'CollectionOne' | 'CollectionFour'
-      >
-    >().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s1c4d1'>>
-      | DocDef<string, Doc<'b1s1c4d2'>>
-    >();
-
-    expectTypeOf<
-      PickCollectionDocument<UserClusterTypes, 'BucketOne', 'ScopeOne'>
-    >().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s1c4d1'>>
-      | DocDef<string, Doc<'b1s1c4d2'>>
-    >();
-
-    expectTypeOf<
-      PickCollectionDocument<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
-    >().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s1c4d1'>>
-      | DocDef<string, Doc<'b1s1c4d2'>>
-      | DocDef<string, Doc<'b1s2c1d1'>>
-      | DocDef<string, Doc<'b1s2c1d2'>>
-      | DocDef<string, Doc<'b1s2c2d1'>>
-      | DocDef<string, Doc<'b1s2c2d2'>>
-    >();
-
-    expectTypeOf<PickCollectionDocument<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s1c4d1'>>
-      | DocDef<string, Doc<'b1s1c4d2'>>
-      | DocDef<string, Doc<'b1s2c1d1'>>
-      | DocDef<string, Doc<'b1s2c1d2'>>
-      | DocDef<string, Doc<'b1s2c2d1'>>
-      | DocDef<string, Doc<'b1s2c2d2'>>
-    >();
-
-    expectTypeOf<
-      PickCollectionDocument<UserClusterTypes, 'BucketOne' | 'BucketTwo'>
-    >().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s1c4d1'>>
-      | DocDef<string, Doc<'b1s1c4d2'>>
-      | DocDef<string, Doc<'b1s2c1d1'>>
-      | DocDef<string, Doc<'b1s2c1d2'>>
-      | DocDef<string, Doc<'b1s2c2d1'>>
-      | DocDef<string, Doc<'b1s2c2d2'>>
-      | DocDef<string, Doc<'b2s1c6d1'>>
-      | DocDef<string, Doc<'b2s1c6d2'>>
-    >();
-
-    expectTypeOf<PickCollectionDocument<UserClusterTypes>>().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s1c4d1'>>
-      | DocDef<string, Doc<'b1s1c4d2'>>
-      | DocDef<string, Doc<'b1s2c1d1'>>
-      | DocDef<string, Doc<'b1s2c1d2'>>
-      | DocDef<string, Doc<'b1s2c2d1'>>
-      | DocDef<string, Doc<'b1s2c2d2'>>
-      | DocDef<string, Doc<'b2s1c6d1'>>
-      | DocDef<string, Doc<'b2s1c6d2'>>
-    >();
-
-    expectTypeOf<
-      PickCollectionDocument<
-        UserClusterTypes,
-        'BucketOne',
-        'ScopeOne' | 'ScopeTwo',
-        'CollectionOne'
-      >
-    >().toEqualTypeOf<
-      | DocDef<string, Doc<'b1s1c1d1'>>
-      | DocDef<string, Doc<'b1s1c1d2'>>
-      | DocDef<string, Doc<'b1s2c1d1'>>
-      | DocDef<string, Doc<'b1s2c1d2'>>
-    >();
-  });
-});
 
 describe('AugmentClusterTypes', () => {
   it('should add a new bucket', () => {
@@ -248,7 +103,51 @@ describe('ExtractCollectionDocumentBag', () => {
   });
 });
 
-describe('CollectionAmong', () => {
+describe('ClusterBucket', () => {
+  it('should be extended by a Bucket that is within the described keyspace', () => {
+    type UserBucket = Bucket<UserClusterTypes, 'BucketOne'>;
+
+    // Positive
+    expectTypeOf<UserBucket>().toMatchTypeOf<ClusterBucket>();
+    expectTypeOf<UserBucket>().toMatchTypeOf<ClusterBucket<UserClusterTypes>>();
+    expectTypeOf<UserBucket>().toMatchTypeOf<
+      ClusterBucket<UserClusterTypes, 'BucketOne'>
+    >();
+
+    // Negative
+    expectTypeOf<UserBucket>().not.toMatchTypeOf<ClusterBucket<NonNullable<unknown>>>();
+    expectTypeOf<UserBucket>().not.toMatchTypeOf<
+      ClusterBucket<UserClusterTypes, 'BucketTwo'>
+    >();
+  });
+});
+
+describe('ClusterScope', () => {
+  it('should be extended by a Scope that is within the described keyspace', () => {
+    type UserScope = Scope<UserClusterTypes, 'BucketOne', 'ScopeOne'>;
+
+    // Positive
+    expectTypeOf<UserScope>().toMatchTypeOf<ClusterScope>();
+    expectTypeOf<UserScope>().toMatchTypeOf<ClusterScope<UserClusterTypes>>();
+    expectTypeOf<UserScope>().toMatchTypeOf<
+      ClusterScope<UserClusterTypes, 'BucketOne'>
+    >();
+    expectTypeOf<UserScope>().toMatchTypeOf<
+      ClusterScope<UserClusterTypes, 'BucketOne', 'ScopeOne'>
+    >();
+
+    // Negative
+    expectTypeOf<UserScope>().not.toMatchTypeOf<ClusterScope<NonNullable<unknown>>>();
+    expectTypeOf<UserScope>().not.toMatchTypeOf<
+      ClusterScope<UserClusterTypes, 'BucketTwo'>
+    >();
+    expectTypeOf<UserScope>().not.toMatchTypeOf<
+      ClusterScope<UserClusterTypes, 'BucketOne', 'ScopeTwo'>
+    >();
+  });
+});
+
+describe('ClusterCollection', () => {
   it('should be extended by a Collection that is within the described keyspace', () => {
     type UserCollection = Collection<
       UserClusterTypes,
@@ -258,30 +157,30 @@ describe('CollectionAmong', () => {
     >;
 
     // Positive
-    expectTypeOf<UserCollection>().toMatchTypeOf<CollectionAmong>();
-    expectTypeOf<UserCollection>().toMatchTypeOf<CollectionAmong<UserClusterTypes>>();
+    expectTypeOf<UserCollection>().toMatchTypeOf<ClusterCollection>();
+    expectTypeOf<UserCollection>().toMatchTypeOf<ClusterCollection<UserClusterTypes>>();
     expectTypeOf<UserCollection>().toMatchTypeOf<
-      CollectionAmong<UserClusterTypes, 'BucketOne'>
+      ClusterCollection<UserClusterTypes, 'BucketOne'>
     >();
     expectTypeOf<UserCollection>().toMatchTypeOf<
-      CollectionAmong<UserClusterTypes, 'BucketOne', 'ScopeOne'>
+      ClusterCollection<UserClusterTypes, 'BucketOne', 'ScopeOne'>
     >();
     expectTypeOf<UserCollection>().toMatchTypeOf<
-      CollectionAmong<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+      ClusterCollection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
     >();
 
     // Negative
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
-      CollectionAmong<NonNullable<unknown>>
+      ClusterCollection<NonNullable<unknown>>
     >();
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
-      CollectionAmong<UserClusterTypes, 'BucketTwo'>
+      ClusterCollection<UserClusterTypes, 'BucketTwo'>
     >();
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
-      CollectionAmong<UserClusterTypes, 'BucketOne', 'ScopeTwo'>
+      ClusterCollection<UserClusterTypes, 'BucketOne', 'ScopeTwo'>
     >();
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
-      CollectionAmong<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionFour'>
+      ClusterCollection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionFour'>
     >();
   });
 });

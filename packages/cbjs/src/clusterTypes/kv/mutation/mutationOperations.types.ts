@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-import type { If } from '@cbjsdev/shared';
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import { MutateInSpec } from '../../../sdspecs';
-import type { ArrayAppendElement, ArrayPrependElement } from '../utils/array-utils.types';
 import type {
+  ArrayAppendElement,
+  ArrayPrependElement,
+  DocumentPath,
   ExtractPathToAppendableArray,
   ExtractPathToInsertableArrayIndex,
   ExtractPathToPrependableArray,
   ExtractPathToRemovableArrayIndex,
   ExtractPathToType,
-  ExtractPathToWritable,
-  ExtractPathToWritableArrayIndex,
+  ExtractPathToWritable, ExtractPathToWritableArrayIndex,
   ExtractPathToWritableProperty,
+  If,
+  IsFuzzyDocument,
   PathToRemovableProperty,
-} from '../utils/document-path.types';
-import type { DocumentPath, SubDocument } from '../utils/path-utils.types';
+  SubDocument,
+} from '@cbjsdev/shared';
+import { CppProtocolSubdocOpcode } from '../../../binding';
+import { MutateInSpec } from '../../../sdspecs';
+
 import type {
   AnyMutateInPath,
   AnyMutateInValue,
   CompatibleMacro,
-  IsFuzzyDocument,
   MutateInValue,
 } from './mutateIn.types';
 

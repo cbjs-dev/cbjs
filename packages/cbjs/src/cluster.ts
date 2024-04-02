@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BucketName, CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
+
 import { AnalyticsExecutor } from './analyticsexecutor';
 import { AnalyticsIndexManager } from './analyticsindexmanager';
 import {
@@ -30,8 +32,6 @@ import binding, { CppClusterCredentials, CppConnection } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Bucket } from './bucket';
 import { BucketManager } from './bucketmanager';
-import { BucketName } from './clusterTypes';
-import { CouchbaseClusterTypes, DefaultClusterTypes } from './clusterTypes/clusterTypes';
 import { connectionProfiles } from './configProfile';
 import { ConnSpec } from './connspec';
 import { DiagnoticsExecutor, PingExecutor } from './diagnosticsexecutor';
@@ -226,7 +226,7 @@ export type ConnectOptions = {
  *
  * @category Core
  */
-export class Cluster<in out T extends CouchbaseClusterTypes = any> {
+export class Cluster<in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
   private _connStr: string;
   private _trustStorePath: string;
   private _kvTimeout: number;
@@ -452,7 +452,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    * Returns a UserManager which can be used to manage the users
    * of this cluster.
    */
-  users(): UserManager {
+  users(): UserManager<T> {
     return new UserManager(this);
   }
 
@@ -460,7 +460,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    * Returns a BucketManager which can be used to manage the buckets
    * of this cluster.
    */
-  buckets(): BucketManager {
+  buckets(): BucketManager<T> {
     return new BucketManager(this);
   }
 
@@ -468,7 +468,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    * Returns a QueryIndexManager which can be used to manage the query indexes
    * of this cluster.
    */
-  queryIndexes(): QueryIndexManager {
+  queryIndexes(): QueryIndexManager<T> {
     return new QueryIndexManager(this);
   }
 
@@ -476,7 +476,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    * Returns a AnalyticsIndexManager which can be used to manage the analytics
    * indexes of this cluster.
    */
-  analyticsIndexes(): AnalyticsIndexManager {
+  analyticsIndexes(): AnalyticsIndexManager<T> {
     return new AnalyticsIndexManager(this);
   }
 
@@ -484,7 +484,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    * Returns a SearchIndexManager which can be used to manage the search
    * indexes of this cluster.
    */
-  searchIndexes(): SearchIndexManager {
+  searchIndexes(): SearchIndexManager<T> {
     return new SearchIndexManager(this);
   }
 
@@ -493,7 +493,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = any> {
    * functions of this cluster.
    * Volatile: This API is subject to change at any time.
    */
-  eventingFunctions(): EventingFunctionManager {
+  eventingFunctions(): EventingFunctionManager<T> {
     return new EventingFunctionManager(this);
   }
 

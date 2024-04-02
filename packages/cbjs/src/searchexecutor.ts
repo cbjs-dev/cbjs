@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BucketName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
+
 import { CppSearchRequest } from './binding';
 import {
   errorFromCpp,
@@ -36,18 +38,22 @@ import { StreamableRowPromise } from './streamablepromises';
 /**
  * @internal
  */
-export class SearchExecutor {
-  private cluster: Cluster;
-  private bucketName?: string;
-  private scopeName?: string;
+export class SearchExecutor<
+  T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+> {
+  private cluster: Cluster<T>;
+  private bucketName?: B;
+  private scopeName?: S;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster);
-  constructor(cluster: Cluster, bucketName: string, scopeName: string);
+  constructor(cluster: Cluster<T>);
+  constructor(cluster: Cluster<T>, bucketName: B, scopeName: S);
 
-  constructor(cluster: Cluster, bucketName?: string, scopeName?: string) {
+  constructor(cluster: Cluster<T>, bucketName?: B, scopeName?: S) {
     this.cluster = cluster;
     this.bucketName = bucketName;
     this.scopeName = scopeName;

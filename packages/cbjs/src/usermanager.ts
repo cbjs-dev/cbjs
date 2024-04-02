@@ -21,7 +21,7 @@ import {
   ApiUserRole,
   ApiUserRoleOrigin,
 } from '@cbjsdev/http-client';
-import { getRoleScope, RoleName } from '@cbjsdev/shared';
+import { CouchbaseClusterTypes, getRoleScope, RoleName } from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors';
@@ -609,13 +609,13 @@ export interface DropGroupOptions {
  *
  * @category Management
  */
-export class UserManager {
-  private _cluster: Cluster;
+export class UserManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

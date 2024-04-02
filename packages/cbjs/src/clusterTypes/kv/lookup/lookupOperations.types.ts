@@ -16,11 +16,8 @@
 
 import type { CppProtocolSubdocOpcode } from '../../../binding';
 import type { LookupInMacro, LookupInSpec } from '../../../sdspecs';
-import type { IsFuzzyDocument } from '../mutation/mutateIn.types';
-import type { ExtractPathToArray, ExtractPathToObject } from '../utils/document-path.types';
-import type { DocumentPath } from '../utils/path-utils.types';
 import type { MakeLookupInSpec } from './lookupIn.types';
-import type { If } from '@cbjsdev/shared';
+import type { DocumentPath, ExtractPathToArray, ExtractPathToObject, If, IsFuzzyDocument } from '@cbjsdev/shared';
 
 /**
  * Helper to build the path of a lookup operation.

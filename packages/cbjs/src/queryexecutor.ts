@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '@cbjsdev/shared';
+import { CouchbaseClusterTypes, invariant } from '@cbjsdev/shared';
 
 import { CppError, CppQueryResponse } from './binding';
 import {
@@ -37,13 +37,13 @@ import { StreamableRowPromise } from './streamablepromises';
 /**
  * @internal
  */
-export class QueryExecutor {
-  private _cluster: Cluster;
+export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

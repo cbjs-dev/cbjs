@@ -14,16 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CppConnection } from './binding';
-import { Cluster } from './cluster';
-import { BucketName, ScopeName } from './clusterTypes';
 import {
+  BucketName,
   CouchbaseClusterTypes,
-  DefaultCollection,
-  DefaultScope,
   DefaultScopeCollectionName,
   DefaultScopeName,
-} from './clusterTypes/clusterTypes';
+  ScopeName,
+} from '@cbjsdev/shared';
+
+import { CppConnection } from './binding';
+import { Cluster } from './cluster';
+import { DefaultCollection, DefaultScope } from './clusterTypes/clusterTypes';
 import { Collection } from './collection';
 import { CollectionManager } from './collectionmanager';
 import { PingExecutor } from './diagnosticsexecutor';
@@ -44,8 +45,8 @@ import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes
  * @category Core
  */
 export class Bucket<
-  in out T extends CouchbaseClusterTypes,
-  in out B extends BucketName<T>,
+  in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  in out B extends BucketName<T> = BucketName<T>,
 > {
   readonly cluster: Cluster<T>;
   readonly name: B;

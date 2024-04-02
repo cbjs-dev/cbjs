@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseClusterTypes } from '@cbjsdev/shared';
+
 import {
   endpointStateFromCpp,
   errorFromCpp,
@@ -34,13 +36,13 @@ import {
 /**
  * @internal
  */
-export class DiagnoticsExecutor {
-  private _cluster: Cluster;
+export class DiagnoticsExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 
@@ -93,13 +95,13 @@ export class DiagnoticsExecutor {
 /**
  * @internal
  */
-export class PingExecutor {
-  private _cluster: Cluster;
+export class PingExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

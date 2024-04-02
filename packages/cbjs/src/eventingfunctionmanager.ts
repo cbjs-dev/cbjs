@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ts from 'typescript/lib/tsserverlibrary';
-
 import {
   ApiEventingFunction,
   ApiEventingFunctionBucketBinding,
@@ -26,14 +24,13 @@ import {
 } from '@cbjsdev/http-client';
 import { ApiEventingFunctionSettings } from '@cbjsdev/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
 import {
+  CouchbaseClusterTypes,
   EventingFunctionScope,
-  EventingFunctionUrlAuthData,
   hasOwn,
   invariant,
 } from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
-import { ArrayElement } from './clusterTypes/kv/utils/array-utils.types';
 import {
   CollectionNotFoundError,
   CouchbaseError,
@@ -1203,13 +1200,15 @@ export interface FunctionsStatusOptions {
  *
  * @category Management
  */
-export class EventingFunctionManager {
-  private _cluster: Cluster;
+export class EventingFunctionManager<
+  T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

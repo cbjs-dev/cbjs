@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 import { ApiViewDesignDocument, ApiViewDesignDocuments } from '@cbjsdev/http-client';
+import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
 
 import { Bucket } from './bucket';
-import { BucketName, CouchbaseClusterTypes } from './clusterTypes';
 import { CouchbaseError, DesignDocumentNotFoundError } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import {

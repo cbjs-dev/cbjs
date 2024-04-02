@@ -13,198 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsNever, Pretty } from '@cbjsdev/shared';
+import type {
+  BucketName,
+  CollectionDocumentBag,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  DefaultCollectionName,
+  DefaultScopeCollectionName,
+  DefaultScopeName,
+  DocDef,
+  ExtractDocBodyByKey,
+  IsNever,
+  Keyspace,
+  MissingDefaultCollection,
+  MissingDefaultScope,
+  PickCollectionDocDef,
+  Pretty,
+  ScopeName,
+} from '@cbjsdev/shared';
 
-import { Collection } from '../collection';
-import { Scope } from '../scope';
-import { DocumentPath } from './kv/utils/path-utils.types';
-
-// export type DocDef<out Key extends string = string, out Body = unknown> = {
-export type DocDef<Key extends string = string, Body = unknown> = {
-  Key: Key;
-  Body: Body;
-};
-
-/**
- * Basic structure for cluster types.
- */
-export type CouchbaseClusterTypes = {
-  [bucket: string]: {
-    [scope: string]: {
-      [collection: string]: DocDef<string, unknown>;
-    };
-  };
-};
-
-/**
- * Default types used when the end dev don't define their owns.
- */
-export type DefaultClusterTypes = {
-  [bucket: string]: {
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    [key in DefaultScopeName | NonNullable<string>]: {
-      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-      [Key in DefaultCollectionName | NonNullable<string>]: DocDef<string, any>;
-    };
-  };
-};
-
-/**
- * Default scope name.
- */
-export type DefaultScopeName = '_default';
-
-/**
- * Default collection name.
- */
-export type DefaultCollectionName = '_default';
-
-/**
- * Bucket names existing in the cluster.
- */
-export type BucketName<T extends CouchbaseClusterTypes> = Extract<keyof T, string>;
-
-/**
- * Scope names existing in a bucket. Distributive.
- */
-export type ScopeName<
-  T extends CouchbaseClusterTypes,
-  B extends BucketName<T> = BucketName<T>,
-> = B extends BucketName<T> ? Extract<keyof T[B], string> : never;
-
-/**
- * Collection names existing in a scope. Distributive.
- */
-export type CollectionName<
-  T extends CouchbaseClusterTypes,
-  B extends BucketName<T> = BucketName<T>,
-  S extends ScopeName<T, B> = ScopeName<T, B>,
-> =
-  B extends BucketName<T>
-    ? S extends ScopeName<T, B>
-      ? Extract<keyof T[B][S], string>
-      : never
-    : never;
-
-/**
- * Union of all of `T` values. Distributive.
- *
- * @internal
- */
-type UnwindUnionObjectValues<T> = T extends unknown ? T[keyof T] : never;
-
-/**
- * Union of documents in a collection. Distributive.
- */
-export type PickCollectionDocument<
-  T extends CouchbaseClusterTypes,
-  B extends BucketName<T> = BucketName<T>,
-  S extends ScopeName<T, B> = ScopeName<T, B>,
-  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-> =
-  B extends BucketName<T>
-    ? S extends ScopeName<T, B>
-      ? C extends CollectionName<T, B, S>
-        ? Extract<UnwindUnionObjectValues<T[B][S]>, T[B][S][C]>
-        : never
-      : never
-    : never;
-
-/**
- * A JSON object.
- */
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | ReadonlyArray<Json>
-  | { [key: string]: Json };
-
-/**
- * Couchbase document types.
- */
-export type CouchbaseDocumentTypes = {
-  'JSON': Json;
-  'UTF-8': string;
-  'RAW': NodeJS.TypedArray;
-  'PRIVATE': unknown;
-};
-
-/**
- * Subset of Json types that extend `object`.
- */
-export type JsonObject = Extract<CouchbaseDocumentTypes['JSON'], object>;
-
-/**
- * Extract definitions of JSON documents.
- */
-export type JsonDocumentDef<T extends DocDef> = T extends infer Doc extends DocDef
-  ? Doc['Body'] extends CouchbaseDocumentTypes['JSON']
-    ? Doc
-    : never
-  : never;
-
-/**
- * Extract documents on which you can perform sub-document operations.
- *
- * @see Collection.lookupIn
- * @see Collection.mutateIn
- */
-export type ObjectDocument<Doc> = Extract<Doc, object>;
-
-/**
- * Extract definitions of documents on which you can perform sub-document operations.
- */
-export type ObjectDocumentDef<T extends DocDef> = T extends infer Doc extends DocDef
-  ? Doc['Body'] extends object
-    ? DocDef<Doc['Key'], Doc['Body']>
-    : never
-  : never;
-
-/**
- * Extract document definitions where the body extends `E`.
- */
-export type ExtractDefByBody<Def extends DocDef, Body> = Def extends unknown
-  ? Def['Body'] extends infer DocBody
-    ? DocBody extends Body
-      ? Def
-      : never
-    : never
-  : never;
-
-export type ExtractDocDefByKey<
-  Def extends DocDef,
-  Key extends string,
-> = Key extends unknown
-  ? Def extends unknown
-    ? Key extends Def['Key']
-      ? Def
-      : never
-    : never
-  : never;
-
-export type ExtractDocBodyByKey<
-  Def extends DocDef,
-  Key extends string,
-> = Key extends unknown
-  ? Def extends unknown
-    ? Key extends Def['Key']
-      ? Def['Body']
-      : never
-    : never
-  : never;
-
-/**
- * Contains the pre-computer types for the collection.
- */
-export type CollectionDocumentBag<Def extends DocDef> = {
-  Key: Def['Key'];
-  Document: Def;
-  JsonDocument: JsonDocumentDef<Def>;
-  ObjectDocument: ObjectDocumentDef<Def>;
-  ObjectDocumentPath: DocumentPath<ObjectDocumentDef<Def>['body']> | '';
-};
+import { Bucket } from '../bucket';
+import type { Collection } from '../collection';
+import type { Scope } from '../scope';
 
 export type ExtractCollectionDocumentBag<C> =
   C extends Collection<any, any, any, any, infer Bag extends CollectionDocumentBag<any>>
@@ -267,35 +98,82 @@ export type AugmentClusterTypes<
 >;
 
 /**
- * ###################
- * ## Runtime Types ##
- * ###################
- * Below are types that involve runtime, couchbase objects, such as class instances.
+ * Represent any {@link Collection}.
  */
-
-/**
- * Error type for missing default scope.
- */
-export type MissingDefaultScope<B extends string> =
-  `The "${DefaultScopeName}" scope is missing from the types declaration of bucket "${B}".`;
-
-/**
- * Error type for missing default collection.
- */
-export type MissingDefaultCollection<B extends string> =
-  `The "${DefaultCollectionName}" collection is missing from the types declaration of the ${DefaultScopeName} scope of bucket "${B}".`;
-
+export type AnyBucket = Bucket<any, any>;
+export type AnyScope = Scope<any, any, any>;
 export type AnyCollection = Collection<any, any, any, any, any>;
 
 /**
- * Represent a {@link Collection} within a Bucket, Scope and/or a subset of Collection.
+ * @alias ClusterCollection
+ * @deprecated use {@link ClusterCollection} instead.
  */
 export type CollectionAmong<
-  T extends CouchbaseClusterTypes = any,
-  B extends BucketName<T> = any,
-  S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any,
-> = Collection<T, B, S, C>;
+  T extends CouchbaseClusterTypes = never,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
+  C extends CollectionName<T, B, S> = never,
+> = ClusterCollection<T, B, S, C>;
+
+/**
+ * Represent a union of {@link Collection} within a Bucket, Scope and/or a subset of Collection.
+ */
+export type ClusterCollection<
+  T extends CouchbaseClusterTypes = never,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
+  C extends CollectionName<T, B, S> = never,
+> =
+  IsNever<T> extends true
+    ? AnyCollection
+    : Keyspace<T, B, S, C> extends infer KS extends Keyspace<T, B, S, C>
+      ? KS extends unknown
+        ? KS['bucket'] extends infer KSB extends BucketName<T>
+          ? KS['scope'] extends infer KSS extends ScopeName<T, KSB>
+            ? KS['collection'] extends infer KSC extends CollectionName<T, KSB, KSS>
+              ? Collection<T, KSB, KSS, KSC>
+              : never
+            : never
+          : never
+        : never
+      : never;
+
+/**
+ * Represent a union of {@link Scope} within a Bucket, and/or a subset of Scope.
+ */
+export type ClusterScope<
+  T extends CouchbaseClusterTypes = never,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
+> =
+  IsNever<T> extends true
+    ? AnyScope
+    : Keyspace<T, B, S> extends infer KS extends Keyspace<T, B, S>
+      ? KS extends unknown
+        ? KS['bucket'] extends infer KSB extends BucketName<T>
+          ? KS['scope'] extends infer KSS extends ScopeName<T, KSB>
+            ? Scope<T, KSB, KSS>
+            : never
+          : never
+        : never
+      : never;
+
+/**
+ * Represent a union of {@link Bucket} within a cluster.
+ */
+export type ClusterBucket<
+  T extends CouchbaseClusterTypes = never,
+  B extends BucketName<T> = never,
+> =
+  IsNever<T> extends true
+    ? AnyBucket
+    : Keyspace<T, B> extends infer KS extends Keyspace<T, B>
+      ? KS extends unknown
+        ? KS['bucket'] extends infer KSB extends BucketName<T>
+          ? Bucket<T, KSB>
+          : never
+        : never
+      : never;
 
 /**
  * Represent a {@link Collection} that may contain documents of type `Doc`.
@@ -366,16 +244,25 @@ export type HasDefaultScope<
 > = B extends unknown ? (DefaultScopeName extends ScopeName<T, B> ? true : false) : never;
 
 /**
- * Collection names of the default scope.
+ * Represent the runtime type of a {@link Collection} instance of the default collection inside the default scope.
+ * It includes check to ensure the default scope and default collection exists and returns an error type if it doesn't.
  */
-export type DefaultScopeCollectionName<
-  T extends CouchbaseClusterTypes,
-  B extends BucketName<T>,
-> = B extends unknown
-  ? DefaultScopeName extends ScopeName<T, B>
-    ? CollectionName<T, B, DefaultScopeName>
-    : never
-  : never;
+export type DefaultCollection<T extends CouchbaseClusterTypes, B extends BucketName<T>> =
+  B extends BucketName<T>
+    ? DefaultScopeName extends ScopeName<T, B>
+      ? DefaultCollectionName extends CollectionName<T, B, DefaultScopeName>
+        ? Collection<
+            T,
+            B,
+            DefaultScopeName,
+            DefaultCollectionName,
+            CollectionDocumentBag<
+              PickCollectionDocDef<T, B, DefaultScopeName, DefaultCollectionName>
+            >
+          >
+        : MissingDefaultCollection<B>
+      : MissingDefaultScope<B>
+    : never;
 
 /**
  * Represent the runtime type of a {@link Collection} instance of a collection inside the default scope.
@@ -393,28 +280,7 @@ export type DefaultScopeCollection<
           B,
           DefaultScopeName,
           C,
-          CollectionDocumentBag<PickCollectionDocument<T, B, DefaultScopeName, C>>
+          CollectionDocumentBag<PickCollectionDocDef<T, B, DefaultScopeName, C>>
         >
-      : MissingDefaultScope<B>
-    : never;
-
-/**
- * Represent the runtime type of a {@link Collection} instance of the default collection inside the default scope.
- * It includes check to ensure the default scope and default collection exists and returns an error type if it doesn't.
- */
-export type DefaultCollection<T extends CouchbaseClusterTypes, B extends BucketName<T>> =
-  B extends BucketName<T>
-    ? DefaultScopeName extends ScopeName<T, B>
-      ? DefaultCollectionName extends CollectionName<T, B, DefaultScopeName>
-        ? Collection<
-            T,
-            B,
-            DefaultScopeName,
-            DefaultCollectionName,
-            CollectionDocumentBag<
-              PickCollectionDocument<T, B, DefaultScopeName, DefaultCollectionName>
-            >
-          >
-        : MissingDefaultCollection<B>
       : MissingDefaultScope<B>
     : never;

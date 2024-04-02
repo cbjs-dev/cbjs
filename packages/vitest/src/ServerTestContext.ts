@@ -20,21 +20,23 @@ import {
   Collection,
   connect,
   ConnectOptions,
-  CouchbaseClusterTypes,
-  DefaultClusterTypes,
   DefaultCollection,
   DefaultScope,
   Scope,
 } from '@cbjsdev/cbjs';
 import { waitForBucket, waitForCollection } from '@cbjsdev/http-client';
 import {
+  ConnectionParams,
+  CouchbaseClusterTypes,
   CouchbaseLogger,
+  DefaultClusterTypes,
+  getApiConfig,
+  getConnectionParams,
   invariant,
   Keyspace,
   keyspacePath,
   sleep,
 } from '@cbjsdev/shared';
-import { ConnectionParams, getApiConfig, getConnectionParams } from '@cbjsdev/shared';
 
 import { getTestLogger } from './logger';
 import { getRandomId } from './utils/getRandomId';

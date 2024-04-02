@@ -1,16 +1,9 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { Cas, CouchbaseCas } from '@cbjsdev/shared';
+import { Cas, DocDef } from '@cbjsdev/shared';
 
-import {
-  connect,
-  DocumentId,
-  TransactionDocInfo,
-  TransactionExistsResult,
-  TransactionGetResult,
-} from '.';
+import { connect, DocumentId, TransactionDocInfo, TransactionGetResult } from '.';
 import { CppTransactionGetMetaData, CppTransactionLinks } from './binding';
-import { DocDef } from './clusterTypes';
 
 type Book = {
   title: string;

@@ -15,14 +15,15 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import type {
+import {
   AssertTests,
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
   MakeTestPaths,
   TestDocRequiredProperties,
-} from '../../test-utils.types';
+} from '@cbjsdev/shared';
+
 import type {
   MutateInArrayAddUniquePath,
   MutateInArrayAppendPath,

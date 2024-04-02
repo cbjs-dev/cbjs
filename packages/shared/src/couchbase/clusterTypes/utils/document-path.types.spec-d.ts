@@ -16,11 +16,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import {
-  BuildOptionalProperties,
-  BuildReadonlyArrayProperties,
-  TestDocRequiredProperties,
-} from '../../test-utils.types';
-import {
   ExtractPathToAppendableArray,
   ExtractPathToArray,
   ExtractPathToArrayIndex,
@@ -34,6 +29,11 @@ import {
   ExtractPathToWritableProperty,
 } from './document-path.types';
 import { DocumentPath } from './path-utils.types';
+import type {
+  BuildOptionalProperties,
+  BuildReadonlyArrayProperties,
+  TestDocRequiredProperties,
+} from './test-utils.types';
 
 describe('ExtractPathToWritable', function () {
   type Doc = {

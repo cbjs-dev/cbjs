@@ -14,7 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Cas, If, invariant } from '@cbjsdev/shared';
+import {
+  BucketName,
+  Cas,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  ExtractDocBodyByKey,
+  If,
+  invariant,
+  ScopeName,
+} from '@cbjsdev/shared';
 
 import binding, {
   CppTransaction,
@@ -30,18 +40,7 @@ import {
   queryScanConsistencyToCpp,
 } from './bindingutilities';
 import { Cluster } from './cluster';
-import {
-  BucketName,
-  CollectionName,
-  CouchbaseClusterTypes,
-  DefaultClusterTypes,
-  ScopeName,
-} from './clusterTypes';
-import {
-  ExtractCollectionDocumentDef,
-  ExtractDocBodyByKey,
-  KeyspaceDocDef,
-} from './clusterTypes/clusterTypes';
+import { KeyspaceDocDef } from './clusterTypes/clusterTypes';
 import { Collection } from './collection';
 import {
   DocumentNotFoundError,

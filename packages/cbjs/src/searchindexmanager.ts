@@ -20,6 +20,7 @@ import {
   ApiSearchIndexDefinition,
   ApiSearchIndexSuccessfulAnalysis,
 } from '@cbjsdev/http-client';
+import { CouchbaseClusterTypes } from '@cbjsdev/shared';
 
 import { CppError, CppManagementSearchIndex } from './binding';
 import { errorFromCpp } from './bindingutilities';
@@ -275,13 +276,13 @@ export interface AnalyzeSearchDocumentOptions {
  *
  * @category Management
  */
-export class SearchIndexManager {
-  private _cluster: Cluster;
+export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

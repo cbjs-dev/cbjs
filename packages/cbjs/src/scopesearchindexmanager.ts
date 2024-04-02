@@ -17,11 +17,11 @@
 import { promisify } from 'node:util';
 
 import { ApiSearchIndexSuccessfulAnalysis } from '@cbjsdev/http-client';
+import { BucketName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
 
 import { CppError } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
-import { GetResult } from './crudoptypes';
 import {
   AllowSearchQueryingOptions,
   AnalyzeSearchDocumentOptions,
@@ -38,7 +38,7 @@ import {
   UnfreezeSearchPlanOptions,
   UpsertSearchIndexOptions,
 } from './searchindexmanager';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+import { NodeCallback, VoidNodeCallback } from './utilities';
 import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 
 /**
@@ -49,15 +49,19 @@ import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
  *
  * @category Management
  */
-export class ScopeSearchIndexManager {
-  private _cluster: Cluster;
-  private _bucketName: string;
-  private _scopeName: string;
+export class ScopeSearchIndexManager<
+  in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  in out B extends BucketName<T> = BucketName<T>,
+  in out S extends ScopeName<T, B> = ScopeName<T, B>,
+> {
+  private _cluster: Cluster<T>;
+  private _bucketName: B;
+  private _scopeName: S;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster, bucketName: string, scopeName: string) {
+  constructor(cluster: Cluster<T>, bucketName: B, scopeName: S) {
     this._cluster = cluster;
     this._bucketName = bucketName;
     this._scopeName = scopeName;

@@ -21,7 +21,11 @@ import {
 } from '@cbjsdev/http-client';
 import { ApiAnalyticsAzureRemoteLink } from '@cbjsdev/http-client/dist/src/types/Api/analytics/ApiAnalyticsAzureRemoteLink';
 import { ApiAnalyticsS3RemoteLink } from '@cbjsdev/http-client/dist/src/types/Api/analytics/ApiAnalyticsS3RemoteLink';
-import { jsonToUrlSearchParams, RelaxedUnion } from '@cbjsdev/shared';
+import {
+  CouchbaseClusterTypes,
+  jsonToUrlSearchParams,
+  RelaxedUnion,
+} from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import {
@@ -1009,13 +1013,15 @@ export interface GetAllAnalyticsLinksOptions {
  *
  * @category Management
  */
-export class AnalyticsIndexManager {
-  private _cluster: Cluster;
+export class AnalyticsIndexManager<
+  T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

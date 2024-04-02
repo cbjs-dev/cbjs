@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
+import { CollectionDocumentBag, DocDef } from '@cbjsdev/shared';
+
+import type {
   CollectionContaining,
-  CollectionDocumentBag,
-  DocDef,
   ValidateCollectionContainsAny,
 } from './clusterTypes/clusterTypes';
-import { Collection } from './collection';
+import type { Collection } from './collection';
 import { CounterResult, MutationResult } from './crudoptypes';
 import { DurabilityLevel } from './generaltypes';
-import { NodeCallback } from './utilities';
+import type { NodeCallback } from './utilities';
 
 /**
  * @category Key-Value

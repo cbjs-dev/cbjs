@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseClusterTypes } from '@cbjsdev/shared';
+
 import {
   AnalyticsMetaData,
   AnalyticsMetrics,
@@ -32,13 +34,13 @@ import { StreamableRowPromise } from './streamablepromises';
 /**
  * @internal
  */
-export class AnalyticsExecutor {
-  private _cluster: Cluster;
+export class AnalyticsExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

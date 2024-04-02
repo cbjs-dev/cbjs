@@ -14,6 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  ScopeName,
+} from '@cbjsdev/shared';
+
 import { AnalyticsExecutor } from './analyticsexecutor';
 import {
   AnalyticsMetaData,
@@ -23,8 +30,6 @@ import {
 import { CppConnection } from './binding';
 import { Bucket } from './bucket';
 import { Cluster } from './cluster';
-import { BucketName, CollectionName, ScopeName } from './clusterTypes';
-import { CouchbaseClusterTypes, DefaultScopeName } from './clusterTypes/clusterTypes';
 import { Collection } from './collection';
 import { QueryExecutor } from './queryexecutor';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
@@ -40,9 +45,9 @@ import { NodeCallback, PromiseHelper } from './utilities';
  * @category Core
  */
 export class Scope<
-  in out T extends CouchbaseClusterTypes,
-  in out B extends BucketName<T>,
-  in out S extends ScopeName<T, B>,
+  in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  in out B extends BucketName<T> = BucketName<T>,
+  in out S extends ScopeName<T, B> = ScopeName<T, B>,
 > {
   /**
    * @internal
@@ -91,7 +96,7 @@ export class Scope<
    * Volatile: This API is subject to change at any time.
    *
    */
-  searchIndexes(): ScopeSearchIndexManager {
+  searchIndexes(): ScopeSearchIndexManager<T, B, S> {
     return new ScopeSearchIndexManager(this.cluster, this.bucket.name, this.name);
   }
 

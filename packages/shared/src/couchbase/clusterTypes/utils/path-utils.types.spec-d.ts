@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { Json } from '../../clusterTypes';
+import { Json } from '../document.types';
 import {
   DocumentPath,
   MaybeMissing,

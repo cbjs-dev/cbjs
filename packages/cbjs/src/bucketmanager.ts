@@ -19,6 +19,7 @@ import { promisify } from 'node:util';
 import {
   BucketTypeName,
   CompressionModeName,
+  CouchbaseClusterTypes,
   DurabilityLevelName,
   EvictionPolicyName,
   ReplicaNumber,
@@ -601,13 +602,13 @@ export interface FlushBucketOptions {
  *
  * @category Management
  */
-export class BucketManager {
-  private _cluster: Cluster;
+export class BucketManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+  private _cluster: Cluster<T>;
 
   /**
    * @internal
    */
-  constructor(cluster: Cluster) {
+  constructor(cluster: Cluster<T>) {
     this._cluster = cluster;
   }
 

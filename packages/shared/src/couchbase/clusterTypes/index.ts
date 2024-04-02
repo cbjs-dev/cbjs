@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-export * from './CouchbaseCas';
-export * from './utils';
-export * from './types';
-export * from './clusterTypes';
+export type * from './document.types';
+export type * from './keyspace.types';
+export type * from './utils';

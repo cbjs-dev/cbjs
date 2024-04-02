@@ -14,24 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Buffer } from 'node:buffer';
-import { ParsedUrlQueryInput } from 'querystring';
+import type { ParsedUrlQueryInput } from 'querystring';
 import * as qs from 'querystring';
 
-import {
-  Cas,
-  CouchbaseCas,
-  DurabilityLevelName,
-  durabilityLevels,
-  NonVoid,
-} from '@cbjsdev/shared';
+import type { Cas, DurabilityLevelName, NonVoid } from '@cbjsdev/shared';
+import { CouchbaseCas, durabilityLevels } from '@cbjsdev/shared';
 
-import { AnyCollection } from './clusterTypes';
+import type { AnyCollection } from './clusterTypes';
 import { DurabilityLevel } from './generaltypes';
 import { toEnumMember } from './utilities_internal';
 
 // We re-export from here to avoid import issues from the user side.
-export { Cas, CouchbaseCas };
+export { type Cas, CouchbaseCas };
 
 /**
  * A node-style callback which receives an optional error or result.

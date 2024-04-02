@@ -15,10 +15,11 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+
 import { connect } from '../../..';
 import { BinaryCollection } from '../../../binarycollection';
 import { Collection } from '../../../collection';
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '../../clusterTypes';
 
 describe('BinaryCollection', function () {
   describe('Default ClusterTypes', function () {

@@ -16,7 +16,8 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { DocDef } from './clusterTypes';
+import { DocDef } from '@cbjsdev/shared';
+
 import { connect } from './couchbase';
 import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes';
 import { LookupInSpec, MutateInSpec } from './sdspecs';
@@ -36,6 +37,9 @@ type UserClusterTypes = {
   test: {
     _default: {
       _default: DocDef<`book::${string}`, TestDoc>;
+    };
+    scope1: {
+      collection1: DocDef<`counter::${string}`, number>;
     };
   };
 };

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { StringHex } from '../utils/string-utils.types';
+import { StringHex } from '@cbjsdev/shared';
 
 /**
  * An object type with the macro string as key and the return type as parameter.
