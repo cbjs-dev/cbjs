@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { retry } from 'ts-retry-promise';
+
 import { CreateCollectionSettings, Scope } from '@cbjsdev/cbjs';
 import { waitForCollection } from '@cbjsdev/http-client';
 import { keyspacePath } from '@cbjsdev/shared';
@@ -70,6 +72,16 @@ export class CollectionFixture extends FixtureFunctionValue<
       this.scopeName,
       this.collectionName
     );
+
+    await retry(async () => {
+      const allScopes = await bucket.collections().getAllScopes();
+      const scope = allScopes.find((s) => s.name === this.scopeName);
+      const collectionExists = scope?.collections.some(
+        (c) => c.name === this.collectionName
+      );
+
+      if (!collectionExists) throw new Error('Collection not ready yet');
+    });
 
     return this.collectionName;
   }

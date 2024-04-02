@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { waitForScope } from '@cbjsdev/http-client';
+import { retry } from 'ts-retry-promise';
+
+import { getPoolNodes, getScopes, waitForScope } from '@cbjsdev/http-client';
+import { mapNodes } from '@cbjsdev/http-client/dist/src/utils/mapNodes';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue';
@@ -49,6 +52,12 @@ export class ScopeFixture extends FixtureFunctionValue<
 
     await bucket.collections().createScope(this.scopeName);
     await waitForScope(apiConfig, this.bucketName, this.scopeName);
+
+    await retry(async () => {
+      const allScopes = await bucket.collections().getAllScopes();
+      const scopeExists = allScopes.some((s) => s.name === this.scopeName);
+      if (!scopeExists) throw new Error('Scope not ready yet');
+    });
 
     return this.scopeName;
   }
