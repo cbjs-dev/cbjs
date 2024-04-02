@@ -15,9 +15,12 @@ jobs:
     runs-on:
       group: couchbase-runners
       labels: ubuntu-latest-m
+    strategy:
+      matrix:
+        couchbase-server-version: [ 'enterprise-7.2.4', 'enterprise' ]
     services:
       couchbase:
-        image: couchbase:enterprise-7.2.4
+        image: couchbase:${{ matrix.couchbase-server-version }}
         ports:
           - 8091:8091
           - 8092:8092
