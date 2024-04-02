@@ -16,6 +16,7 @@ jobs:
       group: couchbase-runners
       labels: ubuntu-latest-m
     strategy:
+      fail-fast: false
       matrix:
         couchbase-server-version: [ 'enterprise-7.2.4', 'enterprise' ]
     services:
