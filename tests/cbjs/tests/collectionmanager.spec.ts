@@ -499,7 +499,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
         const collections = await getCollections(apiConfig, bucketName, scopeName);
         const testCollection = collections.find((c) => c.name === collectionName);
 
-        expect(testCollection?.maxTTL).toEqual(0);
+        expect(testCollection?.maxTTL).toEqual(-1);
       }
     );
 
