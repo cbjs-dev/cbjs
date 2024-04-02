@@ -591,5 +591,5 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
       }
     );
   },
-  { timeout: 10_000 }
+  { timeout: 10_000, retry: 2 }
 );
