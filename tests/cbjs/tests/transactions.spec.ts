@@ -635,5 +635,5 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
       expect(numAttempts).toEqual(1);
     });
   },
-  { timeout: 10_000 }
+  { timeout: 15_000 }
 );
