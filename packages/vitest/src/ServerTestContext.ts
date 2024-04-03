@@ -60,13 +60,13 @@ export class ServerTestContext {
   private static readonly setupActions: Array<() => Promise<void> | void> = [];
 
   constructor() {
-    this.contextNamespace = getRandomId();
+    this.contextNamespace = `cbjs_${getRandomId()}`;
     this.keyCounter = 0;
     this.logger = getTestLogger();
   }
 
   newUid() {
-    return `${this.contextNamespace}_${this.keyCounter++}`;
+    return `cbjs_${this.contextNamespace}_${this.keyCounter++}`;
   }
 
   /**
