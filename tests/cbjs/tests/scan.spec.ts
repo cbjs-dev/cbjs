@@ -17,6 +17,7 @@
 import { describe, vi } from 'vitest';
 
 import {
+  CollectionNotFoundError,
   InvalidArgumentError,
   MutationState,
   PrefixScan,
@@ -52,9 +53,20 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
           docIds: mutations.map((m) => m.id),
           mutationState: new MutationState(...mutations.map((m) => m.token)),
         };
+
         await use(useValue);
-        await Promise.all(mutations.map((t) => collection.remove(t.id)));
-        return useValue;
+
+        try {
+          await Promise.all(mutations.map((t) => collection.remove(t.id)));
+          return useValue;
+        } catch (err) {
+          // Bucket has been deleted already
+          if (err instanceof CollectionNotFoundError) {
+            return useValue;
+          }
+
+          throw err;
+        }
       }),
     };
   });
@@ -76,7 +88,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       results.forEach((result) => {
         expect(result.id).toBeTypeOf('string');
         expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toEqual({ id: `doc::${result.id}` });
+        expect(result.content).toEqual({ id: result.id });
       });
     });
 
@@ -88,12 +100,12 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       });
 
       expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(12);
+      expect(results).toHaveLength(13);
 
       results.forEach((result) => {
         expect(result.id).toBeTypeOf('string');
         expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toEqual({ id: `doc::${result.id}` });
+        expect(result.content).toEqual({ id: result.id });
       });
     });
 
@@ -111,12 +123,12 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       });
 
       expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(10);
+      expect(results).toHaveLength(11);
 
       results.forEach((result) => {
         expect(result).toHaveProperty('id', expect.any(String));
         expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toEqual({ id: `doc::${result.id}` });
+        expect(result.content).toEqual({ id: result.id });
       });
     });
   });
@@ -133,7 +145,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       results.forEach((result) => {
         expect(result.id).toBeTypeOf('string');
         expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toEqual({ id: `doc::${result.id}` });
+        expect(result.content).toEqual({ id: result.id });
       });
     });
 
@@ -177,7 +189,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       results.forEach((result) => {
         expect(result.id).toBeTypeOf('string');
         expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toEqual({ id: `doc::${result.id}` });
+        expect(result.content).toEqual({ id: result.id });
       });
     });
 
@@ -200,7 +212,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
 
       const results = await resultsStream;
 
-      expect(onResult).toHaveBeenCalledTimes(5);
+      expect(onResult).toHaveBeenCalledTimes(6);
 
       expect(results).toBeInstanceOf(Array);
       expect(results).toHaveLength(5);
@@ -226,10 +238,10 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
       expect,
       data,
     }) => {
-      await expect(data.collection.scan(new SamplingScan(0))).rejects.toThrowError(
+      expect(() => data.collection.scan(new SamplingScan(0))).toThrowError(
         InvalidArgumentError
       );
-      await expect(data.collection.scan(new SamplingScan(-1))).rejects.toThrowError(
+      expect(() => data.collection.scan(new SamplingScan(-1))).toThrowError(
         InvalidArgumentError
       );
     });
@@ -284,7 +296,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
     }
   });
 
-  test('should execute honor the batchByteLimit', async ({ expect, data }) => {
+  describe('should execute honor the batchByteLimit', () => {
     const cases = [
       {
         scanType: new RangeScan(),
@@ -349,79 +361,93 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
     ];
 
     for (const scanCase of cases) {
-      const { scanType, limit, expectedDocumentCount } = scanCase;
+      test('should execute honor the batchByteLimit', async ({ expect, data }) => {
+        const { scanType, limit, expectedDocumentCount } = scanCase;
 
-      const results = await data.collection.scan(scanType, { batchByteLimit: limit });
+        const results = await data.collection.scan(scanType, { batchByteLimit: limit });
 
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(expectedDocumentCount);
+        expect(results).toBeInstanceOf(Array);
+        expect(results).toHaveLength(expectedDocumentCount);
 
-      results.forEach((result) => {
-        expect(result.id).toBeTypeOf('string');
-        expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toBeDefined();
+        results.forEach((result) => {
+          expect(result.id).toBeTypeOf('string');
+          expect(result.cas).toBeNonZeroCAS();
+          expect(result.content).toBeDefined();
+        });
       });
     }
   });
 
-  test('should execute honor the batchItemLimit', async ({ expect, data }) => {
+  describe('should honor the batchItemLimit', () => {
     const cases = [
       {
+        title: 'RangeScan - limit: 0',
         scanType: new RangeScan(),
         limit: 0,
         expectedDocumentCount: 100,
       },
       {
+        title: 'RangeScan - limit: 10',
         scanType: new RangeScan(),
         limit: 10,
         expectedDocumentCount: 100,
       },
       {
+        title: 'RangeScan - limit: 25',
         scanType: new RangeScan(),
         limit: 25,
         expectedDocumentCount: 100,
       },
       {
+        title: 'RangeScan - limit: 100',
         scanType: new RangeScan(),
         limit: 100,
         expectedDocumentCount: 100,
       },
       {
+        title: 'PrefixScan - limit: 0',
         scanType: new PrefixScan('doc::'),
         limit: 0,
         expectedDocumentCount: 100,
       },
       {
+        title: 'PrefixScan - limit: 10',
         scanType: new PrefixScan('doc::'),
         limit: 10,
         expectedDocumentCount: 100,
       },
       {
+        title: 'PrefixScan - limit: 25',
         scanType: new PrefixScan('doc::'),
         limit: 25,
         expectedDocumentCount: 100,
       },
       {
+        title: 'PrefixScan - limit: 100',
         scanType: new PrefixScan('doc::'),
         limit: 100,
         expectedDocumentCount: 100,
       },
       {
+        title: 'SamplingScan - limit: 0',
         scanType: new SamplingScan(10, 50),
         limit: 0,
         expectedDocumentCount: 10,
       },
       {
+        title: 'SamplingScan - limit: 10',
         scanType: new SamplingScan(10, 50),
         limit: 10,
         expectedDocumentCount: 10,
       },
       {
+        title: 'SamplingScan - limit: 25',
         scanType: new SamplingScan(10, 50),
         limit: 25,
         expectedDocumentCount: 10,
       },
       {
+        title: 'SamplingScan - limit: 100',
         scanType: new SamplingScan(10, 50),
         limit: 100,
         expectedDocumentCount: 10,
@@ -429,38 +455,42 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
     ];
 
     for (const scanCase of cases) {
-      const { scanType, limit, expectedDocumentCount } = scanCase;
+      test(scanCase.title, async ({ expect, data }) => {
+        const { scanType, limit, expectedDocumentCount } = scanCase;
 
-      const results = await data.collection.scan(scanType, { batchItemLimit: limit });
+        const results = await data.collection.scan(scanType, { batchItemLimit: limit });
 
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(expectedDocumentCount);
+        expect(results).toBeInstanceOf(Array);
+        expect(results).toHaveLength(expectedDocumentCount);
 
-      results.forEach((result) => {
-        expect(result.id).toBeTypeOf('string');
-        expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toBeDefined();
+        results.forEach((result) => {
+          expect(result.id).toBeTypeOf('string');
+          expect(result.cas).toBeNonZeroCAS();
+          expect(result.content).toBeDefined();
+        });
       });
     }
   });
 
-  test('should scan with set concurrency', async ({ expect, data }) => {
+  describe('should scan concurrently', () => {
     const cases = [1, 2, 4, 16, 64, 128];
 
     for (const concurrency of cases) {
-      const scanType = new RangeScan(new ScanTerm(`doc::1`), new ScanTerm(`doc::2`));
-      const results = await data.collection.scan(scanType, {
-        concurrency: concurrency,
-        consistentWith: data.mutationState,
-      });
+      test(`concurrency: ${concurrency}`, async ({ expect, data }) => {
+        const scanType = new RangeScan(new ScanTerm(`doc::1`), new ScanTerm(`doc::2`));
+        const results = await data.collection.scan(scanType, {
+          concurrency: concurrency,
+          consistentWith: data.mutationState,
+        });
 
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(12);
+        expect(results).toBeInstanceOf(Array);
+        expect(results).toHaveLength(13);
 
-      results.forEach((result) => {
-        expect(result.id).toBeTypeOf('string');
-        expect(result.cas).toBeNonZeroCAS();
-        expect(result.content).toBeDefined();
+        results.forEach((result) => {
+          expect(result.id).toBeTypeOf('string');
+          expect(result.cas).toBeNonZeroCAS();
+          expect(result.content).toBeDefined();
+        });
       });
     }
   });
@@ -471,18 +501,18 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.RangeScan))('scan', async (
   }) => {
     const scanType = new RangeScan(new ScanTerm(`doc::1`), new ScanTerm(`doc::2`));
 
-    await expect(
+    expect(() =>
       data.collection.scan(scanType, {
         concurrency: 0,
         consistentWith: data.mutationState,
       })
-    ).rejects.toThrowError(InvalidArgumentError);
+    ).toThrowError(InvalidArgumentError);
 
-    await expect(
+    expect(() =>
       data.collection.scan(scanType, {
         concurrency: -1,
         consistentWith: data.mutationState,
       })
-    ).rejects.toThrowError(InvalidArgumentError);
+    ).toThrowError(InvalidArgumentError);
   });
 });
