@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsNever } from '../../misc';
 import { DocDef } from './document.types';
 
 /**
@@ -100,4 +99,3 @@ export type DefaultScopeCollectionName<
     ? CollectionName<T, B, DefaultScopeName>
     : never
   : never;
-

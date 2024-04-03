@@ -19,7 +19,19 @@ export type {
   DefaultScope,
   DefaultCollection,
   AnyCollection,
+  AnyScope,
+  AnyBucket,
+  AugmentClusterTypes,
   ClusterCollection,
+  ClusterScope,
+  ClusterBucket,
 } from './clusterTypes';
 
-export type { BucketName, ScopeName, CollectionName, DocDef } from '@cbjsdev/shared';
+export type {
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  BucketName,
+  ScopeName,
+  CollectionName,
+  DocDef,
+} from '@cbjsdev/shared';

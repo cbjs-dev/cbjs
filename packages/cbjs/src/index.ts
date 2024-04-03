@@ -63,3 +63,9 @@ export * from './viewtypes';
 export type * from './clusterTypes';
 
 export type { Keyspace } from '@cbjsdev/shared';
+export {
+  keyspacePath,
+  namespacedKeyspacePath,
+  isPartialKeyspace,
+  quoteIdentifier,
+} from '@cbjsdev/shared';
