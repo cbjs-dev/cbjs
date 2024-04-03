@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        couchbase-server-version: [ 'enterprise-7.2.4', 'enterprise' ]
+        couchbase-server-version: [ 'enterprise-7.2.4' ]
     services:
       couchbase:
         image: couchbase:${{ matrix.couchbase-server-version }}
