@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "docs",
     "packages/shared",
     "packages/http-client",
     "packages/cbjs",

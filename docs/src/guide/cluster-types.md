@@ -69,29 +69,24 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 
 const bookId = 'book::001';
 
-// All Good 👌
 const { content: book } = await collection.get(bookId);
 
 const { content: [title] } = await collection.lookupIn(bookId).get('title');
 const { content: [authors] } = await collection.lookupIn(bookId).get('authors');
 const { content: [firstAuthor] } = await collection.lookupIn(bookId).get('authors[0]');
 
-/////////////////////
-// Invalid calls ❌//
-/////////////////////
+//
+// Now let's see some mistakes being prevented by Cbjs
+//
 
 // Invalid document key
 await collection.get('vegetable::001');
-
 // Invalid document property
 await collection.lookupIn(bookId).get('tite');
-
 // Invalid property accessor : `quaterSales` has only 4 elements
 await collection.lookupIn(bookId).get('quaterSales[4]');
-
 // Property `title` is required, therefore it already exists. Use `upsert` instead.
 await collection.mutateIn(bookId).insert('title', 'documentation');
-
 // Invalid value : `quaterSales` is a tuple of numbers.
 await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467');
 ```

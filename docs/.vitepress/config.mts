@@ -17,7 +17,6 @@ import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
 import { defineConfig } from 'vitepress';
 
 import { version } from '../../packages/cbjs/package.json';
-import tsConfig from '../../tsconfig.json';
 
 const repositoryUrl = 'https://github.com/cbjs-dev/cbjs';
 
@@ -102,13 +101,7 @@ export default defineConfig({
   markdown: {
     codeTransformers: [
       transformerTwoslash({
-        twoslashOptions: {
-          compilerOptions: {
-            strict: true,
-            esModuleInterop: true,
-            skipLibCheck: true,
-          },
-        },
+        errorRendering: 'hover',
       }),
     ],
   },
