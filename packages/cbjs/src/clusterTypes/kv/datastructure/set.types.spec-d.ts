@@ -15,11 +15,11 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { connect } from '../../..';
 import { Collection } from '../../../collection';
-import { CouchbaseSet } from '../../../services/kv/dataStructures/CouchbaseSet';
+import { CouchbaseSet } from '../../../services/kv/dataStructures';
 
 describe('CouchbaseSet', function () {
   describe('Default ClusterTypes', function () {
@@ -29,13 +29,9 @@ describe('CouchbaseSet', function () {
       const set = collection.set('docKey');
       expectTypeOf(set).toEqualTypeOf<
         CouchbaseSet<
-          Collection<
-            DefaultClusterTypes,
-            'test',
-            '_default',
-            '_default',
-            CollectionDocumentBag<any>
-          >,
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'docKey',
           any
         >
       >();
@@ -78,13 +74,9 @@ describe('CouchbaseSet', function () {
       const setTwo = collectionTwo.set('docKey');
       expectTypeOf(setTwo).toEqualTypeOf<
         CouchbaseSet<
-          Collection<
-            UserClusterTypes,
-            'test',
-            '_default',
-            'collectionTwo',
-            CollectionDocumentBag<DocDef<string, string[]>>
-          >,
+          UserClusterTypes,
+          Collection<UserClusterTypes, 'test', '_default', 'collectionTwo'>,
+          'docKey',
           string
         >
       >();

@@ -14,21 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CollectionDocumentBag, DocDef, invariant, isArray } from '@cbjsdev/shared';
+import { CouchbaseClusterTypes, invariant, isArray } from '@cbjsdev/shared';
 
-import {
-  CollectionContaining,
-  ValidateCollectionContainsAll,
-} from '../../../clusterTypes/clusterTypes';
+
+
+import { AnyCollection } from '../../../clusterTypes/clusterTypes';
 import type { Collection } from '../../../collection';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import {
-  type NodeCallback,
-  PromiseHelper,
-  type VoidNodeCallback,
-} from '../../../utilities';
+import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
+
 
 /**
  * CouchbaseList provides a simplified interface for storing lists
@@ -38,16 +34,18 @@ import {
  * @category Datastructures
  */
 export class CouchbaseList<
-  C extends Collection<any, any, any, any, CollectionDocumentBag<DocDef<string, Item[]>>>,
+  T extends CouchbaseClusterTypes,
+  C extends Collection<T, any, any, any>,
+  Key extends string,
   Item,
 > {
-  private _coll: CollectionContaining<DocDef<string, unknown[]>>;
+  private _coll: AnyCollection;
   private _key: string;
 
   /**
    * @internal
    */
-  constructor(collection: ValidateCollectionContainsAll<C, Item[]>, key: string) {
+  constructor(collection: C, key: Key) {
     this._coll = collection;
     this._key = key;
   }

@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { BucketName, CollectionDocumentBag, DocDef, ScopeName } from '@cbjsdev/shared';
+import { BucketName, DocDef, ScopeName } from '@cbjsdev/shared';
 
 import { Bucket } from '../bucket';
 import { Collection } from '../collection';
@@ -25,9 +25,9 @@ import {
   ClusterBucket,
   ClusterCollection,
   ClusterScope,
-  ExtractCollectionDocumentBag,
-  ValidateCollectionContainsAll,
-  ValidateCollectionContainsAny,
+  CollectionContainingDocBody,
+  CollectionContainingDocDef,
+  CollectionMatchingDocDef,
 } from './clusterTypes';
 
 type Doc<T extends string> = { [K in T]: string };
@@ -50,6 +50,11 @@ type UserClusterTypes = {
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
+  BucketThree: {
+    ScopeThree: {
+      CollectionOne: DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>;
+    };
+  };
 };
 
 describe('AugmentClusterTypes', () => {
@@ -57,7 +62,7 @@ describe('AugmentClusterTypes', () => {
     type Augmented = AugmentClusterTypes<UserClusterTypes, 'NewBucket'>;
 
     expectTypeOf<BucketName<Augmented>>().toEqualTypeOf<
-      'BucketOne' | 'BucketTwo' | 'NewBucket'
+      'BucketOne' | 'BucketTwo' | 'BucketThree' | 'NewBucket'
     >();
   });
 
@@ -89,20 +94,6 @@ describe('AugmentClusterTypes', () => {
   });
 });
 
-describe('ExtractCollectionDocumentBag', () => {
-  it('should return the document types of the collection', () => {
-    expectTypeOf<
-      ExtractCollectionDocumentBag<
-        Collection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
-      >
-    >().toEqualTypeOf<
-      CollectionDocumentBag<
-        DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>
-      >
-    >();
-  });
-});
-
 describe('ClusterBucket', () => {
   it('should be extended by a Bucket that is within the described keyspace', () => {
     type UserBucket = Bucket<UserClusterTypes, 'BucketOne'>;
@@ -118,6 +109,20 @@ describe('ClusterBucket', () => {
     expectTypeOf<UserBucket>().not.toMatchTypeOf<ClusterBucket<NonNullable<unknown>>>();
     expectTypeOf<UserBucket>().not.toMatchTypeOf<
       ClusterBucket<UserClusterTypes, 'BucketTwo'>
+    >();
+  });
+
+  it('should produce all buckets when any or never is passed', () => {
+    expectTypeOf<ClusterBucket<UserClusterTypes, any>>().toEqualTypeOf<
+      | Bucket<UserClusterTypes, 'BucketOne'>
+      | Bucket<UserClusterTypes, 'BucketTwo'>
+      | Bucket<UserClusterTypes, 'BucketThree'>
+    >();
+
+    expectTypeOf<ClusterBucket<UserClusterTypes, never>>().toEqualTypeOf<
+      | Bucket<UserClusterTypes, 'BucketOne'>
+      | Bucket<UserClusterTypes, 'BucketTwo'>
+      | Bucket<UserClusterTypes, 'BucketThree'>
     >();
   });
 });
@@ -143,6 +148,18 @@ describe('ClusterScope', () => {
     >();
     expectTypeOf<UserScope>().not.toMatchTypeOf<
       ClusterScope<UserClusterTypes, 'BucketOne', 'ScopeTwo'>
+    >();
+  });
+
+  it('should produce scopes for all buckets when any or never is passed', () => {
+    expectTypeOf<ClusterScope<UserClusterTypes, any, 'ScopeOne'>>().toEqualTypeOf<
+      | Scope<UserClusterTypes, 'BucketOne', 'ScopeOne'>
+      | Scope<UserClusterTypes, 'BucketTwo', 'ScopeOne'>
+    >();
+
+    expectTypeOf<ClusterScope<UserClusterTypes, never, 'ScopeOne'>>().toEqualTypeOf<
+      | Scope<UserClusterTypes, 'BucketOne', 'ScopeOne'>
+      | Scope<UserClusterTypes, 'BucketTwo', 'ScopeOne'>
     >();
   });
 });
@@ -183,46 +200,166 @@ describe('ClusterCollection', () => {
       ClusterCollection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionFour'>
     >();
   });
-});
 
-describe('ValidateCollectionContainsAll', () => {
-  it('is extended by a collection that contains the docs', () => {
-    type UserCollection = Collection<
-      UserClusterTypes,
-      'BucketOne',
-      'ScopeOne',
-      'CollectionOne'
-    >;
+  it('should only produce collections that exist in the parent scope', () => {
+    expectTypeOf<
+      ClusterCollection<
+        UserClusterTypes,
+        'BucketOne',
+        'ScopeOne' | 'ScopeTwo',
+        'CollectionTwo'
+      >
+    >().toEqualTypeOf<
+      Collection<UserClusterTypes, 'BucketOne', 'ScopeTwo', 'CollectionTwo'>
+    >();
+  });
+
+  it('should produce collections for all scopes when any or never is passed', () => {
+    expectTypeOf<
+      ClusterCollection<UserClusterTypes, 'BucketOne', any, 'CollectionOne'>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeTwo', 'CollectionOne'>
+    >();
 
     expectTypeOf<
-      ValidateCollectionContainsAll<UserCollection, Doc<'b1s1c1d1'>>
-    >().toEqualTypeOf<UserCollection>();
+      ClusterCollection<UserClusterTypes, 'BucketOne', never, 'CollectionOne'>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeTwo', 'CollectionOne'>
+    >();
+  });
+
+  it('should produce collections for all buckets and all scopes when any or never is passed', () => {
     expectTypeOf<
-      ValidateCollectionContainsAll<UserCollection, Doc<'doesNotExist'>>
-    >().toBeNever();
+      ClusterCollection<UserClusterTypes, any, any, 'CollectionOne' | 'CollectionTwo'>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeTwo', 'CollectionOne'>
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeTwo', 'CollectionTwo'>
+      | Collection<UserClusterTypes, 'BucketThree', 'ScopeThree', 'CollectionOne'>
+    >();
+
     expectTypeOf<
-      ValidateCollectionContainsAll<UserCollection, Doc<'b1s1c1d1'> | Doc<'doesNotExist'>>
-    >().toBeNever();
+      ClusterCollection<UserClusterTypes, never, never, 'CollectionOne'>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+      | Collection<UserClusterTypes, 'BucketOne', 'ScopeTwo', 'CollectionOne'>
+      | Collection<UserClusterTypes, 'BucketThree', 'ScopeThree', 'CollectionOne'>
+    >();
   });
 });
 
-describe('ValidateCollectionContainsAny', () => {
-  it('is extended by a collection that contains the docs', () => {
-    type UserCollection = Collection<
-      UserClusterTypes,
-      'BucketOne',
-      'ScopeOne',
-      'CollectionOne'
-    >;
+describe('CollectionContainingDocDef', () => {
+  type BookId = `book::${number}`;
+  type Book = { title: string; authors: string[] };
+
+  type VegetableId = `vegetable::${number}`;
+  type Vegetable = { name: string; expiry: number };
+
+  type UserClusterTypes = {
+    store: {
+      library: {
+        books: DocDef<BookId, Book>;
+        groceries: DocDef<VegetableId, Vegetable>;
+        wtf: DocDef<VegetableId, Vegetable> | DocDef<BookId, Book>;
+      };
+    };
+  };
+
+  it('should return all collections containing any of the given definitions', () => {
+    expectTypeOf<
+      CollectionContainingDocDef<UserClusterTypes, DocDef<BookId, Book>>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'store', 'library', 'books'>
+      | Collection<UserClusterTypes, 'store', 'library', 'wtf'>
+    >();
 
     expectTypeOf<
-      ValidateCollectionContainsAny<UserCollection, Doc<'b1s1c1d1'>>
-    >().toEqualTypeOf<UserCollection>();
+      CollectionContainingDocDef<
+        UserClusterTypes,
+        DocDef<BookId, Book> | DocDef<VegetableId, Vegetable>
+      >
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'store', 'library', 'books'>
+      | Collection<UserClusterTypes, 'store', 'library', 'groceries'>
+      | Collection<UserClusterTypes, 'store', 'library', 'wtf'>
+    >();
+  });
+});
+
+describe('CollectionMatchingDocDef', () => {
+  type BookId = `book::${number}`;
+  type Book = { title: string; authors: string[] };
+
+  type VegetableId = `vegetable::${number}`;
+  type Vegetable = { name: string; expiry: number };
+
+  type UserClusterTypes = {
+    store: {
+      library: {
+        books: DocDef<BookId, Book>;
+        groceries: DocDef<VegetableId, Vegetable>;
+        wtf: DocDef<VegetableId, Vegetable> | DocDef<BookId, Book>;
+      };
+    };
+  };
+
+  it('should return all collections matching any of the given definitions', () => {
+    type T = CollectionMatchingDocDef<
+      UserClusterTypes,
+      DocDef<string, { title: string }>
+    >;
     expectTypeOf<
-      ValidateCollectionContainsAny<UserCollection, Doc<'doesNotExist'>>
-    >().toBeNever();
+      CollectionMatchingDocDef<UserClusterTypes, DocDef<string, { title: string }>>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'store', 'library', 'books'>
+      | Collection<UserClusterTypes, 'store', 'library', 'wtf'>
+    >();
+
     expectTypeOf<
-      ValidateCollectionContainsAny<UserCollection, Doc<'b1s1c1d1'> | Doc<'doesNotExist'>>
-    >().toEqualTypeOf<UserCollection>();
+      CollectionContainingDocDef<
+        UserClusterTypes,
+        DocDef<BookId, Book> | DocDef<VegetableId, Vegetable>
+      >
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'store', 'library', 'books'>
+      | Collection<UserClusterTypes, 'store', 'library', 'groceries'>
+      | Collection<UserClusterTypes, 'store', 'library', 'wtf'>
+    >();
+  });
+});
+
+describe('CollectionContainingDocBody', () => {
+  type BookId = `book::${number}`;
+  type Book = { title: string; authors: string[] };
+
+  type VegetableId = `vegetable::${number}`;
+  type Vegetable = { name: string; expiry: number };
+
+  type UserClusterTypes = {
+    store: {
+      library: {
+        books: DocDef<BookId, Book>;
+        groceries: DocDef<VegetableId, Vegetable>;
+        wtf: DocDef<VegetableId, Vegetable> | DocDef<BookId, Book>;
+      };
+    };
+  };
+
+  it('should return all collections containing any of the given types', () => {
+    expectTypeOf<
+      CollectionContainingDocBody<UserClusterTypes, Book | Vegetable>
+    >().toEqualTypeOf<
+      | Collection<UserClusterTypes, 'store', 'library', 'books'>
+      | Collection<UserClusterTypes, 'store', 'library', 'groceries'>
+      | Collection<UserClusterTypes, 'store', 'library', 'wtf'>
+    >();
+  });
+
+  it('should return all collections containing document that have a body that extends the given type', () => {
+    expectTypeOf<
+      CollectionContainingDocBody<UserClusterTypes, { title: string }>
+    >().toEqualTypeOf<Collection<UserClusterTypes, 'store', 'library', 'books'>>();
   });
 });

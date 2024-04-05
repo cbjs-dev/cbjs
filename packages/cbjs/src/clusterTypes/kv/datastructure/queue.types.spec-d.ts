@@ -15,11 +15,11 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { connect } from '../../..';
 import { Collection } from '../../../collection';
-import { CouchbaseQueue } from '../../../services/kv/dataStructures/CouchbaseQueue';
+import { CouchbaseQueue } from '../../../services/kv/dataStructures';
 
 describe('CouchbaseQueue', function () {
   describe('Default ClusterTypes', function () {
@@ -29,13 +29,9 @@ describe('CouchbaseQueue', function () {
       const queue = collection.queue('docKey');
       expectTypeOf(queue).toEqualTypeOf<
         CouchbaseQueue<
-          Collection<
-            DefaultClusterTypes,
-            'test',
-            '_default',
-            '_default',
-            CollectionDocumentBag<any>
-          >,
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'docKey',
           any
         >
       >();
@@ -78,13 +74,9 @@ describe('CouchbaseQueue', function () {
       const queueTwo = collectionTwo.queue('docKey');
       expectTypeOf(queueTwo).toEqualTypeOf<
         CouchbaseQueue<
-          Collection<
-            DefaultClusterTypes,
-            'test',
-            '_default',
-            '_default',
-            CollectionDocumentBag<DocDef<string, string[]>>
-          >,
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'docKey',
           string
         >
       >();

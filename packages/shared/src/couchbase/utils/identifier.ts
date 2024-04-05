@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, If, IsNever } from '../../misc';
+import { hasOwn, If, IsAny, IsNever, Or } from '../../misc';
 import type {
   BucketName,
   CollectionName,
@@ -40,29 +40,32 @@ export function quoteIdentifier(name: string) {
  * //       | { bucket: 'b1'; scope: 'b1s2'; collection: 'b1s2c1'; }
  *
  */
+
+type IsKeyspaceWildcard<T> = Or<[IsAny<T>, IsNever<T>]>;
+export type WildcardFallback<T, F> = If<IsKeyspaceWildcard<T>, F, T>;
+
 export type Keyspace<
   T extends CouchbaseClusterTypes = never,
   B extends BucketName<T> = never,
-  S extends ScopeName<T, B> = never,
-  C extends CollectionName<T, B, S> = never,
+  S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> = never,
+  C extends CollectionName<
+    T,
+    WildcardFallback<B, BucketName<T>>,
+    WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
+  > = never,
 > =
   IsNever<T> extends true
     ? { bucket: string; scope: string; collection: string }
-    : If<IsNever<B>, BucketName<T>, B> extends infer AllBuckets extends BucketName<T>
-      ? AllBuckets extends unknown
-        ? If<IsNever<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes extends
-            ScopeName<T, AllBuckets>
-          ? AllScopes extends unknown
+    : If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets
+      ? AllBuckets extends BucketName<T>
+        ? If<IsKeyspaceWildcard<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes
+          ? AllScopes extends ScopeName<T, AllBuckets>
             ? If<
-                IsNever<C>,
+                IsKeyspaceWildcard<C>,
                 CollectionName<T, AllBuckets, AllScopes>,
                 C
-              > extends infer AllCollections extends CollectionName<
-                T,
-                AllBuckets,
-                AllScopes
-              >
-              ? AllCollections extends unknown
+              > extends infer AllCollections
+              ? AllCollections extends CollectionName<T, AllBuckets, AllScopes>
                 ? { bucket: AllBuckets; scope: AllScopes; collection: AllCollections }
                 : never
               : never

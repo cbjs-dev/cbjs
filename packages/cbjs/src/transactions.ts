@@ -23,6 +23,7 @@ import {
   ExtractDocBodyByKey,
   If,
   invariant,
+  KeyspaceDocDef,
   ScopeName,
 } from '@cbjsdev/shared';
 
@@ -40,7 +41,6 @@ import {
   queryScanConsistencyToCpp,
 } from './bindingutilities';
 import { Cluster } from './cluster';
-import { KeyspaceDocDef } from './clusterTypes/clusterTypes';
 import { Collection } from './collection';
 import {
   DocumentNotFoundError,

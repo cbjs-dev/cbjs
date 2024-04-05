@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { Collection, connect, CouchbaseMap } from '../../..';
 
@@ -27,13 +27,9 @@ describe('CouchbaseMap', function () {
       const map = collection.map('docKey');
       expectTypeOf(map).toEqualTypeOf<
         CouchbaseMap<
-          Collection<
-            DefaultClusterTypes,
-            'test',
-            '_default',
-            '_default',
-            CollectionDocumentBag<DocDef<string, any>>
-          >,
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'docKey',
           Record<string, any>
         >
       >();
@@ -87,13 +83,9 @@ describe('CouchbaseMap', function () {
       const mapTwo = collectionTwo.map('docKey');
       expectTypeOf(mapTwo).toEqualTypeOf<
         CouchbaseMap<
-          Collection<
-            UserClusterTypes,
-            'test',
-            '_default',
-            'collectionTwo',
-            CollectionDocumentBag<DocDef<string, UserMap>>
-          >,
+          UserClusterTypes,
+          Collection<UserClusterTypes, 'test', '_default', 'collectionTwo'>,
+          'docKey',
           UserMap
         >
       >();

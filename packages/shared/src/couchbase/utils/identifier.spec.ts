@@ -132,4 +132,60 @@ describe('Keyspace', () => {
       | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionFour' }
     >();
   });
+
+  it('should return all matching collections when a wildcard bucket is given', () => {
+    expectTypeOf<
+      Keyspace<UserClusterTypes, never, never, 'CollectionOne'>
+    >().toEqualTypeOf<
+      | {
+          bucket: 'BucketOne';
+          scope: 'ScopeOne';
+          collection: 'CollectionOne';
+        }
+      | {
+          bucket: 'BucketOne';
+          scope: 'ScopeTwo';
+          collection: 'CollectionOne';
+        }
+    >();
+
+    expectTypeOf<
+      Keyspace<
+        UserClusterTypes,
+        never,
+        never,
+        'CollectionOne' | 'CollectionTwo' | 'CollectionSix'
+      >
+    >().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
+      | { bucket: 'BucketTwo'; scope: 'ScopeOne'; collection: 'CollectionSix' }
+    >();
+  });
+
+  it('should return all matching collections when a wildcard scope is given', () => {
+    expectTypeOf<
+      Keyspace<UserClusterTypes, 'BucketOne', never, 'CollectionOne'>
+    >().toEqualTypeOf<
+      | {
+          bucket: 'BucketOne';
+          scope: 'ScopeOne';
+          collection: 'CollectionOne';
+        }
+      | {
+          bucket: 'BucketOne';
+          scope: 'ScopeTwo';
+          collection: 'CollectionOne';
+        }
+    >();
+
+    expectTypeOf<
+      Keyspace<UserClusterTypes, 'BucketOne', never, 'CollectionOne' | 'CollectionTwo'>
+    >().toEqualTypeOf<
+      | { bucket: 'BucketOne'; scope: 'ScopeOne'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
+      | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
+    >();
+  });
 });

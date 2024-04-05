@@ -14,13 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CollectionDocumentBag, DocDef, invariant, type MapEntry } from '@cbjsdev/shared';
+import { CouchbaseClusterTypes, invariant, type MapEntry } from '@cbjsdev/shared';
 
-import {
-  CollectionContaining,
-  ValidateCollectionContainsAll,
-} from '../../../clusterTypes/clusterTypes';
-import type { Collection } from '../../../collection';
+import { AnyCollection } from '../../../clusterTypes/clusterTypes';
+import { Collection } from '../../../collection';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
@@ -38,27 +35,31 @@ import {
  * @category Datastructures
  */
 export class CouchbaseMap<
-  C extends Collection<any, any, any, any, CollectionDocumentBag<DocDef<string, MapDoc>>>,
+  T extends CouchbaseClusterTypes,
+  C extends Collection<T, any, any, any>,
+  Key extends string,
   MapDoc extends Record<string, unknown>,
 > {
-  private _coll: CollectionContaining<DocDef<string, Record<string, unknown>>>;
+  private _coll: AnyCollection;
   private _key: string;
 
   /**
    * @internal
    */
-  constructor(collection: ValidateCollectionContainsAll<C, MapDoc>, key: string) {
+  constructor(collection: C, key: Key) {
     this._coll = collection;
     this._key = key;
   }
 
   private async _get(): Promise<MapDoc> {
     const doc = await this._coll.get(this._key);
-    if (!(doc.content instanceof Object)) {
+    const content = doc.content as MapDoc;
+
+    if (!(content instanceof Object)) {
       throw new CouchbaseError('expected document of object type');
     }
 
-    return doc.content as MapDoc;
+    return content;
   }
 
   /**
@@ -133,15 +134,17 @@ export class CouchbaseMap<
    * @param value The new value to set.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async set<Key extends keyof MapDoc>(
-    item: Key,
-    value: MapDoc[Key],
+  async set<Item extends keyof MapDoc>(
+    item: Item,
+    value: MapDoc[Item],
     callback?: VoidNodeCallback
   ): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.upsert(item as string, value)], {
-        storeSemantics: StoreSemantics.Upsert,
-      });
+      await this._coll
+        .mutateIn(this._key, {
+          storeSemantics: StoreSemantics.Upsert,
+        })
+        .upsert(item as never, value as never);
     }, callback);
   }
 
@@ -151,10 +154,10 @@ export class CouchbaseMap<
    * @param item The key in the map to retrieve.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async get<Key extends keyof MapDoc>(
-    item: Key,
-    callback?: NodeCallback<MapDoc[Key]>
-  ): Promise<MapDoc[Key]> {
+  async get<Item extends keyof MapDoc>(
+    item: Item,
+    callback?: NodeCallback<MapDoc[Item]>
+  ): Promise<MapDoc[Item]> {
     return await PromiseHelper.wrapAsync(async () => {
       const res = await this._coll.lookupIn(this._key, [
         LookupInSpec.get(item as string),
@@ -173,7 +176,7 @@ export class CouchbaseMap<
         );
       }
 
-      return itemRes.value as MapDoc[Key];
+      return itemRes.value as MapDoc[Item];
     }, callback);
   }
 

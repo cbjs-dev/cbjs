@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef, PickCollectionDocDef } from './document.types';
+import { DocDef, KeyspaceDocDef } from './document.types';
 
 type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = {
@@ -41,13 +41,13 @@ type UserClusterTypes = {
 describe('PickCollectionDocument', () => {
   it('should describe the collection documents', () => {
     expectTypeOf<
-      PickCollectionDocDef<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
+      KeyspaceDocDef<UserClusterTypes, 'BucketOne', 'ScopeOne', 'CollectionOne'>
     >().toEqualTypeOf<
       DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>
     >();
 
     expectTypeOf<
-      PickCollectionDocDef<
+      KeyspaceDocDef<
         UserClusterTypes,
         'BucketOne',
         'ScopeOne',
@@ -61,7 +61,7 @@ describe('PickCollectionDocument', () => {
     >();
 
     expectTypeOf<
-      PickCollectionDocDef<UserClusterTypes, 'BucketOne', 'ScopeOne'>
+      KeyspaceDocDef<UserClusterTypes, 'BucketOne', 'ScopeOne'>
     >().toEqualTypeOf<
       | DocDef<string, Doc<'b1s1c1d1'>>
       | DocDef<string, Doc<'b1s1c1d2'>>
@@ -70,7 +70,7 @@ describe('PickCollectionDocument', () => {
     >();
 
     expectTypeOf<
-      PickCollectionDocDef<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
+      KeyspaceDocDef<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
     >().toEqualTypeOf<
       | DocDef<string, Doc<'b1s1c1d1'>>
       | DocDef<string, Doc<'b1s1c1d2'>>
@@ -82,7 +82,7 @@ describe('PickCollectionDocument', () => {
       | DocDef<string, Doc<'b1s2c2d2'>>
     >();
 
-    expectTypeOf<PickCollectionDocDef<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
+    expectTypeOf<KeyspaceDocDef<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
       | DocDef<string, Doc<'b1s1c1d1'>>
       | DocDef<string, Doc<'b1s1c1d2'>>
       | DocDef<string, Doc<'b1s1c4d1'>>
@@ -94,7 +94,7 @@ describe('PickCollectionDocument', () => {
     >();
 
     expectTypeOf<
-      PickCollectionDocDef<UserClusterTypes, 'BucketOne' | 'BucketTwo'>
+      KeyspaceDocDef<UserClusterTypes, 'BucketOne' | 'BucketTwo'>
     >().toEqualTypeOf<
       | DocDef<string, Doc<'b1s1c1d1'>>
       | DocDef<string, Doc<'b1s1c1d2'>>
@@ -108,7 +108,7 @@ describe('PickCollectionDocument', () => {
       | DocDef<string, Doc<'b2s1c6d2'>>
     >();
 
-    expectTypeOf<PickCollectionDocDef<UserClusterTypes>>().toEqualTypeOf<
+    expectTypeOf<KeyspaceDocDef<UserClusterTypes>>().toEqualTypeOf<
       | DocDef<string, Doc<'b1s1c1d1'>>
       | DocDef<string, Doc<'b1s1c1d2'>>
       | DocDef<string, Doc<'b1s1c4d1'>>
@@ -122,7 +122,7 @@ describe('PickCollectionDocument', () => {
     >();
 
     expectTypeOf<
-      PickCollectionDocDef<
+      KeyspaceDocDef<
         UserClusterTypes,
         'BucketOne',
         'ScopeOne' | 'ScopeTwo',

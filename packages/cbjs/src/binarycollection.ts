@@ -14,12 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CollectionDocumentBag, DocDef } from '@cbjsdev/shared';
+import { CouchbaseClusterTypes } from '@cbjsdev/shared';
 
-import type {
-  CollectionContaining,
-  ValidateCollectionContainsAny,
-} from './clusterTypes/clusterTypes';
+import type { AnyCollection } from './clusterTypes/clusterTypes';
 import type { Collection } from './collection';
 import { CounterResult, MutationResult } from './crudoptypes';
 import { DurabilityLevel } from './generaltypes';
@@ -172,21 +169,13 @@ export interface PrependOptions {
  *
  * @category Core
  */
-export class BinaryCollection<
-  C extends Collection<
-    any,
-    any,
-    any,
-    any,
-    CollectionDocumentBag<DocDef<string, string | number>>
-  >,
-> {
-  private _coll: CollectionContaining<DocDef<string, string | number>>;
+export class BinaryCollection<C extends AnyCollection> {
+  private _coll: C;
 
   /**
    * @internal
    */
-  constructor(parent: ValidateCollectionContainsAny<C, string | number>) {
+  constructor(parent: C) {
     this._coll = parent;
   }
 
@@ -283,7 +272,7 @@ export class BinaryCollection<
     options?: AppendOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
-    return (this._coll as Collection<any, any, any, any>)._binaryAppend(
+    return (this._coll as AnyCollection)._binaryAppend(
       key,
       value,
       options as AppendOptions,

@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CollectionDocumentBag, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { Collection, connect, CouchbaseList } from '../../..';
 
@@ -27,13 +27,9 @@ describe('CouchbaseList', function () {
       const list = collection.list('docKey');
       expectTypeOf(list).toEqualTypeOf<
         CouchbaseList<
-          Collection<
-            DefaultClusterTypes,
-            'test',
-            '_default',
-            '_default',
-            CollectionDocumentBag<DocDef<string, any>>
-          >,
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'docKey',
           any
         >
       >();
@@ -83,13 +79,9 @@ describe('CouchbaseList', function () {
       const listTwo = collectionTwo.list('anything');
       expectTypeOf(listTwo).toEqualTypeOf<
         CouchbaseList<
-          Collection<
-            UserClusterTypes,
-            'test',
-            '_default',
-            'collectionTwo',
-            CollectionDocumentBag<DocDef<string, string[]>>
-          >,
+          UserClusterTypes,
+          Collection<UserClusterTypes, 'test', '_default', 'collectionTwo'>,
+          'anything',
           string
         >
       >();
@@ -98,13 +90,9 @@ describe('CouchbaseList', function () {
       const listThree = collectionThree.list('author::001');
       expectTypeOf(listThree).toEqualTypeOf<
         CouchbaseList<
-          Collection<
-            UserClusterTypes,
-            'test',
-            '_default',
-            'collectionThree',
-            CollectionDocumentBag<DocDef<`author::${number}`, string[]>>
-          >,
+          UserClusterTypes,
+          Collection<UserClusterTypes, 'test', '_default', 'collectionThree'>,
+          'author::001',
           string
         >
       >();

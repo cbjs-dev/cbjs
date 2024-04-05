@@ -18,7 +18,7 @@ import { describe, it } from 'vitest';
 
 import { DocDef } from '@cbjsdev/shared';
 
-import { CollectionContaining } from '../../../clusterTypes/clusterTypes';
+import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes';
 import { MutateInSpec } from '../../../sdspecs';
 import { ChainableMutateIn } from './ChainableMutateIn';
 
@@ -32,11 +32,22 @@ type Book = {
   };
 };
 
+type UserClusterTypes = {
+  store: {
+    library: {
+      books: DocDef<BookId, Book>;
+    };
+  };
+};
+
 describe('ChainableMutateIn', function () {
   it('should return all the specs, in order, when the getter is called', function ({
     expect,
   }) {
-    const collection: CollectionContaining<DocDef<BookId, Book>> = true as any;
+    const collection: CollectionContainingDocDef<
+      UserClusterTypes,
+      DocDef<BookId, Book>
+    > = true as any;
     const specs = ChainableMutateIn.for(collection, 'book::001', {})
       .arrayAppend('authors', 'Jonathan')
       .replace('title', 'Hello')

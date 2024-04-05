@@ -232,6 +232,8 @@ describe('mutateIn', function () {
 
   describe('FuzzyDocument', function () {
     it('should detect fuzzy document', function () {
+      type T = keyof NonNullable<unknown>;
+
       expectTypeOf<IsFuzzyDocument<any>>().toEqualTypeOf<true>();
       expectTypeOf<IsFuzzyDocument<object>>().toEqualTypeOf<true>();
       expectTypeOf<IsFuzzyDocument<Record<string, unknown>>>().toEqualTypeOf<true>();

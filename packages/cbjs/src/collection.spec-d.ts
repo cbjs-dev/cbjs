@@ -16,11 +16,14 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
+import { AnyCollection } from './clusterTypes';
+import { Collection } from './collection';
 import { connect } from './couchbase';
 import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes';
 import { LookupInSpec, MutateInSpec } from './sdspecs';
+import { CouchbaseMap, CouchbaseSet } from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
 
@@ -198,6 +201,66 @@ describe('Collection', async () => {
     it('should type expiryTime as number when requested', async () => {
       const result = await collection.get('book::001', { withExpiry: true });
       expectTypeOf(result.expiryTime).toEqualTypeOf<number>();
+    });
+  });
+
+  describe('map', () => {
+    it('should get a CouchbaseMap when the collection contains a map', async () => {
+      const cluster = await connect<UserClusterTypes>('');
+      const collection = cluster.bucket('test').scope('_default').collection('_default');
+
+      const whateverMap = collection.map('book::001');
+
+      expectTypeOf(whateverMap).toEqualTypeOf<
+        CouchbaseMap<
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'book::001',
+          TestDoc
+        >
+      >();
+    });
+
+    it('should not be able to get a CouchbaseMap when the collection contains a map', async () => {
+      const cluster = await connect<UserClusterTypes>('');
+      const collection = cluster.bucket('test').scope('scope1').collection('collection1');
+
+      // @ts-expect-error The key does not lead to a map
+      const whateverMap = collection.map('counter::001');
+    });
+
+    it('should return a CouchbaseMap when no cluster types are given', async () => {
+      const cluster = await connect('');
+      const collection = cluster.bucket('test').scope('scope1').collection('collection1');
+
+      const whateverMap = collection.map('whatever');
+
+      expectTypeOf(whateverMap).toEqualTypeOf<
+        CouchbaseMap<
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', 'scope1', 'collection1'>,
+          'whatever',
+          Record<string, any>
+        >
+      >();
+    });
+  });
+
+  describe('set', () => {
+    it('should return a CouchbaseSet when no cluster types are given', async () => {
+      const cluster = await connect('');
+      const collection = cluster.bucket('test').defaultCollection();
+
+      const whateverSet = collection.set('whatever');
+
+      expectTypeOf(whateverSet).toEqualTypeOf<
+        CouchbaseSet<
+          DefaultClusterTypes,
+          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'whatever',
+          any
+        >
+      >();
     });
   });
 });

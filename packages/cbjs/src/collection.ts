@@ -19,23 +19,22 @@ import { promisify } from 'node:util';
 import type {
   ArrayElement,
   BucketName,
-  CollectionDocumentBag,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   DocDef,
-  ExtractDefByBody,
   ExtractDocBodyByKey,
-  ExtractDocDefByKey,
   If,
   IsAny,
+  IsFuzzyDocument,
+  IsNever,
   JsonObject,
   Keyspace,
   NoInfer,
   ObjectDocument,
   OneOf,
-  PickCollectionDocDef,
   ScopeName,
+  Try,
 } from '@cbjsdev/shared';
 import { hasOwn, invariant, keyspacePath } from '@cbjsdev/shared';
 
@@ -76,10 +75,11 @@ import {
 import type { Cluster } from './cluster';
 import { AnyCollection } from './clusterTypes';
 import {
+  CollectionContainingDocDef,
+  CollectionMatchingDocDef,
+  CT,
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
-  IfCollectionContains,
-  ValidateCollectionContainsAny,
 } from './clusterTypes/clusterTypes';
 import type {
   LookupInResultEntries,
@@ -446,11 +446,10 @@ export class Collection<
   in out B extends BucketName<T> = BucketName<T>,
   in out S extends ScopeName<T, B> = ScopeName<T, B>,
   in out C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-  out CT extends CollectionDocumentBag<
-    PickCollectionDocDef<T, B, S, C>
-  > = CollectionDocumentBag<PickCollectionDocDef<T, B, S, C>>,
-> implements Collection<T, B, S, C, CT>
-{
+  // out CT extends CollectionDocumentBag<
+  //   PickCollectionDocDef<T, B, S, C>
+  // > = CollectionDocumentBag<PickCollectionDocDef<T, B, S, C>>,
+> {
   /**
    * @internal
    */
@@ -537,8 +536,8 @@ export class Collection<
   }
 
   async get<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
     WithExpiry extends boolean = false,
   >(
     key: Key,
@@ -548,8 +547,8 @@ export class Collection<
   ): Promise<GetResult<Doc, WithExpiry>>;
 
   async get<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
     WithExpiry extends boolean = boolean,
   >(
     key: Key,
@@ -564,8 +563,8 @@ export class Collection<
    * @param callback Optional node-style callback to be invoked after execution.
    */
   async get<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
     WithExpiry extends boolean = boolean,
   >(
     key: Key,
@@ -583,7 +582,7 @@ export class Collection<
     if (options.project !== undefined || options.withExpiry === true) {
       return this._projectedGet(
         key,
-        options as GetOptions<ExtractDocBodyByKey<CT['ObjectDocument'], Key>>,
+        options as GetOptions<ExtractDocBodyByKey<CT<this>['ObjectDocument'], Key>>,
         callback
       );
     }
@@ -625,8 +624,8 @@ export class Collection<
   }
 
   private async _projectedGet<
-    Doc extends ExtractDocBodyByKey<CT['ObjectDocument'], Key>,
-    Key extends CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['ObjectDocument'], Key>,
+    Key extends CT<this>['Key'],
     WithExpiry extends boolean = boolean,
   >(
     key: Key,
@@ -740,7 +739,7 @@ export class Collection<
    * @param key The document key to check for existence.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async exists<Key extends CT['Key']>(
+  async exists<Key extends CT<this>['Key']>(
     key: Key,
     callback?: NodeCallback<ExistsResult>
   ): Promise<ExistsResult>;
@@ -751,12 +750,12 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async exists<Key extends CT['Key']>(
+  async exists<Key extends CT<this>['Key']>(
     key: Key,
     options: ExistsOptions,
     callback?: NodeCallback<ExistsResult>
   ): Promise<ExistsResult>;
-  async exists<Key extends CT['Key']>(
+  async exists<Key extends CT<this>['Key']>(
     key: Key,
     options?: ExistsOptions | NodeCallback<ExistsResult>,
     callback?: NodeCallback<ExistsResult>
@@ -805,8 +804,8 @@ export class Collection<
    * @internal
    */
   private _getReplica<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     getAllReplicas: boolean,
@@ -816,8 +815,8 @@ export class Collection<
     GetReplicaResult<Doc>
   >;
   private _getReplica<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     getAllReplicas: boolean
@@ -826,8 +825,8 @@ export class Collection<
     GetReplicaResult<Doc>
   >;
   private _getReplica<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     getAllReplicas: boolean,
@@ -901,8 +900,8 @@ export class Collection<
    * @param callbackOrOptions A node-style callback to be invoked after execution.
    */
   async getAnyReplica<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     callbackOrOptions?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Doc>>
@@ -918,8 +917,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAnyReplica<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     options: GetAnyReplicaOptions,
@@ -927,8 +926,8 @@ export class Collection<
   ): Promise<GetReplicaResult<Doc>>;
 
   async getAnyReplica<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     options?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Doc>>,
@@ -965,8 +964,8 @@ export class Collection<
   }
 
   getAllReplicas<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     callbackOrOptions?:
@@ -985,8 +984,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   getAllReplicas<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     options: GetAllReplicasOptions,
@@ -996,8 +995,8 @@ export class Collection<
     GetReplicaResult<Doc>
   >;
   getAllReplicas<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     options?:
@@ -1031,8 +1030,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async insert<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
@@ -1040,16 +1039,16 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async insert<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async insert<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
@@ -1132,8 +1131,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async upsert<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
@@ -1141,16 +1140,16 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async upsert<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async upsert<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
@@ -1232,8 +1231,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async replace<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
@@ -1241,16 +1240,16 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async replace<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async replace<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     value: Doc,
@@ -1332,16 +1331,16 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async remove<Key extends CT['Key']>(
+  async remove<Key extends CT<this>['Key']>(
     key: Key,
     options: RemoveOptions,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async remove<Key extends CT['Key']>(
+  async remove<Key extends CT<this>['Key']>(
     key: Key,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async remove<Key extends CT['Key']>(
+  async remove<Key extends CT<this>['Key']>(
     key: Key,
     options?: RemoveOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
@@ -1416,8 +1415,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAndTouch<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     expiry: number,
@@ -1425,16 +1424,16 @@ export class Collection<
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndTouch<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     expiry: number,
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndTouch<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     expiry: number,
@@ -1494,18 +1493,18 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async touch<Key extends CT['Key']>(
+  async touch<Key extends CT<this>['Key']>(
     key: Key,
     expiry: number,
     options: TouchOptions,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>>;
-  async touch<Key extends CT['Key']>(
+  async touch<Key extends CT<this>['Key']>(
     key: Key,
     expiry: number,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>>;
-  async touch<Key extends CT['Key']>(
+  async touch<Key extends CT<this>['Key']>(
     key: Key,
     expiry: number,
     options?: TouchOptions | NodeCallback<MutationResult<undefined>>,
@@ -1562,8 +1561,8 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAndLock<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     lockTime: number,
@@ -1571,16 +1570,16 @@ export class Collection<
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndLock<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     lockTime: number,
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndLock<
-    Doc extends ExtractDocBodyByKey<CT['Document'], Key>,
-    Key extends CT['Key'] = CT['Key'],
+    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
     lockTime: number,
@@ -1638,18 +1637,18 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async unlock<Key extends CT['Key']>(
+  async unlock<Key extends CT<this>['Key']>(
     key: Key,
     cas: Cas,
     options: UnlockOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
-  async unlock<Key extends CT['Key']>(
+  async unlock<Key extends CT<this>['Key']>(
     key: Key,
     cas: Cas,
     callback?: VoidNodeCallback
   ): Promise<void>;
-  async unlock<Key extends CT['Key']>(
+  async unlock<Key extends CT<this>['Key']>(
     key: Key,
     cas: Cas,
     options?: UnlockOptions | VoidNodeCallback,
@@ -1695,7 +1694,7 @@ export class Collection<
   /**
    * @internal
    */
-  _continueScan<Def extends CT['Document']>(
+  _continueScan<Def extends CT<this>['Document']>(
     iterator: CppScanIterator,
     transcoder: Transcoder,
     emitter: StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>>
@@ -1757,7 +1756,7 @@ export class Collection<
   /**
    * @internal
    */
-  _doScan<Def extends CT['Document']>(
+  _doScan<Def extends CT<this>['Document']>(
     scanType: RangeScan | SamplingScan | PrefixScan,
     options: CppRangeScanOrchestratorOptions,
     transcoder: Transcoder,
@@ -1801,16 +1800,16 @@ export class Collection<
    * @param options Optional parameters for the scan operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  scan<Def extends CT['Document']>(
+  scan<Def extends CT<this>['Document']>(
     scanType: RangeScan | SamplingScan | PrefixScan,
     options: ScanOptions,
     callback?: NodeCallback<ScanResult<Def>[]>
   ): StreamableScanPromise<ScanResult<Def>[], ScanResult<DocDef>>;
-  scan<Def extends CT['Document']>(
+  scan<Def extends CT<this>['Document']>(
     scanType: RangeScan | SamplingScan | PrefixScan,
     callback?: NodeCallback<ScanResult<Def>[]>
   ): StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>>;
-  scan<Def extends CT['Document']>(
+  scan<Def extends CT<this>['Document']>(
     scanType: RangeScan | SamplingScan | PrefixScan,
     options?: ScanOptions | NodeCallback<ScanResult<Def>[]>,
     callback?: NodeCallback<ScanResult<Def>[]>
@@ -1854,32 +1853,10 @@ export class Collection<
    * Performs a lookup-in operation against a document, fetching individual fields or
    * information about specific fields inside the document value.
    *
-   * @overload
-   * @param key The document key to look in.
-   * @param specs An array of {@link LookupInSpec} describing the data to fetch from the document, or
-   * an instance of {@link LookupSpecs}.
-   * @param options {LookupInOptions} Optional parameters for this operation.
-   * @param callback Optional node-style callback to be invoked after execution.
-   */
-
-  /**
-   * Performs a lookup-in operation against a document, fetching individual fields or
-   * information about specific fields inside the document value.
-   *
-   * @overload
-   * @param key The document key to look in.
-   * @param options {LookupInOptions} Optional parameters for this operation.
-   * an instance of {@link LookupSpecs}.
-   */
-
-  /**
-   * Performs a lookup-in operation against a document, fetching individual fields or
-   * information about specific fields inside the document value.
-   *
    * @param key The document key to look in.
    * @param specsOrOptions { LookupInOptions | LookupInSpec[] } Lookup specs or parameters for this operation.
    * an instance of {@link LookupSpecs}.
-   * @param optionsOrCallback { LookupInOptions | NodeCallback } Parameters for this operation or a node-style callback to be invoked after execution.
+   * @param optionsOrCallback { LookupInOptions | NodeCallback } Options for this operation or a node-style callback to be invoked after execution.
    * @param callback Optional node-style callback to be invoked after execution.
    */
   lookupIn<
@@ -1915,7 +1892,7 @@ export class Collection<
 
   private async _lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractDocBodyByKey<CT['ObjectDocument'], Key>,
+    Doc extends ExtractDocBodyByKey<CT<this>['ObjectDocument'], Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2357,12 +2334,17 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   list<
-    Key extends ExtractDefByBody<CT['ObjectDocument'], unknown[]>['Key'],
-    Def extends ExtractDocDefByKey<CT['ObjectDocument'], Key>,
+    Key extends CT<this>['ObjectDocument']['Key'],
+    Def extends CT<this>['ObjectDocument'],
     Doc extends Extract<ExtractDocBodyByKey<Def, Key>, unknown[]>,
-    Item extends If<IsAny<Doc>, any, ArrayElement<Doc>>,
-  >(key: Key): CouchbaseList<Collection<T, B, S, C, CT>, Item> {
-    return new CouchbaseList(this as AnyCollection, key);
+    Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
+    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
+      ? CouchbaseList<T, this, Key, Item>
+      : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
+        ? CouchbaseList<T, this, Key, Item>
+        : 'This collection does not contain any list.',
+  >(key: Key): R {
+    return new CouchbaseList(this as never, key) as R;
   }
 
   /**
@@ -2371,12 +2353,17 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   queue<
-    Key extends ExtractDefByBody<CT['ObjectDocument'], unknown[]>['Key'],
-    Def extends ExtractDocDefByKey<CT['ObjectDocument'], Key>,
+    Key extends CT<this>['ObjectDocument']['Key'],
+    Def extends CT<this>['ObjectDocument'],
     Doc extends Extract<ExtractDocBodyByKey<Def, Key>, unknown[]>,
-    Item extends If<IsAny<Doc>, any, ArrayElement<Doc>>,
-  >(key: Key): CouchbaseQueue<Collection<T, B, S, C, CT>, Item> {
-    return new CouchbaseQueue(this as AnyCollection, key);
+    Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
+    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
+      ? CouchbaseQueue<T, this, Key, Item>
+      : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
+        ? CouchbaseQueue<T, this, Key, Item>
+        : 'This collection does not contain any queue.',
+  >(key: Key): R {
+    return new CouchbaseQueue(this as never, key) as R;
   }
 
   /**
@@ -2385,12 +2372,18 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   map<
-    Key extends ExtractDefByBody<CT['ObjectDocument'], Record<string, unknown>>['Key'],
-    Def extends ExtractDocDefByKey<CT['ObjectDocument'], Key>,
-    Doc extends Extract<ExtractDocBodyByKey<Def, Key>, Record<string, unknown>>,
+    Key extends CT<this>['ObjectDocument']['Key'],
+    Def extends CT<this>['ObjectDocument'],
+    Doc extends ExtractDocBodyByKey<Def, Key>,
     MapDoc extends If<IsAny<Doc>, Record<string, any>, Doc>,
-  >(key: Key): CouchbaseMap<Collection<T, B, S, C, CT>, MapDoc> {
-    return new CouchbaseMap(this as AnyCollection, key);
+    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>> extends true
+      ? CouchbaseMap<T, this, Key, MapDoc>
+      : this extends CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>
+        ? CouchbaseMap<T, this, Key, MapDoc>
+        : 'This collection does not contain any map.',
+  >(key: Key): R {
+    // TODO replicate that for all Datastructures
+    return new CouchbaseMap(this as never, key) as R;
   }
 
   /**
@@ -2399,30 +2392,25 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   set<
-    Key extends ExtractDefByBody<CT['ObjectDocument'], unknown[]>['Key'],
-    Def extends ExtractDocDefByKey<CT['ObjectDocument'], Key>,
+    Key extends CT<this>['ObjectDocument']['Key'],
+    Def extends CT<this>['ObjectDocument'],
     Doc extends Extract<ExtractDocBodyByKey<Def, Key>, unknown[]>,
-    Item extends If<IsAny<Doc>, any, ArrayElement<Doc>>,
-  >(key: Key): CouchbaseSet<Collection<T, B, S, C, CT>, Item> {
-    return new CouchbaseSet(this as AnyCollection, key);
+    Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
+    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
+      ? CouchbaseSet<T, this, Key, Item>
+      : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
+        ? CouchbaseSet<T, this, Key, Item>
+        : 'This collection does not contain any set.',
+  >(key: Key): R {
+    return new CouchbaseSet(this as never, key) as R;
   }
 
   /**
    * Returns a BinaryCollection object reference, allowing access to various
    * binary operations possible against a collection.
    */
-  binary(): IfCollectionContains<
-    BinaryCollection<Collection<T, B, S, C, CT>>,
-    Collection<T, B, S, C, CT>,
-    string | number
-  > {
-    return new BinaryCollection(
-      this as ValidateCollectionContainsAny<this, string | number>
-    ) as IfCollectionContains<
-      BinaryCollection<Collection<T, B, S, C, CT>>,
-      Collection<T, B, S, C, CT>,
-      string | number
-    >;
+  binary() {
+    return new BinaryCollection(this);
   }
 
   /**

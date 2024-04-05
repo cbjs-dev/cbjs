@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsExactly, Or } from '../../misc';
+import { IsAny, IsExactly, IsNever, Or } from '../../misc';
 import {
   BucketName,
   CollectionName,
@@ -37,7 +37,7 @@ type UnwindUnionObjectValues<T> = T extends unknown ? T[keyof T] : never;
 /**
  * Union of DocDef in a collection. Distributive.
  */
-export type PickCollectionDocDef<
+export type KeyspaceDocDef<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T> = BucketName<T>,
   S extends ScopeName<T, B> = ScopeName<T, B>,
@@ -54,7 +54,7 @@ export type PickCollectionDocDef<
 /**
  * Contains the pre-computer types for the collection.
  */
-export type CollectionDocumentBag<Def extends DocDef> = {
+export type DocumentBag<Def extends DocDef> = {
   Key: Def['Key'];
   Document: Def;
   JsonDocument: JsonDocumentDef<Def>;
@@ -71,7 +71,7 @@ export type IsFuzzyDocument<T> = Or<
     IsExactly<string, keyof T>,
     IsExactly<string | number, keyof T>,
     IsExactly<string | number | symbol, keyof T>,
-    IsExactly<never, keyof T>,
+    IsNever<keyof T>,
     IsAny<T>,
   ]
 >;
