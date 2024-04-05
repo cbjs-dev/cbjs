@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
 import { defineConfig } from 'vitepress';
 
 import { version } from '../../packages/cbjs/package.json';
+import tsConfig from '../../tsconfig.json';
 
 const repositoryUrl = 'https://github.com/cbjs-dev/cbjs';
 
@@ -96,5 +98,18 @@ export default defineConfig({
     footer: {
       copyright: 'Copyright © 2023-Present Jonathan Massuchetti',
     },
+  },
+  markdown: {
+    codeTransformers: [
+      transformerTwoslash({
+        twoslashOptions: {
+          compilerOptions: {
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+          },
+        },
+      }),
+    ],
   },
 });

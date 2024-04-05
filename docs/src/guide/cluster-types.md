@@ -49,27 +49,51 @@ type MyClusterTypes = {
 
 Given the previous definitions, the following type safety arise :
 
-```ts
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books:
+        | DocDef<`author::${string}`, { firstname: string; lastname: string; }>
+        | DocDef<`book::${string}`, { title: string; authors: string[]; }>;
+    };
+  };
+};
+
+// ---cut-before---
+// @errors: 2304 2322 2345 2554 2769
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
 
 const bookId = 'book::001';
 
 // All Good 👌
-await collection.get(bookId); // Book
-await collection.lookupIn(bookId).get('title'); // string
-await collection.lookupIn(bookId).get('authors'); // string[]
-await collection.lookupIn(bookId).get('authors[0]'); // string
+const { content: book } = await collection.get(bookId);
 
-await collection.mutateIn(bookId).arrayAddUnique('metadata.tags', 'database');
+const { content: [title] } = await collection.lookupIn(bookId).get('title');
+const { content: [authors] } = await collection.lookupIn(bookId).get('authors');
+const { content: [firstAuthor] } = await collection.lookupIn(bookId).get('authors[0]');
 
-// TS Error ❌
-await collection.get('vegetable::001'); // invalid key
-await collection.lookupIn(bookId).get('tite'); // property does not exist
-await collection.lookupIn(bookId).get('quaterSales[4]'); // quaterSales is a tuple with 4 members maximum
+/////////////////////
+// Invalid calls ❌//
+/////////////////////
 
-await collection.mutateIn(bookId).insert('title'); // `title` is a required property, therefore it already exist
-await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467'); // invalid value. `quaterSales` is a tuple of numbers
+// Invalid document key
+await collection.get('vegetable::001');
+
+// Invalid document property
+await collection.lookupIn(bookId).get('tite');
+
+// Invalid property accessor : `quaterSales` has only 4 elements
+await collection.lookupIn(bookId).get('quaterSales[4]');
+
+// Property `title` is required, therefore it already exists. Use `upsert` instead.
+await collection.mutateIn(bookId).insert('title', 'documentation');
+
+// Invalid value : `quaterSales` is a tuple of numbers.
+await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467');
 ```
 
 ## Incremental adoption
@@ -94,42 +118,165 @@ type MyClusterTypes = DefaultClusterTypes & {
 
 This will enable type safety only for the collection `store.library.books`. Reference to other bucket, scope or collection will be treated as before.
 
+## Reference keyspace objects
+
+When you expect some of your cluster's bucket, scope or collection, you cannot use a union type to define multiple collections for examples
+
+```ts twoslash
+import { Scope, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: DocDef;
+    };
+  };
+};
+
+// ---cut-before---
+// @errors: 2344
+type AcceptedScopes = Scope<MyClusterTypes, 'store', 'library' | 'groceries'>;
+```
+
+If you want to reference a range of bucket/scope/collection, the solution is to use the types provided by Cbjs: 
+
+```ts twoslash
+import { DocDef, Scope, ClusterScope } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: DocDef
+    },
+    groceries: {
+      meat: DocDef
+    }
+  };
+};
+
+// ---cut-before---
+// We accept two scopes from the bucket `store`.
+type AcceptedScopes = ClusterScope<MyClusterTypes, 'store', 'library' | 'groceries'>;
+
+declare function doSomethingWithScope(scope: AcceptedScopes): void;
+
+// The scope we want to use.
+declare const scope: Scope<MyClusterTypes, 'store', 'library'>;
+
+// Our scope is accepted 👌
+doSomethingWithScope(scope);
+```
+
+The types `ClusterBucket`, `ClusterScope` and `ClusterCollection` simply generate a union type for all matching keyspaces.
+You can also use some kind of wildcard by passing `any` or `never`.
+
+```ts twoslash
+import { DocDef, ClusterCollection } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  backend: {
+    webstore: {
+      customers: DocDef<`customer::${string}`, { firstname: string }>
+    },
+    retailStore: {
+      customers: DocDef<`customer::${string}`, { firstname: string }>
+    }
+  };
+};
+
+// ---cut-before---
+// @errors: 2345
+type BackendCustomersCollection = ClusterCollection<
+  MyClusterTypes, 'backend', never, 'customers'
+>;
+```
+
 ## Considerations
 
-### Document paths
+### Document paths at runtime
 
 The purpose of the path autocompletion is to prevent small mistakes and to write paths faster.
 It does not guarantee that the document path will exist at runtime. Consider the following :
 
 ```ts
-type Doc = { metadata: { tags?: string[] } };
-const result = await collection.lookupIn('docKey').get('metadata.tags[2]');
+type Book = { title: string; authors: string[] };
+const result = await collection.lookupIn('book::01').get('authors[2]');
 ```
 
 The path is valid because it may exist, but you may very well receive an error at runtime if the array index does not exist.
 The same logic applies when you use optional properties or union types:
 
 ```ts
-type Doc = {
-  description?: string;
-  sales: number[] | Record<string, number>;
+type Book = { 
+  title: string; 
+  authors: string | string[]
 };
+
 const result = await collection.lookupIn('docKey')
-  .get('description')
-  .get('sales.2024');
+  .get('title')
+  .get('authors[0]');
 ```
 
 ### IDE autocompletion
 
 Because of IDEs current limitations, autocomplete will not be offered for array indexes. Using the previous example :
 
-```ts
-const result = await collection.lookupIn('docKey')
-  .get('metadata.tags[0]');
+```ts twoslash
+import { DocDef, connect } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: 
+        | DocDef<`book::${string}`, { 
+        title: string; 
+        authors: string[];
+        quater_sales: [number, number, number, number]
+      }>
+    },
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+// @noErrors: 2769
+const result = await collection.lookupIn('book::001')
+  .get('autho')
+//           ^|
 ```
 
-Because the path is expressed as a template literal, `metadata.tags[${number}]`, your IDE will not offer `metadata.tags[0]` but only `metadata.tags`.  
-Nevertheless, `metadata.tags[0]` is a valid path. This does not apply to tuples, as their length is fixed.
+Because the path is expressed as a template literal, `authors[${number}]`, your IDE will not offer `authors[0]` but only `authors`.  
+Nevertheless, `authors[0]` is a valid path.
+
+This does not apply to tuples, as their length is fixed.
+
+```ts twoslash
+import { DocDef, connect } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: 
+        | DocDef<`book::${string}`, { 
+        title: string; 
+        authors: string[];
+        quater_sales: [number, number, number, number]
+      }>
+    },
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+// @noErrors: 2769
+const result = await collection.lookupIn('book::001')
+  .get('quater_sal')
+//                ^|
+```
 
 ### Recursivity
 
