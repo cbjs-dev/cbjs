@@ -46,7 +46,6 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 const bookId = 'book::001';
 // @errors: 2304 2554 
 // ---cut-before---
-// All Good 👌
 const { content: book } = await collection.get(bookId);
 const { content: [firstAuthor] } = await collection.lookupIn(bookId).get('authors[0]');
 //                 ^?
@@ -78,8 +77,6 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 const bookId = 'book::001';
 // @noErrors: 2769
 // ---cut-before---
-// All Good 👌
-
 const { content: [title] } = await collection
   .lookupIn(bookId)
   .get('ti');
