@@ -70,7 +70,8 @@ For this operation, only the `timeout` option is available.
 
 If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted collection, the paths will be type checked and the result will be typed accordingly.
 
-If you want to benefit from path autocompletion, you have to use the following form, which is specific to Cbjs :
+#### Chainable sub-doc operations
+Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
 
 ```ts
 import { LookupInSpec } from '@cbjsdev/cbjs';

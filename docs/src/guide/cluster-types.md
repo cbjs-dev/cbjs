@@ -207,7 +207,7 @@ type Book = {
   authors: string | string[]
 };
 
-const result = await collection.lookupIn('docKey')
+const result = await collection.lookupIn('book::001')
   .get('title')
   .get('authors[0]');
 ```
@@ -273,14 +273,21 @@ const result = await collection.lookupIn('book::001')
 //                ^|
 ```
 
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+
 ### Recursivity
 
 If a recursive type is identified, only one iteration will be performed, for the sake of autocompletion.
 Deeper path will be unchecked.
 
-```ts
-type DeepStringArray = (string | DeepStringArray)[];
-type PathToDeepStringArray = `[${number}]` | `[${number}][${number}]${string}`;
+```ts twoslash
+import { DocumentPath } from '@cbjsdev/shared';
+// ---cut-before---
+type RecursiveStringArray = (string | RecursiveStringArray)[];
+type AllowedPath = DocumentPath<RecursiveStringArray>;
 ```
 
 ### Tuples

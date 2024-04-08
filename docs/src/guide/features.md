@@ -6,10 +6,10 @@ outline: deep
 # Features
 
 - Compatible with the official client
-- Improved TypeScript function signatures
-- KeyValue type safety for document and sub-document operation
-- Path autocomplete for sub-document operation
-- Chainable sub-document operations
+- Improved TypeScript function signatures - [learn more](#discriminated-unions)
+- [Inferred return type for document and sub-document operation](#inferred-return-type)
+- [Path autocomplete for sub-document operation](#ide-autocompletion)
+- [Chainable sub-document operations](/guide/services/kv#chainable-sub-doc-operations)
 - HTTP Client
 - Vitest fixtures
 
@@ -193,18 +193,16 @@ type MyClusterTypes = {
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
 const bookId = 'book::001';
-// @noErrors: 2769
+// @noErrors: 2451 2769
 // ---cut-before---
 
-const result = await collection.get(bookId);
-
-type ResultExpiry = (typeof result)['expiryTime'];
-//    ^?
+const { expiryTime } = await collection.get(bookId);
+//       ^?
 
 
 
-const { content, expiryTime } = await collection.get(bookId, { withExpiry: true });
-//                 ^?
+const { expiryTime } = await collection.get(bookId, { withExpiry: true });
+//        ^?
 ```
 
 &nbsp;  

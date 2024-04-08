@@ -102,6 +102,7 @@ export default defineConfig({
     codeTransformers: [
       transformerTwoslash({
         errorRendering: 'hover',
+        jsdoc: false,
       }),
     ],
   },
