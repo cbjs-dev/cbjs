@@ -15,19 +15,75 @@ Outstanding TypeScript client.
  <a href="https://cbjs.dev">Documentation</a> | <a href="https://cbjs.dev/guide/">Getting Started</a> | <a href="https://cbjs.dev/guide/why">Why Cbjs?</a>
 </p>
 
+## Getting started
+
+To get started with your new Couchbase Node.js SDK, uninstall the official library and install Cbjs :
+
+```bash
+npm uninstall couchbase
+npm install @cbjsdev/cbjs
+```
+
 ## Compatibility
 
-Built on top of the official library, Cbjs is a drop-in replacement for the official client.  
-Uninstall `couchbase` and install `@cbjsdev/cbjs`. Enjoy !
+Built on top of the official library, Cbjs is a drop-in replacement for the `couchbase` package.  
+The package that is specific to your platform is downloaded during the install process, **you don't have to compile the binary anymore**.
+
+Cbjs is your new [Couchbase Node.js SDK](https://cbjs.dev/guide/features.html#compatible-with-the-official-client)
 
 ## Exclusive Features
 
-- Document key validation
-- Sub-document path autocompletion
-- Typed documents
-- Function overloads
-- Discriminated unions for callbacks and options
-- Support for all lambdas
+Cbjs has been created to deliver a better DX.  
+By making extensive usage of TypeScript, Cbjs is able to add some exclusive features.
+
+### Inferred return type for KV operation
+
+Because Cbjs knows your documents, the return type of KV operations is inferred from the parameters.
+
+[![code sample show casing the inferred return type](https://github.com/cbjs-dev/cbjs/assets/94478/f28353bf-6e70-415c-b8da-217e71545acb)](https://cbjs.dev/guide/features.html#inferred-return-type)
+
+Read more about [couchbase document path autocomplete](https://cbjs.dev/guide/features.html#inferred-return-type).
+
+### Chainable sub-document operations
+
+Adopt a more elegant syntax by chaining sub-document operations.
+
+```ts
+const result = await collection.lookupIn('book::001')
+  .get('title')
+  .exists('lastModifiedBy')
+  .count('metadata.tags');
+```
+
+Read more about [chainable lookupIn](https://cbjs.dev/guide/services/kv.html#chainable-sub-doc-operations).
+
+### Path autocomplete for sub-document operation
+
+Because Cbjs knows your documents, autocompletion is offered when writing a document path.
+
+[![code sample show casing the path autocompletion](https://github.com/cbjs-dev/cbjs/assets/94478/fb0a5721-2a0c-4ee4-9dc7-b27b1aa434d5)](https://cbjs.dev/guide/features.html#ide-autocompletion)
+
+### Improved types
+
+Great efforts have been made to improve function signatures and types in general. Here is an example that uses _discriminated unions_ to offer a natural type guard :
+
+```ts
+const { content: [title] } = await collection.lookupIn(bookId).get('title');
+//                  ^? LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>
+
+if (title.error) {
+  throw new Error('Failed to retrieve the title.');
+}
+
+// Because of the discriminated union, the previous condition acts as a type guard.
+// title: LookupInResultEntry<string, null>
+```
+
+The same goes for callbacks and many more ! [Read more](https://cbjs.dev/guide/features.html#discriminated-unions).
+
+### Support for cloud lambdas
+
+Unlike the official library, Cbjs doesn't use the filesystem, which is sometimes unavailable on cloud lambas like Cloudflare Workers.
 
 ## License
 
