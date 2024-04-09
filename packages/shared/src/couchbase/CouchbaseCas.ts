@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { hasOwn } from '../misc';
 
 /**
  * CAS represents an opaque value which can be used to compare documents to
@@ -32,18 +33,41 @@ export type Cas = {
   toJSON(): string;
 };
 
+type CouchbaseCasInput = Cas | Buffer | string | bigint | number;
+
 /**
  * Create, parse and compare CAS objects.
  */
 export class CouchbaseCas implements Cas {
   private raw: Buffer;
 
-  constructor(value: string | bigint | number) {
+  constructor(value: CouchbaseCasInput) {
     this.raw = CouchbaseCas.toBuffer(value);
   }
 
-  private static toBuffer(value: string | bigint | number): Buffer {
-    let binaryString = BigInt(value).toString(2);
+  /**
+   * Returns `true` is the given value extends the {@Cas} interface.
+   *
+   * @param value
+   */
+  public static isCasObject(value: unknown): value is Cas {
+    return (
+      hasOwn(value, 'toJSON') &&
+      hasOwn(value, 'toString') &&
+      value.toJSON !== undefined &&
+      value.toString !== undefined
+    );
+  }
+
+  private static toBuffer(value: CouchbaseCasInput): Buffer {
+    if (Buffer.isBuffer(value)) return value;
+    if (CouchbaseCas.isCasObject(value)) {
+      value = value.toString();
+    }
+
+    const valuePrimitive = CouchbaseCas.isCasObject(value) ? value.toString() : value;
+
+    let binaryString = BigInt(valuePrimitive).toString(2);
 
     // Byte padding
     const padding = 8 - (binaryString.length % 8);
@@ -57,7 +81,7 @@ export class CouchbaseCas implements Cas {
     return Buffer.from(bytes.reverse());
   }
 
-  public static from(value: string | bigint | number) {
+  public static from(value: CouchbaseCasInput) {
     return new CouchbaseCas(value);
   }
 
@@ -74,7 +98,7 @@ export class CouchbaseCas implements Cas {
     return BigInt('0b' + binaryString).toString(10);
   }
 
-  isEqual(cas: Cas | string | bigint | number) {
+  isEqual(cas: CouchbaseCasInput) {
     return CouchbaseCas.isEqual(this, cas);
   }
 
@@ -82,14 +106,23 @@ export class CouchbaseCas implements Cas {
     return CouchbaseCas.isZeroCas(this);
   }
 
-  public static isZeroCas(cas: Cas | string | bigint | number): boolean {
+  public static isZeroCas(cas: CouchbaseCasInput): boolean {
     return CouchbaseCas.isEqual('0', cas);
   }
 
-  public static isEqual(
-    cas1: Cas | string | bigint | number,
-    cas2: Cas | string | bigint | number
-  ): boolean {
+  public static isEqual(cas1: CouchbaseCasInput, cas2: CouchbaseCasInput): boolean {
     return cas1.toString() === cas2.toString();
+  }
+
+  /**
+   * When fetching a CAS from inside a document that has been set with {@link MutateInMacro.CAS}, it is stored in a form
+   * that is not the one expected by the SDK.
+   * Use this function to normalize the representation so you can use it elsewhere.
+   *
+   * @param cas
+   */
+  public static normalizeCas(cas: string): string {
+    const buf = Buffer.from(cas.startsWith('0x') ? cas.slice(2) : cas, 'hex');
+    return BigInt(`0x${buf.reverse().toString('hex')}`).toString();
   }
 }

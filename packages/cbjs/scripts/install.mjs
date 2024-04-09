@@ -10,6 +10,7 @@ const packageAbsolutePath = process.cwd();
 const packageRelative = 'packages/cbjs';
 const isProjectDev =
   process.env.INIT_CWD === undefined ||
+  packageAbsolutePath === process.env.INIT_CWD ||
   packageAbsolutePath.substring(process.env.INIT_CWD.length) === `/${packageRelative}`;
 
 const arch = process.arch;

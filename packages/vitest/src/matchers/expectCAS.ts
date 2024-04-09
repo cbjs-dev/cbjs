@@ -19,6 +19,7 @@
 import { expect } from 'vitest';
 
 import { CouchbaseCas } from '@cbjsdev/cbjs';
+import { hasOwn } from '@cbjsdev/shared';
 
 expect.extend({
   toBeNonZeroCAS(received) {
@@ -29,11 +30,7 @@ expect.extend({
       pass: false,
     };
 
-    if (
-      typeof received !== 'object' ||
-      received.toJSON === undefined ||
-      received.toString === undefined
-    ) {
+    if (typeof received !== 'string' && !Buffer.isBuffer(received)) {
       return failure;
     }
 
@@ -54,11 +51,7 @@ expect.extend({
       pass: false,
     };
 
-    if (
-      typeof received !== 'object' ||
-      received.toJSON === undefined ||
-      received.toString === undefined
-    ) {
+    if (typeof received !== 'string' && !Buffer.isBuffer(received)) {
       return failure;
     }
 

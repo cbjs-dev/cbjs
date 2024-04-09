@@ -1,3 +1,10 @@
+/**
+ * Returns a tuple [options, callback].
+ *
+ * @param args
+ * @example
+ * const [options = {}, callback] = resolveOptionsAndCallback(args);
+ */
 export function resolveOptionsAndCallback<
   Options extends object,
   Callback extends (...args: never[]) => unknown,

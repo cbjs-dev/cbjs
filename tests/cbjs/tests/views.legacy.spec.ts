@@ -30,7 +30,7 @@ import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { waitFor } from '../utils/waitFor';
 
-// TODO add latest views tests with new API
+// TODO add new legacy views tests
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Views))

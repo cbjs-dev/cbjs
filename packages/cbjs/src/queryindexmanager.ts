@@ -359,7 +359,7 @@ class InternalQueryIndexManager {
       collectionName?: string;
       scopeName?: string;
       name?: string;
-      fields?: string[];
+      keys?: string[];
       ignoreIfExists?: boolean;
       numReplicas?: number;
       deferred?: boolean;
@@ -379,7 +379,7 @@ class InternalQueryIndexManager {
         scope_name: options.scopeName ?? '',
         collection_name: options.collectionName ?? '',
         index_name: options.name ?? '',
-        fields: options.fields ?? [],
+        keys: options.keys ?? [],
         query_ctx: options.queryContext ?? this._queryContext,
         is_primary: isPrimary,
         ignore_if_exists: options.ignoreIfExists ?? false,
@@ -642,31 +642,31 @@ export class CollectionQueryIndexManager<
    * Creates a new query index.
    *
    * @param indexName The name of the new index.
-   * @param fields The fields which this index should cover.
+   * @param keys The keys which this index should cover.
    * @param callback A node-style callback to be invoked after execution.
    */
   async createIndex(
     indexName: string,
-    fields: string[],
+    keys: string[],
     callback?: VoidNodeCallback
   ): Promise<void>;
   /**
    * Creates a new query index.
    *
    * @param indexName The name of the new index.
-   * @param fields The fields which this index should cover.
+   * @param keys The keys which this index should cover.
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async createIndex(
     indexName: string,
-    fields: string[],
+    keys: string[],
     options: Omit<CreateQueryIndexOptions, 'collectionName' | 'scopeName'>,
     callback?: VoidNodeCallback
   ): Promise<void>;
   async createIndex(
     indexName: string,
-    fields: string[],
+    keys: string[],
     options?:
       | Omit<CreateQueryIndexOptions, 'collectionName' | 'scopeName'>
       | VoidNodeCallback,
@@ -687,7 +687,7 @@ export class CollectionQueryIndexManager<
         collectionName: this._collectionName,
         scopeName: this._scopeName,
         name: indexName,
-        fields: fields,
+        keys: keys,
         ignoreIfExists: options.ignoreIfExists,
         numReplicas: options.numReplicas,
         deferred: options.deferred,
@@ -955,27 +955,27 @@ export class QueryIndexManager {
    *
    * @param bucketName The name of the bucket this index is for.
    * @param indexName The name of the new index.
-   * @param fields The fields which this index should cover.
+   * @param keys The keys which this index should cover.
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async createIndex(
     bucketName: string,
     indexName: string,
-    fields: string[],
+    keys: string[],
     callback?: VoidNodeCallback
   ): Promise<void>;
   async createIndex(
     bucketName: string,
     indexName: string,
-    fields: string[],
+    keys: string[],
     options: CreateQueryIndexOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
   async createIndex(
     bucketName: string,
     indexName: string,
-    fields: string[],
+    keys: string[],
     options?: CreateQueryIndexOptions | VoidNodeCallback,
     callback?: VoidNodeCallback
   ): Promise<void> {
@@ -994,7 +994,7 @@ export class QueryIndexManager {
         collectionName: options.collectionName,
         scopeName: options.scopeName,
         name: indexName,
-        fields: fields,
+        keys: keys,
         ignoreIfExists: options.ignoreIfExists,
         numReplicas: options.numReplicas,
         deferred: options.deferred,

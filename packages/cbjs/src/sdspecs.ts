@@ -404,35 +404,31 @@ export class MutateInSpec<
     }
 
     let flags = 0;
-    let valueAsString = undefined;
-
-    if (isMutateInMacro(value)) {
-      valueAsString = value._value;
-      flags |=
-        binding.protocol_mutate_in_request_body_mutate_in_specs_path_flag.expand_macros;
-    }
+    let valueAsString = JSON.stringify(value);
 
     if (options.createPath) {
       flags |=
         binding.protocol_mutate_in_request_body_mutate_in_specs_path_flag.create_parents;
     }
 
-    if (options.xattr) {
+    if (isMutateInMacro(value)) {
+      valueAsString = JSON.stringify(value._value);
+      flags |=
+        binding.protocol_mutate_in_request_body_mutate_in_specs_path_flag.expand_macros |
+        binding.protocol_mutate_in_request_body_mutate_in_specs_path_flag.xattr;
+    } else if (options.xattr) {
       flags |= binding.protocol_mutate_in_request_body_mutate_in_specs_path_flag.xattr;
     }
 
-    if (value !== undefined) {
-      valueAsString = JSON.stringify(value);
+    if (value !== undefined && options.multi) {
       // BUG(JSCBC-755): As a solution to our oversight of not accepting arrays of
       // values to various sub-document operations, we have exposed an option instead.
-      if (options.multi) {
-        if (!Array.isArray(value)) {
-          throw new Error('value must be an array for a multi operation');
-        }
-
-        valueAsString = JSON.stringify(value);
-        valueAsString = valueAsString.substr(1, valueAsString.length - 2);
+      if (!Array.isArray(value)) {
+        throw new Error('value must be an array for a multi operation');
       }
+
+      valueAsString = JSON.stringify(value);
+      valueAsString = valueAsString.substr(1, valueAsString.length - 2);
     }
 
     return new MutateInSpec(op, path, flags, value, valueAsString);

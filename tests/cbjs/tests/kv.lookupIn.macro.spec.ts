@@ -17,11 +17,9 @@
 import { beforeEach, describe } from 'vitest';
 
 import { LookupInMacro, LookupInSpec } from '@cbjsdev/cbjs';
-import { getPool } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe
@@ -72,6 +70,50 @@ describe
         LookupInSpec.get(LookupInMacro.ValueSizeBytes, { xattr: true }),
       ]);
 
+      const [
+        { value: macroCas },
+        { value: macroExpiry },
+        { value: macroIsDeleted },
+        { value: macroLastModified },
+        { value: macroRevId },
+        { value: macroSeqNo },
+        { value: macroValueSizeBytes },
+      ] = res.content;
+
+      expect(macroCas).toEqual(macroDocument.CAS);
+      expect(macroExpiry).toEqual(macroDocument.exptime);
+      expect(macroIsDeleted).toEqual(macroDocument.deleted);
+      expect(macroLastModified).toEqual(macroDocument.last_modified);
+      expect(macroRevId).toEqual(macroDocument.revid);
+      expect(macroSeqNo).toEqual(macroDocument.seqno);
+      expect(macroValueSizeBytes).toEqual(macroDocument.value_bytes);
+
+      expect(macroCas?.startsWith('0x')).toBe(true);
+      expect(macroSeqNo?.startsWith('0x')).toBe(true);
+    });
+
+    test(`should retrieve LookupInMacro values using a chained lookup`, async ({
+      serverTestContext,
+      testDocKey,
+      expect,
+    }) => {
+      const { content: docContent } = await serverTestContext.collection
+        .lookupIn(testDocKey)
+        .get(LookupInMacro.Document, { xattr: true });
+
+      const [{ value: macroDocument }] = docContent;
+
+      invariant(macroDocument);
+
+      const res = await serverTestContext.collection
+        .lookupIn(testDocKey)
+        .get(LookupInMacro.Cas, { xattr: true })
+        .get(LookupInMacro.Expiry, { xattr: true })
+        .get(LookupInMacro.IsDeleted, { xattr: true })
+        .get(LookupInMacro.LastModified, { xattr: true })
+        .get(LookupInMacro.RevId, { xattr: true })
+        .get(LookupInMacro.SeqNo, { xattr: true })
+        .get(LookupInMacro.ValueSizeBytes, { xattr: true });
       const [
         { value: macroCas },
         { value: macroExpiry },
