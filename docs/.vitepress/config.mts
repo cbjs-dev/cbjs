@@ -25,6 +25,9 @@ export default defineConfig({
   title: 'Cbjs',
   description: 'A modern Couchbase client for JS runtimes',
   lastUpdated: true,
+  sitemap: {
+    hostname: 'https://cbjs.dev'
+  },
   head: [
     [
       'script',
