@@ -16,15 +16,16 @@
  */
 import { CouchbaseClusterTypes, invariant, isArray } from '@cbjsdev/shared';
 
-
-
 import { AnyCollection } from '../../../clusterTypes/clusterTypes';
 import type { Collection } from '../../../collection';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
-
+import {
+  type NodeCallback,
+  PromiseHelper,
+  type VoidNodeCallback,
+} from '../../../utilities';
 
 /**
  * CouchbaseList provides a simplified interface for storing lists

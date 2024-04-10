@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from './document.types';
+import { CouchbaseClusterTypes } from './cluster.types';
 
 /**
  * Default scope name.
@@ -36,30 +36,6 @@ export type MissingDefaultScope<B extends string> =
  */
 export type MissingDefaultCollection<B extends string> =
   `The "${DefaultCollectionName}" collection is missing from the types declaration of the ${DefaultScopeName} scope of bucket "${B}".`;
-
-/**
- * Basic structure for cluster types.
- */
-export type CouchbaseClusterTypes = {
-  [bucket: string]: {
-    [scope: string]: {
-      [collection: string]: DocDef<string, unknown>;
-    };
-  };
-};
-
-/**
- * Default types used when the end dev don't define their owns.
- */
-export type DefaultClusterTypes = {
-  [bucket: string]: {
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    [key in DefaultScopeName | NonNullable<string>]: {
-      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-      [Key in DefaultCollectionName | NonNullable<string>]: DocDef<string, any>;
-    };
-  };
-};
 
 /**
  * Bucket names existing in the cluster.

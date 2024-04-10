@@ -34,7 +34,6 @@ import type {
   ObjectDocument,
   OneOf,
   ScopeName,
-  Try,
 } from '@cbjsdev/shared';
 import { hasOwn, invariant, keyspacePath } from '@cbjsdev/shared';
 
@@ -75,7 +74,6 @@ import {
 import type { Cluster } from './cluster';
 import { AnyCollection } from './clusterTypes';
 import {
-  CollectionContainingDocDef,
   CollectionMatchingDocDef,
   CT,
   ExtractCollectionJsonDocBody,

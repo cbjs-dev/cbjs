@@ -14,19 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  BucketName,
-  CollectionName,
-  CouchbaseClusterTypes,
-  ScopeName,
-} from '@cbjsdev/shared';
+import { BucketName, CollectionName, CouchbaseClusterTypes, DefaultClusterTypes, ScopeName } from '@cbjsdev/shared';
 
 import { AnalyticsExecutor } from './analyticsexecutor';
-import {
-  AnalyticsMetaData,
-  AnalyticsQueryOptions,
-  AnalyticsResult,
-} from './analyticstypes';
+import { AnalyticsMetaData, AnalyticsQueryOptions, AnalyticsResult } from './analyticstypes';
 import { CppConnection } from './binding';
 import { Bucket } from './bucket';
 import { Cluster } from './cluster';
@@ -45,7 +36,7 @@ import { NodeCallback, PromiseHelper } from './utilities';
  * @category Core
  */
 export class Scope<
-  in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  in out T extends CouchbaseClusterTypes = DefaultClusterTypes,
   in out B extends BucketName<T> = BucketName<T>,
   in out S extends ScopeName<T, B> = ScopeName<T, B>,
 > {

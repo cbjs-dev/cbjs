@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 import { describe, expectTypeOf, it } from 'vitest';
+import { CouchbaseClusterTypes } from './cluster.types';
 
 import { DocDef } from './document.types';
-import {
-  BucketName,
-  CollectionName,
-  CouchbaseClusterTypes,
-  ScopeName,
-} from './keyspace.types';
+import { BucketName, CollectionName, ScopeName } from './keyspace.types';
 
 type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = {

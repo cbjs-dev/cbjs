@@ -11,10 +11,7 @@ Learn more about more mechanisms like durability or locks in the [advanced mecha
 ```ts
 const cluster = connect('couchbase://localhost');
 
-const collection = cluster
-  .bucket('store')
-  .scope('library')
-  .collection('books');
+const collection = cluster.bucket('store').scope('library').collection('books');
 ```
 
 ## Retrieving a document
@@ -71,12 +68,14 @@ For this operation, only the `timeout` option is available.
 If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted collection, the paths will be type checked and the result will be typed accordingly.
 
 #### Chainable sub-doc operations
+
 Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
 
 ```ts
 import { LookupInSpec } from '@cbjsdev/cbjs';
 
-const { content } = await collection.lookupIn('docKey')
+const { content } = await collection
+  .lookupIn('docKey')
   .get('title')
   .exists('lastModifiedBy')
   .count('metadata.tags');
@@ -87,13 +86,14 @@ const { content } = await collection.lookupIn('docKey')
 During a `lookupIn`, the function will not throw if the error is related to a `LookupInSpec`. Instead, the result will include the error, and the value will be `undefined`.
 
 ```ts
-const { content } = await collection.lookupIn('docKey')
+const { content } = await collection
+  .lookupIn('docKey')
   .get('lastModifiedAt')
   .get('comments'); // missing property
 
 const [
   lastModifiedAt, // { value: number; error: null }
-  comments        // { value: undefined; error: PathNotFoundError }
+  comments, // { value: undefined; error: PathNotFoundError }
 ] = content;
 ```
 
@@ -109,10 +109,14 @@ Inserting will fail if the document already exists, upserting will succeed regar
 Replacing or removing a document that does not exist will fail.
 
 ```ts
-await collection.insert('docKey', { title: 'Hello' }, {
-  expiry: 45, // the doc will expire in 45 seconds
-  timeout: 300,
-});
+await collection.insert(
+  'docKey',
+  { title: 'Hello' },
+  {
+    expiry: 45, // the doc will expire in 45 seconds
+    timeout: 300,
+  }
+);
 ```
 
 ::: tip
@@ -126,13 +130,15 @@ The expiry time will then be reset, just like when using `Collection.touch`.
 If you want to modify some parts of the documents, as opposed to the whole document, you can mutate only those parts.
 
 ```ts
-await collection.mutateIn('docKey')
+await collection
+  .mutateIn('docKey')
   .replace('title', 'New title')
-  .replace('lastUpdatedTime', Date.now())
+  .replace('lastUpdatedTime', Date.now());
 ```
 
 One of the key advantages of sub-document mutation is being able to perform an operation that do not conflict with concurrent ones.  
 Learn more about [optimistic locking](/guide/services/kv-advanced).
+
 ```ts
 // The mutation will not overwrite any concurrent changes
 await collection.mutateIn('book::001').arrayAddUnique('metadata.tags', 'history');
@@ -140,4 +146,4 @@ await collection.mutateIn('book::001').arrayAddUnique('metadata.tags', 'history'
 
 #### Error handling
 
-The whole `mutateIn` operation will fail if any of the mutations fail. There is no partial mutation.  
+The whole `mutateIn` operation will fail if any of the mutations fail. There is no partial mutation.

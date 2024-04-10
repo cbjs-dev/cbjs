@@ -27,7 +27,6 @@ import {
 import { waitForBucket, waitForCollection } from '@cbjsdev/http-client';
 import {
   ConnectionParams,
-  CouchbaseClusterTypes,
   CouchbaseLogger,
   DefaultClusterTypes,
   getApiConfig,
@@ -230,7 +229,7 @@ export class ServerTestContext {
     return this.contextKeyspace.collection;
   }
 
-  get defaultCollection(): DefaultCollection<CouchbaseClusterTypes, string> {
+  get defaultCollection(): DefaultCollection<DefaultClusterTypes, string> {
     invariant(
       this.contextKeyspace.defaultCollection,
       'Default collection should already be set'
@@ -238,7 +237,7 @@ export class ServerTestContext {
     return this.contextKeyspace.defaultCollection;
   }
 
-  get dco(): DefaultCollection<CouchbaseClusterTypes, string> {
+  get dco(): DefaultCollection<DefaultClusterTypes, string> {
     invariant(
       this.contextKeyspace.defaultCollection,
       'Default collection should already be set'

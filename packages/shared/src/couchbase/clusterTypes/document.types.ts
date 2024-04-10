@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import { IsAny, IsExactly, IsNever, Or } from '../../misc';
-import {
-  BucketName,
-  CollectionName,
-  CouchbaseClusterTypes,
-  ScopeName,
-} from './keyspace.types';
+import { ClusterTypesOptions, CouchbaseClusterTypes } from './cluster.types';
+import { BucketName, CollectionName, ScopeName } from './keyspace.types';
 import { DocumentPath } from './utils';
 
-export type DocDef<Key extends string = string, Body = unknown> = {
+export type DocDef<
+  Key extends string = string,
+  Body = unknown,
+  Options extends ClusterTypesOptions = never,
+> = {
   Key: Key;
   Body: Body;
+  Options: Options;
 };
 
 /**
@@ -150,6 +151,8 @@ export type ExtractDocDefByKey<
     : never
   : never;
 
+// TODO add logic to handle prefixes
+
 export type ExtractDocBodyByKey<
   Def extends DocDef,
   Key extends string,
@@ -160,3 +163,5 @@ export type ExtractDocBodyByKey<
       : never
     : never
   : never;
+
+// type KeyMatches<T>

@@ -38,8 +38,8 @@ type MyClusterTypes = {
   store: {
     library: {
       books:
-        | DocDef<`author::${string}`, { firstname: string; lastname: string; }>
-        | DocDef<`book::${string}`, { title: string; authors: string[]; }>;
+        | DocDef<`author::${string}`, { firstname: string; lastname: string }>
+        | DocDef<`book::${string}`, { title: string; authors: string[] }>;
     };
   };
 };
@@ -56,8 +56,8 @@ type MyClusterTypes = {
   store: {
     library: {
       books:
-        | DocDef<`author::${string}`, { firstname: string; lastname: string; }>
-        | DocDef<`book::${string}`, { title: string; authors: string[]; }>;
+        | DocDef<`author::${string}`, { firstname: string; lastname: string }>
+        | DocDef<`book::${string}`, { title: string; authors: string[] }>;
     };
   };
 };
@@ -71,9 +71,15 @@ const bookId = 'book::001';
 
 const { content: book } = await collection.get(bookId);
 
-const { content: [title] } = await collection.lookupIn(bookId).get('title');
-const { content: [authors] } = await collection.lookupIn(bookId).get('authors');
-const { content: [firstAuthor] } = await collection.lookupIn(bookId).get('authors[0]');
+const {
+  content: [title],
+} = await collection.lookupIn(bookId).get('title');
+const {
+  content: [authors],
+} = await collection.lookupIn(bookId).get('authors');
+const {
+  content: [firstAuthor],
+} = await collection.lookupIn(bookId).get('authors[0]');
 
 //
 // Now let's see some mistakes being prevented by Cbjs
@@ -118,7 +124,7 @@ This will enable type safety only for the collection `store.library.books`. Refe
 When you expect some of your cluster's bucket, scope or collection, you cannot use a union type to define multiple collections for examples
 
 ```ts twoslash
-import { Scope, DocDef } from '@cbjsdev/cbjs';
+import { DocDef, Scope } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
@@ -133,19 +139,19 @@ type MyClusterTypes = {
 type AcceptedScopes = Scope<MyClusterTypes, 'store', 'library' | 'groceries'>;
 ```
 
-If you want to reference a range of bucket/scope/collection, the solution is to use the types provided by Cbjs: 
+If you want to reference a range of bucket/scope/collection, the solution is to use the types provided by Cbjs:
 
 ```ts twoslash
-import { DocDef, Scope, ClusterScope } from '@cbjsdev/cbjs';
+import { ClusterScope, DocDef, Scope } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef
-    },
+      books: DocDef;
+    };
     groceries: {
-      meat: DocDef
-    }
+      meat: DocDef;
+    };
   };
 };
 
@@ -166,23 +172,26 @@ The types `ClusterBucket`, `ClusterScope` and `ClusterCollection` simply generat
 You can also use some kind of wildcard by passing `any` or `never`.
 
 ```ts twoslash
-import { DocDef, ClusterCollection } from '@cbjsdev/cbjs';
+import { ClusterCollection, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   backend: {
     webstore: {
-      customers: DocDef<`customer::${string}`, { firstname: string }>
-    },
+      customers: DocDef<`customer::${string}`, { firstname: string }>;
+    };
     retailStore: {
-      customers: DocDef<`customer::${string}`, { firstname: string }>
-    }
+      customers: DocDef<`customer::${string}`, { firstname: string }>;
+    };
   };
 };
 
 // ---cut-before---
 // @errors: 2345
 type BackendCustomersCollection = ClusterCollection<
-  MyClusterTypes, 'backend', never, 'customers'
+  MyClusterTypes,
+  'backend',
+  never,
+  'customers'
 >;
 ```
 
@@ -202,14 +211,12 @@ The path is valid because it may exist, but you may very well receive an error a
 The same logic applies when you use optional properties or union types:
 
 ```ts
-type Book = { 
-  title: string; 
-  authors: string | string[]
+type Book = {
+  title: string;
+  authors: string | string[];
 };
 
-const result = await collection.lookupIn('book::001')
-  .get('title')
-  .get('authors[0]');
+const result = await collection.lookupIn('book::001').get('title').get('authors[0]');
 ```
 
 ### IDE autocompletion
@@ -217,18 +224,20 @@ const result = await collection.lookupIn('book::001')
 Because of IDEs current limitations, autocomplete will not be offered for array indexes. Using the previous example :
 
 ```ts twoslash
-import { DocDef, connect } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books: 
-        | DocDef<`book::${string}`, { 
-        title: string; 
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
-    },
+      books: DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      >;
+    };
   };
 };
 
@@ -237,8 +246,7 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 
 // ---cut-before---
 // @noErrors: 2769
-const result = await collection.lookupIn('book::001')
-  .get('autho')
+const result = await collection.lookupIn('book::001').get('autho');
 //           ^|
 ```
 
@@ -248,18 +256,20 @@ Nevertheless, `authors[0]` is a valid path.
 This does not apply to tuples, as their length is fixed.
 
 ```ts twoslash
-import { DocDef, connect } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books: 
-        | DocDef<`book::${string}`, { 
-        title: string; 
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
-    },
+      books: DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      >;
+    };
   };
 };
 
@@ -268,15 +278,14 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 
 // ---cut-before---
 // @noErrors: 2769
-const result = await collection.lookupIn('book::001')
-  .get('quater_sal')
+const result = await collection.lookupIn('book::001').get('quater_sal');
 //                ^|
 ```
 
 &nbsp;  
 &nbsp;  
 &nbsp;  
-&nbsp;  
+&nbsp;
 
 ### Recursivity
 
@@ -285,6 +294,7 @@ Deeper path will be unchecked.
 
 ```ts twoslash
 import { DocumentPath } from '@cbjsdev/shared';
+
 // ---cut-before---
 type RecursiveStringArray = (string | RecursiveStringArray)[];
 type AllowedPath = DocumentPath<RecursiveStringArray>;
