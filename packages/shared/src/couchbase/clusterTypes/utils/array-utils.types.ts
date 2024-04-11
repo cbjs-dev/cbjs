@@ -285,3 +285,14 @@ export type TupleTail<T extends ReadonlyArray<unknown>> = T extends [
 ]
   ? Tail
   : never;
+
+// prettier-ignore
+export type ArrayMap<T extends ReadonlyArray<unknown>, Prop extends keyof ArrayElement<T>> =
+  T extends [infer A, ...infer Rest] ?
+    Prop extends keyof A ?
+      Prop extends keyof ArrayElement<Rest> ?
+        [A[Prop], ...ArrayMap<Rest, Prop>] :
+      never:
+    never:
+  []
+;

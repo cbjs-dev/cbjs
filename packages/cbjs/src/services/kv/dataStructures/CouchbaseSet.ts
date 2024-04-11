@@ -14,18 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes, invariant, isArray } from '@cbjsdev/shared';
-
-import { AnyCollection } from '../../../clusterTypes/clusterTypes';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DocDefMatchingBody,
+  invariant,
+  isArray,
+  ScopeName,
+} from '@cbjsdev/shared';
 import type { Collection } from '../../../collection';
+import { GetResult } from '../../../crudoptypes';
 import { CouchbaseError, PathExistsError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import {
-  type NodeCallback,
-  PromiseHelper,
-  type VoidNodeCallback,
-} from '../../../utilities';
+import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
 
 /**
  * CouchbaseSet provides a simplified interface for storing a set
@@ -36,17 +39,19 @@ import {
  */
 export class CouchbaseSet<
   T extends CouchbaseClusterTypes,
-  C extends Collection<T, any, any, any>,
-  Key extends string,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
   Item,
 > {
-  private _coll: AnyCollection;
-  private _key: string;
+  private _coll: Collection<T, B, S, C>;
+  private _key: Key;
 
   /**
    * @internal
    */
-  constructor(collection: C, key: Key) {
+  constructor(collection: Collection<T, B, S, C>, key: Key) {
     this._coll = collection;
     this._key = key;
   }
@@ -69,8 +74,8 @@ export class CouchbaseSet<
    */
   async add(item: Item, callback?: NodeCallback<boolean>): Promise<boolean> {
     return await PromiseHelper.wrapAsync(async () => {
-      try {
-        await this._coll.mutateIn(this._key, [MutateInSpec.arrayAddUnique('', item)], {
+      try { // TODO update the other DataStructure
+        await this._coll.mutateIn(this._key, [MutateInSpec.arrayAddUnique('', item) as never], {
           storeSemantics: StoreSemantics.Upsert,
         });
       } catch (e) {
@@ -115,7 +120,7 @@ export class CouchbaseSet<
 
       for (let i = 0; i < 16; ++i) {
         try {
-          const res = await this._coll.get(this._key);
+          const res = await this._coll.get(this._key) as GetResult<ReadonlyArray<unknown>>;
           if (!isArray(res.content)) {
             throw new CouchbaseError('expected document of array type');
           }
@@ -127,7 +132,7 @@ export class CouchbaseSet<
 
           await this._coll.mutateIn(
             this._key,
-            [MutateInSpec.remove(('[' + itemIdx + ']') as `[${number}]`)],
+            [MutateInSpec.remove(('[' + itemIdx + ']') as `[${number}]`) as never],
             {
               cas: res.cas,
             }
@@ -163,7 +168,7 @@ export class CouchbaseSet<
    */
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('')]);
+      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('') as never]);
 
       if (res.content[0].error) {
         throw res.content[0].error;

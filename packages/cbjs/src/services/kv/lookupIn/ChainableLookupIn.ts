@@ -18,14 +18,8 @@ import type { PromiseValue } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import type { AnyCollection } from '../../../clusterTypes';
-import type {
-  ExtractCollectionJsonDocBody,
-  ExtractCollectionJsonDocKey,
-} from '../../../clusterTypes/clusterTypes';
-import type {
-  LookupInSpecResults,
-  MakeLookupInSpec,
-} from '../../../clusterTypes/kv/lookup/lookupIn.types';
+import type { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
+import type { LookupInSpecResults, MakeLookupInSpec } from '../../../clusterTypes/kv/lookup/lookupIn.types';
 import type {
   LookupInCountPath,
   LookupInExistsPath,
@@ -158,11 +152,7 @@ export class ChainableLookupIn<
 
   execute(): Promise<LookupResult<Method, Doc, SpecDefinitions>> {
     const lookupMethod = this.collection[this.method as Method & keyof C];
-    const lookup = lookupMethod.bind(this.collection) as LookupMethod<
-      Doc,
-      Key,
-      SpecDefinitions
-    >;
+    const lookup = lookupMethod.bind(this.collection) as any;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     return lookup(this.key, this.getSpecs(), this.options);

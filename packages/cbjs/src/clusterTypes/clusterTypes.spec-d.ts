@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, it } from 'vitest';
-
 import { BucketName, DocDef, ScopeName } from '@cbjsdev/shared';
+import { describe, expectTypeOf, it } from 'vitest';
 
 import { Bucket } from '../bucket';
 import { Collection } from '../collection';
@@ -35,24 +34,24 @@ type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = {
   BucketOne: {
     ScopeOne: {
-      CollectionOne: DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>;
-      CollectionFour: DocDef<string, Doc<'b1s1c4d1'>> | DocDef<string, Doc<'b1s1c4d2'>>;
+      CollectionOne: [ DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>> ];
+      CollectionFour: [ DocDef<string, Doc<'b1s1c4d1'>>, DocDef<string, Doc<'b1s1c4d2'>> ];
     };
     ScopeTwo: {
-      CollectionOne: DocDef<string, Doc<'b1s2c1d1'>> | DocDef<string, Doc<'b1s2c1d2'>>;
-      CollectionTwo: DocDef<string, Doc<'b1s2c2d1'>> | DocDef<string, Doc<'b1s2c2d2'>>;
+      CollectionOne: [ DocDef<string, Doc<'b1s2c1d1'>>, DocDef<string, Doc<'b1s2c1d2'>> ];
+      CollectionTwo: [ DocDef<string, Doc<'b1s2c2d1'>>, DocDef<string, Doc<'b1s2c2d2'>> ];
     };
   };
   BucketTwo: {
     ScopeOne: {
-      CollectionSix: DocDef<string, Doc<'b2s1c6d1'>> | DocDef<string, Doc<'b2s1c6d2'>>;
+      CollectionSix: [ DocDef<string, Doc<'b2s1c6d1'>>, DocDef<string, Doc<'b2s1c6d2'>> ];
     };
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
   BucketThree: {
     ScopeThree: {
-      CollectionOne: DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>;
+      CollectionOne: [ DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>> ];
     };
   };
 };
@@ -260,9 +259,9 @@ describe('CollectionContainingDocDef', () => {
   type UserClusterTypes = {
     store: {
       library: {
-        books: DocDef<BookId, Book>;
-        groceries: DocDef<VegetableId, Vegetable>;
-        wtf: DocDef<VegetableId, Vegetable> | DocDef<BookId, Book>;
+        books: [ DocDef<BookId, Book> ];
+        groceries: [ DocDef<VegetableId, Vegetable> ];
+        wtf: [ DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>] ;
       };
     };
   };
@@ -298,18 +297,14 @@ describe('CollectionMatchingDocDef', () => {
   type UserClusterTypes = {
     store: {
       library: {
-        books: DocDef<BookId, Book>;
-        groceries: DocDef<VegetableId, Vegetable>;
-        wtf: DocDef<VegetableId, Vegetable> | DocDef<BookId, Book>;
+        books: [ DocDef<BookId, Book> ];
+        groceries: [ DocDef<VegetableId, Vegetable> ];
+        wtf: [ DocDef<VegetableId, Vegetable>, DocDef<BookId, Book> ];
       };
     };
   };
 
   it('should return all collections matching any of the given definitions', () => {
-    type T = CollectionMatchingDocDef<
-      UserClusterTypes,
-      DocDef<string, { title: string }>
-    >;
     expectTypeOf<
       CollectionMatchingDocDef<UserClusterTypes, DocDef<string, { title: string }>>
     >().toEqualTypeOf<
@@ -340,9 +335,9 @@ describe('CollectionContainingDocBody', () => {
   type UserClusterTypes = {
     store: {
       library: {
-        books: DocDef<BookId, Book>;
-        groceries: DocDef<VegetableId, Vegetable>;
-        wtf: DocDef<VegetableId, Vegetable> | DocDef<BookId, Book>;
+        books: [ DocDef<BookId, Book> ];
+        groceries: [ DocDef<VegetableId, Vegetable> ];
+        wtf: [ DocDef<VegetableId, Vegetable>, DocDef<BookId, Book> ];
       };
     };
   };
@@ -356,7 +351,7 @@ describe('CollectionContainingDocBody', () => {
       | Collection<UserClusterTypes, 'store', 'library', 'wtf'>
     >();
   });
-
+  
   it('should return all collections containing document that have a body that extends the given type', () => {
     expectTypeOf<
       CollectionContainingDocBody<UserClusterTypes, { title: string }>

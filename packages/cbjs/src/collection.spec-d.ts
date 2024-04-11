@@ -14,11 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, it, test } from 'vitest';
-
 import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
-
-import { AnyCollection } from './clusterTypes';
+import { describe, expectTypeOf, it, test } from 'vitest';
 import { Collection } from './collection';
 import { connect } from './couchbase';
 import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes';
@@ -39,10 +36,10 @@ type TestDoc = {
 type UserClusterTypes = {
   test: {
     _default: {
-      _default: DocDef<`book::${string}`, TestDoc>;
+      _default: [ DocDef<`book::${string}`, TestDoc> ];
     };
     scope1: {
-      collection1: DocDef<`counter::${string}`, number>;
+      collection1: [ DocDef<`counter::${string}`, number> ];
     };
   };
 };
@@ -256,7 +253,9 @@ describe('Collection', async () => {
       expectTypeOf(whateverSet).toEqualTypeOf<
         CouchbaseSet<
           DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'test',
+          '_default',
+          '_default',
           'whatever',
           any
         >

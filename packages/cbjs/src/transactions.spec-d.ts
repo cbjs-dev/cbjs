@@ -1,6 +1,5 @@
-import { describe, expectTypeOf, it } from 'vitest';
-
 import { Cas, DocDef } from '@cbjsdev/shared';
+import { describe, expectTypeOf, it } from 'vitest';
 
 import { connect, DocumentId, TransactionDocInfo, TransactionGetResult } from '.';
 import { CppTransactionGetMetaData, CppTransactionLinks } from './binding';
@@ -17,7 +16,7 @@ type Book = {
 type UserClusterTypes = {
   store: {
     library: {
-      books: DocDef<`book::${string}`, Book>;
+      books: [ DocDef<`book::${string}`, Book> ];
     };
   };
 };
@@ -191,9 +190,8 @@ describe('transactions', async () => {
     it('should validate the TransactionDocInfo type based on the cluster types', async () => {
       const tx = cluster.transactions();
       await tx.run(async (attempt) => {
-        const invalidTxDocInfo = null as unknown as TransactionDocInfo<
-          NonNullable<unknown>
-        >;
+        const invalidTxDocInfo = null as unknown as TransactionDocInfo;
+
         // @ts-expect-error Invalid TransactionDocInfo
         await attempt.remove(invalidTxDocInfo);
 

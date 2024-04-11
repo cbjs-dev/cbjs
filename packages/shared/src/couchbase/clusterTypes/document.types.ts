@@ -14,43 +14,38 @@
  * limitations under the License.
  */
 import { IsAny, IsExactly, IsNever, Or } from '../../misc';
-import { ClusterTypesOptions, CouchbaseClusterTypes } from './cluster.types';
+import { Keyspace } from '../utils';
+import { ClusterTypesOptions, CouchbaseClusterTypes, DefaultClusterTypes, GetKeyspaceOptions } from './cluster.types';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types';
 import { DocumentPath } from './utils';
 
-export type DocDef<
-  Key extends string = string,
-  Body = unknown,
-  Options extends ClusterTypesOptions = never,
-> = {
+export type DocDef<Key extends string = string, Body = unknown> = {
   Key: Key;
   Body: Body;
-  Options: Options;
 };
-
-/**
- * Union of all of `T` values. Distributive.
- *
- * @internal
- */
-type UnwindUnionObjectValues<T> = T extends unknown ? T[keyof T] : never;
 
 /**
  * Union of DocDef in a collection. Distributive.
  */
+// prettier-ignore
 export type KeyspaceDocDef<
-  T extends CouchbaseClusterTypes,
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
   B extends BucketName<T> = BucketName<T>,
   S extends ScopeName<T, B> = ScopeName<T, B>,
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
 > =
-  B extends BucketName<T>
-    ? S extends ScopeName<T, B>
-      ? C extends CollectionName<T, B, S>
-        ? Extract<UnwindUnionObjectValues<T[B][S]>, T[B][S][C]>
-        : never
-      : never
-    : never;
+  Keyspace<T, B, S, C> extends infer KS extends Keyspace<T, B, S, C> ?
+    KS extends unknown ?
+      KS['bucket'] extends infer KSB extends BucketName<T> ?
+        KS['scope'] extends infer KSS extends ScopeName<T, KSB> ?
+          KS['collection'] extends infer KSC extends CollectionName<T, KSB, KSS> ?
+            Extract<T[KSB][KSS][KSC], ReadonlyArray<unknown>>[number] :
+          never :
+        never :
+      never :
+    never :
+  never
+;
 
 /**
  * Contains the pre-computer types for the collection.
@@ -60,7 +55,7 @@ export type DocumentBag<Def extends DocDef> = {
   Document: Def;
   JsonDocument: JsonDocumentDef<Def>;
   ObjectDocument: ObjectDocumentDef<Def>;
-  ObjectDocumentPath: DocumentPath<ObjectDocumentDef<Def>['body']> | '';
+  ObjectDocumentPath: DocumentPath<ObjectDocumentDef<Def>['Body']> | '';
 };
 
 /**
@@ -123,11 +118,14 @@ export type ObjectDocument<Doc> = Extract<Doc, object>;
 /**
  * Extract definitions of documents on which you can perform sub-document operations.
  */
-export type ObjectDocumentDef<T extends DocDef> = T extends infer Doc extends DocDef
-  ? Doc['Body'] extends object
-    ? DocDef<Doc['Key'], Doc['Body']>
-    : never
-  : never;
+// prettier-ignore
+export type ObjectDocumentDef<Def extends DocDef> =
+  Def extends unknown ?
+    Def['Body'] extends object ?
+      DocDef<Def['Key'], Def['Body']> :
+    never :
+  never
+;
 
 /**
  * Extract document definitions where the body extends `E`.
@@ -164,4 +162,77 @@ export type ExtractDocBodyByKey<
     : never
   : never;
 
-// type KeyMatches<T>
+// prettier-ignore
+export type DocDefMatchingKey<
+  Key extends string,
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+> =
+  GetKeyspaceOptions<T, B, S, C> extends infer ResolvedOptions extends ClusterTypesOptions ?
+    Extract<T[B][S][C], ReadonlyArray<unknown>> extends infer Defs extends ReadonlyArray<DocDef> ?
+      Key extends unknown ?
+        ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
+          Defs[number] extends infer Def extends DocDef ?
+            Def extends unknown ?
+              Key extends Def['Key'] ?
+                Def :
+              never :
+            never :
+          never :
+        ResolvedOptions extends { keyDelimiter: string; keyMatchingStrategy: 'delimiter' } ?
+          MatchDocDefKeyByDelimiter<Key, Defs, ResolvedOptions> :
+        ResolvedOptions extends { keyMatchingStrategy: 'firstMatch' } ?
+          MatchDocDefKeyFirstMatch<Key, Defs> :
+        never :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
+export type MatchDocDefKeyByDelimiter<
+  Key extends string,
+  CompareSet extends ReadonlyArray<DocDef>,
+  Options extends { keyDelimiter: string }
+> =
+  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+    Key extends A['Key'] ?
+      // If it matches a longer template, it means it's not the more precise template
+      Key extends `${A['Key']}${Options['keyDelimiter']}${string}` ?
+        MatchDocDefKeyByDelimiter<Key, Rest, Options> :
+      A | MatchDocDefKeyByDelimiter<Key, Rest, Options> :
+    MatchDocDefKeyByDelimiter<Key, Rest, Options> :
+  never
+;
+
+// prettier-ignore
+export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet extends ReadonlyArray<DocDef>> =
+  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+    Key extends A['Key'] ?
+      A :
+    MatchDocDefKeyFirstMatch<Key, Rest> :
+  never
+;
+
+// prettier-ignore
+export type DocDefMatchingBody<
+  Body,
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+> =
+  Extract<T[B][S][C], ReadonlyArray<unknown>> extends infer Defs extends ReadonlyArray<DocDef> ?
+    Body extends unknown ?
+      Defs[number] extends infer Def extends DocDef ?
+        Def extends unknown ?
+          Def['Body'] extends Body ?
+            Def :
+          never :
+        never :
+      never :
+    never :
+  never
+;

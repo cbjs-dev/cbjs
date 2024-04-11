@@ -15,23 +15,40 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef, KeyspaceDocDef } from './document.types';
+import { Pretty } from '../../misc';
+import {
+  BucketTypes,
+  clusterTypeOptionsSymbol,
+  ClusterTypes,
+  DefaultClusterTypes,
+  DefaultKeyspaceOptions,
+  GetKeyspaceOptions,
+  ScopeTypes,
+} from './cluster.types';
+import {
+  DocDef,
+  DocDefMatchingBody,
+  DocDefMatchingKey,
+  KeyspaceDocDef,
+  MatchDocDefKeyByDelimiter,
+  MatchDocDefKeyFirstMatch,
+} from './document.types';
 
 type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = {
   BucketOne: {
     ScopeOne: {
-      CollectionOne: DocDef<string, Doc<'b1s1c1d1'>> | DocDef<string, Doc<'b1s1c1d2'>>;
-      CollectionFour: DocDef<string, Doc<'b1s1c4d1'>> | DocDef<string, Doc<'b1s1c4d2'>>;
+      CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
+      CollectionFour: [DocDef<string, Doc<'b1s1c4d1'>>, DocDef<string, Doc<'b1s1c4d2'>>];
     };
     ScopeTwo: {
-      CollectionOne: DocDef<string, Doc<'b1s2c1d1'>> | DocDef<string, Doc<'b1s2c1d2'>>;
-      CollectionTwo: DocDef<string, Doc<'b1s2c2d1'>> | DocDef<string, Doc<'b1s2c2d2'>>;
+      CollectionOne: [DocDef<string, Doc<'b1s2c1d1'>>, DocDef<string, Doc<'b1s2c1d2'>>];
+      CollectionTwo: [DocDef<string, Doc<'b1s2c2d1'>>, DocDef<string, Doc<'b1s2c2d2'>>];
     };
   };
   BucketTwo: {
     ScopeOne: {
-      CollectionSix: DocDef<string, Doc<'b2s1c6d1'>> | DocDef<string, Doc<'b2s1c6d2'>>;
+      CollectionSix: [DocDef<string, Doc<'b2s1c6d1'>>, DocDef<string, Doc<'b2s1c6d2'>>];
     };
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
@@ -134,5 +151,328 @@ describe('PickCollectionDocument', () => {
       | DocDef<string, Doc<'b1s2c1d1'>>
       | DocDef<string, Doc<'b1s2c1d2'>>
     >();
+  });
+});
+
+describe('GetKeyspaceOptions', () => {
+  it('should return the default options when none are defined', () => {
+    expectTypeOf<
+      GetKeyspaceOptions<
+        {
+          store: { library: { books: [] } };
+        },
+        'store',
+        'library',
+        'books'
+      >
+    >().toEqualTypeOf<DefaultKeyspaceOptions>();
+  });
+  it('should return the cluster options when there are no others', () => {
+    expectTypeOf<
+      GetKeyspaceOptions<
+        {
+          store: { library: { books: [] } };
+          [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'firstMatch' };
+        },
+        'store',
+        'library',
+        'books'
+      >
+    >().toEqualTypeOf<{ keyMatchingStrategy: 'firstMatch' }>();
+  });
+
+  it('should merge cluster options and bucket options', () => {
+    expectTypeOf<
+      GetKeyspaceOptions<
+        {
+          [clusterTypeOptionsSymbol]: {
+            keyMatchingStrategy: 'delimiter';
+            keyDelimiter: '::';
+          };
+          store: {
+            [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'firstMatch' };
+            library: { books: [] };
+          };
+        },
+        'store',
+        'library',
+        'books'
+      >
+    >().toEqualTypeOf<{ keyMatchingStrategy: 'firstMatch'; keyDelimiter: '::' }>();
+  });
+
+  it('should merge cluster, bucket and scope options', () => {
+    expectTypeOf<
+      GetKeyspaceOptions<
+        {
+          [clusterTypeOptionsSymbol]: {
+            keyMatchingStrategy: 'delimiter';
+            keyDelimiter: '::';
+          };
+          store: {
+            [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'firstMatch' };
+            library: {
+              [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'always' };
+              books: [];
+            };
+          };
+        },
+        'store',
+        'library',
+        'books'
+      >
+    >().toEqualTypeOf<{ keyMatchingStrategy: 'always'; keyDelimiter: '::' }>();
+  });
+
+  it('should merge cluster, bucket, scope and collection options', () => {
+    //   v?
+    type T = GetKeyspaceOptions<
+      {
+        [clusterTypeOptionsSymbol]: {
+          keyMatchingStrategy: 'delimiter';
+          keyDelimiter: '::';
+        };
+        store: {
+          [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'firstMatch' };
+          library: {
+            [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'always' };
+            books:
+              | {
+                  [clusterTypeOptionsSymbol]: {
+                    keyMatchingStrategy: 'delimiter';
+                    keyDelimiter: '__';
+                  };
+                }
+              | [];
+          };
+        };
+      },
+      'store',
+      'library',
+      'books'
+    >;
+
+    expectTypeOf<
+      GetKeyspaceOptions<
+        {
+          [clusterTypeOptionsSymbol]: {
+            keyMatchingStrategy: 'delimiter';
+            keyDelimiter: '::';
+          };
+          store: {
+            [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'firstMatch' };
+            library: {
+              [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'always' };
+              books:
+                | {
+                    [clusterTypeOptionsSymbol]: {
+                      keyMatchingStrategy: 'delimiter';
+                      keyDelimiter: '__';
+                    };
+                  }
+                | [];
+            };
+          };
+        },
+        'store',
+        'library',
+        'books'
+      >
+    >().toEqualTypeOf<{ keyMatchingStrategy: 'delimiter'; keyDelimiter: '__' }>();
+  });
+});
+
+describe('DocDefMatchingKey', () => {
+  type BookKey = `book::${string}`;
+  type BookReviewsKey = `book::${string}::reviews`;
+  type BookCommentsKey = `book::${string}::comments`;
+  type BookCommentsLikesKey = `book::${string}::comments::${string}::likes`;
+
+  type BookDef = DocDef<BookKey, 'book'>;
+  type BookReviewsDef = DocDef<BookReviewsKey, 'reviews'>;
+  type BookCommentsDef = DocDef<BookCommentsKey, 'comments'>;
+  type BookCommentsLikesDef = DocDef<BookCommentsLikesKey, 'comments::likes'>;
+
+  type UserClusterTypes = ClusterTypes<{
+    store: BucketTypes<{
+      library: ScopeTypes<{
+        books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
+      }>;
+    }>;
+  }>;
+
+  it('default cluster types', () => {
+    expectTypeOf<
+      DocDefMatchingKey<BookKey, DefaultClusterTypes, 'store', 'library', 'books'>
+    >().toEqualTypeOf<DocDef<string, any>>();
+  });
+
+  it('keyMatchingStrategy: firstMatch', () => {
+    type CT = Pretty<
+      UserClusterTypes & {
+        [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'firstMatch' };
+      }
+    >;
+
+    expectTypeOf<
+      DocDefMatchingKey<BookKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookDef>();
+
+    expectTypeOf<
+      DocDefMatchingKey<BookCommentsKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookDef>();
+
+    expectTypeOf<
+      DocDefMatchingKey<BookReviewsKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookReviewsDef>();
+  });
+
+  it('keyMatchingStrategy: always', () => {
+    type CT = Pretty<
+      UserClusterTypes & { [clusterTypeOptionsSymbol]: { keyMatchingStrategy: 'always' } }
+    >;
+
+    expectTypeOf<
+      DocDefMatchingKey<BookKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookDef>();
+
+    expectTypeOf<
+      DocDefMatchingKey<BookReviewsKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookDef | BookReviewsDef>();
+  });
+
+  it('keyMatchingStrategy: delimiter', () => {
+    type CT = Pretty<
+      UserClusterTypes & {
+        [clusterTypeOptionsSymbol]: {
+          keyDelimiter: '::';
+          keyMatchingStrategy: 'delimiter';
+        };
+      }
+    >;
+
+    expectTypeOf<
+      DocDefMatchingKey<BookKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookDef>();
+
+    expectTypeOf<
+      DocDefMatchingKey<BookReviewsKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookReviewsDef>();
+
+    expectTypeOf<
+      DocDefMatchingKey<BookCommentsKey, CT, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookCommentsDef>();
+  });
+});
+
+describe('KeyMatchesByDelimiter', () => {
+  type Options = { keyDelimiter: '::' };
+  type BookKey = `book::${string}`;
+  type BookReviewsKey = `book::${string}::reviews`;
+  type BookCommentsKey = `book::${string}::comments`;
+  type BookCommentsLikesKey = `book::${string}::comments::${string}::likes`;
+
+  type BookDef = DocDef<BookKey, 'book'>;
+  type BookReviewsDef = DocDef<BookReviewsKey, 'reviews'>;
+  type BookCommentsDef = DocDef<BookCommentsKey, 'comments'>;
+  type BookCommentsLikesDef = DocDef<BookCommentsLikesKey, 'comments::likes'>;
+
+  it('should match the closest templates', () => {
+    expectTypeOf<
+      MatchDocDefKeyByDelimiter<
+        BookKey,
+        [BookDef, BookReviewsDef, BookCommentsDef, BookCommentsLikesDef],
+        Options
+      >
+    >().toEqualTypeOf<BookDef>();
+
+    expectTypeOf<
+      MatchDocDefKeyByDelimiter<
+        BookReviewsKey,
+        [BookDef, BookReviewsDef, BookCommentsDef, BookCommentsLikesDef],
+        Options
+      >
+    >().toEqualTypeOf<BookReviewsDef>();
+
+    expectTypeOf<
+      MatchDocDefKeyByDelimiter<
+        BookCommentsKey,
+        [BookDef, BookReviewsDef, BookCommentsDef, BookCommentsLikesDef],
+        Options
+      >
+    >().toEqualTypeOf<BookCommentsDef>();
+
+    expectTypeOf<
+      MatchDocDefKeyByDelimiter<
+        BookCommentsLikesKey,
+        [BookDef, BookReviewsDef, BookCommentsDef, BookCommentsLikesDef],
+        Options
+      >
+    >().toEqualTypeOf<BookCommentsLikesDef>();
+  });
+});
+
+describe('KeyMatchFirst', () => {
+  type BookKey = `book::${string}`;
+  type BookReviewsKey = `book::${string}::reviews`;
+  type BookCommentsKey = `book::${string}::comments`;
+  type BookCommentsLikesKey = `book::${string}::comments::${string}::likes`;
+
+  type BookDef = DocDef<BookKey, 'book'>;
+  type BookReviewsDef = DocDef<BookReviewsKey, 'reviews'>;
+  type BookCommentsDef = DocDef<BookCommentsKey, 'comments'>;
+  type BookCommentsLikesDef = DocDef<BookCommentsLikesKey, 'comments::likes'>;
+
+  it('should return the first key to match', () => {
+    expectTypeOf<
+      MatchDocDefKeyFirstMatch<
+        BookKey,
+        [BookDef, BookReviewsDef, BookCommentsDef, BookCommentsLikesDef]
+      >
+    >().toEqualTypeOf<BookDef>();
+
+    expectTypeOf<
+      MatchDocDefKeyFirstMatch<
+        BookCommentsKey,
+        [BookCommentsDef, BookDef, BookReviewsDef, BookCommentsLikesDef]
+      >
+    >().toEqualTypeOf<BookCommentsDef>();
+
+    expectTypeOf<
+      MatchDocDefKeyFirstMatch<
+        BookCommentsKey,
+        [BookDef, BookReviewsDef, BookCommentsDef, BookCommentsLikesDef]
+      >
+    >().toEqualTypeOf<BookDef>();
+  });
+});
+
+describe('DocDefMatchingBody', () => {
+  type Options = { keyDelimiter: '::' };
+  type BookKey = `book::${string}`;
+  type BookReviewsKey = `book::${string}::reviews`;
+  type BookCommentsKey = `book::${string}::comments`;
+  type BookCommentsLikesKey = `book::${string}::comments::${string}::likes`;
+
+  type BookDef = DocDef<BookKey, { title: string }>;
+  type BookReviewsDef = DocDef<BookReviewsKey, Array<{ note: number; text: string }>>;
+  type BookCommentsDef = DocDef<BookCommentsKey, string[]>;
+  type BookCommentsLikesDef = DocDef<
+    BookCommentsLikesKey,
+    Array<'like' | 'love' | 'excited'>
+  >;
+
+  type UserClusterTypes = ClusterTypes<{
+    store: BucketTypes<{
+      library: ScopeTypes<{
+        books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
+      }>;
+    }>;
+  }>;
+
+  it('should return a union of DocDef that match the requested body', () => {
+    expectTypeOf<
+      DocDefMatchingBody<string[], UserClusterTypes, 'store', 'library', 'books'>
+    >().toEqualTypeOf<BookCommentsDef | BookCommentsLikesDef>();
   });
 });
