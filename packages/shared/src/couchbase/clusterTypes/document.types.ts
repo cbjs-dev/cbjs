@@ -170,6 +170,8 @@ export type DocDefMatchingKey<
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
 > =
+  IsAny<T> extends true ?
+    DocDef<string, any> :
   GetKeyspaceOptions<T, B, S, C> extends infer ResolvedOptions extends ClusterTypesOptions ?
     Extract<T[B][S][C], ReadonlyArray<unknown>> extends infer Defs extends ReadonlyArray<DocDef> ?
       Key extends unknown ?

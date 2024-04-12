@@ -74,7 +74,7 @@ export class CouchbaseSet<
    */
   async add(item: Item, callback?: NodeCallback<boolean>): Promise<boolean> {
     return await PromiseHelper.wrapAsync(async () => {
-      try { // TODO update the other DataStructure
+      try {
         await this._coll.mutateIn(this._key, [MutateInSpec.arrayAddUnique('', item) as never], {
           storeSemantics: StoreSemantics.Upsert,
         });

@@ -155,6 +155,12 @@ describe('PickCollectionDocument', () => {
 });
 
 describe('GetKeyspaceOptions', () => {
+  it('should return the default options when any is given as cluster types', () => {
+    expectTypeOf<
+      GetKeyspaceOptions<any, any, any, any>
+    >().toEqualTypeOf<DefaultKeyspaceOptions>();
+  });
+
   it('should return the default options when none are defined', () => {
     expectTypeOf<
       GetKeyspaceOptions<
@@ -301,9 +307,17 @@ describe('DocDefMatchingKey', () => {
     }>;
   }>;
 
-  it('default cluster types', () => {
+  it('default cluster types with specific collection', () => {
     expectTypeOf<
       DocDefMatchingKey<BookKey, DefaultClusterTypes, 'store', 'library', 'books'>
+    >().toEqualTypeOf<DocDef<string, any>>();
+  });
+
+  it('default cluster types with any collection', () => {
+    type T = DocDefMatchingKey<BookKey, any, any, any, any>;
+    //   ^?
+    expectTypeOf<
+      DocDefMatchingKey<BookKey, any, any, any, any>
     >().toEqualTypeOf<DocDef<string, any>>();
   });
 

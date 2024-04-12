@@ -547,8 +547,8 @@ export class Collection<
    */
   async get<
     Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends ExtractCollectionJsonDocKey<this> = ExtractCollectionJsonDocKey<this>,
-    WithExpiry extends boolean = boolean,
+    Key extends CT<this>['Key'],
+    WithExpiry extends boolean,
   >(
     key: Key,
     options?: GetOptions<Doc, WithExpiry> | NodeCallback<GetResult<Doc, WithExpiry>>,
@@ -564,7 +564,7 @@ export class Collection<
 
     if (options.project !== undefined || options.withExpiry === true) {
       return this._projectedGet(
-        key,
+        key as never,
         options,
         callback
       );
@@ -2196,7 +2196,7 @@ export class Collection<
 
   mutateIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>,
   >(
     key: Key,
@@ -2312,13 +2312,13 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   list<
-    Key extends CT<this>['ObjectDocument']['Key'],
+    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
     Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
     Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseList<T, this, Key, Item>
+      ? CouchbaseList<T, B, S, C, Key, Item>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseList<T, this, Key, Item>
+        ? CouchbaseList<T, B, S, C, Key, Item>
         : 'This collection does not contain any list.',
   >(key: Key): R {
     return new CouchbaseList(this as never, key) as R;
@@ -2330,13 +2330,13 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   queue<
-    Key extends CT<this>['ObjectDocument']['Key'],
+    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
     Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
     Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseQueue<T, this, Key, Item>
+      ? CouchbaseQueue<T, B, S, C, Key, Item>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseQueue<T, this, Key, Item>
+        ? CouchbaseQueue<T, B, S, C, Key, Item>
         : 'This collection does not contain any queue.',
   >(key: Key): R {
     return new CouchbaseQueue(this as never, key) as R;
@@ -2348,13 +2348,13 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   map<
-    Key extends CT<this>['ObjectDocument']['Key'],
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
+    Key extends DocDefMatchingBody<Record<string, unknown>, T, B, S, C>['Key'],
+    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], Record<string, unknown>>,
     MapDoc extends If<IsAny<Doc>, Record<string, any>, Doc>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>> extends true
-      ? CouchbaseMap<T, this, Key, MapDoc>
+      ? CouchbaseMap<T, B, S, C, Key, MapDoc>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>
-        ? CouchbaseMap<T, this, Key, MapDoc>
+        ? CouchbaseMap<T, B, S, C, Key, MapDoc>
         : 'This collection does not contain any map.',
   >(key: Key): R {
     return new CouchbaseMap(this as never, key) as R;
@@ -2367,7 +2367,7 @@ export class Collection<
    */
   set<
     Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
-    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], ReadonlyArray<unknown>>,
+    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
     Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
       ? CouchbaseSet<T, B, S, C, Key, Item>

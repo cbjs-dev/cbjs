@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsNever, Pretty } from '../../misc';
+import { IsAny, IsNever, Pretty } from '../../misc';
 import { DocDef } from './document.types';
 import { BucketName, CollectionName, DefaultCollectionName, DefaultScopeName, ScopeName } from './keyspace.types';
 
@@ -137,6 +137,8 @@ export type GetKeyspaceOptions<
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
 > =
+  IsAny<T> extends true ?
+    DefaultKeyspaceOptions :
   T[ClusterTypesOptionsSymbol] extends infer ClusterOptions ?
     T[B][ClusterTypesOptionsSymbol] extends infer BucketOptions ?
       T[B][S][ClusterTypesOptionsSymbol] extends infer ScopeOptions ?

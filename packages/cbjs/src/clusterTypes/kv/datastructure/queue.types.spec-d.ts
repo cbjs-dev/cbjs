@@ -17,7 +17,6 @@ import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
 
 import { connect } from '../../..';
-import { Collection } from '../../../collection';
 import { CouchbaseQueue } from '../../../services/kv/dataStructures';
 
 describe('CouchbaseQueue', function () {
@@ -27,12 +26,7 @@ describe('CouchbaseQueue', function () {
       const collection = cluster.bucket('test').defaultCollection();
       const queue = collection.queue('docKey');
       expectTypeOf(queue).toEqualTypeOf<
-        CouchbaseQueue<
-          DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
-          'docKey',
-          any
-        >
+        CouchbaseQueue<DefaultClusterTypes, 'test', '_default', '_default', 'docKey', any>
       >();
     });
 
@@ -73,8 +67,10 @@ describe('CouchbaseQueue', function () {
       const queueTwo = collectionTwo.queue('docKey');
       expectTypeOf(queueTwo).toEqualTypeOf<
         CouchbaseQueue<
-          DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          UserClusterTypes,
+          'test',
+          '_default',
+          'collectionTwo',
           'docKey',
           string
         >

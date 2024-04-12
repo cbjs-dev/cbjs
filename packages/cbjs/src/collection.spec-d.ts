@@ -211,7 +211,9 @@ describe('Collection', async () => {
       expectTypeOf(whateverMap).toEqualTypeOf<
         CouchbaseMap<
           DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          'test',
+          '_default',
+          '_default',
           'book::001',
           TestDoc
         >
@@ -235,7 +237,9 @@ describe('Collection', async () => {
       expectTypeOf(whateverMap).toEqualTypeOf<
         CouchbaseMap<
           DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', 'scope1', 'collection1'>,
+          'test',
+          'scope1',
+          'collection1',
           'whatever',
           Record<string, any>
         >
@@ -251,14 +255,7 @@ describe('Collection', async () => {
       const whateverSet = collection.set('whatever');
 
       expectTypeOf(whateverSet).toEqualTypeOf<
-        CouchbaseSet<
-          DefaultClusterTypes,
-          'test',
-          '_default',
-          '_default',
-          'whatever',
-          any
-        >
+        CouchbaseSet<DefaultClusterTypes, 'test', '_default', '_default', 'whatever', any>
       >();
     });
   });
