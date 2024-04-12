@@ -124,7 +124,7 @@ export class CouchbaseSet<
             throw new CouchbaseError('expected document of array type');
           }
 
-          const itemIdx = res.content.indexOf(item);
+          const itemIdx = (res.content as Item[]).indexOf(item);
           if (itemIdx === -1) {
             throw new CouchbaseError('item was not found in set');
           }
