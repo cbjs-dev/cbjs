@@ -41,6 +41,7 @@ import { getTestLogger } from './logger';
 import { getRandomId } from './utils/getRandomId';
 
 export class ServerTestContext {
+  public readonly contextId: string;
   public readonly contextNamespace: string;
   private keyCounter: number;
 
@@ -59,13 +60,14 @@ export class ServerTestContext {
   private static readonly setupActions: Array<() => Promise<void> | void> = [];
 
   constructor() {
-    this.contextNamespace = `cbjs_${getRandomId()}`;
+    this.contextId = getRandomId();
+    this.contextNamespace = `cbjs_${this.contextId}`;
     this.keyCounter = 0;
     this.logger = getTestLogger();
   }
 
   newUid() {
-    return `cbjs_${this.contextNamespace}_${this.keyCounter++}`;
+    return `${this.contextId}_${this.keyCounter++}`;
   }
 
   /**

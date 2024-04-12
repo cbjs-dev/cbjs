@@ -2,3 +2,4 @@ dist
 .*/
 **/types.ts
 **/*.types.ts
+**/*.md

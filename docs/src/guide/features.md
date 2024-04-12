@@ -31,14 +31,14 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef<
+      books: [ DocDef<
         `book::${string}`,
         {
           title: string;
           authors: string[];
           quater_sales: [number, number, number, number];
         }
-      >;
+      > ]
     };
   };
 };
@@ -67,14 +67,14 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef<
+      books: [ DocDef<
         `book::${string}`,
         {
           title: string;
           authors: string[];
           quater_sales: [number, number, number, number];
         }
-      >;
+      > ]
     };
   };
 };
@@ -86,13 +86,17 @@ const bookId = 'book::001';
 // ---cut-before---
 const {
   content: [title],
-} = await collection.lookupIn(bookId).get('ti');
-//        ^|
+} = await collection
+      .lookupIn(bookId)
+      .get('ti');
+//            ^|
 
 const {
   content: [quaterSales],
-} = await collection.lookupIn(bookId).get('qua');
-//         ^|
+} = await collection
+      .lookupIn(bookId)
+      .get('qua');
+//             ^|
 ```
 
 &nbsp;
@@ -116,14 +120,14 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef<
+      books: [ DocDef<
         `book::${string}`,
         {
           title: string;
           authors: string[];
           quater_sales: [number, number, number, number];
         }
-      >;
+      > ]
     };
   };
 };
@@ -159,14 +163,14 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef<
+      books: [ DocDef<
         `book::${string}`,
         {
           title: string;
           authors: string[];
           quater_sales: [number, number, number, number];
         }
-      >;
+      > ]
     };
   };
 };
@@ -192,12 +196,14 @@ import { DocDef, connect } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`book::${string}`, {
-        title: string;
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
     },
   };
 };

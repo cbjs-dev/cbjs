@@ -21,7 +21,7 @@ The definition of the types is done when connecting to the cluster, by passing a
 type CouchbaseClusterTypes = {
   [bucket: string]: {
     [scope: string]: {
-      [collection: string]: unknown;
+      [collection: string]: DocDef[];
     };
   };
 };
@@ -37,9 +37,10 @@ Express documents keys as a template literal to enable key validation and more p
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`author::${string}`, { firstname: string; lastname: string }>
-        | DocDef<`book::${string}`, { title: string; authors: string[] }>;
+      books: [
+        DocDef<`author::${string}`, { firstname: string; lastname: string }>,
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
     };
   };
 };
@@ -55,9 +56,10 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`author::${string}`, { firstname: string; lastname: string }>
-        | DocDef<`book::${string}`, { title: string; authors: string[] }>;
+      books: [
+        DocDef<`author::${string}`, { firstname: string; lastname: string }>,
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
     };
   };
 };
@@ -97,6 +99,124 @@ await collection.mutateIn(bookId).insert('title', 'documentation');
 await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467');
 ```
 
+## Key Matching Strategy
+When inferring the type of a document, Cbjs matches the given key with the string template of the document definitions of the targeted collection.  
+If we just check if the key extends the template, we will have disappointing results.  
+Take a look at a common pattern for building document keys in a document database :
+
+```ts twoslash
+import { ClusterCollection, DocDef, connect } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string }>,
+        DocDef<`book::${string}::reviews`, Array<{ note: number; comment: string }>>,
+      ];
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+// ---cut-before---
+// @errors: 2345
+// The result is either a book or the book reviews
+const result = await collection.get('book::001::reviews');
+```
+
+Because the key `'book::001::reviews'` extends both string templates, both document are matched.
+
+This is the default key matching strategy, named `always`.
+
+### Delimiter (recommended)
+
+Now let's see another strategy named `delimiter`, that uses the common delimiters to match the keys :
+
+```ts twoslash
+// ---cut-start---
+import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
+// ---cut-end---
+type ClusterTypesOptions = {
+  keyMatchingStrategy: 'delimiter';
+  keyDelimiter: '::';
+};
+
+// ---cut-start---
+type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string }>,
+        DocDef<`book::${string}::reviews`, Array<{ note: number; comment: string }>>,
+      ];
+    };
+  };
+}>;
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+// ---cut-end---
+// @errors: 2345
+// The result has been narrowed using the delimiter to the book reviews
+const result = await collection.get('book::001::reviews');
+```
+
+### First Match
+Finally, if the previous strategy does not work for you, you can use the `firstMatch` strategy, that simply uses the first declared document that matches the key :
+
+```ts twoslash
+// ---cut-start---
+import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
+// ---cut-end---
+type ClusterTypesOptions = {
+  keyMatchingStrategy: 'firstMatch';
+};
+
+type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}::reviews`, Array<{ note: number; comment: string }>>,
+        DocDef<`book::${string}`, { title: string }>,
+      ];
+    };
+  };
+}>;
+
+// ---cut-start---
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+// ---cut-end---
+// @errors: 2345
+// The reviews definition is the first to match, so it is used for the return type.
+const result = await collection.get('book::001::reviews');
+```
+
+### Picking a strategy
+When declaring your cluster types, you can pass some options using one of the type helpers :
+```ts twoslash
+import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
+
+type ClusterTypesOptions = {
+  keyMatchingStrategy: 'delimiter';
+  keyDelimiter: '::';
+};
+
+type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
+  store: BucketTypes<{
+    library: ScopeTypes<{
+      books: CollectionTypes<[ DocDef ]>
+    }>
+  }>
+}>;
+```
+
+:::tip
+Passing options to the helper is optional but always comes as the first type argument.
+:::
+
 ## Incremental adoption
 
 Using strict cluster types on an existing project can be overwhelming.
@@ -109,9 +229,7 @@ import type { DefaultClusterTypes } from '@cbjsdev/cbjs';
 type MyClusterTypes = DefaultClusterTypes & {
   store: {
     library: {
-      books: {
-        /* Document definitions */
-      };
+      books: [/* Document definitions */];
     };
   };
 };
@@ -129,7 +247,7 @@ import { DocDef, Scope } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef;
+      books: [DocDef];
     };
   };
 };
@@ -147,10 +265,10 @@ import { ClusterScope, DocDef, Scope } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef;
+      books: [DocDef];
     };
     groceries: {
-      meat: DocDef;
+      meat: [DocDef];
     };
   };
 };
@@ -177,10 +295,10 @@ import { ClusterCollection, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   backend: {
     webstore: {
-      customers: DocDef<`customer::${string}`, { firstname: string }>;
+      customers: [DocDef<`customer::${string}`, { firstname: string }>];
     };
     retailStore: {
-      customers: DocDef<`customer::${string}`, { firstname: string }>;
+      customers: [DocDef<`customer::${string}`, { firstname: string }>];
     };
   };
 };
@@ -229,14 +347,14 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef<
+      books: [ DocDef<
         `book::${string}`,
         {
           title: string;
           authors: string[];
           quater_sales: [number, number, number, number];
         }
-      >;
+      > ]
     };
   };
 };
@@ -246,7 +364,9 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 
 // ---cut-before---
 // @noErrors: 2769
-const result = await collection.lookupIn('book::001').get('autho');
+const result = await collection
+  .lookupIn('book::001')
+  .get('autho');
 //           ^|
 ```
 
@@ -261,14 +381,14 @@ import { connect, DocDef } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books: DocDef<
+      books: [ DocDef<
         `book::${string}`,
         {
           title: string;
           authors: string[];
           quater_sales: [number, number, number, number];
         }
-      >;
+      > ]
     };
   };
 };
@@ -278,7 +398,9 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 
 // ---cut-before---
 // @noErrors: 2769
-const result = await collection.lookupIn('book::001').get('quater_sal');
+const result = await collection
+  .lookupIn('book::001')
+  .get('quater_sal');
 //                ^|
 ```
 
