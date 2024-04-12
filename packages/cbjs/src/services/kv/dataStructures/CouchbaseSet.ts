@@ -24,7 +24,6 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 import type { Collection } from '../../../collection';
-import { GetResult } from '../../../crudoptypes';
 import { CouchbaseError, PathExistsError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
@@ -120,7 +119,7 @@ export class CouchbaseSet<
 
       for (let i = 0; i < 16; ++i) {
         try {
-          const res = await this._coll.get(this._key) as GetResult<ReadonlyArray<unknown>>;
+          const res = await this._coll.get(this._key);
           if (!isArray(res.content)) {
             throw new CouchbaseError('expected document of array type');
           }
