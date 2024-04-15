@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
-
 import {
+  BucketNotFoundError,
   DocumentExistsError,
   DocumentNotFoundError,
   KeyValueErrorContext,
@@ -24,9 +23,9 @@ import {
   TransactionFailedError,
   TransactionOperationFailedError,
 } from '@cbjsdev/cbjs';
-import { invariant } from '@cbjsdev/shared';
-import { sleep } from '@cbjsdev/shared';
+import { invariant, sleep } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { describe } from 'vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
@@ -633,6 +632,23 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
         expect(err.context).toBeUndefined();
       }
       expect(numAttempts).toEqual(1);
+    });
+
+    test('should throw a BucketNotFoundError if metadata collection bucket does not exist', async ({
+      serverTestContext,
+      expect,
+    }) => {
+      const cluster = await serverTestContext.newConnection(undefined, {
+        transactions: {
+          metadataCollection: {
+            bucket: 'no-bucket',
+            scope: '_default',
+            collection: '_default',
+          },
+        },
+      });
+
+      expect(() => cluster.transactions()).toThrowError(BucketNotFoundError);
     });
   },
   { timeout: 15_000 }

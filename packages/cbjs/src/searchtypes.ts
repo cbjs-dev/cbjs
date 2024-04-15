@@ -255,12 +255,28 @@ export type SearchQueryOptions = {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+
+  /**
+   * Specifies that the search response should include the request JSON.
+   */
+  showRequest?: boolean
+
+  /**
+   * Uncommitted: This API is subject to change in the future.
+   * Specifies that the search request should appear in the log.
+   */
+  logRequest?: boolean
+
+  /**
+   * Uncommitted: This API is subject to change in the future.
+   * Specifies that the search response should appear in the log.
+   */
+  logResponse?: boolean
 };
 
 /**
  *  Represents a search query and/or vector search to execute via the Couchbase Full Text Search (FTS) service.
- *
- *  Volatile: This API is subject to change at any time.
  *
  * @category Full Text Search
  */
@@ -336,8 +352,6 @@ export class SearchRequest {
 
   /**
    * Creates a search request.
-   *
-   * Volatile: This API is subject to change at any time.
    *
    * @param query Either a SearchQuery or VectorSearch to add to the search request.
    */

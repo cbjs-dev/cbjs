@@ -14,16 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
-
-import {
-  HighlightStyle,
-  HttpErrorContext,
-  SearchIndexNotFoundError,
-  SearchQuery,
-} from '@cbjsdev/cbjs';
+import { HighlightStyle, HttpErrorContext, SearchIndexNotFoundError, SearchQuery } from '@cbjsdev/cbjs';
 import { invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { describe } from 'vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { useSampleData } from '../fixtures/useSampleData';
@@ -325,6 +319,50 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
         invariant(err instanceof SearchIndexNotFoundError);
         expect(err.context).toBeInstanceOf(HttpErrorContext);
       }
+    });
+
+    test('should disable scoring', async ({
+      serverTestContext,
+      expect,
+      useCollection,
+      useSearchIndex,
+      useSampleData,
+    }) => {
+      expect.hasAssertions();
+
+      const collectionName = await useCollection();
+      await sleep(2_000);
+
+      const collection = serverTestContext.bucket.collection(collectionName);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { name, ...indexConfig } = getSearchIndexConfig(
+        'willBeRemovedAndRandomized',
+        collection.getKeyspace()
+      );
+
+      const sampleData = await useSampleData(collection);
+      const indexName = await useSearchIndex(indexConfig, {
+        waitSearchIndexTimeout: 55_000,
+        awaitMutations: true,
+      });
+
+      await waitFor(async () => {
+        const result = await serverTestContext.cluster.searchQuery(
+          indexName,
+          SearchQuery.term(sampleData.testUid).field('testUid'),
+          { disableScoring: true }
+        );
+
+        expect(result.rows).toBeInstanceOf(Array);
+        expect(result.rows).toHaveLength(sampleData.sampleSize);
+
+        result.rows.forEach((row) => {
+          expect(row.index).toBeTypeOf('string');
+          expect(row.id).toBeTypeOf('string');
+          expect(row.score).toEqual(0);
+        });
+      });
     });
   },
   { retry: 2 }

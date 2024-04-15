@@ -34,7 +34,13 @@ import binding, {
   CppTransactionLinks,
   CppTransactions,
 } from './binding';
-import { durabilityToCpp, errorFromCpp, queryProfileToCpp, queryScanConsistencyToCpp } from './bindingutilities';
+import {
+  durabilityToCpp,
+  errorFromCpp,
+  queryProfileToCpp,
+  queryScanConsistencyToCpp,
+  transactionKeyspaceToCpp,
+} from './bindingutilities';
 import { Cluster } from './cluster';
 import { AnyCollection, AnyScope } from './clusterTypes';
 import { Collection } from './collection';
@@ -85,11 +91,33 @@ export class DocumentId<
 }
 
 /**
+ * Specifies the configuration options for a Transaction Keyspace.
+ *
+ * @category Transactions
+ */
+export type TransactionKeyspace = {
+  /**
+   * The name of the bucket for the Keyspace.
+   */
+  bucket: string;
+
+  /**
+   * The name of the scope for the Keyspace.
+   */
+  scope?: string;
+
+  /**
+   * The name of the collection for the Keyspace.
+   */
+  collection?: string;
+};
+
+/**
  * Specifies the configuration options for Transactions cleanup.
  *
  * @category Transactions
  */
-export interface TransactionsCleanupConfig {
+export type TransactionsCleanupConfig = {
   /**
    * Specifies the period of the cleanup system.
    */
@@ -104,26 +132,26 @@ export interface TransactionsCleanupConfig {
    * Specifies whether or not the cleanup system should clean client attempts.
    */
   disableClientAttemptCleanup?: boolean;
-}
+};
 
 /**
  * Specifies the configuration options for Transactions queries.
  *
  * @category Transactions
  */
-export interface TransactionsQueryConfig {
+export type TransactionsQueryConfig = {
   /**
    * Specifies the default scan consistency level for queries.
    */
   scanConsistency?: QueryScanConsistency;
-}
+};
 
 /**
  * Specifies the configuration options for Transactions.
  *
  * @category Transactions
  */
-export interface TransactionsConfig {
+export type TransactionsConfig = {
   /**
    * Specifies the level of synchronous durability level.
    */
@@ -150,14 +178,19 @@ export interface TransactionsConfig {
    * Specifies the configuration for the cleanup system.
    */
   cleanupConfig?: TransactionsCleanupConfig;
-}
+
+  /**
+   * Specifies the Keyspace (bucket, scope & collection) for the transaction metadata.
+   */
+  metadataCollection?: TransactionKeyspace;
+};
 
 /**
  * Specifies the configuration options for a Transaction.
  *
  * @category Transactions
  */
-export interface TransactionOptions {
+export type TransactionOptions = {
   /**
    * Specifies the level of synchronous durability level.
    */
@@ -167,7 +200,7 @@ export interface TransactionOptions {
    * Specifies the timeout for the transaction.
    */
   timeout?: number;
-}
+};
 
 /**
  * Contains the results of a Transaction.
@@ -357,7 +390,7 @@ export class TransactionQueryResult<TRow = any> {
 /**
  * @category Transactions
  */
-export interface TransactionQueryOptions {
+export type TransactionQueryOptions = {
   /**
    * Values to be used for the placeholders within the query.
    */
@@ -439,7 +472,7 @@ export interface TransactionQueryOptions {
    * Specifies the scope to run this query in.
    */
   scope?: AnyScope;
-}
+};
 
 /**
  * @internal
@@ -817,19 +850,25 @@ export class Transactions<T extends CouchbaseClusterTypes> {
     }
 
     const connImpl = cluster.conn;
-    const txnsImpl = new binding.Transactions(connImpl, {
-      durability_level: durabilityToCpp(config.durabilityLevel),
-      timeout: config.timeout ?? config.kvTimeout,
-      query_scan_consistency: queryScanConsistencyToCpp(
-        config.queryConfig.scanConsistency
-      ),
-      cleanup_window: config.cleanupConfig.cleanupWindow,
-      cleanup_lost_attempts: !config.cleanupConfig.disableLostAttemptCleanup,
-      cleanup_client_attempts: !config.cleanupConfig.disableClientAttemptCleanup,
-    });
 
-    this._cluster = cluster;
-    this._impl = txnsImpl;
+    try {
+      const txnsImpl = new binding.Transactions(connImpl, {
+        durability_level: durabilityToCpp(config.durabilityLevel),
+        timeout: config.timeout ?? config.kvTimeout,
+        query_scan_consistency: queryScanConsistencyToCpp(
+          config.queryConfig.scanConsistency
+        ),
+        cleanup_window: config.cleanupConfig.cleanupWindow,
+        cleanup_lost_attempts: !config.cleanupConfig.disableLostAttemptCleanup,
+        cleanup_client_attempts: !config.cleanupConfig.disableClientAttemptCleanup,
+        metadata_collection: transactionKeyspaceToCpp(config.metadataCollection),
+      });
+
+      this._cluster = cluster;
+      this._impl = txnsImpl;
+    } catch (err) {
+      throw errorFromCpp(err);
+    }
   }
 
   /**

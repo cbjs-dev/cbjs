@@ -24,7 +24,8 @@
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "scripts": {
-    "install": "node ./scripts/install.mjs 4.2.11",
+    "install": "node ./scripts/install.mjs 4.3.0",
+    "reinstall": "rm src/couchbase-native.node && rm dist/src/couchbase-native.node && node ./scripts/install.mjs 4.3.0",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run",

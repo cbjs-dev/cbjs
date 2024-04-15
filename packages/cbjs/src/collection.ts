@@ -381,8 +381,6 @@ export type MutateInOptions = MutationOptions & {
 };
 
 /**
- * Volatile: This API is subject to change at any time.
- *
  * @category Key-Value
  */
 export interface ScanOptions {
@@ -1777,7 +1775,9 @@ export class Collection<
   /**
    * Performs a key-value scan operation.
    *
-   * Volatile: This API is subject to change at any time.
+   * Use this API for low concurrency batch queries where latency is not a critical as the system
+   * may have to scan a lot of documents to find the matching documents.
+   * For low latency range queries, it is recommended that you use SQL++ with the necessary indexes.
    *
    * @param scanType The type of scan to execute.
    * @param options Optional parameters for the scan operation.
