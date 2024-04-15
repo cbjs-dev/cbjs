@@ -14,18 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes } from '@cbjsdev/shared';
-
-import { AnyCollection } from '../../../clusterTypes/clusterTypes';
+import { BucketName, CollectionName, CouchbaseClusterTypes, DocDefMatchingBody, ScopeName } from '@cbjsdev/shared';
 import type { Collection } from '../../../collection';
 import { CouchbaseError, PathInvalidError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import {
-  type NodeCallback,
-  PromiseHelper,
-  type VoidNodeCallback,
-} from '../../../utilities';
+import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
 
 /**
  * CouchbaseQueue provides a simplified interface for storing a queue
@@ -36,17 +30,19 @@ import {
  */
 export class CouchbaseQueue<
   T extends CouchbaseClusterTypes,
-  C extends Collection<T, any, any, any>,
-  Key extends string,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
   Item,
 > {
-  private _coll: AnyCollection;
-  private _key: string;
+  private _coll: Collection<T, B, S, C>;
+  private _key: Key;
 
   /**
    * @internal
    */
-  constructor(collection: C, key: Key) {
+  constructor(collection: Collection<T, B, S, C>, key: Key) {
     this._coll = collection;
     this._key = key;
   }
@@ -58,7 +54,7 @@ export class CouchbaseQueue<
    */
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('')]);
+      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('') as never]);
 
       if (res.content[0].error) {
         throw res.content[0].error;
@@ -76,7 +72,7 @@ export class CouchbaseQueue<
    */
   async push(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.arrayPrepend('', value)], {
+      await this._coll.mutateIn(this._key, [MutateInSpec.arrayPrepend('', value) as never], {
         storeSemantics: StoreSemantics.Upsert,
       });
     }, callback);
@@ -91,11 +87,11 @@ export class CouchbaseQueue<
     return await PromiseHelper.wrapAsync(async () => {
       for (let i = 0; i < 16; ++i) {
         try {
-          const res = await this._coll.lookupIn(this._key, [LookupInSpec.get('[-1]')]);
+          const res = await this._coll.lookupIn(this._key, [LookupInSpec.get('[-1]') as never]);
 
           const value = res.content[0].value;
 
-          await this._coll.mutateIn(this._key, [MutateInSpec.remove('[-1]')], {
+          await this._coll.mutateIn(this._key, [MutateInSpec.remove('[-1]') as never], {
             cas: res.cas,
           });
 

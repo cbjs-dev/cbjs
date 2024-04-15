@@ -28,7 +28,8 @@ module.exports = {
         patterns: [
           {
             group: ['@cbjsdev/cbjs/*'],
-            message: 'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
+            message:
+              'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
           },
           {
             group: ['@cbjsdev/http-client'],
@@ -39,7 +40,7 @@ module.exports = {
             group: ['@cbjsdev/vitest'],
             message:
               'This will created a cyclic dependency. You should probably move the module to @cbjsdev/shared instead.',
-          }
+          },
         ],
       },
     ],

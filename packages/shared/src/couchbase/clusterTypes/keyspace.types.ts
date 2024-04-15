@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from './document.types';
+import { If, IsAny, IsNever, Or } from '../../misc';
+import { CouchbaseClusterTypes } from './cluster.types';
 
 /**
  * Default scope name.
@@ -37,29 +38,8 @@ export type MissingDefaultScope<B extends string> =
 export type MissingDefaultCollection<B extends string> =
   `The "${DefaultCollectionName}" collection is missing from the types declaration of the ${DefaultScopeName} scope of bucket "${B}".`;
 
-/**
- * Basic structure for cluster types.
- */
-export type CouchbaseClusterTypes = {
-  [bucket: string]: {
-    [scope: string]: {
-      [collection: string]: DocDef<string, unknown>;
-    };
-  };
-};
-
-/**
- * Default types used when the end dev don't define their owns.
- */
-export type DefaultClusterTypes = {
-  [bucket: string]: {
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    [key in DefaultScopeName | NonNullable<string>]: {
-      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-      [Key in DefaultCollectionName | NonNullable<string>]: DocDef<string, any>;
-    };
-  };
-};
+export type IsKeyspaceWildcard<T> = Or<[IsAny<T>, IsNever<T>]>;
+export type WildcardFallback<T, F> = If<IsKeyspaceWildcard<T>, F, T>;
 
 /**
  * Bucket names existing in the cluster.
@@ -69,33 +49,49 @@ export type BucketName<T extends CouchbaseClusterTypes> = Extract<keyof T, strin
 /**
  * Scope names existing in a bucket. Distributive.
  */
+// prettier-ignore
 export type ScopeName<
   T extends CouchbaseClusterTypes,
-  B extends BucketName<T> = BucketName<T>,
-> = B extends BucketName<T> ? Extract<keyof T[B], string> : never;
+  B extends BucketName<T> = never
+> =
+  If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets ?
+    AllBuckets extends BucketName<T> ?
+      Extract<keyof T[AllBuckets], string> :
+    never:
+  never
+;
 
 /**
  * Collection names existing in a scope. Distributive.
  */
+// prettier-ignore
 export type CollectionName<
   T extends CouchbaseClusterTypes,
-  B extends BucketName<T> = BucketName<T>,
-  S extends ScopeName<T, B> = ScopeName<T, B>,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
 > =
-  B extends BucketName<T>
-    ? S extends ScopeName<T, B>
-      ? Extract<keyof T[B][S], string>
-      : never
-    : never;
+  If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets ?
+    AllBuckets extends BucketName<T> ?
+      If<IsKeyspaceWildcard<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes ?
+        AllScopes extends ScopeName<T, AllBuckets> ?
+          Extract<keyof T[AllBuckets][AllScopes], string> :
+        never :
+      never :
+    never :
+  never
+;
 
 /**
  * Collection names of the default scope.
  */
+// prettier-ignore
 export type DefaultScopeCollectionName<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T>,
-> = B extends unknown
-  ? DefaultScopeName extends ScopeName<T, B>
-    ? CollectionName<T, B, DefaultScopeName>
-    : never
-  : never;
+> =
+  B extends unknown ?
+    DefaultScopeName extends ScopeName<T, B> ?
+      CollectionName<T, B, DefaultScopeName> :
+    never :
+  never
+;

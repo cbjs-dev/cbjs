@@ -39,7 +39,8 @@ export class BucketFixture extends FixtureFunctionValue<
     params: BucketFixtureParams = {}
   ) {
     await serverTestContext.start();
-    this.bucketName = params.bucketName ?? params.name ?? serverTestContext.newUid();
+    this.bucketName =
+      params.bucketName ?? params.name ?? `cbjs_${serverTestContext.newUid()}`;
 
     const baseBucketConfig = {
       name: this.bucketName,

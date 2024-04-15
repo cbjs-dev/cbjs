@@ -14,17 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes, invariant, isArray } from '@cbjsdev/shared';
-
-
-
-import { AnyCollection } from '../../../clusterTypes/clusterTypes';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DocDefMatchingBody,
+  invariant,
+  isArray,
+  ScopeName,
+} from '@cbjsdev/shared';
 import type { Collection } from '../../../collection';
+import { LookupInResultEntry } from '../../../crudoptypes';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
 import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
-
 
 /**
  * CouchbaseList provides a simplified interface for storing lists
@@ -35,17 +39,19 @@ import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../.
  */
 export class CouchbaseList<
   T extends CouchbaseClusterTypes,
-  C extends Collection<T, any, any, any>,
-  Key extends string,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
   Item,
 > {
-  private _coll: AnyCollection;
-  private _key: string;
+  private _coll: Collection<T, B, S, C>;
+  private _key: Key;
 
   /**
    * @internal
    */
-  constructor(collection: C, key: Key) {
+  constructor(collection: Collection<T, B, S, C>, key: Key) {
     this._coll = collection;
     this._key = key;
   }
@@ -128,10 +134,10 @@ export class CouchbaseList<
   async getAt(index: number, callback?: NodeCallback<Item>): Promise<Item> {
     return await PromiseHelper.wrapAsync(async () => {
       const res = await this._coll.lookupIn(this._key, [
-        LookupInSpec.get(('[' + index + ']') as `[${number}]`),
+        LookupInSpec.get('[' + index + ']') as never,
       ]);
 
-      const itemRes = res.content[0];
+      const itemRes = res.content[0] as LookupInResultEntry;
       if (itemRes.error !== null || itemRes.value === undefined) {
         throw new CouchbaseError(
           `index is missing from the list`,
@@ -156,7 +162,7 @@ export class CouchbaseList<
   async removeAt(index: number, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
       await this._coll.mutateIn(this._key, [
-        MutateInSpec.remove(('[' + index + ']') as `[${number}]`),
+        MutateInSpec.remove('[' + index + ']') as never,
       ]);
     }, callback);
   }
@@ -188,7 +194,7 @@ export class CouchbaseList<
    */
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('')]);
+      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('') as never]);
 
       if (res.content[0].error) {
         throw res.content[0].error;
@@ -206,7 +212,7 @@ export class CouchbaseList<
    */
   async push(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.arrayAppend('', value)], {
+      await this._coll.mutateIn(this._key, [MutateInSpec.arrayAppend('', value) as never], {
         storeSemantics: StoreSemantics.Upsert,
       });
     }, callback);
@@ -220,7 +226,7 @@ export class CouchbaseList<
    */
   async unshift(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.arrayPrepend('', value)], {
+      await this._coll.mutateIn(this._key, [MutateInSpec.arrayPrepend('', value) as never], {
         storeSemantics: StoreSemantics.Upsert,
       });
     }, callback);

@@ -14,18 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes, invariant, type MapEntry } from '@cbjsdev/shared';
-
-import { AnyCollection } from '../../../clusterTypes/clusterTypes';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  invariant,
+  type MapEntry,
+  ScopeName,
+} from '@cbjsdev/shared';
+import { AnyCollection } from '../../../clusterTypes';
+import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
 import { Collection } from '../../../collection';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import {
-  type NodeCallback,
-  PromiseHelper,
-  type VoidNodeCallback,
-} from '../../../utilities';
+import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
 
 /**
  * CouchbaseMap provides a simplified interface for storing a map
@@ -36,17 +39,19 @@ import {
  */
 export class CouchbaseMap<
   T extends CouchbaseClusterTypes,
-  C extends Collection<T, any, any, any>,
-  Key extends string,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends ExtractCollectionJsonDocKey<Collection<T, B, S, C>>,
   MapDoc extends Record<string, unknown>,
 > {
   private _coll: AnyCollection;
-  private _key: string;
+  private _key: Key;
 
   /**
    * @internal
    */
-  constructor(collection: C, key: Key) {
+  constructor(collection: Collection<T, B, S, C>, key: Key) {
     this._coll = collection;
     this._key = key;
   }
@@ -151,32 +156,32 @@ export class CouchbaseMap<
   /**
    * Fetches a specific key from the map.
    *
-   * @param item The key in the map to retrieve.
+   * @param itemKey The key in the map to retrieve.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async get<Item extends keyof MapDoc>(
-    item: Item,
-    callback?: NodeCallback<MapDoc[Item]>
-  ): Promise<MapDoc[Item]> {
+  async get<ItemKey extends keyof MapDoc & string>(
+    itemKey: ItemKey,
+    callback?: NodeCallback<MapDoc[ItemKey]>
+  ): Promise<MapDoc[ItemKey]> {
     return await PromiseHelper.wrapAsync(async () => {
       const res = await this._coll.lookupIn(this._key, [
-        LookupInSpec.get(item as string),
+        LookupInSpec.get(itemKey),
       ]);
 
       const itemRes = res.content[0];
 
-      if (itemRes.error ?? itemRes.value === undefined) {
+      if (itemRes.error !== null || itemRes.value === undefined) {
         throw new CouchbaseError(
           `key is missing from the map`,
           itemRes.error ?? undefined,
           {
             docKey: this._key,
-            mapKey: item,
+            mapKey: itemKey,
           }
         );
       }
 
-      return itemRes.value as MapDoc[Item];
+      return itemRes.value as MapDoc[ItemKey];
     }, callback);
   }
 
@@ -186,12 +191,12 @@ export class CouchbaseMap<
    * @param item The key in the map to remove.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async remove<Key extends keyof MapDoc>(
-    item: Key,
+  async remove<ItemKey extends keyof MapDoc & string>(
+    item: ItemKey,
     callback?: VoidNodeCallback
   ): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.remove(item as string)]);
+      await this._coll.mutateIn(this._key, [MutateInSpec.remove(item) as never]);
     }, callback);
   }
 

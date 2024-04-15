@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, If, IsAny, IsNever, Or } from '../../misc';
-import type {
+import { hasOwn, If, IsNever } from '../../misc';
+import {
   BucketName,
   CollectionName,
   CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  IsKeyspaceWildcard,
   ScopeName,
 } from '../clusterTypes';
 
@@ -41,18 +43,11 @@ export function quoteIdentifier(name: string) {
  *
  */
 
-type IsKeyspaceWildcard<T> = Or<[IsAny<T>, IsNever<T>]>;
-export type WildcardFallback<T, F> = If<IsKeyspaceWildcard<T>, F, T>;
-
 export type Keyspace<
-  T extends CouchbaseClusterTypes = never,
-  B extends BucketName<T> = never,
-  S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> = never,
-  C extends CollectionName<
-    T,
-    WildcardFallback<B, BucketName<T>>,
-    WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
-  > = never,
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
 > =
   IsNever<T> extends true
     ? { bucket: string; scope: string; collection: string }

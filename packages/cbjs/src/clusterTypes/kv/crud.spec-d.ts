@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
-
 import { connect } from '../../couchbase';
-import {
-  GetReplicaResult,
-  GetResult,
-  LookupInResult,
-  ScanResult,
-} from '../../crudoptypes';
+import { GetReplicaResult, GetResult, LookupInResult, ScanResult } from '../../crudoptypes';
 import { PrefixScan, SamplingScan } from '../../rangeScan';
 import { LookupInSpec } from '../../sdspecs';
 import { StreamableReplicasPromise } from '../../streamablepromises';
@@ -35,11 +29,12 @@ type Docs = Book | QuarterSales;
 type UserClusterTypes = {
   test: {
     _default: {
-      _default:
-        | DocDef<`book::${string}`, Book>
-        | DocDef<`sales::${string}`, QuarterSales>;
-      collectionTwo: DocDef<string, string[]>;
-      collectionThree: DocDef<string, number[]>;
+      _default: [
+        DocDef<`book::${string}`, Book>,
+        DocDef<`sales::${string}`, QuarterSales>,
+      ];
+      collectionTwo: [ DocDef<string, string[]> ];
+      collectionThree: [ DocDef<string, number[]> ];
     };
   };
 };

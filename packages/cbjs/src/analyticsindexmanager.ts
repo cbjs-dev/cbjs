@@ -1618,12 +1618,20 @@ export class AnalyticsIndexManager<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async createLink(link: ApiAnalyticsLink, callback?: VoidNodeCallback): Promise<void>;
   async createLink(
     link: ApiAnalyticsLink,
     options: CreateAnalyticsLinkOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Creates a new analytics remote link.
+   *
+   * @param link The settings for the link to create.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  async createLink(link: ApiAnalyticsLink, callback?: VoidNodeCallback): Promise<void>;
+
   async createLink(
     link: ApiAnalyticsLink,
     ...args: [CreateAnalyticsLinkOptions, VoidNodeCallback?] | [VoidNodeCallback?]

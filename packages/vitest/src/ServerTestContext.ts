@@ -27,7 +27,6 @@ import {
 import { waitForBucket, waitForCollection } from '@cbjsdev/http-client';
 import {
   ConnectionParams,
-  CouchbaseClusterTypes,
   CouchbaseLogger,
   DefaultClusterTypes,
   getApiConfig,
@@ -42,6 +41,7 @@ import { getTestLogger } from './logger';
 import { getRandomId } from './utils/getRandomId';
 
 export class ServerTestContext {
+  public readonly contextId: string;
   public readonly contextNamespace: string;
   private keyCounter: number;
 
@@ -60,13 +60,14 @@ export class ServerTestContext {
   private static readonly setupActions: Array<() => Promise<void> | void> = [];
 
   constructor() {
-    this.contextNamespace = `cbjs_${getRandomId()}`;
+    this.contextId = getRandomId();
+    this.contextNamespace = `cbjs_${this.contextId}`;
     this.keyCounter = 0;
     this.logger = getTestLogger();
   }
 
   newUid() {
-    return `cbjs_${this.contextNamespace}_${this.keyCounter++}`;
+    return `${this.contextId}_${this.keyCounter++}`;
   }
 
   /**
@@ -230,7 +231,7 @@ export class ServerTestContext {
     return this.contextKeyspace.collection;
   }
 
-  get defaultCollection(): DefaultCollection<CouchbaseClusterTypes, string> {
+  get defaultCollection(): DefaultCollection<DefaultClusterTypes, string> {
     invariant(
       this.contextKeyspace.defaultCollection,
       'Default collection should already be set'
@@ -238,7 +239,7 @@ export class ServerTestContext {
     return this.contextKeyspace.defaultCollection;
   }
 
-  get dco(): DefaultCollection<CouchbaseClusterTypes, string> {
+  get dco(): DefaultCollection<DefaultClusterTypes, string> {
     invariant(
       this.contextKeyspace.defaultCollection,
       'Default collection should already be set'

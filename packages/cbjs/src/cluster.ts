@@ -207,7 +207,7 @@ export type ConnectOptions = {
  *
  * @category Core
  */
-export class Cluster<in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes> {
+export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterTypes> {
   private _connStr: string;
   private _trustStorePath: string;
   private _kvTimeout: number;

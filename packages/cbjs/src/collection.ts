@@ -21,7 +21,9 @@ import {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   DocDef,
-  ExtractDocBodyByKey,
+  DocDefMatchingBody,
+  DocDefMatchingKey,
+  hasOwn,
   hasOwn,
   If,
   invariant,
@@ -29,7 +31,7 @@ import {
   IsFuzzyDocument,
   IsNever,
   JsonObject,
-  Keyspace,
+  keyspacePath,
   keyspacePath,
   NoInfer,
   ObjectDocument,
@@ -43,7 +45,7 @@ import {
   BinaryCollection,
   DecrementOptions,
   IncrementOptions,
-  PrependOptions,
+  PrependOptions
 } from './binarycollection';
 import type {
   CppAppendResponse,
@@ -74,7 +76,6 @@ import {
 } from './bindingutilities';
 import type { Cluster } from './cluster';
 import {
-  AnyCollection,
   CollectionMatchingDocDef,
   CT,
   ExtractCollectionJsonDocBody,
@@ -437,9 +438,6 @@ export class Collection<
   in out B extends BucketName<T> = BucketName<T>,
   in out S extends ScopeName<T, B> = ScopeName<T, B>,
   in out C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-  // out CT extends CollectionDocumentBag<
-  //   PickCollectionDocDef<T, B, S, C>
-  // > = CollectionDocumentBag<PickCollectionDocDef<T, B, S, C>>,
 > {
   /**
    * @internal
@@ -472,7 +470,7 @@ export class Collection<
     return this.scope.bucket.cluster;
   }
 
-  getKeyspace(): Keyspace {
+  getKeyspace() {
     return {
       bucket: this.scope.bucket.name,
       scope: this.scope.name,
@@ -527,7 +525,7 @@ export class Collection<
   }
 
   async get<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
     WithExpiry extends boolean = false,
   >(
@@ -538,7 +536,7 @@ export class Collection<
   ): Promise<GetResult<Doc, WithExpiry>>;
 
   async get<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
     WithExpiry extends boolean = boolean,
   >(
@@ -554,9 +552,9 @@ export class Collection<
    * @param callback Optional node-style callback to be invoked after execution.
    */
   async get<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-    WithExpiry extends boolean = boolean,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
+    Key extends CT<this>['Key'],
+    WithExpiry extends boolean,
   >(
     key: Key,
     options?: GetOptions<Doc, WithExpiry> | NodeCallback<GetResult<Doc, WithExpiry>>,
@@ -572,8 +570,8 @@ export class Collection<
 
     if (options.project !== undefined || options.withExpiry === true) {
       return this._projectedGet(
-        key,
-        options as GetOptions<ExtractDocBodyByKey<CT<this>['ObjectDocument'], Key>>,
+        key as never,
+        options,
         callback
       );
     }
@@ -615,8 +613,8 @@ export class Collection<
   }
 
   private async _projectedGet<
-    Doc extends ExtractDocBodyByKey<CT<this>['ObjectDocument'], Key>,
-    Key extends CT<this>['Key'],
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
+    Key extends ExtractCollectionJsonDocKey<this>,
     WithExpiry extends boolean = boolean,
   >(
     key: Key,
@@ -644,7 +642,7 @@ export class Collection<
         : ([options.project] as LookupInGetPath<Doc>[]);
 
       for (const projection of projects) {
-        const specPath =
+        const specPath: string =
           projection instanceof LookupInMacro ? projection._value : projection;
         paths.push(specPath);
         specs.push(LookupInSpec.get(projection));
@@ -665,13 +663,9 @@ export class Collection<
         ExtractCollectionJsonDocKey<this>,
         Doc,
         typeof specs
-      >(
-        key as ExtractCollectionJsonDocKey<this>,
-        specs as ValidateLookupInSpecs<Doc, typeof specs>,
-        {
-          ...options,
-        }
-      );
+      >(key, specs as ValidateLookupInSpecs<Doc, typeof specs>, {
+        ...options,
+      });
 
       let content: any = null;
       let expiry: number | undefined = undefined;
@@ -795,7 +789,7 @@ export class Collection<
    * @internal
    */
   private _getReplica<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -806,7 +800,7 @@ export class Collection<
     GetReplicaResult<Doc>
   >;
   private _getReplica<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -816,7 +810,7 @@ export class Collection<
     GetReplicaResult<Doc>
   >;
   private _getReplica<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -891,7 +885,7 @@ export class Collection<
    * @param callbackOrOptions A node-style callback to be invoked after execution.
    */
   async getAnyReplica<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -908,7 +902,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAnyReplica<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -917,7 +911,7 @@ export class Collection<
   ): Promise<GetReplicaResult<Doc>>;
 
   async getAnyReplica<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -955,7 +949,7 @@ export class Collection<
   }
 
   getAllReplicas<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -975,7 +969,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   getAllReplicas<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -986,7 +980,7 @@ export class Collection<
     GetReplicaResult<Doc>
   >;
   getAllReplicas<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1021,7 +1015,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async insert<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1030,7 +1024,7 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async insert<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1038,7 +1032,7 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async insert<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1121,7 +1115,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async upsert<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1130,7 +1124,7 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async upsert<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1138,7 +1132,7 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async upsert<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1221,7 +1215,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async replace<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1230,7 +1224,7 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async replace<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1238,7 +1232,7 @@ export class Collection<
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async replace<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1405,7 +1399,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAndTouch<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1414,7 +1408,7 @@ export class Collection<
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndTouch<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1422,7 +1416,7 @@ export class Collection<
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndTouch<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1551,7 +1545,7 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAndLock<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1560,7 +1554,7 @@ export class Collection<
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndLock<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1568,7 +1562,7 @@ export class Collection<
     callback?: NodeCallback<GetResult<Doc>>
   ): Promise<GetResult<Doc>>;
   async getAndLock<
-    Doc extends ExtractDocBodyByKey<CT<this>['Document'], Key>,
+    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     Key extends CT<this>['Key'] = CT<this>['Key'],
   >(
     key: Key,
@@ -1851,7 +1845,7 @@ export class Collection<
    */
   lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -1882,7 +1876,7 @@ export class Collection<
 
   private async _lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractDocBodyByKey<CT<this>['ObjectDocument'], Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -1967,7 +1961,7 @@ export class Collection<
 
   private _lookupInReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2080,7 +2074,7 @@ export class Collection<
    */
   lookupInAnyReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2149,7 +2143,7 @@ export class Collection<
    */
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2161,7 +2155,7 @@ export class Collection<
   ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2173,7 +2167,7 @@ export class Collection<
 
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2182,7 +2176,7 @@ export class Collection<
 
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
@@ -2208,7 +2202,7 @@ export class Collection<
 
   mutateIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>,
   >(
     key: Key,
@@ -2324,14 +2318,13 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   list<
-    Key extends CT<this>['ObjectDocument']['Key'],
-    Def extends CT<this>['ObjectDocument'],
-    Doc extends Extract<ExtractDocBodyByKey<Def, Key>, unknown[]>,
+    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
+    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
     Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseList<T, this, Key, Item>
+      ? CouchbaseList<T, B, S, C, Key, Item>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseList<T, this, Key, Item>
+        ? CouchbaseList<T, B, S, C, Key, Item>
         : 'This collection does not contain any list.',
   >(key: Key): R {
     return new CouchbaseList(this as never, key) as R;
@@ -2343,14 +2336,13 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   queue<
-    Key extends CT<this>['ObjectDocument']['Key'],
-    Def extends CT<this>['ObjectDocument'],
-    Doc extends Extract<ExtractDocBodyByKey<Def, Key>, unknown[]>,
+    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
+    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
     Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseQueue<T, this, Key, Item>
+      ? CouchbaseQueue<T, B, S, C, Key, Item>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseQueue<T, this, Key, Item>
+        ? CouchbaseQueue<T, B, S, C, Key, Item>
         : 'This collection does not contain any queue.',
   >(key: Key): R {
     return new CouchbaseQueue(this as never, key) as R;
@@ -2362,17 +2354,15 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   map<
-    Key extends CT<this>['ObjectDocument']['Key'],
-    Def extends CT<this>['ObjectDocument'],
-    Doc extends ExtractDocBodyByKey<Def, Key>,
+    Key extends DocDefMatchingBody<Record<string, unknown>, T, B, S, C>['Key'],
+    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], Record<string, unknown>>,
     MapDoc extends If<IsAny<Doc>, Record<string, any>, Doc>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>> extends true
-      ? CouchbaseMap<T, this, Key, MapDoc>
+      ? CouchbaseMap<T, B, S, C, Key, MapDoc>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>
-        ? CouchbaseMap<T, this, Key, MapDoc>
+        ? CouchbaseMap<T, B, S, C, Key, MapDoc>
         : 'This collection does not contain any map.',
   >(key: Key): R {
-    // TODO replicate that for all Datastructures
     return new CouchbaseMap(this as never, key) as R;
   }
 
@@ -2382,14 +2372,13 @@ export class Collection<
    * @param key The document key the data-structure resides in.
    */
   set<
-    Key extends CT<this>['ObjectDocument']['Key'],
-    Def extends CT<this>['ObjectDocument'],
-    Doc extends Extract<ExtractDocBodyByKey<Def, Key>, unknown[]>,
+    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
+    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
     Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseSet<T, this, Key, Item>
+      ? CouchbaseSet<T, B, S, C, Key, Item>
       : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseSet<T, this, Key, Item>
+        ? CouchbaseSet<T, B, S, C, Key, Item>
         : 'This collection does not contain any set.',
   >(key: Key): R {
     return new CouchbaseSet(this as never, key) as R;

@@ -34,28 +34,14 @@ import binding, {
   CppTransactionLinks,
   CppTransactions,
 } from './binding';
-import {
-  durabilityToCpp,
-  errorFromCpp,
-  queryProfileToCpp,
-  queryScanConsistencyToCpp,
-} from './bindingutilities';
+import { durabilityToCpp, errorFromCpp, queryProfileToCpp, queryScanConsistencyToCpp } from './bindingutilities';
 import { Cluster } from './cluster';
+import { AnyCollection, AnyScope } from './clusterTypes';
 import { Collection } from './collection';
-import {
-  DocumentNotFoundError,
-  TransactionFailedError,
-  TransactionOperationFailedError,
-} from './errors';
+import { DocumentNotFoundError, TransactionFailedError, TransactionOperationFailedError } from './errors';
 import { DurabilityLevel } from './generaltypes';
 import { QueryExecutor } from './queryexecutor';
-import {
-  QueryMetaData,
-  QueryProfileMode,
-  QueryResult,
-  QueryScanConsistency,
-} from './querytypes';
-import { Scope } from './scope';
+import { QueryMetaData, QueryProfileMode, QueryResult, QueryScanConsistency } from './querytypes';
 import { NodeCallback, PromiseHelper } from './utilities';
 
 /**
@@ -64,10 +50,10 @@ import { NodeCallback, PromiseHelper } from './utilities';
  * @category Transactions
  */
 export class DocumentId<
-  T extends CouchbaseClusterTypes = DefaultClusterTypes,
-  B extends BucketName<T> = any,
-  S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any,
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
   const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 > {
   /**
@@ -211,9 +197,9 @@ export class TransactionResult {
 
 export type TransactionDocInfo<
   T extends CouchbaseClusterTypes = DefaultClusterTypes,
-  B extends BucketName<T> = any,
-  S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 > = {
   /**
@@ -242,11 +228,12 @@ export type TransactionDocInfo<
  *
  * @category Transactions
  */
+
 export class TransactionGetResult<
   T extends CouchbaseClusterTypes = DefaultClusterTypes,
-  B extends BucketName<T> = any,
-  S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 > {
   /**
@@ -294,10 +281,10 @@ export class TransactionGetResult<
 export class TransactionExistsResult<
   const Exists extends boolean,
   T extends CouchbaseClusterTypes = DefaultClusterTypes,
-  B extends BucketName<T> = any,
-  S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any,
-  const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+  Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 > {
   /**
    * The id of the document.
@@ -451,7 +438,7 @@ export interface TransactionQueryOptions {
   /**
    * Specifies the scope to run this query in.
    */
-  scope?: Scope<any, any, any>;
+  scope?: AnyScope;
 }
 
 /**
@@ -459,9 +446,9 @@ export interface TransactionQueryOptions {
  */
 function translateGetResult<
   T extends CouchbaseClusterTypes = DefaultClusterTypes,
-  B extends BucketName<T> = any,
-  S extends ScopeName<T, B> = any,
-  C extends CollectionName<T, B, S> = any,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 >(cppRes: CppTransactionGetResult): TransactionGetResult<T, B, S, C, Key> {
   return new TransactionGetResult({
@@ -524,16 +511,10 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param key The document key to retrieve.
    */
   async get<
-    T extends CouchbaseClusterTypes = DefaultClusterTypes,
-    B extends BucketName<T> = any,
-    S extends ScopeName<T, B> = any,
-    C extends CollectionName<T, B, S> = any,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    B extends BucketName<T>,
+    S extends ScopeName<T, B>,
+    C extends CollectionName<T, B, S>,
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'],
   >(
     collection: Collection<T, B, S, C>,
     key: Key
@@ -566,16 +547,10 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param key The document key to check.
    */
   async exists<
-    T extends CouchbaseClusterTypes = DefaultClusterTypes,
-    B extends BucketName<T> = any,
-    S extends ScopeName<T, B> = any,
-    C extends CollectionName<T, B, S> = any,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    B extends BucketName<T> = BucketName<T>,
+    S extends ScopeName<T, B> = ScopeName<T, B>,
+    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+    Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
   >(
     collection: Collection<T, B, S, C>,
     key: Key
@@ -596,7 +571,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
       if (err instanceof DocumentNotFoundError) {
         return new TransactionExistsResult({
           exists: false,
-          id: collection.getDocId(key) as DocumentId<T, B, S, C, Key>,
+          id: (collection as AnyCollection).getDocId(key) as DocumentId<T, B, S, C, Key>,
           cas: undefined,
           _links: undefined,
           _metadata: undefined,
@@ -615,16 +590,10 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param content The document content to insert.
    */
   async insert<
-    T extends CouchbaseClusterTypes = DefaultClusterTypes,
-    B extends BucketName<T> = any,
-    S extends ScopeName<T, B> = any,
-    C extends CollectionName<T, B, S> = any,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    B extends BucketName<T> = BucketName<T>,
+    S extends ScopeName<T, B> = ScopeName<T, B>,
+    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+    Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
   >(
     collection: Collection<T, B, S, C>,
     key: Key,
@@ -659,16 +628,10 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param content The document content to insert.
    */
   async replace<
-    T extends CouchbaseClusterTypes = DefaultClusterTypes,
-    B extends BucketName<T> = any,
-    S extends ScopeName<T, B> = any,
-    C extends CollectionName<T, B, S> = any,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    B extends BucketName<T> = BucketName<T>,
+    S extends ScopeName<T, B> = ScopeName<T, B>,
+    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+    Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
   >(
     doc: TransactionDocInfo<T, B, S, C, Key>,
     content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>
@@ -707,16 +670,10 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param doc The document to remove.
    */
   async remove<
-    T extends CouchbaseClusterTypes = DefaultClusterTypes,
-    B extends BucketName<T> = any,
-    S extends ScopeName<T, B> = any,
-    C extends CollectionName<T, B, S> = any,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    B extends BucketName<T> = BucketName<T>,
+    S extends ScopeName<T, B> = ScopeName<T, B>,
+    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+    Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
   >(doc: TransactionDocInfo<T, B, S, C, Key>): Promise<void> {
     return PromiseHelper.wrap((wrapCallback) => {
       this._impl.remove(

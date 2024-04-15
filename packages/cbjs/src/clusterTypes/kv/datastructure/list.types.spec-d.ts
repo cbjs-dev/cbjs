@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
-
-import { Collection, connect, CouchbaseList } from '../../..';
+import { connect, CouchbaseList } from '../../..';
 
 describe('CouchbaseList', function () {
   describe('Default ClusterTypes', function () {
@@ -26,12 +25,7 @@ describe('CouchbaseList', function () {
       const collection = cluster.bucket('test').defaultCollection();
       const list = collection.list('docKey');
       expectTypeOf(list).toEqualTypeOf<
-        CouchbaseList<
-          DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
-          'docKey',
-          any
-        >
+        CouchbaseList<DefaultClusterTypes, 'test', '_default', '_default', 'docKey', any>
       >();
     });
 
@@ -58,12 +52,13 @@ describe('CouchbaseList', function () {
     type UserClusterTypes = {
       test: {
         _default: {
-          collectionOne: DocDef<string, string>;
-          collectionTwo: DocDef<string, string[]>;
-          collectionThree:
-            | DocDef<`book::${number}`, { title: string }>
-            | DocDef<`author::${number}`, string[]>
-            | DocDef<`sales::${number}`, number[]>;
+          collectionOne: [ DocDef<string, string> ];
+          collectionTwo: [ DocDef<string, string[]> ];
+          collectionThree: [
+            DocDef<`book::${number}`, { title: string }>,
+            DocDef<`author::${number}`, string[]>,
+            DocDef<`sales::${number}`, number[]>,
+          ];
         };
       };
     };
@@ -80,7 +75,9 @@ describe('CouchbaseList', function () {
       expectTypeOf(listTwo).toEqualTypeOf<
         CouchbaseList<
           UserClusterTypes,
-          Collection<UserClusterTypes, 'test', '_default', 'collectionTwo'>,
+          'test',
+          '_default',
+          'collectionTwo',
           'anything',
           string
         >
@@ -91,7 +88,9 @@ describe('CouchbaseList', function () {
       expectTypeOf(listThree).toEqualTypeOf<
         CouchbaseList<
           UserClusterTypes,
-          Collection<UserClusterTypes, 'test', '_default', 'collectionThree'>,
+          'test',
+          '_default',
+          'collectionThree',
           'author::001',
           string
         >

@@ -12,7 +12,7 @@ To do that, you can use the `cas` returned while fetching the document, and use 
 ```ts{5}
 const { content, cas } = await collection.get('docKey');
 await collection.replace(
-  'docKey', 
+  'docKey',
   { ...content, title: 'New Title' },
   { cas }
 );
@@ -44,4 +44,4 @@ If the document is fetched while it is locked, the result will include a random 
 
 ## Durability
 
-*Coming soon...*
+_Coming soon..._

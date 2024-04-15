@@ -26,30 +26,35 @@ Once you have defined your [Cluster Types](cluster-types), you will unlock many 
 ### Inferred return type
 
 ```ts twoslash
-import { DocDef, connect } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`book::${string}`, {
-        title: string;
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
-    },
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
+    };
   };
 };
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
 const bookId = 'book::001';
-// @errors: 2304 2554 
+// @errors: 2304 2554
 // ---cut-before---
 const { content: book } = await collection.get(bookId);
-const { content: [firstAuthor] } = await collection.lookupIn(bookId).get('authors[0]');
+const {
+  content: [firstAuthor],
+} = await collection.lookupIn(bookId).get('authors[0]');
 //                 ^?
 ```
+
 &nbsp;
 &nbsp;
 &nbsp;
@@ -57,18 +62,20 @@ const { content: [firstAuthor] } = await collection.lookupIn(bookId).get('author
 ### IDE Autocompletion
 
 ```ts twoslash
-import { DocDef, connect } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`book::${string}`, {
-        title: string;
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
-    },
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
+    };
   };
 };
 
@@ -77,16 +84,19 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 const bookId = 'book::001';
 // @noErrors: 2769
 // ---cut-before---
-const { content: [title] } = await collection
-  .lookupIn(bookId)
-  .get('ti');
-//        ^|
+const {
+  content: [title],
+} = await collection
+      .lookupIn(bookId)
+      .get('ti');
+//            ^|
 
-
-const { content: [quaterSales] } = await collection
-  .lookupIn(bookId)
-  .get('qua');
-//         ^|
+const {
+  content: [quaterSales],
+} = await collection
+      .lookupIn(bookId)
+      .get('qua');
+//             ^|
 ```
 
 &nbsp;
@@ -98,25 +108,27 @@ const { content: [quaterSales] } = await collection
 
 You can learn more about this topic on the page dedicated to [Cluster Types](cluster-types).
 
-
 ## Discriminated Unions
 
 Because Cbjs uses discriminated unions, type guards emerge naturally.
 
 ### Sub-document lookup
+
 ```ts twoslash
-import { DocDef, connect } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`book::${string}`, {
-        title: string;
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
-    },
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
+    };
   };
 };
 
@@ -127,7 +139,9 @@ const bookId = 'book::001';
 
 // The official library would give you : { value?: any; error: Error | null }
 // With Cbjs you get :
-const { content: [title] } = await collection.lookupIn(bookId).get('title');
+const {
+  content: [title],
+} = await collection.lookupIn(bookId).get('title');
 //                 ^?
 
 if (title.error) {
@@ -139,23 +153,25 @@ console.log(title);
 //            ^?
 ```
 
-&nbsp;  
+&nbsp;
 
 ### Callbacks
 
 ```ts twoslash
-import { DocDef, connect } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`book::${string}`, {
-        title: string;
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
-    },
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
+    };
   };
 };
 
@@ -180,12 +196,14 @@ import { DocDef, connect } from '@cbjsdev/cbjs';
 type MyClusterTypes = {
   store: {
     library: {
-      books:
-        | DocDef<`book::${string}`, {
-        title: string;
-        authors: string[];
-        quater_sales: [number, number, number, number]
-      }>
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
     },
   };
 };
@@ -206,4 +224,4 @@ const { expiryTime } = await collection.get(bookId, { withExpiry: true });
 ```
 
 &nbsp;  
-&nbsp;  
+&nbsp;

@@ -14,26 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BucketName, CollectionName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
 import { promisify } from 'node:util';
-
-import {
-  BucketName,
-  CollectionName,
-  CouchbaseClusterTypes,
-  ScopeName,
-} from '@cbjsdev/shared';
 
 import { CppError, CppQueryContext } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Cluster } from './cluster';
 import { Collection } from './collection';
 import { CouchbaseError, IndexNotFoundError } from './errors';
-import {
-  CompoundTimeout,
-  NodeCallback,
-  PromiseHelper,
-  VoidNodeCallback,
-} from './utilities';
+import { CompoundTimeout, NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
 
 /**
  * Contains a specific index configuration for the query service.

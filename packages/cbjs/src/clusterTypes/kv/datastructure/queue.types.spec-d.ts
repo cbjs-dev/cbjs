@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
-
 import { connect } from '../../..';
-import { Collection } from '../../../collection';
 import { CouchbaseQueue } from '../../../services/kv/dataStructures';
 
 describe('CouchbaseQueue', function () {
@@ -28,12 +26,7 @@ describe('CouchbaseQueue', function () {
       const collection = cluster.bucket('test').defaultCollection();
       const queue = collection.queue('docKey');
       expectTypeOf(queue).toEqualTypeOf<
-        CouchbaseQueue<
-          DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
-          'docKey',
-          any
-        >
+        CouchbaseQueue<DefaultClusterTypes, 'test', '_default', '_default', 'docKey', any>
       >();
     });
 
@@ -56,9 +49,9 @@ describe('CouchbaseQueue', function () {
     type UserClusterTypes = {
       test: {
         _default: {
-          collectionOne: DocDef<string, string>;
-          collectionTwo: DocDef<string, string[]>;
-          collectionThree: DocDef<string, number[]>;
+          collectionOne: [ DocDef<string, string> ];
+          collectionTwo: [ DocDef<string, string[]> ];
+          collectionThree: [ DocDef<string, number[]> ];
         };
       };
     };
@@ -74,8 +67,10 @@ describe('CouchbaseQueue', function () {
       const queueTwo = collectionTwo.queue('docKey');
       expectTypeOf(queueTwo).toEqualTypeOf<
         CouchbaseQueue<
-          DefaultClusterTypes,
-          Collection<DefaultClusterTypes, 'test', '_default', '_default'>,
+          UserClusterTypes,
+          'test',
+          '_default',
+          'collectionTwo',
           'docKey',
           string
         >

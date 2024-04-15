@@ -17,6 +17,7 @@
 import {
   BucketName,
   CouchbaseClusterTypes,
+  DefaultClusterTypes,
   DefaultScopeCollectionName,
   DefaultScopeName,
   ScopeName,
@@ -45,7 +46,7 @@ import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes
  * @category Core
  */
 export class Bucket<
-  in out T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  in out T extends CouchbaseClusterTypes = DefaultClusterTypes,
   in out B extends BucketName<T> = BucketName<T>,
 > {
   readonly cluster: Cluster<T>;
