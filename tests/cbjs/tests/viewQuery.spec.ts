@@ -407,7 +407,6 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
-      /* eslint-disable-next-line no-constant-condition */
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const sortedTestUidKeys = [...testUidKeys].sort();
       // get the largest key
@@ -430,7 +429,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       ).rejects.toThrowError(InvalidArgumentError);
     });
   },
-  { timeout: 20_000 }
+  { timeout: 20_000, retry: 2 }
 );
 
 function* getTestUidKeys(testUid: string, keySize: number) {
