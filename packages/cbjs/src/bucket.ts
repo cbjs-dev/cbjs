@@ -25,7 +25,7 @@ import {
 
 import { CppConnection } from './binding';
 import { Cluster } from './cluster';
-import { DefaultCollection, DefaultScope } from './clusterTypes/clusterTypes';
+import { DefaultCollection, DefaultScope } from './clusterTypes';
 import { Collection } from './collection';
 import { CollectionManager } from './collectionmanager';
 import { PingExecutor } from './diagnosticsexecutor';

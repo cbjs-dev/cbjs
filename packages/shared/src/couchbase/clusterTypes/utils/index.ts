@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+export type * from './array-utils.types';
 export type * from './document-path.types';
 export type * from './misc-utils.types';
 export type * from './path-utils.types';

@@ -24,14 +24,12 @@ import {
   DocDefMatchingBody,
   DocDefMatchingKey,
   hasOwn,
-  hasOwn,
   If,
   invariant,
   IsAny,
   IsFuzzyDocument,
   IsNever,
   JsonObject,
-  keyspacePath,
   keyspacePath,
   NoInfer,
   ObjectDocument,
@@ -45,7 +43,7 @@ import {
   BinaryCollection,
   DecrementOptions,
   IncrementOptions,
-  PrependOptions
+  PrependOptions,
 } from './binarycollection';
 import type {
   CppAppendResponse,
@@ -76,6 +74,7 @@ import {
 } from './bindingutilities';
 import type { Cluster } from './cluster';
 import {
+  AnyCollection,
   CollectionMatchingDocDef,
   CT,
   ExtractCollectionJsonDocBody,

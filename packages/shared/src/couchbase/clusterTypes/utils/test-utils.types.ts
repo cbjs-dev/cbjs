@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Extends, If, IsExactly, ResolveNegativeIndex } from '../../../misc';
+import { Extends, If, IsExactly } from '../../../misc';
+import { ResolveNegativeIndex } from './array-utils.types';
 import { TargetableArrayIndexes } from './path-utils.types';
 
 /**

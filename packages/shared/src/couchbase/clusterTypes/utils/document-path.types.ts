@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IsExactly, IsNever } from '../../../misc';
 import {
   ArrayInfoShape,
   ExtractAppendableArray,
   ExtractPrependableArray,
   GetArrayInfo,
   IsArrayLengthFixed,
-  IsExactly,
   IsIndexRemovalStrictlyForbidden,
-  IsNever,
   ResolveNegativeIndex,
   TupleFilter,
   TupleIndexes,
-} from '../../../misc';
+} from './array-utils.types';
 
 import type { WritableKeys } from './misc-utils.types';
 import type {

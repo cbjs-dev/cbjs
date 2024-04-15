@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {
-  ArrayEntries,
-  If,
-  IsExactly,
-  IsNever,
-  Join,
-  Primitive,
-  TrySafe,
-  TupleFilter,
-  UnionToTuple,
-} from '../../../misc';
+import type { If, IsExactly, IsNever, Join, Primitive, TrySafe, UnionToTuple } from '../../../misc';
+import { ArrayEntries, TupleFilter } from './array-utils.types';
 
 /**
  * Basic string description of a type.
