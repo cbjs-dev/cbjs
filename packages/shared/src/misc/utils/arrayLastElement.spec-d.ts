@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe, expectTypeOf, it } from 'vitest';
+import { arrayLastElement } from './arrayLastElement';
 
-/**
- * Generate a pseudo-random ID for testing.
- * This is not using genuine crypto randomness. Use this for tests only.
- */
-export function getRandomId() {
-  return Math.random().toString(16).substring(2, 10);
-}
+describe('arrayLastElement', () => {
+  it('should return the type of the last element of a tuple', () => {
+    expectTypeOf(arrayLastElement(['a', 1])).toEqualTypeOf<1>();
+  });
+
+  it('should return the trailing type of an array with unknown length', () => {
+    expectTypeOf(arrayLastElement([1, 2, 3] as number[])).toEqualTypeOf<number>();
+    expectTypeOf(
+      arrayLastElement(['a', 2, 3] as [string, ...number[]])
+    ).toEqualTypeOf<number>();
+  });
+});

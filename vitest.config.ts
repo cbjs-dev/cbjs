@@ -11,7 +11,7 @@ export default defineConfig({
       CB_USER: process.env.CB_USER ?? 'Administrator',
       CB_PASSWORD: process.env.CB_PASSWORD ?? 'password',
       DEBUG: '1',
-      LOG_LEVEL: 'info',
+      LOG_LEVEL: 'debug',
     },
     reporters: ['default', 'html'],
     outputFile: {

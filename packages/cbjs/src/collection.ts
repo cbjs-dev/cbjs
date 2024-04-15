@@ -14,18 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ArrayElement, hasOwn, If, invariant, IsAny, Keyspace, keyspacePath, NoInfer, OneOf } from '@cbjsdev/shared';
 import { promisify } from 'node:util';
-
-import {
-  hasOwn,
-  If,
-  invariant,
-  IsAny,
-  Keyspace,
-  keyspacePath,
-  NoInfer,
-  OneOf,
-} from '@cbjsdev/shared';
 
 import {
   AppendOptions,
@@ -62,14 +52,7 @@ import {
   storeSemanticToCpp,
 } from './bindingutilities';
 import { Cluster } from './cluster';
-import {
-  AnyCollection,
-  BucketName,
-  CollectionName,
-  DefaultClusterTypes,
-  DocDef,
-  ScopeName,
-} from './clusterTypes';
+import { AnyCollection, BucketName, CollectionName, DefaultClusterTypes, DocDef, ScopeName } from './clusterTypes';
 import {
   CollectionDocumentBag,
   CouchbaseClusterTypes,
@@ -92,11 +75,7 @@ import {
 } from './clusterTypes/kv/lookup/lookupIn.types';
 import { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types';
 import { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types';
-import {
-  MutateInResultEntries,
-  MutateInSpecResults,
-} from './clusterTypes/kv/mutation/mutateIn.types';
-import { ArrayElement } from './clusterTypes/kv/utils/array-utils.types';
+import { MutateInResultEntries, MutateInSpecResults } from './clusterTypes/kv/mutation/mutateIn.types';
 import {
   CounterResult,
   ExistsResult,
@@ -118,12 +97,7 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
-import {
-  CouchbaseList,
-  CouchbaseMap,
-  CouchbaseQueue,
-  CouchbaseSet,
-} from './services/kv/dataStructures';
+import { CouchbaseList, CouchbaseMap, CouchbaseQueue, CouchbaseSet } from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
 import { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
@@ -132,13 +106,7 @@ import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs'
 import { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
 import { StreamableReplicasPromise, StreamableScanPromise } from './streamablepromises';
 import { Transcoder } from './transcoders';
-import {
-  Cas,
-  getDocId,
-  NodeCallback,
-  PromiseHelper,
-  VoidNodeCallback,
-} from './utilities';
+import { Cas, getDocId, NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
 
 /**
  * @category Key-Value

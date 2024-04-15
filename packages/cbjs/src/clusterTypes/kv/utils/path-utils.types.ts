@@ -16,16 +16,22 @@
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 
-import type { IsFuzzyDocument } from "../mutation/mutateIn.types";
-import type { GuaranteedIndexes, IsArrayLengthKnown, ResolveNegativeIndex, TupleIndexes } from "./array-utils.types";
 import type {
-  CircularReferences,
-  OptionalKeys,
-  ReferencesItself,
-  ToNumber,
-  WrapEach
-} from "./misc-utils.types";
-import type { Join, Split, IsNever, Extends, If, Not, And, Or } from '@cbjsdev/shared';
+  And,
+  Extends,
+  GuaranteedIndexes,
+  If,
+  IsArrayLengthKnown,
+  IsNever,
+  Join,
+  Not,
+  Or,
+  ResolveNegativeIndex,
+  Split,
+  TupleIndexes,
+} from '@cbjsdev/shared';
+import type { IsFuzzyDocument } from '../mutation/mutateIn.types';
+import type { CircularReferences, OptionalKeys, ReferencesItself, ToNumber, WrapEach } from './misc-utils.types';
 
 /**
  * Key types you can access using {@link DocumentPath}.

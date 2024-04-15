@@ -14,15 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, PromiseValue } from '@cbjsdev/shared';
+import { If, IsArrayLengthKnown, PromiseValue } from '@cbjsdev/shared';
 
 import { AnyCollection } from '../../../clusterTypes';
 import { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
-import {
-  LookupInSpecResults,
-  NarrowLookupSpecs,
-} from '../../../clusterTypes/kv/lookup/lookupIn.types';
-import { IsArrayLengthKnown } from '../../../clusterTypes/kv/utils/array-utils.types';
+import { LookupInSpecResults, NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types';
 import { LookupInOptions } from '../../../collection';
 import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';

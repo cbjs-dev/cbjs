@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IsExactly, IsNever, If, Or } from '@cbjsdev/shared';
+import { If, IsExactly, IsNever, Or } from '../utils';
 
 /**
  * A union of all the possible types in the array.
@@ -56,13 +56,13 @@ export type ArrayIndexes<T extends ReadonlyArray<unknown>> =
  * Return the array keys that are guaranteed to be present.
  */
 export type GuaranteedIndexes<T extends ReadonlyArray<unknown>> =
-  GetArrayInfo<T> extends infer Info extends ArrayInfo ?
-    If<Or<[Info['IsHeadStatic'], Info['IsTailStatic']]>, TupleIndexes<Info['StaticSlice']>>
-  : never
+  GetArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    If<Or<[Info['IsHeadStatic'], Info['IsTailStatic']]>, TupleIndexes<Info['StaticSlice']>> :
+  never
 ;
 
 /**
- * Return the type of the last element of the array.
+ * Return the type of the last index of the array.
  */
 export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
   IsArrayLengthKnown<T> extends false ?
@@ -71,6 +71,41 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
     Rest['length']
   : never
 ;
+
+/**
+ * Return the type of the last element of the array.
+ */
+export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
+  GetArrayInfo<T> extends {
+      IsFullyStatic: unknown;
+      IsHeadStatic: unknown;
+      IsTailStatic: infer IsTailStatic extends boolean;
+      RestElement: infer RestElement extends unknown;
+      StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
+    } ?
+    IsTailStatic extends true ?
+      StaticSlice[ArrayLastIndex<StaticSlice>] :
+    RestElement :
+  never
+;
+
+/**
+ * Return the type of the first element of the array.
+ */
+export type ArrayFirstElement<T extends ReadonlyArray<unknown>> =
+  GetArrayInfo<T> extends {
+      IsFullyStatic: unknown;
+      IsHeadStatic: infer IsHeadStatic extends boolean;
+      IsTailStatic: unknown;
+      RestElement: infer RestElement extends unknown;
+      StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
+    } ?
+    IsHeadStatic extends true ?
+      StaticSlice[0] :
+    RestElement :
+  never
+;
+
 
 /**
  * Transform an array into a union of tuple representing its entries.
@@ -142,7 +177,7 @@ export type TupleFilter<
  * RestElement: number; // [string, ...number[]]
  * StaticSlice: readonly [string, number]; // [string, number, ...object[]]
  */
-export type ArrayInfo = {
+export type ArrayInfoShape = {
   IsFullyStatic: boolean;
   IsHeadStatic: boolean;
   IsTailStatic: boolean;
@@ -151,7 +186,7 @@ export type ArrayInfo = {
 }
 
 /**
- * Return {@link ArrayInfo} for the `T`.
+ * Return {@link ArrayInfoShape} for the `T`.
  */
 export type GetArrayInfo<T extends ReadonlyArray<unknown>, End extends 'head' | 'tail' = never, Slice extends ReadonlyArray<unknown> = []> =
   IsArrayLengthKnown<T> extends true ?
@@ -179,7 +214,7 @@ export type GetArrayInfo<T extends ReadonlyArray<unknown>, End extends 'head' | 
  * Return the min length of the array.
  */
 export type ArrayMinLength<T extends ReadonlyArray<unknown>> =
-  GetArrayInfo<T> extends infer SliceInfo extends ArrayInfo ?
+  GetArrayInfo<T> extends infer SliceInfo extends ArrayInfoShape ?
     SliceInfo['StaticSlice']['length']
   : never
 ;
@@ -201,7 +236,7 @@ export type ResolveNegativeIndex<T, K> =
 export type IsIndexRemovalStrictlyForbidden<T extends ReadonlyArray<unknown>, K extends number> =
   IsArrayLengthFixed<T> extends true ?
     true :
-  GetArrayInfo<T> extends infer SliceInfo extends ArrayInfo ?
+  GetArrayInfo<T> extends infer SliceInfo extends ArrayInfoShape ?
     SliceInfo['IsFullyStatic'] extends true ?
       true :
     SliceInfo['IsHeadStatic'] extends true ?
@@ -224,7 +259,7 @@ export type IsIndexRemovalStrictlyForbidden<T extends ReadonlyArray<unknown>, K 
 export type ArrayPrependElement<T extends ReadonlyArray<unknown>> =
   IsArrayLengthFixed<T> extends true ?
     never :
-  GetArrayInfo<T> extends infer Info extends ArrayInfo ?
+  GetArrayInfo<T> extends infer Info extends ArrayInfoShape ?
     Info['IsTailStatic'] extends true ?
       Info['RestElement'] :
     Info['IsHeadStatic'] extends true ?
@@ -241,7 +276,7 @@ export type ArrayPrependElement<T extends ReadonlyArray<unknown>> =
 export type ArrayAppendElement<T extends ReadonlyArray<unknown>> =
   IsArrayLengthFixed<T> extends true ?
     never :
-  GetArrayInfo<T> extends infer Info extends ArrayInfo ?
+  GetArrayInfo<T> extends infer Info extends ArrayInfoShape ?
     Info['IsHeadStatic'] extends true ?
       Info['RestElement'] :
     Info['IsTailStatic'] extends true ?

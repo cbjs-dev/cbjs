@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
+import { CouchbaseCas } from '@cbjsdev/cbjs';
 /* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */
 // eslint-disable-next-line no-restricted-imports
 import { expect } from 'vitest';
-
-import { CouchbaseCas } from '@cbjsdev/cbjs';
-import { hasOwn } from '@cbjsdev/shared';
 
 expect.extend({
   toBeNonZeroCAS(received) {

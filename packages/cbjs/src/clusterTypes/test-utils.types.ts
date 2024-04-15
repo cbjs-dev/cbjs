@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { ResolveNegativeIndex } from "./kv/utils/array-utils.types";
-import { TargetableArrayIndexes } from "./kv/utils/path-utils.types";
-import { IsExactly, Extends, If } from '@cbjsdev/shared';
+import { Extends, If, IsExactly, ResolveNegativeIndex } from '@cbjsdev/shared';
+import { TargetableArrayIndexes } from './kv/utils/path-utils.types';
 
 /**
  * THIS IS FOR TESTS PURPOSES ONLY.

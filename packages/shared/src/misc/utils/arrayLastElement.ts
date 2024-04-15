@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ArrayLastElement } from '../types';
 
-/**
- * Generate a pseudo-random ID for testing.
- * This is not using genuine crypto randomness. Use this for tests only.
- */
-export function getRandomId() {
-  return Math.random().toString(16).substring(2, 10);
+export function arrayLastElement<const T extends ReadonlyArray<unknown>>(arr: T) {
+  return arr[arr.length - 1] as ArrayLastElement<T>;
 }

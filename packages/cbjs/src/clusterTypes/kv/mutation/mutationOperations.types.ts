@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import type { If } from '@cbjsdev/shared';
+import type { ArrayAppendElement, ArrayPrependElement, If } from '@cbjsdev/shared';
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { MutateInSpec } from '../../../sdspecs';
-import type { ArrayAppendElement, ArrayPrependElement } from '../utils/array-utils.types';
 import type {
   ExtractPathToAppendableArray,
   ExtractPathToInsertableArrayIndex,

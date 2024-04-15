@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiViewDesignDocument, ApiViewDesignDocuments } from '@cbjsdev/http-client';
+import { ApiViewDesignDocument } from '@cbjsdev/http-client';
 
 import {
   CppManagementViewsDesignDocument,
@@ -27,8 +27,6 @@ import {
 } from './bindingutilities';
 import { Bucket } from './bucket';
 import { BucketName, CouchbaseClusterTypes } from './clusterTypes';
-import { CouchbaseError, DesignDocumentNotFoundError } from './errors';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
 import {
   CompoundTimeout,
   NodeCallback,
@@ -325,7 +323,6 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
   /**
    * Returns a list of all the design documents in this bucket.
    *
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    * @deprecated
    */
@@ -359,41 +356,36 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
 
   async getAllDesignDocuments(
     ...args:
-      | [
-          options?: GetAllDesignDocumentOptions | NodeCallback<DesignDocument[]>,
-          callback?: NodeCallback<DesignDocument[]>,
-        ]
+      | [options: GetAllDesignDocumentOptions, callback?: NodeCallback<DesignDocument[]>]
+      | [callback?: NodeCallback<DesignDocument[]>]
       | [
           namespace: DesignDocumentNamespace,
-          options?: GetAllDesignDocumentOptions | NodeCallback<DesignDocument[]>,
+          options: GetAllDesignDocumentOptions,
           callback?: NodeCallback<DesignDocument[]>,
         ]
+      | [namespace: DesignDocumentNamespace, callback?: NodeCallback<DesignDocument[]>]
   ): Promise<DesignDocument[]> {
-    type ResolvedArgs = {
-      namespace: DesignDocumentNamespace | undefined;
-      options: GetAllDesignDocumentOptions;
-      callback: NodeCallback<DesignDocument[]> | undefined;
-    };
-
-    const resolvedArgs = {
-      namespace: undefined,
-      options: {},
-      callback: undefined,
-    } as ResolvedArgs;
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: GetAllDesignDocumentOptions = {};
+    let callback: NodeCallback<DesignDocument[]> | undefined = undefined;
 
     // New signature
     if (typeof args[0] === 'string') {
-      resolvedArgs.namespace = args[0];
-      resolvedArgs.options = args[1] as GetAllDesignDocumentOptions;
-      resolvedArgs.callback = args[2];
-      // Deprecated signature
+      namespace = args[0];
+
+      const trailingArgs = [args[1], args[2]] as [
+        options: GetAllDesignDocumentOptions,
+        callback: NodeCallback<DesignDocument[]>,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
     } else {
-      resolvedArgs.options = (args[0] ?? {}) as GetAllDesignDocumentOptions;
-      resolvedArgs.callback = args[1];
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback(args);
     }
 
-    const timeout = resolvedArgs.options.timeout ?? this._cluster.managementTimeout;
-    const ns = resolvedArgs.namespace ?? DesignDocumentNamespace.Production;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementViewIndexGetAll(
@@ -414,7 +406,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           wrapCallback(null, ddocs);
         }
       );
-    }, resolvedArgs.callback);
+    }, callback);
   }
 
   /**
@@ -485,61 +477,42 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           callback?: NodeCallback<DesignDocument>,
         ]
   ): Promise<DesignDocument> {
-    type ResolvedArgs = {
-      designDocName: string;
-      namespace: DesignDocumentNamespace | undefined;
-      options: GetAllDesignDocumentOptions;
-      callback: NodeCallback<DesignDocument> | undefined;
-    };
+    let designDocName = args[0];
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: GetDesignDocumentOptions = {};
+    let callback: NodeCallback<DesignDocument> | undefined = undefined;
 
-    const resolvedArgs = {
-      designDocName: args[0],
-      namespace: undefined,
-      options: {},
-      callback: undefined,
-    } as ResolvedArgs;
-
+    // New signature
     if (typeof args[1] === 'string') {
-      resolvedArgs.namespace = args[1];
+      namespace = args[1];
+
+      const trailingArgs = [args[2], args[3]] as [
+        options: GetAllDesignDocumentOptions,
+        callback: NodeCallback<DesignDocument>,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback([args[1], args[2]] as [
+        options: GetAllDesignDocumentOptions,
+        callback: NodeCallback<DesignDocument>,
+      ]);
     }
 
-    if (typeof args[1] === 'object') {
-      resolvedArgs.options = args[1];
-      resolvedArgs.callback = args[2];
-    }
-
-    if (typeof args[1] === 'function') {
-      resolvedArgs.callback = args[1];
-    }
-
-    if (typeof args[2] === 'object') {
-      resolvedArgs.options = args[2];
-    }
-
-    if (typeof args[2] === 'function') {
-      resolvedArgs.callback = args[2];
-    }
-
-    if (typeof args[3] === 'function') {
-      resolvedArgs.callback = args[3];
-    }
-
-    const timeout = resolvedArgs.options.timeout ?? this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
     // for compatibility with older SDK versions (i.e. deprecated getDesignDocument())
-    if (
-      resolvedArgs.designDocName.startsWith('dev_') &&
-      resolvedArgs.namespace === undefined
-    ) {
-      resolvedArgs.namespace = DesignDocumentNamespace.Development;
-      resolvedArgs.designDocName = resolvedArgs.designDocName.substring(4);
+    if (designDocName.startsWith('dev_') && namespace === undefined) {
+      namespace = DesignDocumentNamespace.Development;
+      designDocName = designDocName.substring(4);
     }
-    const ns = resolvedArgs.namespace ?? DesignDocumentNamespace.Production;
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementViewIndexGet(
         {
           bucket_name: this._bucket.name,
-          document_name: resolvedArgs.designDocName,
+          document_name: designDocName,
           ns: designDocumentNamespaceToCpp(ns),
           timeout: timeout,
         },
@@ -552,7 +525,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           wrapCallback(null, ddoc);
         }
       );
-    }, resolvedArgs.callback);
+    }, callback);
   }
 
   /**
@@ -591,15 +564,14 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
    */
   async upsertDesignDocument(
     designDoc: DesignDocument,
-    namespace?: DesignDocumentNamespace,
-    options?: UpsertDesignDocumentOptions,
+    namespace: DesignDocumentNamespace,
+    options: UpsertDesignDocumentOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
 
-  // TODO update signatures & implementation
   async upsertDesignDocument(
     designDoc: DesignDocument,
-    namespace?: DesignDocumentNamespace,
+    namespace: DesignDocumentNamespace,
     callback?: VoidNodeCallback
   ): Promise<void>;
 
@@ -617,63 +589,44 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           callback?: VoidNodeCallback,
         ]
   ): Promise<void> {
-    type ResolvedArgs = {
-      designDoc: DesignDocument;
-      namespace: DesignDocumentNamespace | undefined;
-      options: UpsertDesignDocumentOptions;
-      callback: VoidNodeCallback | undefined;
-    };
+    const designDoc: DesignDocument = args[0];
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: UpsertDesignDocumentOptions = {};
+    let callback: VoidNodeCallback | undefined = undefined;
 
-    const resolvedArgs = {
-      designDoc: args[0],
-      namespace: undefined,
-      options: {},
-      callback: undefined,
-    } as ResolvedArgs;
-
+    // New signature
     if (typeof args[1] === 'string') {
-      resolvedArgs.namespace = args[1];
+      namespace = args[1];
+
+      const trailingArgs = [args[2], args[3]] as [
+        options: UpsertDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback([args[1], args[2]] as [
+        options: UpsertDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ]);
     }
 
-    if (typeof args[1] === 'object') {
-      resolvedArgs.options = args[1];
-      resolvedArgs.callback = args[2];
-    }
-
-    if (typeof args[1] === 'function') {
-      resolvedArgs.callback = args[1];
-    }
-
-    if (typeof args[2] === 'object') {
-      resolvedArgs.options = args[2];
-    }
-
-    if (typeof args[2] === 'function') {
-      resolvedArgs.callback = args[2];
-    }
-
-    if (typeof args[3] === 'function') {
-      resolvedArgs.callback = args[3];
-    }
-
-    const timeout = resolvedArgs.options.timeout ?? this._cluster.managementTimeout;
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     // for compatibility with older SDK versions (i.e. deprecated upsertDesignDocument())
-    if (
-      resolvedArgs.designDoc.name.startsWith('dev_') &&
-      resolvedArgs.namespace === undefined
-    ) {
-      resolvedArgs.namespace = DesignDocumentNamespace.Development;
-      resolvedArgs.designDoc.name = resolvedArgs.designDoc.name.substring(4);
+    if (designDoc.name.startsWith('dev_') && namespace === undefined) {
+      namespace = DesignDocumentNamespace.Development;
+      designDoc.name = designDoc.name.substring(4);
     }
 
-    const ns = resolvedArgs.namespace ?? DesignDocumentNamespace.Production;
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementViewIndexUpsert(
         {
           bucket_name: this._bucket.name,
-          document: DesignDocument._toCppData(resolvedArgs.designDoc, ns),
+          document: DesignDocument._toCppData(designDoc, ns),
           timeout: timeout,
         },
         (cppErr) => {
@@ -684,7 +637,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           wrapCallback(err);
         }
       );
-    }, resolvedArgs.callback);
+    }, callback);
   }
 
   /**
@@ -724,7 +677,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
   async dropDesignDocument(
     designDocName: string,
     namespace: DesignDocumentNamespace,
-    options?: DropDesignDocumentOptions,
+    options: DropDesignDocumentOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
 
@@ -755,62 +708,43 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           callback?: VoidNodeCallback,
         ]
   ): Promise<void> {
-    type ResolvedArgs = {
-      designDocName: string;
-      namespace: DesignDocumentNamespace | undefined;
-      options: DropDesignDocumentOptions;
-      callback: VoidNodeCallback | undefined;
-    };
+    let designDocName = args[0];
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: DropDesignDocumentOptions = {};
+    let callback: VoidNodeCallback | undefined = undefined;
 
-    const resolvedArgs = {
-      designDocName: args[0],
-      namespace: undefined,
-      options: {},
-      callback: undefined,
-    } as ResolvedArgs;
-
+    // New signature
     if (typeof args[1] === 'string') {
-      resolvedArgs.namespace = args[1];
+      namespace = args[1];
+
+      const trailingArgs = [args[2], args[3]] as [
+        options: DropDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback([args[1], args[2]] as [
+        options: DropDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ]);
     }
 
-    if (typeof args[1] === 'object') {
-      resolvedArgs.options = args[1];
-      resolvedArgs.callback = args[2];
+    const timeout = options.timeout ?? this._cluster.managementTimeout;
+
+    if (designDocName.startsWith('dev_') && namespace === undefined) {
+      namespace = DesignDocumentNamespace.Development;
+      designDocName = designDocName.substring(4);
     }
 
-    if (typeof args[1] === 'function') {
-      resolvedArgs.callback = args[1];
-    }
-
-    if (typeof args[2] === 'object') {
-      resolvedArgs.options = args[2];
-    }
-
-    if (typeof args[2] === 'function') {
-      resolvedArgs.callback = args[2];
-    }
-
-    if (typeof args[3] === 'function') {
-      resolvedArgs.callback = args[3];
-    }
-
-    const timeout = resolvedArgs.options.timeout ?? this._cluster.managementTimeout;
-
-    if (
-      resolvedArgs.designDocName.startsWith('dev_') &&
-      resolvedArgs.namespace === undefined
-    ) {
-      resolvedArgs.namespace = DesignDocumentNamespace.Development;
-      resolvedArgs.designDocName = resolvedArgs.designDocName.substring(4);
-    }
-
-    const ns = resolvedArgs.namespace ?? DesignDocumentNamespace.Production;
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementViewIndexDrop(
         {
           bucket_name: this._bucket.name,
-          document_name: resolvedArgs.designDocName,
+          document_name: designDocName,
           ns: designDocumentNamespaceToCpp(ns),
           timeout: timeout,
         },
@@ -822,7 +756,7 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
           wrapCallback(err);
         }
       );
-    }, resolvedArgs.callback);
+    }, callback);
   }
 
   /**

@@ -14,13 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, NoInfer } from '@cbjsdev/shared';
+import { If, IsArrayLengthKnown, NoInfer } from '@cbjsdev/shared';
 
 import { AnyCollection } from '../../../clusterTypes';
 import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
-import { NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types';
 import { MutateInSpecResults, NarrowMutationSpecs } from '../../../clusterTypes/kv/mutation/mutateIn.types';
-import { IsArrayLengthKnown } from '../../../clusterTypes/kv/utils/array-utils.types';
 import { MutateInOptions } from '../../../collection';
 import { MutateInResult } from '../../../crudoptypes';
 import { MutateInSpec } from '../../../sdspecs';

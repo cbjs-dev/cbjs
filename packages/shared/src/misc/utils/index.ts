@@ -21,5 +21,8 @@ export * from './raise';
 export * from './sleep';
 export * from './types';
 export * from './waitFor';
+export * from './arrayFirstElement';
+export * from './arrayLastElement';
+export * from './isArray';
 
 export * from './jsonToUrlSearchParams';

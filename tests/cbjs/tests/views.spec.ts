@@ -14,39 +14,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
+import { afterEach, describe } from 'vitest';
 
 import {
   DesignDocument,
+  DesignDocumentNamespace,
   DesignDocumentNotFoundError,
   DesignDocumentView,
   HttpErrorContext,
 } from '@cbjsdev/cbjs';
 import { waitForViewDesignDocument } from '@cbjsdev/http-client';
-import { invariant } from '@cbjsdev/shared';
-import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { invariant, waitFor } from '@cbjsdev/shared';
+import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitFor } from '../utils/waitFor';
-
-// TODO add latest views tests with new API
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Views))
   .shuffle('views', async () => {
-    const buildDesignDocument = (testUid: string, docId: string, viewName: string) => {
+    const getMapFunction = (testUid: string) => `
+      function(doc, meta){
+        if(meta.id.indexOf("${testUid}")==0){
+          const newDoc = {
+            batch: "${testUid}",
+            id: meta.id,
+            name: doc.name
+          };
+          const batches = newDoc.id.split('::')
+          if (parseInt(batches[1]) < 2) {
+            const key = batches[0].slice(0, 2)
+            emit(key, newDoc)
+          } else if (parseInt(batches[1]) >= 2 && parseInt(batches[1]) < 4) {
+            const key = batches[0].slice(2, 4)
+            emit(key, newDoc);
+          } else if (parseInt(batches[1]) >= 4 && parseInt(batches[1]) < 6) {
+            const key = batches[0].slice(4, 6)
+            emit(key, newDoc);
+          } else {
+            const key = batches[0].slice(-2)
+            emit(key, newDoc);
+          }
+        }
+      }
+    `;
+
+    const buildDesignDocument = (
+      testUid: string,
+      docId: string,
+      viewName: string,
+      explicitNamespace = false
+    ) => {
       return new DesignDocument({
-        name: `dev_${docId}`,
+        name: explicitNamespace ? docId : `dev_${docId}`,
         views: {
           [viewName]: new DesignDocumentView({
-            map: `
-          function(doc, meta){
-            if(meta.id.indexOf("${testUid}")==0){
-              emit(meta.id);
-            }
-          }
-          `,
+            map: getMapFunction(testUid),
           }),
         },
       });
@@ -60,18 +83,144 @@ describe
       };
     });
 
+    // The view design document key fixture won't effectively drop the view at the end of the test because
+    // of the automatic prefix for development/unpublished views.
+    afterEach<TestFixtures<typeof test>>(
+      async ({ apiConfig, serverTestContext, docId }) => {
+        await Promise.allSettled([
+          serverTestContext.b.viewIndexes().dropDesignDocument(docId),
+          serverTestContext.b.viewIndexes().dropDesignDocument(`dev_${docId}`),
+        ]);
+
+        await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, docId, {
+          expectMissing: true,
+        });
+
+        await waitForViewDesignDocument(
+          apiConfig,
+          serverTestContext.b.name,
+          `dev_${docId}`,
+          {
+            expectMissing: true,
+          }
+        );
+      }
+    );
+
+    test('should successfully create an index', async function ({
+      apiConfig,
+      serverTestContext,
+      docId,
+      viewName,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      await serverTestContext.b
+        .viewIndexes()
+        .upsertDesignDocument(buildDesignDocument(sampleData.testUid, docId, viewName));
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${docId}`
+      );
+    });
+
+    test('should successfully create an index using an explicit namespace', async function ({
+      apiConfig,
+      serverTestContext,
+      docId,
+      viewName,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName, true);
+      await serverTestContext.b
+        .viewIndexes()
+        .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${docId}`
+      );
+    });
+
     test(
-      'should successfully create an index',
-      async function ({ serverTestContext, docId, viewName, useSampleData }) {
+      'should successfully get a development index (legacy)',
+      async function ({
+        expect,
+        apiConfig,
+        serverTestContext,
+        docId,
+        viewName,
+        useSampleData,
+      }) {
         const sampleData = await useSampleData(serverTestContext.dco);
-        await serverTestContext.b
+        const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
+
+        await serverTestContext.b.viewIndexes().upsertDesignDocument(doc);
+
+        await waitForViewDesignDocument(
+          apiConfig,
+          serverTestContext.b.name,
+          `dev_${docId}`
+        );
+
+        const res = await serverTestContext.b
           .viewIndexes()
-          .upsertDesignDocument(buildDesignDocument(sampleData.testUid, docId, viewName));
+          .getDesignDocument(`dev_${docId}`);
+
+        expect(res).toBeInstanceOf(DesignDocument);
+        expect(res.name).toEqual(docId);
+        expect(res.namespace).toEqual(DesignDocumentNamespace.Development);
+        expect(Object.keys(res.views)).toHaveLength(1);
+        expect(Object.keys(res.views)[0]).toEqual('simple');
+        expect(res.views.simple).toBeInstanceOf(DesignDocumentView);
+        expect(res.views.simple.map).toEqual(getMapFunction(sampleData.testUid));
       },
       { timeout: 60_000 }
     );
 
-    test('should successfully publish an index', async function ({
+    test(
+      'should successfully get a development index using an explicit namespace',
+      async function ({
+        expect,
+        apiConfig,
+        serverTestContext,
+        docId,
+        viewName,
+        useSampleData,
+      }) {
+        const sampleData = await useSampleData(serverTestContext.dco);
+        const doc = buildDesignDocument(sampleData.testUid, docId, viewName, true);
+
+        await serverTestContext.b
+          .viewIndexes()
+          .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
+
+        await waitForViewDesignDocument(
+          apiConfig,
+          serverTestContext.b.name,
+          `dev_${docId}`
+        );
+
+        const res = await serverTestContext.b
+          .viewIndexes()
+          .getDesignDocument(docId, DesignDocumentNamespace.Development);
+
+        expect(res).toBeInstanceOf(DesignDocument);
+        expect(res.name).toEqual(docId);
+        expect(res.namespace).toEqual(DesignDocumentNamespace.Development);
+        expect(Object.keys(res.views)).toHaveLength(1);
+        expect(Object.keys(res.views)[0]).toEqual('simple');
+        expect(res.views.simple).toBeInstanceOf(DesignDocumentView);
+        expect(res.views.simple.map).toEqual(getMapFunction(sampleData.testUid));
+      },
+      { timeout: 60_000 }
+    );
+
+    test('should successfully publish an index (legacy)', async function ({
       serverTestContext,
       docId,
       viewName,
@@ -82,7 +231,33 @@ describe
       const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
 
       await serverTestContext.b.viewIndexes().upsertDesignDocument(doc);
-      await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, doc.name);
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${doc.name}`
+      );
+      await serverTestContext.b.viewIndexes().publishDesignDocument(docId);
+    });
+
+    test('should successfully publish an index using explicit namespace', async function ({
+      serverTestContext,
+      docId,
+      viewName,
+      apiConfig,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName, true);
+
+      await serverTestContext.b
+        .viewIndexes()
+        .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${doc.name}`
+      );
+
       await serverTestContext.b.viewIndexes().publishDesignDocument(docId);
     });
 
@@ -147,7 +322,7 @@ describe
       { timeout: 10_000 }
     );
 
-    test('should successfully drop an index', async function ({
+    test('should successfully drop a development index (legacy)', async function ({
       serverTestContext,
       apiConfig,
       viewName,
@@ -157,7 +332,168 @@ describe
       const sampleData = await useSampleData(serverTestContext.dco);
       const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
       await serverTestContext.b.viewIndexes().upsertDesignDocument(doc);
-      await serverTestContext.b.viewIndexes().dropDesignDocument(doc.name);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${doc.name}`
+      );
+
+      await serverTestContext.b.viewIndexes().dropDesignDocument(`dev_${doc.name}`);
+
+      await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, docId, {
+        expectMissing: true,
+      });
+    });
+
+    test('should successfully drop a development index using explicit namespace', async function ({
+      serverTestContext,
+      apiConfig,
+      viewName,
+      docId,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName, true);
+      await serverTestContext.b
+        .viewIndexes()
+        .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${doc.name}`
+      );
+
+      await serverTestContext.b
+        .viewIndexes()
+        .dropDesignDocument(doc.name, DesignDocumentNamespace.Development);
+
+      await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, docId, {
+        expectMissing: true,
+      });
+    });
+
+    test('should successfully get all indexes - fallback namespace', async function ({
+      apiConfig,
+      expect,
+      serverTestContext,
+      viewName,
+      docId,
+      useSampleData,
+    }) {
+      const emptyIndexes = await serverTestContext.b
+        .viewIndexes()
+        .getAllDesignDocuments();
+
+      expect(emptyIndexes).toBeInstanceOf(Array);
+      expect(emptyIndexes).toHaveLength(0);
+
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
+      await serverTestContext.b.viewIndexes().upsertDesignDocument(doc);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${docId}`
+      );
+
+      await serverTestContext.b.viewIndexes().publishDesignDocument(doc.name);
+
+      await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, docId);
+
+      const res = await serverTestContext.b.viewIndexes().getAllDesignDocuments();
+
+      expect(res).toBeInstanceOf(Array);
+      expect(res).toHaveLength(1);
+      expect(res[0]).toBeInstanceOf(DesignDocument);
+    });
+
+    test('should successfully get all indexes of a specific namespace', async function ({
+      apiConfig,
+      expect,
+      serverTestContext,
+      viewName,
+      docId,
+      useSampleData,
+    }) {
+      const emptyIndexes = await serverTestContext.b
+        .viewIndexes()
+        .getAllDesignDocuments(DesignDocumentNamespace.Development);
+
+      expect(emptyIndexes).toBeInstanceOf(Array);
+      expect(emptyIndexes).toHaveLength(0);
+
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName, true);
+      await serverTestContext.b
+        .viewIndexes()
+        .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${docId}`
+      );
+
+      const res = await serverTestContext.b
+        .viewIndexes()
+        .getAllDesignDocuments(DesignDocumentNamespace.Development);
+
+      expect(res).toBeInstanceOf(Array);
+      expect(res).toHaveLength(1);
+      expect(res[0]).toBeInstanceOf(DesignDocument);
+    });
+
+    test('should successfully drop a production index (legacy)', async function ({
+      serverTestContext,
+      apiConfig,
+      viewName,
+      docId,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
+      await serverTestContext.b.viewIndexes().upsertDesignDocument(doc);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${docId}`
+      );
+
+      await serverTestContext.b.viewIndexes().publishDesignDocument(doc.name);
+      await serverTestContext.b.viewIndexes().dropDesignDocument(docId);
+
+      await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, docId, {
+        expectMissing: true,
+      });
+    });
+
+    test('should successfully drop a production index using explicit namespace', async function ({
+      serverTestContext,
+      apiConfig,
+      viewName,
+      docId,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const doc = buildDesignDocument(sampleData.testUid, docId, viewName, true);
+      await serverTestContext.b
+        .viewIndexes()
+        .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
+
+      await waitForViewDesignDocument(
+        apiConfig,
+        serverTestContext.b.name,
+        `dev_${docId}`
+      );
+
+      await serverTestContext.b.viewIndexes().publishDesignDocument(doc.name);
+      await serverTestContext.b
+        .viewIndexes()
+        .dropDesignDocument(docId, DesignDocumentNamespace.Production);
 
       await waitForViewDesignDocument(apiConfig, serverTestContext.b.name, docId, {
         expectMissing: true,

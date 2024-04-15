@@ -15,26 +15,27 @@
  */
 
 import type {
-  ArrayInfo,
+  ArrayInfoShape,
   ExtractAppendableArray,
   ExtractPrependableArray,
   GetArrayInfo,
   IsArrayLengthFixed,
+  IsExactly,
   IsIndexRemovalStrictlyForbidden,
+  IsNever,
   ResolveNegativeIndex,
   TupleFilter,
-  TupleIndexes
-} from "./array-utils.types";
-import type { WritableKeys } from "./misc-utils.types";
+  TupleIndexes,
+} from '@cbjsdev/shared';
+import type { WritableKeys } from './misc-utils.types';
 import type {
   DocumentPath,
   ParentDocument,
   PathTargetExpression,
   PathToClosestProperty,
   PathToParentAccessor,
-  SubDocument
-} from "./path-utils.types";
-import type { IsExactly, IsNever } from '@cbjsdev/shared';
+  SubDocument,
+} from './path-utils.types';
 
 /**
  *  Extract document paths for which `Type` extends the target property type.
@@ -114,7 +115,7 @@ export type ExtractPathToWritableArrayIndex<D, P extends string, FilterType = ne
                 IsNever<FilterType> extends true ?
                   PathToWritableIndex :
                 PathToWritableIndex extends `${infer PathToArray extends PathToParentAccessor<PathToWritableIndex>}[${infer Index extends number}]` ?
-                  GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfo ?
+                  GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfoShape ?
                     FilterType extends Info['RestElement'] ?
                       PathToWritableIndex :
                     Info['IsFullyStatic'] extends true ?
