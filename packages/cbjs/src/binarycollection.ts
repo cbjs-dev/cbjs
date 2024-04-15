@@ -14,9 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes } from '@cbjsdev/shared';
-
-import type { AnyCollection } from './clusterTypes/clusterTypes';
+import type { AnyCollection } from './clusterTypes';
 import type { Collection } from './collection';
 import { CounterResult, MutationResult } from './crudoptypes';
 import { DurabilityLevel } from './generaltypes';

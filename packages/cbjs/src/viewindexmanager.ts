@@ -14,9 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiViewDesignDocument, ApiViewDesignDocuments } from '@cbjsdev/http-client';
+import { ApiViewDesignDocument } from '@cbjsdev/http-client';
 import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
 
+import {
+  CppManagementViewsDesignDocument,
+  CppManagementViewsDesignDocumentView,
+} from './binding';
+import {
+  designDocumentNamespaceFromCpp,
+  designDocumentNamespaceToCpp,
+  errorFromCpp,
+} from './bindingutilities';
 import { Bucket } from './bucket';
 import { CouchbaseError, DesignDocumentNotFoundError } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
@@ -26,6 +35,8 @@ import {
   PromiseHelper,
   VoidNodeCallback,
 } from './utilities';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+import { DesignDocumentNamespace } from './viewtypes';
 
 /**
  * Contains information about a view in a design document.
@@ -36,36 +47,60 @@ export class DesignDocumentView {
   /**
    * The mapping function to use for this view.
    */
-  map: string;
+  map?: string;
 
   /**
    * The reduction function to use for this view.
    */
-  reduce: string | undefined;
+  reduce?: string;
 
-  constructor(data: { map: string; reduce?: string });
+  constructor(data: { map?: string; reduce?: string });
 
   /**
    * @deprecated
    */
-  constructor(map: string, reduce?: string);
+  constructor(map?: string, reduce?: string);
 
   /**
    * @internal
    */
   constructor(
-    ...args: [{ map: string; reduce?: string }] | [map: string, reduce?: string]
+    ...args: [{ map?: string; reduce?: string }] | [map?: string, reduce?: string]
   ) {
-    if (typeof args[0] === 'string') {
-      this.map = args[0];
-      this.reduce = args[1];
+    if (typeof args[0] === 'object') {
+      const { map, reduce } = args[0];
+
+      this.map = map;
+      this.reduce = reduce;
       return;
     }
 
-    const { map, reduce } = args[0];
+    this.map = args[0];
+    this.reduce = args[1];
+  }
 
-    this.map = map;
-    this.reduce = reduce;
+  /**
+   * @internal
+   */
+  static _toCppData(
+    name: string,
+    data: DesignDocumentView
+  ): CppManagementViewsDesignDocumentView {
+    return {
+      name: name,
+      map: data.map,
+      reduce: data.reduce,
+    };
+  }
+
+  /**
+   * @internal
+   */
+  static _fromCppData(data: CppManagementViewsDesignDocumentView): DesignDocumentView {
+    return new DesignDocumentView({
+      map: data.map,
+      reduce: data.reduce,
+    });
   }
 }
 
@@ -94,7 +129,22 @@ export class DesignDocument {
    */
   views: { [viewName: string]: DesignDocumentView };
 
-  constructor(data: { name: string; views?: { [viewName: string]: DesignDocumentView } });
+  /**
+   * The namespace for this design document.
+   */
+  namespace: DesignDocumentNamespace;
+
+  /**
+   * The revision of the design document.
+   */
+  rev: string | undefined;
+
+  constructor(data: {
+    name: string;
+    views?: { [viewName: string]: DesignDocumentView };
+    namespace?: DesignDocumentNamespace;
+    rev?: string;
+  });
 
   /**
    * @deprecated
@@ -106,19 +156,29 @@ export class DesignDocument {
    */
   constructor(
     ...args:
-      | [{ name: string; views?: { [viewName: string]: DesignDocumentView } }]
+      | [
+          {
+            name: string;
+            views?: { [viewName: string]: DesignDocumentView };
+            rev?: string;
+            namespace?: DesignDocumentNamespace;
+          },
+        ]
       | [name: string, views: { [viewName: string]: DesignDocumentView }]
   ) {
-    if (typeof args[0] === 'string') {
-      this.name = args[0];
-      this.views = args[1] ?? {};
+    if (typeof args[0] === 'object') {
+      const { name, views, namespace, rev } = args[0];
+
+      this.name = name;
+      this.views = views ?? {};
+      this.namespace = namespace ?? DesignDocumentNamespace.Production;
+      this.rev = rev;
       return;
     }
 
-    const { name, views } = args[0];
-
-    this.name = name;
-    this.views = views ?? {};
+    this.name = args[0];
+    this.views = args[1] ?? {};
+    this.namespace = DesignDocumentNamespace.Production;
   }
 
   /**
@@ -138,6 +198,42 @@ export class DesignDocument {
     }
 
     return new DesignDocument({ name: ddocName, views: views });
+  }
+
+  /**
+   * @internal
+   */
+  static _toCppData(
+    data: DesignDocument,
+    namespace: DesignDocumentNamespace
+  ): CppManagementViewsDesignDocument {
+    const cppView: { [key: string]: CppManagementViewsDesignDocumentView } = {};
+    for (const [k, v] of Object.entries(data.views)) {
+      cppView[k] = DesignDocumentView._toCppData(k, v);
+    }
+    return {
+      rev: data.rev,
+      name: data.name,
+      ns: designDocumentNamespaceToCpp(namespace),
+      views: cppView,
+    };
+  }
+
+  /**
+   * @internal
+   */
+  static _fromCppData(ddoc: CppManagementViewsDesignDocument): DesignDocument {
+    const views: { [viewName: string]: DesignDocumentView } = {};
+    for (const [viewName, viewData] of Object.entries(ddoc.views)) {
+      views[viewName] = DesignDocumentView._fromCppData(viewData);
+    }
+
+    return new DesignDocument({
+      name: ddoc.name,
+      views: views,
+      namespace: designDocumentNamespaceFromCpp(ddoc.ns),
+      rev: ddoc.rev,
+    });
   }
 }
 
@@ -210,13 +306,6 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
   /**
    * @internal
    */
-  private get _http() {
-    return new HttpExecutor(this._bucket.conn);
-  }
-
-  /**
-   * @internal
-   */
   private get _cluster() {
     return this._bucket.cluster;
   }
@@ -226,50 +315,99 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
    *
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
    */
   async getAllDesignDocuments(
     options: GetAllDesignDocumentOptions,
     callback?: NodeCallback<DesignDocument[]>
   ): Promise<DesignDocument[]>;
+
+  /**
+   * Returns a list of all the design documents in this bucket.
+   *
+   * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
+   */
   async getAllDesignDocuments(
     callback?: NodeCallback<DesignDocument[]>
   ): Promise<DesignDocument[]>;
+
+  /**
+   * Returns a list of all the design documents in this bucket.
+   *
+   * @param namespace The DesignDocument namespace.
+   * @param options Parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async getAllDesignDocuments(
-    options?: GetAllDesignDocumentOptions | NodeCallback<DesignDocument[]>,
+    namespace: DesignDocumentNamespace,
+    options: GetAllDesignDocumentOptions,
     callback?: NodeCallback<DesignDocument[]>
+  ): Promise<DesignDocument[]>;
+
+  /**
+   * Returns a list of all the design documents in this bucket.
+   *
+   * @param namespace The DesignDocument namespace.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  async getAllDesignDocuments(
+    namespace: DesignDocumentNamespace,
+    callback?: NodeCallback<DesignDocument[]>
+  ): Promise<DesignDocument[]>;
+
+  async getAllDesignDocuments(
+    ...args:
+      | [options: GetAllDesignDocumentOptions, callback?: NodeCallback<DesignDocument[]>]
+      | [callback?: NodeCallback<DesignDocument[]>]
+      | [
+          namespace: DesignDocumentNamespace,
+          options: GetAllDesignDocumentOptions,
+          callback?: NodeCallback<DesignDocument[]>,
+        ]
+      | [namespace: DesignDocumentNamespace, callback?: NodeCallback<DesignDocument[]>]
   ): Promise<DesignDocument[]> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: GetAllDesignDocumentOptions = {};
+    let callback: NodeCallback<DesignDocument[]> | undefined = undefined;
+
+    // New signature
+    if (typeof args[0] === 'string') {
+      namespace = args[0];
+
+      const trailingArgs = [args[1], args[2]] as [
+        options: GetAllDesignDocumentOptions,
+        callback: NodeCallback<DesignDocument[]>,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback(args);
     }
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const bucketName = this._bucket.name;
-
-      const res = await this._http.request({
-        type: HttpServiceType.Management,
-        method: HttpMethod.Get,
-        path: `/pools/default/buckets/${bucketName}/ddocs`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        throw new CouchbaseError('failed to get design documents', undefined, errCtx);
-      }
-
-      const apiResponse = JSON.parse(res.body.toString()) as ApiViewDesignDocuments;
-
-      return apiResponse.rows.map((ddoc) => {
-        const name = ddoc.doc.meta.id.substring(8);
-        return DesignDocument._fromNsData(name, ddoc.doc.json);
-      });
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementViewIndexGetAll(
+        {
+          bucket_name: this._bucket.name,
+          ns: designDocumentNamespaceToCpp(ns),
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const ddocs = [];
+          for (const ddoc of resp.design_documents) {
+            ddocs.push(DesignDocument._fromCppData(ddoc));
+          }
+          wrapCallback(null, ddocs);
+        }
+      );
     }, callback);
   }
 
@@ -279,53 +417,116 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
    * @param designDocName The name of the design document to fetch.
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
    */
   async getDesignDocument(
     designDocName: string,
     options: GetDesignDocumentOptions,
     callback?: NodeCallback<DesignDocument>
   ): Promise<DesignDocument>;
+
+  /**
+   * Returns the specified design document.
+   *
+   * @param designDocName The name of the design document to fetch.
+   * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
+   */
   async getDesignDocument(
     designDocName: string,
     callback?: NodeCallback<DesignDocument>
   ): Promise<DesignDocument>;
+
+  /**
+   * Returns the specified design document.
+   *
+   * @param designDocName The name of the design document to fetch.
+   * @param namespace The DesignDocument namespace.
+   * @param options Parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async getDesignDocument(
     designDocName: string,
-    options?: GetDesignDocumentOptions | NodeCallback<DesignDocument>,
+    namespace: DesignDocumentNamespace,
+    options: GetDesignDocumentOptions,
     callback?: NodeCallback<DesignDocument>
+  ): Promise<DesignDocument>;
+
+  /**
+   * Returns the specified design document.
+   *
+   * @param designDocName The name of the design document to fetch.
+   * @param namespace The DesignDocument namespace.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  async getDesignDocument(
+    designDocName: string,
+    namespace: DesignDocumentNamespace,
+    callback?: NodeCallback<DesignDocument>
+  ): Promise<DesignDocument>;
+
+  async getDesignDocument(
+    ...args:
+      | [
+          designDocName: string,
+          namespace: DesignDocumentNamespace,
+          options?: GetDesignDocumentOptions | NodeCallback<DesignDocument>,
+          callback?: NodeCallback<DesignDocument>,
+        ]
+      | [
+          designDocName: string,
+          options?: GetDesignDocumentOptions | NodeCallback<DesignDocument>,
+          callback?: NodeCallback<DesignDocument>,
+        ]
   ): Promise<DesignDocument> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
+    let designDocName = args[0];
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: GetDesignDocumentOptions = {};
+    let callback: NodeCallback<DesignDocument> | undefined = undefined;
+
+    // New signature
+    if (typeof args[1] === 'string') {
+      namespace = args[1];
+
+      const trailingArgs = [args[2], args[3]] as [
+        options: GetAllDesignDocumentOptions,
+        callback: NodeCallback<DesignDocument>,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback([args[1], args[2]] as [
+        options: GetAllDesignDocumentOptions,
+        callback: NodeCallback<DesignDocument>,
+      ]);
     }
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
+    // for compatibility with older SDK versions (i.e. deprecated getDesignDocument())
+    if (designDocName.startsWith('dev_') && namespace === undefined) {
+      namespace = DesignDocumentNamespace.Development;
+      designDocName = designDocName.substring(4);
+    }
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const bucketName = this._bucket.name;
-
-      const res = await this._http.request({
-        type: HttpServiceType.Views,
-        method: HttpMethod.Get,
-        path: `/${bucketName}/_design/${designDocName}`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        if (res.statusCode === 404) {
-          throw new DesignDocumentNotFoundError(undefined, errCtx);
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementViewIndexGet(
+        {
+          bucket_name: this._bucket.name,
+          document_name: designDocName,
+          ns: designDocumentNamespaceToCpp(ns),
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const ddoc = DesignDocument._fromCppData(resp.document);
+          wrapCallback(null, ddoc);
         }
-
-        throw new CouchbaseError('failed to get the design document', undefined, errCtx);
-      }
-
-      const ddocData = JSON.parse(res.body.toString());
-      return DesignDocument._fromNsData(designDocName, ddocData);
+      );
     }, callback);
   }
 
@@ -333,59 +534,111 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
    * Creates or updates a design document.
    *
    * @param designDoc The DesignDocument to upsert.
-   * @param options Optional parameters for this operation.
+   * @param options Parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
    */
   async upsertDesignDocument(
     designDoc: DesignDocument,
     options: UpsertDesignDocumentOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Creates or updates a design document.
+   *
+   * @param designDoc The DesignDocument to upsert.
+   * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
+   */
   async upsertDesignDocument(
     designDoc: DesignDocument,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Creates or updates a design document.
+   *
+   * @param designDoc The DesignDocument to upsert.
+   * @param namespace The DesignDocument namespace.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async upsertDesignDocument(
     designDoc: DesignDocument,
-    options?: UpsertDesignDocumentOptions | VoidNodeCallback,
+    namespace: DesignDocumentNamespace,
+    options: UpsertDesignDocumentOptions,
     callback?: VoidNodeCallback
+  ): Promise<void>;
+
+  async upsertDesignDocument(
+    designDoc: DesignDocument,
+    namespace: DesignDocumentNamespace,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+
+  async upsertDesignDocument(
+    ...args:
+      | [
+          designDoc: DesignDocument,
+          namespace?: DesignDocumentNamespace,
+          options?: UpsertDesignDocumentOptions | VoidNodeCallback,
+          callback?: VoidNodeCallback,
+        ]
+      | [
+          designDoc: DesignDocument,
+          options?: UpsertDesignDocumentOptions | VoidNodeCallback,
+          callback?: VoidNodeCallback,
+        ]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
+    const designDoc: DesignDocument = args[0];
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: UpsertDesignDocumentOptions = {};
+    let callback: VoidNodeCallback | undefined = undefined;
+
+    // New signature
+    if (typeof args[1] === 'string') {
+      namespace = args[1];
+
+      const trailingArgs = [args[2], args[3]] as [
+        options: UpsertDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback([args[1], args[2]] as [
+        options: UpsertDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ]);
     }
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const bucketName = this._bucket.name;
+    // for compatibility with older SDK versions (i.e. deprecated upsertDesignDocument())
+    if (designDoc.name.startsWith('dev_') && namespace === undefined) {
+      namespace = DesignDocumentNamespace.Development;
+      designDoc.name = designDoc.name.substring(4);
+    }
 
-      const designDocData = {
-        views: designDoc.views,
-      };
-      const encodedData = JSON.stringify(designDocData);
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
-      const res = await this._http.request({
-        type: HttpServiceType.Views,
-        method: HttpMethod.Put,
-        path: `/${bucketName}/_design/${designDoc.name}`,
-        contentType: 'application/json',
-        body: encodedData,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 201) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        throw new CouchbaseError(
-          'failed to upsert the design document',
-          undefined,
-          errCtx
-        );
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementViewIndexUpsert(
+        {
+          bucket_name: this._bucket.name,
+          document: DesignDocument._toCppData(designDoc, ns),
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -395,50 +648,116 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
    * @param designDocName The name of the design document to drop.
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
    */
   async dropDesignDocument(
     designDocName: string,
     options: DropDesignDocumentOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Drops an existing design document.
+   *
+   * @param designDocName The name of the design document to drop.
+   * @param callback A node-style callback to be invoked after execution.
+   * @deprecated
+   */
   async dropDesignDocument(
     designDocName: string,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Drops an existing design document.
+   *
+   * @param designDocName The name of the design document to drop.
+   * @param namespace The DesignDocument namespace.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async dropDesignDocument(
     designDocName: string,
-    options?: DropDesignDocumentOptions | VoidNodeCallback,
+    namespace: DesignDocumentNamespace,
+    options: DropDesignDocumentOptions,
     callback?: VoidNodeCallback
+  ): Promise<void>;
+
+  /**
+   * Drops an existing design document.
+   *
+   * @param designDocName The name of the design document to drop.
+   * @param namespace The DesignDocument namespace.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  async dropDesignDocument(
+    designDocName: string,
+    namespace: DesignDocumentNamespace,
+    callback?: VoidNodeCallback
+  ): Promise<void>;
+
+  async dropDesignDocument(
+    ...args:
+      | [
+          designDocName: string,
+          namespace?: DesignDocumentNamespace,
+          options?: DropDesignDocumentOptions | VoidNodeCallback,
+          callback?: VoidNodeCallback,
+        ]
+      | [
+          designDocName: string,
+          options?: DropDesignDocumentOptions | VoidNodeCallback,
+          callback?: VoidNodeCallback,
+        ]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
+    let designDocName = args[0];
+    let namespace: DesignDocumentNamespace | undefined = undefined;
+    let options: DropDesignDocumentOptions = {};
+    let callback: VoidNodeCallback | undefined = undefined;
+
+    // New signature
+    if (typeof args[1] === 'string') {
+      namespace = args[1];
+
+      const trailingArgs = [args[2], args[3]] as [
+        options: DropDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ];
+
+      [options = {}, callback] = resolveOptionsAndCallback(trailingArgs);
+    } else {
+      // Deprecated signature
+      [options = {}, callback] = resolveOptionsAndCallback([args[1], args[2]] as [
+        options: DropDesignDocumentOptions,
+        callback: VoidNodeCallback,
+      ]);
     }
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const bucketName = this._bucket.name;
+    if (designDocName.startsWith('dev_') && namespace === undefined) {
+      namespace = DesignDocumentNamespace.Development;
+      designDocName = designDocName.substring(4);
+    }
 
-      const res = await this._http.request({
-        type: HttpServiceType.Views,
-        method: HttpMethod.Delete,
-        path: `/${bucketName}/_design/${designDocName}`,
-        timeout: timeout,
-      });
+    const ns = namespace ?? DesignDocumentNamespace.Production;
 
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        if (res.statusCode === 404) {
-          throw new DesignDocumentNotFoundError(undefined, errCtx);
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementViewIndexDrop(
+        {
+          bucket_name: this._bucket.name,
+          document_name: designDocName,
+          ns: designDocumentNamespaceToCpp(ns),
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-
-        throw new CouchbaseError('failed to drop the design document', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -457,10 +776,21 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
     options: PublishDesignDocumentOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Publishes a development design document to be a production design document.
+   * It does this by fetching the design document by the passed name with `dev_`
+   * appended, and then performs an upsert of the production name (no `dev_`)
+   * with the data which was just fetched.
+   *
+   * @param designDocName The name of the design document to publish.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async publishDesignDocument(
     designDocName: string,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
   async publishDesignDocument(
     designDocName: string,
     options?: PublishDesignDocumentOptions | VoidNodeCallback,
@@ -478,14 +808,15 @@ export class ViewIndexManager<T extends CouchbaseClusterTypes, B extends BucketN
     const timer = new CompoundTimeout(timeout);
 
     return PromiseHelper.wrapAsync(async () => {
-      const designDoc = await this.getDesignDocument(`dev_${designDocName}`, {
-        timeout: timer.left(),
-      });
+      const designDoc = await this.getDesignDocument(
+        designDocName,
+        DesignDocumentNamespace.Development,
+        {
+          timeout: timer.left(),
+        }
+      );
 
-      // Replace the name without the `dev_` prefix on it.
-      designDoc.name = designDocName;
-
-      await this.upsertDesignDocument(designDoc, {
+      await this.upsertDesignDocument(designDoc, DesignDocumentNamespace.Production, {
         timeout: timer.left(),
       });
     }, callback);

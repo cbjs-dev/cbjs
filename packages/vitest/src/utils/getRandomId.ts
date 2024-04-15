@@ -19,5 +19,5 @@
  * This is not using genuine crypto randomness. Use this for tests only.
  */
 export function getRandomId() {
-  return Math.random().toString(16).substring(2, 8);
+  return Math.random().toString(16).substring(2, 10);
 }

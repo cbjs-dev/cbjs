@@ -24,7 +24,7 @@ export class ViewResult<TValue = any, TKey = any> {
   /**
    * The rows which have been returned by the query.
    */
-  rows: ViewRow<TKey, TValue>[];
+  rows: ViewRow<TValue, TKey>[];
 
   /**
    * The meta-data which has been returned by the query.
@@ -104,6 +104,23 @@ export class ViewRow<TValue = any, TKey = any> {
     this.key = data.key;
     this.id = data.id;
   }
+}
+
+/**
+ * Specifies the namespace for the associated Design Document.
+ *
+ * @category Views
+ */
+export enum DesignDocumentNamespace {
+  /**
+   * Indicates that the Design Document namespace is within the development environment.
+   */
+  Development = 'development',
+
+  /**
+   * Indicates that the Design Document namespace is within the producion environment.
+   */
+  Production = 'production',
 }
 
 /**
@@ -338,4 +355,15 @@ export interface ViewQueryOptions {
    * @deprecated Use {@link ViewQueryOptions.onError} instead.
    */
   on_error?: ViewErrorMode;
+
+  /**
+   * Specifies any additional parameters which should be passed to the view engine
+   * when executing the view query.
+   */
+  raw?: { [key: string]: string };
+
+  /**
+   * Specifies the design document namespace to use when executing the view query.
+   */
+  namespace?: DesignDocumentNamespace;
 }

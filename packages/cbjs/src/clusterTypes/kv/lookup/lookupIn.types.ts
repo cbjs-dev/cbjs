@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {
-  ArrayElement,
-  If,
-  IsArrayLengthFixed,
-  IsExactly,
-  IsFuzzyDocument,
-  SubDocument,
-  Try,
-} from '@cbjsdev/shared';
+import { ArrayElement, If, IsArrayLengthFixed, IsExactly, IsFuzzyDocument, SubDocument, Try } from '@cbjsdev/shared';
 
 import type { CppProtocolSubdocOpcode } from '../../../binding';
 import type { LookupInResultEntry } from '../../../crudoptypes';
 import type { LookupInMacro, LookupInSpec } from '../../../sdspecs';
 import type { LookupInMacroReturnType } from './lookupInMacro.types';
-import type {
-  LookupInCountPath,
-  LookupInExistsPath,
-  LookupInGetPath,
-} from './lookupOperations.types';
+import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './lookupOperations.types';
 
 /**
  * Infer the actual {@link CppProtocolSubdocOpcode} from the given path for a {@link LookupInSpec.get} operation.

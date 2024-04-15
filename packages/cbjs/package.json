@@ -24,7 +24,7 @@
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "scripts": {
-    "install": "node ./scripts/install.mjs 4.2.10",
+    "install": "node ./scripts/install.mjs 4.2.11",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run",

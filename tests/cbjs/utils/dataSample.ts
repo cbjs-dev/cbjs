@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 import { UpsertOptions } from '@cbjsdev/cbjs';
-import { ServerTestContext } from '@cbjsdev/vitest';
+import { invariant } from '@cbjsdev/shared';
+import { getRandomId, ServerTestContext } from '@cbjsdev/vitest';
 
 export type SampleCollection = {
   upsert: (key: string, body: unknown, opts: UpsertOptions) => Promise<unknown>;
@@ -50,7 +51,7 @@ export class DataSample {
     serverTestContext: ServerTestContext,
     sampleDocs?: ReadonlyArray<Record<string, unknown>>
   ) {
-    this.testUid = serverTestContext.newUid();
+    this.testUid = getRandomId();
     this.sampleDocs = sampleDocs ?? DEFAULT_SAMPLE_DOCS;
   }
 
@@ -83,7 +84,19 @@ export class DataSample {
   }
 
   getSampleSize() {
+    invariant(
+      this.sampleDocKeys,
+      'DataSample.getSampleSize() should never be undefined after the data has been upserted'
+    );
     return this.sampleDocKeys?.length;
+  }
+
+  getSampleDocKeys() {
+    invariant(
+      this.sampleDocKeys,
+      'DataSample.getSampleSize() should never be undefined after the data has been upserted'
+    );
+    return [...this.sampleDocKeys];
   }
 
   getTestUid() {

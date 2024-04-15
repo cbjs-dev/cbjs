@@ -212,7 +212,7 @@ export interface CppManagementClusterBucketSettingsNode {
   ports: { [key: string /*string*/]: number };
 }
 export interface CppManagementViewsDesignDocument {
-  rev: string;
+  rev?: string;
   name: string;
   ns: CppDesignDocumentNamespace;
   views: { [key: string /*string*/]: CppManagementViewsDesignDocumentView };
@@ -930,6 +930,8 @@ export interface CppSearchRequest {
   // row_callback
   client_context_id?: string;
   timeout?: number;
+  log_request?: boolean;
+  log_response?: boolean;
   body_str: string;
   // parent_span
 }
@@ -1010,6 +1012,7 @@ export interface CppDocumentViewRequest {
   group_level?: number;
   debug: boolean;
   raw: { [key: string /*string*/]: string };
+  full_set?: boolean;
   order?: CppViewSortOrder;
   on_error?: CppViewOnError;
   query_string: string[];
@@ -1376,7 +1379,7 @@ export interface CppManagementQueryIndexCreateRequest {
   scope_name: string;
   collection_name: string;
   index_name: string;
-  fields: string[];
+  keys: string[];
   query_ctx: CppQueryContext;
   is_primary: boolean;
   ignore_if_exists: boolean;
@@ -2986,6 +2989,7 @@ export interface CppBindingAutogen {
     opaque_no_match: CppKeyValueStatusCode;
     locked: CppKeyValueStatusCode;
     not_locked: CppKeyValueStatusCode;
+    config_only: CppKeyValueStatusCode;
     auth_stale: CppKeyValueStatusCode;
     auth_error: CppKeyValueStatusCode;
     auth_continue: CppKeyValueStatusCode;
@@ -3332,6 +3336,12 @@ export interface CppConnection extends CppConnectionAutogen {
   ): { cppErr: CppError | null; result: CppScanIterator };
 }
 
+export interface CppTransactionKeyspace {
+  bucket_name: string;
+  scope_name?: string;
+  collection_name?: string;
+}
+
 export interface CppTransactionsConfig {
   durability_level?: CppDurabilityLevel;
   timeout?: number;
@@ -3339,6 +3349,7 @@ export interface CppTransactionsConfig {
   cleanup_window?: number;
   cleanup_lost_attempts?: boolean;
   cleanup_client_attempts?: boolean;
+  metadata_collection?: CppTransactionKeyspace;
 }
 
 export interface CppTransactionOptions {

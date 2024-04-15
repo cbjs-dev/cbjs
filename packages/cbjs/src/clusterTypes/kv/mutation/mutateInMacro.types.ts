@@ -20,7 +20,7 @@ import { StringHex } from '@cbjsdev/shared';
  * An object type with the macro string as key and the return type as parameter.
  */
 export type MutateInMacroReturnType = {
-  '${document.CAS}': StringHex,
-  '${document.seqno}': StringHex;
-  '${document.value_crc32c}': StringHex;
+  '${Mutation.CAS}': StringHex,
+  '${Mutation.seqno}': StringHex;
+  '${Mutation.value_crc32c}': StringHex;
 }

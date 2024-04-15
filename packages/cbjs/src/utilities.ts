@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ParsedUrlQueryInput } from 'querystring';
 import * as qs from 'querystring';
+import { ParsedUrlQueryInput } from 'querystring';
 
 import type { Cas, DurabilityLevelName, NonVoid } from '@cbjsdev/shared';
 import { CouchbaseCas, durabilityLevels } from '@cbjsdev/shared';
 
 import type { AnyCollection } from './clusterTypes';
+import { InvalidArgumentError } from './errors';
 import { DurabilityLevel } from './generaltypes';
 import { toEnumMember } from './utilities_internal';
 
@@ -238,4 +239,27 @@ export function getDocId(collection: AnyCollection, key: string) {
     collection: collection.name || '_default',
     key: key,
   };
+}
+
+const thirtyDaysInSeconds = 30 * 24 * 60 * 60;
+
+/**
+ * @internal
+ */
+export function expiryToTimestamp(expiry: unknown): number {
+  if (typeof expiry !== 'number') {
+    throw new InvalidArgumentError('Expected expiry to be a number.');
+  }
+
+  if (expiry < 0) {
+    throw new InvalidArgumentError(
+      `Expected expiry to be either zero (for no expiry) or greater but got ${expiry}.`
+    );
+  }
+
+  if (expiry >= thirtyDaysInSeconds) {
+    return expiry + Math.floor(Date.now() / 1000);
+  }
+
+  return expiry;
 }

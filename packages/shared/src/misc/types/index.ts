@@ -20,3 +20,4 @@ export * from './OptionalMerge';
 export * from './RelaxedUnion';
 export * from './UnionKeys';
 export * from './TupleToUnion';
+export * from './array-utils.types';

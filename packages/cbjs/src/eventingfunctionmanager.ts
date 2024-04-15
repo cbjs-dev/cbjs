@@ -22,13 +22,10 @@ import {
   ApiEventingFunctionStatus,
   ApiFunctionStatusDescription,
 } from '@cbjsdev/http-client';
-import { ApiEventingFunctionSettings } from '@cbjsdev/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
 import {
-  CouchbaseClusterTypes,
-  EventingFunctionScope,
-  hasOwn,
-  invariant,
-} from '@cbjsdev/shared';
+  ApiEventingFunctionSettings,
+} from '@cbjsdev/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
+import { CouchbaseClusterTypes, DefaultClusterTypes, EventingFunctionScope, hasOwn, invariant } from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import {
@@ -1201,7 +1198,7 @@ export interface FunctionsStatusOptions {
  * @category Management
  */
 export class EventingFunctionManager<
-  T extends CouchbaseClusterTypes = CouchbaseClusterTypes,
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
 > {
   private _cluster: Cluster<T>;
 

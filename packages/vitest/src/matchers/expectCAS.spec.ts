@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it } from 'vitest';
-
 import { CouchbaseCas } from '@cbjsdev/cbjs';
+import { describe, it } from 'vitest';
 
 import './expectCAS';
 
@@ -38,11 +37,11 @@ describe('toBeNonZeroCas', () => {
     expect(CouchbaseCas.from(1)).toBeNonZeroCAS();
   });
 
-  it.fails('should fail when given a zero cas', ({ expect }) => {
-    expect(CouchbaseCas.from(0)).toBeNonZeroCAS();
+  it('should succeed when given a string', ({ expect }) => {
+    expect('im a non-zero cas').toBeNonZeroCAS();
   });
 
-  it.fails('should fail when given a string', ({ expect }) => {
-    expect('im a non-zero cas').toBeNonZeroCAS();
+  it.fails('should fail when given a zero cas', ({ expect }) => {
+    expect(CouchbaseCas.from(0)).toBeNonZeroCAS();
   });
 });

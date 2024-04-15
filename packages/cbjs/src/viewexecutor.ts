@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
-
-import binding from './binding';
 import {
+  designDocumentNamespaceToCpp,
   errorFromCpp,
   viewOrderingToCpp,
   viewScanConsistencyToCpp,
@@ -25,7 +24,7 @@ import {
 import { Bucket } from './bucket';
 import { Cluster } from './cluster';
 import { StreamableRowPromise } from './streamablepromises';
-import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes';
+import { DesignDocumentNamespace, ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes';
 
 /**
  * @internal
@@ -67,6 +66,12 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
     });
 
     const timeout = options.timeout ?? this._cluster.viewTimeout;
+    const raw = options.raw ?? {};
+    const ns = options.namespace ?? DesignDocumentNamespace.Production;
+    let fullSet = options.full_set;
+    if (typeof options.fullSet !== 'undefined') {
+      fullSet = options.fullSet;
+    }
 
     this._cluster.conn.documentView(
       {
@@ -74,7 +79,7 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
         bucket_name: this._bucket.name,
         document_name: designDoc,
         view_name: viewName,
-        ns: binding.design_document_namespace.production,
+        ns: designDocumentNamespaceToCpp(ns),
         limit: options.limit,
         skip: options.skip,
         consistency: viewScanConsistencyToCpp(options.scanConsistency),
@@ -82,20 +87,17 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
         key: JSON.stringify(options.key),
         start_key: options.range?.start ? JSON.stringify(options.range.start) : undefined,
         end_key: options.range?.end ? JSON.stringify(options.range.end) : undefined,
-        inclusive_end: options.range ? options.range.inclusiveEnd : undefined,
-        start_key_doc_id: options.idRange?.start
-          ? JSON.stringify(options.idRange.start)
-          : undefined,
-        end_key_doc_id: options.idRange?.end
-          ? JSON.stringify(options.idRange.end)
-          : undefined,
+        inclusive_end: options.range?.inclusiveEnd,
+        start_key_doc_id: options.idRange?.start,
+        end_key_doc_id: options.idRange?.end,
         reduce: options.reduce,
         group: options.group,
         group_level: options.groupLevel,
         order: viewOrderingToCpp(options.order),
         debug: false,
         query_string: [],
-        raw: {},
+        raw: raw,
+        full_set: fullSet,
       },
       (cppErr, resp) => {
         const err = errorFromCpp(cppErr);
@@ -111,7 +113,7 @@ export class ViewExecutor<T extends CouchbaseClusterTypes, B extends BucketName<
             new ViewRow<TValue, TKey>({
               value: JSON.parse(row.value) as TValue,
               id: row.id,
-              key: row.key,
+              key: JSON.parse(row.key),
             })
           );
         });

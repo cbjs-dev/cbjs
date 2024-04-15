@@ -14,18 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ApiAnalyticsCouchbaseRemoteLink,
-  ApiAnalyticsLink,
-  createAnalyticsLink,
-} from '@cbjsdev/http-client';
-import { ApiAnalyticsAzureRemoteLink } from '@cbjsdev/http-client/dist/src/types/Api/analytics/ApiAnalyticsAzureRemoteLink';
-import { ApiAnalyticsS3RemoteLink } from '@cbjsdev/http-client/dist/src/types/Api/analytics/ApiAnalyticsS3RemoteLink';
-import {
-  CouchbaseClusterTypes,
-  jsonToUrlSearchParams,
-  RelaxedUnion,
-} from '@cbjsdev/shared';
+import { ApiAnalyticsLink } from '@cbjsdev/http-client';
+import { CouchbaseClusterTypes } from '@cbjsdev/shared';
 
 import { Cluster } from './cluster';
 import {
@@ -37,12 +27,7 @@ import {
   LinkExistsError,
 } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
-import {
-  cbQsStringify,
-  NodeCallback,
-  PromiseHelper,
-  VoidNodeCallback,
-} from './utilities';
+import { cbQsStringify, NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
 import { toEnumMember } from './utilities_internal';
 import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 

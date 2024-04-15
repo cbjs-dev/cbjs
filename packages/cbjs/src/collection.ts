@@ -14,9 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { promisify } from 'node:util';
-
-import type {
+import {
   ArrayElement,
   BucketName,
   CollectionName,
@@ -24,27 +22,29 @@ import type {
   DefaultClusterTypes,
   DocDef,
   ExtractDocBodyByKey,
+  hasOwn,
   If,
+  invariant,
   IsAny,
   IsFuzzyDocument,
   IsNever,
   JsonObject,
   Keyspace,
+  keyspacePath,
   NoInfer,
   ObjectDocument,
   OneOf,
   ScopeName,
-  Try,
 } from '@cbjsdev/shared';
-import { hasOwn, invariant, keyspacePath } from '@cbjsdev/shared';
+import { promisify } from 'node:util';
 
-import type {
+import {
   AppendOptions,
+  BinaryCollection,
   DecrementOptions,
   IncrementOptions,
   PrependOptions,
 } from './binarycollection';
-import { BinaryCollection } from './binarycollection';
 import type {
   CppAppendResponse,
   CppConnection,
@@ -73,9 +73,8 @@ import {
   storeSemanticToCpp,
 } from './bindingutilities';
 import type { Cluster } from './cluster';
-import { AnyCollection } from './clusterTypes';
 import {
-  CollectionContainingDocDef,
+  AnyCollection,
   CollectionMatchingDocDef,
   CT,
   ExtractCollectionJsonDocBody,
@@ -89,10 +88,7 @@ import type {
 } from './clusterTypes/kv/lookup/lookupIn.types';
 import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types';
 import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types';
-import type {
-  MutateInResultEntries,
-  MutateInSpecResults,
-} from './clusterTypes/kv/mutation/mutateIn.types';
+import type { MutateInResultEntries, MutateInSpecResults } from './clusterTypes/kv/mutation/mutateIn.types';
 import {
   CounterResult,
   ExistsResult,
@@ -114,12 +110,7 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import type { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
-import {
-  CouchbaseList,
-  CouchbaseMap,
-  CouchbaseQueue,
-  CouchbaseSet,
-} from './services/kv/dataStructures';
+import { CouchbaseList, CouchbaseMap, CouchbaseQueue, CouchbaseSet } from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
 import type { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
@@ -1112,7 +1103,6 @@ export class Collection<
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 
-      // TODO: this thing throw a CouchbaseError instead of CppError
       if (callback) {
         callback(err, null);
       }

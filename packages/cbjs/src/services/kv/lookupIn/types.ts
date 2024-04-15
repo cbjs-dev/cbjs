@@ -14,18 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { If, IsArrayLengthKnown, PromiseValue } from '@cbjsdev/shared';
+import { If, IsArrayLengthKnown, PromiseValue } from '@cbjsdev/shared';
 
-import type { AnyCollection } from '../../../clusterTypes';
-import type { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
-import type {
-  LookupInSpecResults,
-  NarrowLookupSpecs,
-} from '../../../clusterTypes/kv/lookup/lookupIn.types';
-import type { LookupInOptions } from '../../../collection';
-import type { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
-import type { LookupInSpec } from '../../../sdspecs';
-import type { NodeCallback } from '../../../utilities';
+import { AnyCollection } from '../../../clusterTypes';
+import { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
+import { LookupInSpecResults, NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types';
+import { LookupInOptions } from '../../../collection';
+import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
+import { LookupInSpec } from '../../../sdspecs';
+import { NodeCallback } from '../../../utilities';
 import { ChainableLookupIn } from './ChainableLookupIn';
 
 export type LookupMethodName = 'lookupIn' | 'lookupInAnyReplica' | 'lookupInAllReplicas';

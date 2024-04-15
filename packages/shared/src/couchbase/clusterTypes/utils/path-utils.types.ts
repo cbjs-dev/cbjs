@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { And, Extends, If, IsNever, Join, Not, Or, Split } from '../../../misc';
-import type { IsFuzzyDocument } from '../document.types';
 import type {
+  And,
+  Extends,
   GuaranteedIndexes,
+  If,
   IsArrayLengthKnown,
+  IsNever,
+  Join,
+  Not,
+  Or,
   ResolveNegativeIndex,
+  Split,
   TupleIndexes,
-} from './array-utils.types';
-import type {
-  CircularReferences,
-  OptionalKeys,
-  ReferencesItself,
-  ToNumber,
-  WrapEach,
-} from './misc-utils.types';
+} from '../../../misc';
+import type { IsFuzzyDocument } from '../document.types';
+
+import type { CircularReferences, OptionalKeys, ReferencesItself, ToNumber, WrapEach } from './misc-utils.types';
 
 /**
  * Key types you can access using {@link DocumentPath}.

@@ -14,15 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { If, IsArrayLengthKnown, NoInfer } from '@cbjsdev/shared';
+import { If, IsArrayLengthKnown, NoInfer } from '@cbjsdev/shared';
 
-import type { AnyCollection } from '../../../clusterTypes';
-import type { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
+import { AnyCollection } from '../../../clusterTypes';
+import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
 import { MutateInSpecResults, NarrowMutationSpecs } from '../../../clusterTypes/kv/mutation/mutateIn.types';
-import type { MutateInOptions } from '../../../collection';
-import type { MutateInResult } from '../../../crudoptypes';
-import type { MutateInSpec } from '../../../sdspecs';
-import type { NodeCallback } from '../../../utilities';
+import { MutateInOptions } from '../../../collection';
+import { MutateInResult } from '../../../crudoptypes';
+import { MutateInSpec } from '../../../sdspecs';
+import { NodeCallback } from '../../../utilities';
 import { ChainableMutateIn } from './ChainableMutateIn';
 
 export type MutateInArgs<

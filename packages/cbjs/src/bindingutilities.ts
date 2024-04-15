@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DurabilityLevelName, hasOwn, invariant } from '@cbjsdev/shared';
+import { DurabilityLevelName, invariant } from '@cbjsdev/shared';
 
 import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes';
 import binding, {
   CppAnalyticsResponseAnalyticsStatus,
   CppAnalyticsScanConsistency,
+  CppDesignDocumentNamespace,
   CppDiagEndpointState,
   CppDiagPingState,
   CppDurabilityLevel,
@@ -153,7 +154,7 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { HighlightStyle, SearchScanConsistency } from './searchtypes';
 import { nsServerStrToDuraLevel } from './utilities';
 import { VectorQueryCombination } from './vectorsearch';
-import { ViewOrdering, ViewScanConsistency } from './viewtypes';
+import { DesignDocumentNamespace, ViewOrdering, ViewScanConsistency } from './viewtypes';
 
 /**
  * @internal
@@ -299,20 +300,20 @@ export function viewScanConsistencyToCpp(
  * @internal
  */
 export function viewOrderingToCpp(
-  mode: ViewOrdering | undefined
+  ordering: ViewOrdering | undefined
 ): CppViewSortOrder | undefined {
-  // Unspecified is allowed, and means no sync durability.
-  if (mode === null || mode === undefined) {
+  // Unspecified is allowed, and means default ordering.
+  if (ordering === null || ordering === undefined) {
     return undefined;
   }
 
-  if (mode === ViewOrdering.Ascending) {
+  if (ordering === ViewOrdering.Ascending) {
     return binding.view_sort_order.ascending;
-  } else if (mode === ViewOrdering.Descending) {
+  } else if (ordering === ViewOrdering.Descending) {
     return binding.view_sort_order.descending;
   }
 
-  throw new InvalidArgumentError();
+  throw new InvalidArgumentError('Unrecognized view ordering.');
 }
 
 /**
@@ -860,7 +861,7 @@ export function errorFromCpp(cppError: unknown): Error | null {
       return new EventingFunctionPausedError(cppError, context);
   }
 
-  return new CouchbaseError('Unknown Couchbase error', cppError);
+  return new CouchbaseError(`Unknown Couchbase error: ${cppError.message}`, cppError);
 }
 
 /**
@@ -1140,4 +1141,34 @@ export function vectorQueryCombinationToCpp(
   }
 
   throw new InvalidArgumentError('Unrecognized VectorQueryCombination.');
+}
+
+/**
+ * @internal
+ */
+export function designDocumentNamespaceFromCpp(
+  namespace: CppDesignDocumentNamespace
+): DesignDocumentNamespace {
+  if (namespace === binding.design_document_namespace.production) {
+    return DesignDocumentNamespace.Production;
+  } else if (namespace === binding.design_document_namespace.development) {
+    return DesignDocumentNamespace.Development;
+  }
+
+  throw new InvalidArgumentError('Unrecognized DesignDocumentNamespace.');
+}
+
+/**
+ * @internal
+ */
+export function designDocumentNamespaceToCpp(
+  namespace: DesignDocumentNamespace
+): CppDesignDocumentNamespace {
+  if (namespace === DesignDocumentNamespace.Production) {
+    return binding.design_document_namespace.production;
+  } else if (namespace === DesignDocumentNamespace.Development) {
+    return binding.design_document_namespace.development;
+  }
+
+  throw new InvalidArgumentError('Unrecognized DesignDocumentNamespace.');
 }

@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsExactly, IsNever } from '../../../misc';
-import type {
-  ArrayInfo,
+import {
+  ArrayInfoShape,
   ExtractAppendableArray,
   ExtractPrependableArray,
   GetArrayInfo,
   IsArrayLengthFixed,
+  IsExactly,
   IsIndexRemovalStrictlyForbidden,
+  IsNever,
   ResolveNegativeIndex,
   TupleFilter,
   TupleIndexes,
-} from './array-utils.types';
+} from '../../../misc';
+
 import type { WritableKeys } from './misc-utils.types';
 import type {
   DocumentPath,
@@ -124,7 +126,7 @@ export type ExtractPathToWritableArrayIndex<
               ? IsNever<FilterType> extends true
                 ? PathToWritableIndex
                 : PathToWritableIndex extends `${infer PathToArray extends PathToParentAccessor<PathToWritableIndex>}[${infer Index extends number}]`
-                  ? GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfo
+                  ? GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfoShape
                     ? FilterType extends Info['RestElement']
                       ? PathToWritableIndex
                       : Info['IsFullyStatic'] extends true

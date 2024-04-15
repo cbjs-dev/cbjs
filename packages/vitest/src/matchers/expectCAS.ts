@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import { CouchbaseCas } from '@cbjsdev/cbjs';
+import { hasOwn } from '@cbjsdev/shared';
 /* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument */
 // eslint-disable-next-line no-restricted-imports
 import { expect } from 'vitest';
-
-import { CouchbaseCas } from '@cbjsdev/cbjs';
 
 expect.extend({
   toBeNonZeroCAS(received) {
@@ -29,11 +29,7 @@ expect.extend({
       pass: false,
     };
 
-    if (
-      typeof received !== 'object' ||
-      received.toJSON === undefined ||
-      received.toString === undefined
-    ) {
+    if (typeof received !== 'string' && !Buffer.isBuffer(received) && !hasOwn(received, 'raw')) {
       return failure;
     }
 
@@ -54,11 +50,7 @@ expect.extend({
       pass: false,
     };
 
-    if (
-      typeof received !== 'object' ||
-      received.toJSON === undefined ||
-      received.toString === undefined
-    ) {
+    if (typeof received !== 'string' && !Buffer.isBuffer(received) && !hasOwn(received, 'raw')) {
       return failure;
     }
 

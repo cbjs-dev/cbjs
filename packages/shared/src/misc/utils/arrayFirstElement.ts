@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ArrayFirstElement } from '../types';
 
-export type * from './document-path.types';
-export type * from './misc-utils.types';
-export type * from './path-utils.types';
-export type * from './string-utils.types';
-export type * from './test-utils.types';
+export function arrayFirstElement<const T extends ReadonlyArray<unknown>>(arr: T) {
+  return arr[0] as ArrayFirstElement<T>;
+}
