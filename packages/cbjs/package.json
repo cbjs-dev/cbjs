@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/cbjs",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Modern Couchbase client for JS runtimes.",
   "keywords": [
     "couchbase",
@@ -59,8 +59,8 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjsdev/http-client": "^1.4.0",
-    "@cbjsdev/shared": "^1.4.0",
+    "@cbjsdev/http-client": "^1.5.0",
+    "@cbjsdev/shared": "^1.5.0",
     "node-addon-api": "^7.0.0"
   },
   "devDependencies": {
