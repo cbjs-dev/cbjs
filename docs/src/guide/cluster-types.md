@@ -101,14 +101,16 @@ await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467');
 
 ## Key Matching Strategy
 When inferring the type of a document, Cbjs matches the given key with the string template of the document definitions of the targeted collection.  
-If we just check if the key extends the template, we will have disappointing results.  
-Take a look at a common pattern for building document keys in a document database :
+If we just check if the key extends the template, we will have disappointing results.
+
+Let's take a look at a common pattern for building document keys in a document database :
 
 ```ts twoslash
+// ---cut-start---
 import { ClusterCollection, DocDef, connect } from '@cbjsdev/cbjs';
-
+// ---cut-end---
 type MyClusterTypes = {
-  store: {
+  store: { 
     library: {
       books: [
         DocDef<`book::${string}`, { title: string }>,
@@ -118,15 +120,16 @@ type MyClusterTypes = {
   };
 };
 
+// ---cut-start---
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
-// ---cut-before---
+// ---cut-end---
 // @errors: 2345
 // The result is either a book or the book reviews
 const result = await collection.get('book::001::reviews');
 ```
 
-Because the key `'book::001::reviews'` extends both string templates, both document are matched.
+Because the key `'book::001::reviews'` extends both string templates, both documents are matched.
 
 This is the default key matching strategy, named `always`.
 
@@ -166,7 +169,7 @@ const result = await collection.get('book::001::reviews');
 ### First Match
 Finally, if the previous strategy does not work for you, you can use the `firstMatch` strategy, that simply uses the first declared document that matches the key :
 
-```ts twoslash
+```ts{9,10} twoslash
 // ---cut-start---
 import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
 // ---cut-end---
@@ -195,10 +198,12 @@ const result = await collection.get('book::001::reviews');
 ```
 
 ### Picking a strategy
-When declaring your cluster types, you can pass some options using one of the type helpers :
-```ts twoslash
-import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
+When declaring your cluster types, you can pass some options using one of the type helpers.  
+Note that the cluster types options are inherited from the top down.
 
+```ts twoslash
+import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef } from '@cbjsdev/cbjs';
+// ---cut-before---
 type ClusterTypesOptions = {
   keyMatchingStrategy: 'delimiter';
   keyDelimiter: '::';
