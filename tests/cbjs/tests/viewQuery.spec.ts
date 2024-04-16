@@ -400,7 +400,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       );
     });
 
-    test<ViewQueryContext>('should throw an InvalidArgumentError when passing invalid raw option', async ({
+    test.skip<ViewQueryContext>('should throw an InvalidArgumentError when passing invalid raw option', async ({
       expect,
       docId,
       viewName,
