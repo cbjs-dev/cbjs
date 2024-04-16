@@ -131,6 +131,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       viewName,
     }) => {
+      expect.hasAssertions();
+
       await waitFor(
         async () => {
           const res = await serverTestContext.b.viewQuery(docId, viewName, {
@@ -157,6 +159,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       viewName,
       sampleData,
     }) => {
+      expect.hasAssertions();
+
       await waitFor(
         async () => {
           const res = await serverTestContext.b.viewQuery(docId, viewName, {
@@ -178,6 +182,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       viewName,
       sampleData,
     }) => {
+      expect.hasAssertions();
+
       await waitFor(
         async () => {
           const res = await serverTestContext.b.viewQuery(docId, viewName, {
@@ -199,6 +205,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
+      expect.hasAssertions();
+
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const sortedTestUidKeys = [...testUidKeys].sort();
 
@@ -237,6 +245,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
+      expect.hasAssertions();
+
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const sortedTestUidKeys = [...testUidKeys].sort();
       // get the largest key
@@ -279,6 +289,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
+      expect.hasAssertions();
+
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const key = testUidKeys[0];
       const keysAndDocIds = getKeysAndDocIds(sampleData.sampleDocKeys);
@@ -319,6 +331,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
+      expect.hasAssertions();
+
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const expectedKeys = testUidKeys.slice(0, 2);
       const keysAndDocIds = getKeysAndDocIds(sampleData.sampleDocKeys);
@@ -362,6 +376,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
+      expect.hasAssertions();
+
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const sortedTestUidKeys = [...testUidKeys].sort();
       // get the largest key
@@ -407,6 +423,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
       sampleData,
       serverTestContext,
     }) => {
+      expect.hasAssertions();
+
       const testUidKeys = [...getTestUidKeys(sampleData.testUid, 2)];
       const sortedTestUidKeys = [...testUidKeys].sort();
       // get the largest key

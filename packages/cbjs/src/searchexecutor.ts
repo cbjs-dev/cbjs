@@ -26,13 +26,7 @@ import {
 import { Cluster } from './cluster';
 import { MatchNoneSearchQuery, SearchQuery } from './searchquery';
 import { SearchSort } from './searchsort';
-import {
-  SearchMetaData,
-  SearchQueryOptions,
-  SearchRequest,
-  SearchResult,
-  SearchRow,
-} from './searchtypes';
+import { SearchMetaData, SearchQueryOptions, SearchRequest, SearchResult, SearchRow } from './searchtypes';
 import { StreamableRowPromise } from './streamablepromises';
 
 /**
@@ -115,6 +109,9 @@ export class SearchExecutor<
           )
         : {},
       body_str: '',
+      show_request: options.showRequest ?? false,
+      log_request: options.logRequest ?? false,
+      log_response: options.logResponse ?? false,
     };
 
     if (this.bucketName && this.scopeName) {

@@ -19,8 +19,6 @@ import { DocDef } from '@cbjsdev/shared';
 /**
  * Represents a search term for a RangeScan.
  *
- * Volatile: This API is subject to change at any time.
- *
  * @see RangeScan
  * @category Key-Value
  */
@@ -61,8 +59,6 @@ export interface ScanType {
  * A RangeScan performs a scan on a range of keys with the range specified through
  * a start and end ScanTerm.
  *
- * Volatile: This API is subject to change at any time.
- *
  * @category Key-Value
  */
 export class RangeScan implements ScanType {
@@ -96,8 +92,6 @@ export class RangeScan implements ScanType {
  * A SamplingScan performs a scan on a random sampling of keys with the sampling bounded by
  * a limit.
  *
- * Volatile: This API is subject to change at any time.
- *
  * @category Key-Value
  */
 export class SamplingScan implements ScanType {
@@ -129,8 +123,6 @@ export class SamplingScan implements ScanType {
 
 /**
  * A PrefixScan scan type selects every document whose ID starts with a certain prefix.
- *
- * Volatile: This API is subject to change at any time.
  *
  * @category key-value
  */

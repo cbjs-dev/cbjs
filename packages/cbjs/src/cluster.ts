@@ -604,8 +604,6 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   /**
    * Executes a search query against the cluster.
    *
-   * Volatile: This API is subject to change at any time.
-   *
    * @param indexName The name of the index to query.
    * @param request The SearchRequest describing the search to execute.
    * @param options Optional parameters for this operation.

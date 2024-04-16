@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { promisify } from 'node:util';
-
 import { ApiSearchIndexSuccessfulAnalysis } from '@cbjsdev/http-client';
 import { BucketName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
+import { promisify } from 'node:util';
 
 import { CppError } from './binding';
 import { errorFromCpp } from './bindingutilities';
@@ -44,8 +43,6 @@ import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 /**
  * SearchIndexManager provides an interface for managing the
  * search indexes on the cluster.
- *
- * Volatile: This API is subject to change at any time.
  *
  * @category Management
  */

@@ -25,9 +25,12 @@ import { Collection } from './collection';
 import { QueryExecutor } from './queryexecutor';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
 import { ScopeSearchIndexManager } from './scopesearchindexmanager';
+import { SearchExecutor } from './searchexecutor';
+import { SearchMetaData, SearchQueryOptions, SearchRequest, SearchResult, SearchRow } from './searchtypes';
 import { StreamableRowPromise } from './streamablepromises';
 import { Transcoder } from './transcoders';
 import { NodeCallback, PromiseHelper } from './utilities';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 
 /**
  * Exposes the operations which are available to be performed against a scope.
@@ -83,8 +86,6 @@ export class Scope<
   /**
    * Returns a SearchIndexManager which can be used to manage the search
    * indexes of this scope.
-   *
-   * Volatile: This API is subject to change at any time.
    *
    */
   searchIndexes(): ScopeSearchIndexManager<T, B, S> {
@@ -175,5 +176,50 @@ export class Scope<
         }),
       callback
     );
+  }
+
+  /**
+   * Executes a search query against the scope.
+   *
+   * @param indexName The name of the index to query.
+   * @param request The SearchRequest describing the search to execute.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  search(
+    indexName: string,
+    request: SearchRequest,
+    options: SearchQueryOptions,
+    callback?: NodeCallback<SearchResult>
+  ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData>;
+
+  /**
+   * Executes a search query against the scope.
+   *
+   * @param indexName The name of the index to query.
+   * @param request The SearchRequest describing the search to execute.
+   * @param callback A node-style callback to be invoked after execution.
+   */
+  search(
+    indexName: string,
+    request: SearchRequest,
+    callback?: NodeCallback<SearchResult>
+  ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData>;
+
+  search(
+    indexName: string,
+    request: SearchRequest,
+    ...args:
+      | [options: SearchQueryOptions, callback?: NodeCallback<SearchResult>]
+      | [callback?: NodeCallback<SearchResult>]
+  ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData> {
+    const [opts = {}, cb] = resolveOptionsAndCallback(args);
+
+    const exec = new SearchExecutor(this.cluster, this.bucket.name, this.name);
+
+    return PromiseHelper.wrapAsync(
+      () => exec.query(indexName, request, opts),
+      cb
+    )
   }
 }

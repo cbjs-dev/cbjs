@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { promisify } from 'node:util';
-
 import {
   BucketTypeName,
   CompressionModeName,
@@ -26,6 +24,7 @@ import {
   RequiredProps,
   StorageBackendName,
 } from '@cbjsdev/shared';
+import { promisify } from 'node:util';
 
 import { CppManagementClusterBucketSettings } from './binding';
 import {
@@ -240,8 +239,6 @@ export interface IBucketSettings {
   minimumDurabilityLevel?: DurabilityLevel | DurabilityLevelName;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
-   *
    * Specifies the default history retention on all collections in this bucket.
    * Only available on Magma Buckets.
    *
@@ -250,15 +247,11 @@ export interface IBucketSettings {
   historyRetentionCollectionDefault?: boolean;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
-   *
    * Specifies the maximum history retention in bytes on all collections in this bucket.
    */
   historyRetentionBytes?: number;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
-   *
    * Specifies the maximum duration in seconds to be covered by the change history that is written
    * to disk for all collections in this bucket.
    */
@@ -355,8 +348,6 @@ export class BucketSettings implements IBucketSettings {
   minimumDurabilityLevel?: DurabilityLevel;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
-   *
    * Specifies the default history retention on all collections in this bucket.
    * Only available on Magma Buckets.
    *
@@ -365,15 +356,11 @@ export class BucketSettings implements IBucketSettings {
   historyRetentionCollectionDefault?: boolean;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
-   *
    * Specifies the maximum history retention in bytes on all collections in this bucket.
    */
   historyRetentionBytes?: number;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
-   *
    * Specifies the maximum duration in seconds to be covered by the change history that is written
    * to disk for all collections in this bucket.
    */

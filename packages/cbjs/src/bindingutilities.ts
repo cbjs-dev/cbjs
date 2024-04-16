@@ -42,19 +42,14 @@ import binding, {
   CppSearchScanConsistency,
   CppServiceType,
   CppStoreSemantics,
+  CppTransactionKeyspace,
   CppTxnExternalException,
   CppTxnOpException,
   CppVectorQueryCombination,
   CppViewScanConsistency,
   CppViewSortOrder,
 } from './binding';
-import {
-  BucketType,
-  CompressionMode,
-  ConflictResolutionType,
-  EvictionPolicy,
-  StorageBackend,
-} from './bucketmanager';
+import { BucketType, CompressionMode, ConflictResolutionType, EvictionPolicy, StorageBackend } from './bucketmanager';
 import { EndpointState, PingState } from './diagnosticstypes';
 import {
   AnalyticsErrorContext,
@@ -152,6 +147,7 @@ import { MutationState } from './mutationstate';
 import { QueryProfileMode, QueryScanConsistency } from './querytypes';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import { HighlightStyle, SearchScanConsistency } from './searchtypes';
+import { TransactionKeyspace } from './transactions';
 import { nsServerStrToDuraLevel } from './utilities';
 import { VectorQueryCombination } from './vectorsearch';
 import { DesignDocumentNamespace, ViewOrdering, ViewScanConsistency } from './viewtypes';
@@ -1171,4 +1167,19 @@ export function designDocumentNamespaceToCpp(
   }
 
   throw new InvalidArgumentError('Unrecognized DesignDocumentNamespace.');
+}
+
+/**
+ * @internal
+ */
+export function transactionKeyspaceToCpp(
+  keyspace?: TransactionKeyspace
+): CppTransactionKeyspace | undefined {
+  if (!keyspace) return undefined
+
+  return {
+    bucket_name: keyspace.bucket,
+    scope_name: keyspace.scope ?? '_default',
+    collection_name: keyspace.collection ?? '_default',
+  }
 }
