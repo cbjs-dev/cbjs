@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { describe, expectTypeOf, it } from 'vitest';
+
 import { arrayLastElement } from './arrayLastElement';
 
 describe('arrayLastElement', () => {

@@ -23,12 +23,17 @@ import {
   isArray,
   ScopeName,
 } from '@cbjsdev/shared';
+
 import type { Collection } from '../../../collection';
 import { LookupInResultEntry } from '../../../crudoptypes';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
+import {
+  type NodeCallback,
+  PromiseHelper,
+  type VoidNodeCallback,
+} from '../../../utilities';
 
 /**
  * CouchbaseList provides a simplified interface for storing lists
@@ -212,9 +217,13 @@ export class CouchbaseList<
    */
   async push(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.arrayAppend('', value) as never], {
-        storeSemantics: StoreSemantics.Upsert,
-      });
+      await this._coll.mutateIn(
+        this._key,
+        [MutateInSpec.arrayAppend('', value) as never],
+        {
+          storeSemantics: StoreSemantics.Upsert,
+        }
+      );
     }, callback);
   }
 
@@ -226,9 +235,13 @@ export class CouchbaseList<
    */
   async unshift(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.arrayPrepend('', value) as never], {
-        storeSemantics: StoreSemantics.Upsert,
-      });
+      await this._coll.mutateIn(
+        this._key,
+        [MutateInSpec.arrayPrepend('', value) as never],
+        {
+          storeSemantics: StoreSemantics.Upsert,
+        }
+      );
     }, callback);
   }
 }

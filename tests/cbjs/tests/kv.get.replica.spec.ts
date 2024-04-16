@@ -18,11 +18,11 @@ import { beforeEach, describe, vi } from 'vitest';
 
 import { DefaultTranscoder, DurabilityLevel } from '@cbjsdev/cbjs';
 import { getPool } from '@cbjsdev/http-client';
+import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitFor } from '../utils/waitFor';
 import { getLargeTestDocument } from './kv._helpers';
 
 describe

@@ -31,6 +31,7 @@ describe.shuffle('kv touch', async () => {
 
   test(
     'should touch a document successfully',
+    { timeout: 25_000 },
     async function ({ serverTestContext, expect, testDocKey, testDocContent }) {
       const res = await serverTestContext.collection.insert(testDocKey, testDocContent, {
         expiry: 2,
@@ -54,12 +55,12 @@ describe.shuffle('kv touch', async () => {
       // Check the key has expired
       await sleep(6000);
       await expect(serverTestContext.collection.get(testDocKey)).rejects.toThrowError();
-    },
-    { timeout: 25_000 }
+    }
   );
 
   test(
     'should touch and get a document successfully',
+    { timeout: 15_000 },
     async function ({ serverTestContext, expect, testDocKey, testDocContent }) {
       // Insert a test document
       const res = await serverTestContext.collection.insert(testDocKey, testDocContent, {
@@ -91,7 +92,6 @@ describe.shuffle('kv touch', async () => {
       // Check the key has expired
       await sleep(5000);
       await expect(serverTestContext.collection.get(testDocKey)).rejects.toThrowError();
-    },
-    { timeout: 15_000 }
+    }
   );
 });

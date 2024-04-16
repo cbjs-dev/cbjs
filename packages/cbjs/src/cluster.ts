@@ -18,8 +18,16 @@ import { BucketName, CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev
 
 import { AnalyticsExecutor } from './analyticsexecutor';
 import { AnalyticsIndexManager } from './analyticsindexmanager';
-import { AnalyticsMetaData, AnalyticsQueryOptions, AnalyticsResult } from './analyticstypes';
-import { Authenticator, CertificateAuthenticator, PasswordAuthenticator } from './authenticators';
+import {
+  AnalyticsMetaData,
+  AnalyticsQueryOptions,
+  AnalyticsResult,
+} from './analyticstypes';
+import {
+  Authenticator,
+  CertificateAuthenticator,
+  PasswordAuthenticator,
+} from './authenticators';
 import binding, { CppClusterCredentials, CppConnection } from './binding';
 import { errorFromCpp } from './bindingutilities';
 import { Bucket } from './bucket';
@@ -27,7 +35,12 @@ import { BucketManager } from './bucketmanager';
 import { connectionProfiles } from './configProfile';
 import { ConnSpec } from './connspec';
 import { DiagnoticsExecutor, PingExecutor } from './diagnosticsexecutor';
-import { DiagnosticsOptions, DiagnosticsResult, PingOptions, PingResult } from './diagnosticstypes';
+import {
+  DiagnosticsOptions,
+  DiagnosticsResult,
+  PingOptions,
+  PingResult,
+} from './diagnosticstypes';
 import { EventingFunctionManager } from './eventingfunctionmanager';
 import { QueryExecutor } from './queryexecutor';
 import { QueryIndexManager } from './queryindexmanager';
@@ -35,7 +48,13 @@ import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
 import { SearchExecutor } from './searchexecutor';
 import { SearchIndexManager } from './searchindexmanager';
 import { SearchQuery } from './searchquery';
-import { SearchMetaData, SearchQueryOptions, SearchRequest, SearchResult, SearchRow } from './searchtypes';
+import {
+  SearchMetaData,
+  SearchQueryOptions,
+  SearchRequest,
+  SearchResult,
+  SearchRow,
+} from './searchtypes';
 import { StreamableRowPromise } from './streamablepromises';
 import { Transactions, TransactionsConfig } from './transactions';
 import { DefaultTranscoder, Transcoder } from './transcoders';

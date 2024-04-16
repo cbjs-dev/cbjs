@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it, test } from 'vitest';
+
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+
 import { Collection } from './collection';
 import { connect } from './couchbase';
 import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes';
@@ -36,10 +38,10 @@ type TestDoc = {
 type UserClusterTypes = {
   test: {
     _default: {
-      _default: [ DocDef<`book::${string}`, TestDoc> ];
+      _default: [DocDef<`book::${string}`, TestDoc>];
     };
     scope1: {
-      collection1: [ DocDef<`counter::${string}`, number> ];
+      collection1: [DocDef<`counter::${string}`, number>];
     };
   };
 };

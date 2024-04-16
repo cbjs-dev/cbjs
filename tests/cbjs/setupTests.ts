@@ -14,10 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
+
 import { setHttpClientLogger } from '@cbjsdev/http-client';
 import { getApiConfig, getConnectionParams, hasOwn } from '@cbjsdev/shared';
-import { cleanupCouchbaseAfterAll, cleanupCouchbaseAfterEach, setTestLogger } from '@cbjsdev/vitest';
-import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
+import {
+  cleanupCouchbaseAfterAll,
+  cleanupCouchbaseAfterEach,
+  setTestLogger,
+} from '@cbjsdev/vitest';
 
 import { testLogger } from './setupLogger';
 

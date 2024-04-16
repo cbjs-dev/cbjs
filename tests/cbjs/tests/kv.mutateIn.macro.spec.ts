@@ -18,7 +18,7 @@
  */
 import { beforeEach, describe } from 'vitest';
 
-import { CouchbaseCas, MutateInMacro, MutateInSpec, StoreSemantics } from '@cbjsdev/cbjs';
+import { CouchbaseCas, MutateInMacro, MutateInSpec } from '@cbjsdev/cbjs';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 

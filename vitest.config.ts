@@ -6,6 +6,10 @@ export default defineConfig({
     pool: 'forks',
     minWorkers: 1,
     maxWorkers: 1,
+    sequence: {
+      setupFiles: 'list',
+      hooks: 'stack',
+    },
     env: {
       CB_CONNECTION_STRING: process.env.CB_CONNECTION_STRING ?? 'couchbase://localhost',
       CB_USER: process.env.CB_USER ?? 'Administrator',

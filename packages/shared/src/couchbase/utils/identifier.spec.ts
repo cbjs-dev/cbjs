@@ -36,17 +36,17 @@ type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = {
   BucketOne: {
     ScopeOne: {
-      CollectionOne: [ DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>> ];
-      CollectionFour: [ DocDef<string, Doc<'b1s1c4d1'>>, DocDef<string, Doc<'b1s1c4d2'>> ];
+      CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
+      CollectionFour: [DocDef<string, Doc<'b1s1c4d1'>>, DocDef<string, Doc<'b1s1c4d2'>>];
     };
     ScopeTwo: {
-      CollectionOne: [ DocDef<string, Doc<'b1s2c1d1'>>, DocDef<string, Doc<'b1s2c1d2'>> ];
-      CollectionTwo: [ DocDef<string, Doc<'b1s2c2d1'>>, DocDef<string, Doc<'b1s2c2d2'>> ];
+      CollectionOne: [DocDef<string, Doc<'b1s2c1d1'>>, DocDef<string, Doc<'b1s2c1d2'>>];
+      CollectionTwo: [DocDef<string, Doc<'b1s2c2d1'>>, DocDef<string, Doc<'b1s2c2d2'>>];
     };
   };
   BucketTwo: {
     ScopeOne: {
-      CollectionSix: [ DocDef<string, Doc<'b2s1c6d1'>>, DocDef<string, Doc<'b2s1c6d2'>> ];
+      CollectionSix: [DocDef<string, Doc<'b2s1c6d1'>>, DocDef<string, Doc<'b2s1c6d2'>>];
     };
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;

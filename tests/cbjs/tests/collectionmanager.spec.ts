@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe, vi } from 'vitest';
+
 import {
   CollectionExistsError,
   CollectionNotFoundError,
@@ -25,7 +27,6 @@ import {
 import { getCollections } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
-import { describe, vi } from 'vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
@@ -568,14 +569,7 @@ describe
 
     test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
       'should successfully update a collection with the default maxExpiry to no maxExpiry',
-      async function ({
-        apiConfig,
-        expect,
-        useBucket,
-        useScope,
-        useCollection,
-        serverTestContext,
-      }) {
+      async function ({ apiConfig, expect, useScope, useCollection, serverTestContext }) {
         const bucketName = serverTestContext.b.name;
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection(

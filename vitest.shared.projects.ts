@@ -30,6 +30,10 @@ export default defineProject({
     sequence: {
       setupFiles: 'list',
       hooks: 'stack',
+      shuffle: {
+        tests: true,
+        files: false,
+      },
     },
     pool: 'forks',
     minWorkers: 1,

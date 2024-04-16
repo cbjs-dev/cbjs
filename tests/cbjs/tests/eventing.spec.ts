@@ -27,217 +27,210 @@ import {
   Scope,
 } from '@cbjsdev/cbjs';
 import { waitForEventingFunction } from '@cbjsdev/http-client';
-import { sleep } from '@cbjsdev/shared';
+import { sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitFor } from '../utils/waitFor';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Collections, ServerFeatures.Eventing))
-  .sequential(
-    'eventing',
-    async function () {
-      const eventingFunctionName = getRandomId();
+  .sequential('eventing', { timeout: 30_000 }, async function () {
+    const eventingFunctionName = getRandomId();
 
-      const test = await createCouchbaseTest(async ({ useBucket, useCollection }) => {
-        const metadataBucket = await useBucket().get();
-        const metadataCollection = await useCollection({
-          bucketName: metadataBucket,
-        }).get();
+    const test = await createCouchbaseTest(async ({ useBucket, useCollection }) => {
+      const metadataBucket = await useBucket().get();
+      const metadataCollection = await useCollection({
+        bucketName: metadataBucket,
+      }).get();
 
-        return {
-          metadataBucket,
-          metadataCollection,
-          testFnName: eventingFunctionName,
-        };
-      });
+      return {
+        metadataBucket,
+        metadataCollection,
+        testFnName: eventingFunctionName,
+      };
+    });
 
-      test(
-        'should upsert a function successfully',
-        async function ({
-          serverTestContext,
-          metadataBucket,
-          metadataCollection,
-          testFnName,
-        }) {
-          const bucketBindings = [
-            new EventingFunctionBucketBinding({
-              name: new EventingFunctionKeyspace({
-                bucket: serverTestContext.bucket.name,
-                scope: serverTestContext.scope.name,
-                collection: serverTestContext.collection.name,
-              }),
-              alias: 'bucketbinding1',
-              access: EventingFunctionBucketAccess.ReadWrite,
+    test(
+      'should upsert a function successfully',
+      async function ({
+        serverTestContext,
+        metadataBucket,
+        metadataCollection,
+        testFnName,
+      }) {
+        const bucketBindings = [
+          new EventingFunctionBucketBinding({
+            name: new EventingFunctionKeyspace({
+              bucket: serverTestContext.bucket.name,
+              scope: serverTestContext.scope.name,
+              collection: serverTestContext.collection.name,
             }),
-          ];
+            alias: 'bucketbinding1',
+            access: EventingFunctionBucketAccess.ReadWrite,
+          }),
+        ];
 
-          const urlBindings = [
-            new EventingFunctionUrlBinding({
-              hostname: 'http://127.0.0.1',
-              alias: 'urlbinding1',
-              auth: new EventingFunctionUrlAuthBasic({
-                username: 'username',
-                password: 'password',
-              }),
-              allowCookies: false,
-              validateSslCertificate: false,
+        const urlBindings = [
+          new EventingFunctionUrlBinding({
+            hostname: 'http://127.0.0.1',
+            alias: 'urlbinding1',
+            auth: new EventingFunctionUrlAuthBasic({
+              username: 'username',
+              password: 'password',
             }),
-          ];
+            allowCookies: false,
+            validateSslCertificate: false,
+          }),
+        ];
 
-          // Give time to the eventing service to acknowledge the new buckets
-          await sleep(2000);
+        // Give time to the eventing service to acknowledge the new buckets
+        await sleep(2000);
 
-          const metadataKeyspace = new EventingFunctionKeyspace({
-            bucket: metadataBucket,
-            scope: Scope.DEFAULT_NAME,
-            collection: metadataCollection,
-          });
+        const metadataKeyspace = new EventingFunctionKeyspace({
+          bucket: metadataBucket,
+          scope: Scope.DEFAULT_NAME,
+          collection: metadataCollection,
+        });
 
-          const sourceKeyspace = new EventingFunctionKeyspace({
-            bucket: serverTestContext.bucket.name,
-            scope: serverTestContext.scope.name,
-            collection: serverTestContext.collection.name,
-          });
+        const sourceKeyspace = new EventingFunctionKeyspace({
+          bucket: serverTestContext.bucket.name,
+          scope: serverTestContext.scope.name,
+          collection: serverTestContext.collection.name,
+        });
 
-          const eventFunction = new EventingFunction({
-            version: '1',
-            functionScope: {
-              bucket: '*',
-              scope: '*',
-            },
-            enforceSchema: false,
-            handlerUuid: Math.ceil(Math.random() * 1000),
-            functionInstanceId: getRandomId(),
-            settings: EventingFunctionSettings._fromEvtData({}),
-            name: testFnName,
-            code: `
+        const eventFunction = new EventingFunction({
+          version: '1',
+          functionScope: {
+            bucket: '*',
+            scope: '*',
+          },
+          enforceSchema: false,
+          handlerUuid: Math.ceil(Math.random() * 1000),
+          functionInstanceId: getRandomId(),
+          settings: EventingFunctionSettings._fromEvtData({}),
+          name: testFnName,
+          code: `
               function OnUpdate(doc, meta) {
                 log('data:', doc, meta)
               }
             `,
-            bucketBindings,
-            urlBindings,
-            constantBindings: [
-              {
-                alias: 'someconstant',
-                literal: 'someliteral',
-              },
-            ],
-            metadataKeyspace,
-            sourceKeyspace,
-          });
-
-          await serverTestContext.cluster
-            .eventingFunctions()
-            .upsertFunction(eventFunction);
-        },
-        { timeout: 15_000 }
-      );
-
-      test('should get all event functions', async function ({
-        expect,
-        serverTestContext,
-        testFnName,
-      }) {
-        await waitFor(async () => {
-          const eventingFunctions = await serverTestContext.cluster
-            .eventingFunctions()
-            .getAllFunctions();
-          const testFn = eventingFunctions.find((f) => f.name === testFnName);
-          expect(testFn).toBeDefined();
+          bucketBindings,
+          urlBindings,
+          constantBindings: [
+            {
+              alias: 'someconstant',
+              literal: 'someliteral',
+            },
+          ],
+          metadataKeyspace,
+          sourceKeyspace,
         });
+
+        await serverTestContext.cluster.eventingFunctions().upsertFunction(eventFunction);
+      },
+      { timeout: 15_000 }
+    );
+
+    test('should get all event functions', async function ({
+      expect,
+      serverTestContext,
+      testFnName,
+    }) {
+      await waitFor(async () => {
+        const eventingFunctions = await serverTestContext.cluster
+          .eventingFunctions()
+          .getAllFunctions();
+        const testFn = eventingFunctions.find((f) => f.name === testFnName);
+        expect(testFn).toBeDefined();
       });
+    });
 
-      test('should get function statuses', async function ({
-        expect,
-        serverTestContext,
-        testFnName,
-      }) {
-        await waitFor(async () => {
-          const statuses = await serverTestContext.cluster
-            .eventingFunctions()
-            .functionsStatus();
-          const testFnStatus = statuses.functions.find((f) => f.name === testFnName);
-          expect(testFnStatus).toBeDefined();
-        });
+    test('should get function statuses', async function ({
+      expect,
+      serverTestContext,
+      testFnName,
+    }) {
+      await waitFor(async () => {
+        const statuses = await serverTestContext.cluster
+          .eventingFunctions()
+          .functionsStatus();
+        const testFnStatus = statuses.functions.find((f) => f.name === testFnName);
+        expect(testFnStatus).toBeDefined();
       });
+    });
 
-      test('should eventually reach the `Undeployed` status', async function ({
-        expect,
-        apiConfig,
-        testFnName,
-      }) {
-        await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
-            timeout: 30_000,
-          })
-        ).resolves.toBeUndefined();
-      });
-
-      test('should deploy the function', async function ({
-        expect,
-        apiConfig,
-        serverTestContext,
-        testFnName,
-      }) {
-        await serverTestContext.cluster.eventingFunctions().deployFunction(testFnName);
-        await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
-        ).resolves.toBeUndefined();
-      });
-
-      test('should pause the function', async function ({
-        expect,
-        apiConfig,
-        serverTestContext,
-        testFnName,
-      }) {
-        await serverTestContext.cluster.eventingFunctions().pauseFunction(testFnName);
-        await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'paused', { timeout: 30_000 })
-        ).resolves.toBeUndefined();
-      });
-
-      test('should resume the function', async function ({
-        expect,
-        apiConfig,
-        serverTestContext,
-        testFnName,
-      }) {
-        await serverTestContext.cluster.eventingFunctions().resumeFunction(testFnName);
-        await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
-        ).resolves.toBeUndefined();
-      });
-
-      test('should undeploy the function', async function ({
-        expect,
-        apiConfig,
-        serverTestContext,
-        testFnName,
-      }) {
-        await serverTestContext.cluster.eventingFunctions().undeployFunction(testFnName);
-        await expect(
-          waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
-            timeout: 30_000,
-          })
-        ).resolves.toBeUndefined();
-      });
-
-      test('should drop the function', async function ({
-        apiConfig,
-        serverTestContext,
-        testFnName,
-      }) {
-        await serverTestContext.cluster.eventingFunctions().dropFunction(testFnName);
-
-        await waitForEventingFunction(apiConfig, testFnName, {
+    test('should eventually reach the `Undeployed` status', async function ({
+      expect,
+      apiConfig,
+      testFnName,
+    }) {
+      await expect(
+        waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
           timeout: 30_000,
-          expectMissing: true,
-        });
+        })
+      ).resolves.toBeUndefined();
+    });
+
+    test('should deploy the function', async function ({
+      expect,
+      apiConfig,
+      serverTestContext,
+      testFnName,
+    }) {
+      await serverTestContext.cluster.eventingFunctions().deployFunction(testFnName);
+      await expect(
+        waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
+      ).resolves.toBeUndefined();
+    });
+
+    test('should pause the function', async function ({
+      expect,
+      apiConfig,
+      serverTestContext,
+      testFnName,
+    }) {
+      await serverTestContext.cluster.eventingFunctions().pauseFunction(testFnName);
+      await expect(
+        waitForEventingFunction(apiConfig, testFnName, 'paused', { timeout: 30_000 })
+      ).resolves.toBeUndefined();
+    });
+
+    test('should resume the function', async function ({
+      expect,
+      apiConfig,
+      serverTestContext,
+      testFnName,
+    }) {
+      await serverTestContext.cluster.eventingFunctions().resumeFunction(testFnName);
+      await expect(
+        waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
+      ).resolves.toBeUndefined();
+    });
+
+    test('should undeploy the function', async function ({
+      expect,
+      apiConfig,
+      serverTestContext,
+      testFnName,
+    }) {
+      await serverTestContext.cluster.eventingFunctions().undeployFunction(testFnName);
+      await expect(
+        waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
+          timeout: 30_000,
+        })
+      ).resolves.toBeUndefined();
+    });
+
+    test('should drop the function', async function ({
+      apiConfig,
+      serverTestContext,
+      testFnName,
+    }) {
+      await serverTestContext.cluster.eventingFunctions().dropFunction(testFnName);
+
+      await waitForEventingFunction(apiConfig, testFnName, {
+        timeout: 30_000,
+        expectMissing: true,
       });
-    },
-    { timeout: 30_000 }
-  );
+    });
+  });

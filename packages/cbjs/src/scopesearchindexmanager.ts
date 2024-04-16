@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import { ApiSearchIndexSuccessfulAnalysis } from '@cbjsdev/http-client';
 import { BucketName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
-import { promisify } from 'node:util';
 
 import { CppError } from './binding';
 import { errorFromCpp } from './bindingutilities';

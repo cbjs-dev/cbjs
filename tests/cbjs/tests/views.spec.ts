@@ -148,6 +148,7 @@ describe
 
     test(
       'should successfully get a development index (legacy)',
+      { timeout: 60_000 },
       async function ({
         expect,
         apiConfig,
@@ -178,12 +179,12 @@ describe
         expect(Object.keys(res.views)[0]).toEqual('simple');
         expect(res.views.simple).toBeInstanceOf(DesignDocumentView);
         expect(res.views.simple.map).toEqual(getMapFunction(sampleData.testUid));
-      },
-      { timeout: 60_000 }
+      }
     );
 
     test(
       'should successfully get a development index using an explicit namespace',
+      { timeout: 60_000 },
       async function ({
         expect,
         apiConfig,
@@ -216,8 +217,7 @@ describe
         expect(Object.keys(res.views)[0]).toEqual('simple');
         expect(res.views.simple).toBeInstanceOf(DesignDocumentView);
         expect(res.views.simple.map).toEqual(getMapFunction(sampleData.testUid));
-      },
-      { timeout: 60_000 }
+      }
     );
 
     test('should successfully publish an index (legacy)', async function ({
@@ -272,6 +272,7 @@ describe
 
     test(
       'should see test data correctly',
+      { timeout: 20_000 },
       async function ({ serverTestContext, expect, useSampleData, docId, viewName }) {
         const sampleData = await useSampleData(serverTestContext.dco);
         const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
@@ -292,12 +293,12 @@ describe
           },
           { timeout: 20_000, retryInterval: 2_000 }
         );
-      },
-      { timeout: 20_000 }
+      }
     );
 
     test(
       'should see test data correctly with a new connection',
+      { timeout: 10_000 },
       async function ({ serverTestContext, expect, docId, viewName, useSampleData }) {
         const sampleData = await useSampleData(serverTestContext.dco);
         const doc = buildDesignDocument(sampleData.testUid, docId, viewName);
@@ -318,8 +319,7 @@ describe
             expect(row.value).toBeDefined();
           }
         });
-      },
-      { timeout: 10_000 }
+      }
     );
 
     test('should successfully drop a development index (legacy)', async function ({

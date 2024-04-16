@@ -18,8 +18,14 @@ import type { PromiseValue } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import type { AnyCollection } from '../../../clusterTypes';
-import type { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
-import type { LookupInSpecResults, MakeLookupInSpec } from '../../../clusterTypes/kv/lookup/lookupIn.types';
+import type {
+  ExtractCollectionJsonDocBody,
+  ExtractCollectionJsonDocKey,
+} from '../../../clusterTypes/clusterTypes';
+import type {
+  LookupInSpecResults,
+  MakeLookupInSpec,
+} from '../../../clusterTypes/kv/lookup/lookupIn.types';
 import type {
   LookupInCountPath,
   LookupInExistsPath,

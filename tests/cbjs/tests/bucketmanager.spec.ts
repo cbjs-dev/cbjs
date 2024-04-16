@@ -36,10 +36,10 @@ describe.shuffle('bucket manager', async () => {
 
   test(
     'should successfully create and delete a bucket',
+    { timeout: 10_000 },
     async function ({ expect, useBucket }) {
       await expect(useBucket()).resolves.toBeTypeOf('string');
-    },
-    { timeout: 10_000 }
+    }
   );
 
   test('should throw a BucketExistsError on duplicate buckets', async function ({
@@ -121,6 +121,7 @@ describe.shuffle('bucket manager', async () => {
 
   test(
     'should successfully flush a bucket',
+    { timeout: 10_000 },
     async function ({ expect, serverTestContext, useBucket }) {
       const localBucket = await useBucket({
         flushEnabled: true,
@@ -129,8 +130,7 @@ describe.shuffle('bucket manager', async () => {
       await expect(
         serverTestContext.c.buckets().flushBucket(localBucket)
       ).resolves.toBeUndefined();
-    },
-    { timeout: 10_000 }
+    }
   );
 
   test('should throw a BucketNotFoundError when trying to flush a missing bucket', async function ({
@@ -238,6 +238,7 @@ describe.shuffle('bucket manager', async () => {
 
   test(
     'should successfully create a bucket with flush and replicaIndexes disabled',
+    { timeout: 10_000 },
     async function ({ expect, serverTestContext, useBucket }) {
       const bucketName = await useBucket({
         ramQuotaMB: 256,
@@ -269,12 +270,12 @@ describe.shuffle('bucket manager', async () => {
       }
 
       expect(res).toEqual(expected);
-    },
-    { timeout: 10_000 }
+    }
   );
 
   test(
     'should successfully create a bucket with history settings',
+    { timeout: 10_000 },
     async function ({ expect, serverTestContext, useBucket }) {
       const bucketName = await useBucket({
         ramQuotaMB: 1024,
@@ -306,12 +307,12 @@ describe.shuffle('bucket manager', async () => {
       };
 
       expect(res).toEqual(expected);
-    },
-    { timeout: 10_000 }
+    }
   );
 
   test.runIf(serverSupportsFeatures(ServerFeatures.BucketDedup))(
     'should update the history settings on a bucket',
+    { timeout: 10_000 },
     async function ({ expect, serverTestContext, useBucket }) {
       const bucket = await useBucket({
         storageBackend: 'magma',
@@ -348,8 +349,7 @@ describe.shuffle('bucket manager', async () => {
       };
 
       expect(res).toEqual(expected);
-    },
-    { timeout: 10_000 }
+    }
   );
 
   test.runIf(serverSupportsFeatures(ServerFeatures.BucketDedup))(

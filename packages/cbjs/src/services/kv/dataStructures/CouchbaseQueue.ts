@@ -14,12 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BucketName, CollectionName, CouchbaseClusterTypes, DocDefMatchingBody, ScopeName } from '@cbjsdev/shared';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DocDefMatchingBody,
+  ScopeName,
+} from '@cbjsdev/shared';
+
 import type { Collection } from '../../../collection';
 import { CouchbaseError, PathInvalidError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
+import {
+  type NodeCallback,
+  PromiseHelper,
+  type VoidNodeCallback,
+} from '../../../utilities';
 
 /**
  * CouchbaseQueue provides a simplified interface for storing a queue
@@ -72,9 +83,13 @@ export class CouchbaseQueue<
    */
   async push(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.arrayPrepend('', value) as never], {
-        storeSemantics: StoreSemantics.Upsert,
-      });
+      await this._coll.mutateIn(
+        this._key,
+        [MutateInSpec.arrayPrepend('', value) as never],
+        {
+          storeSemantics: StoreSemantics.Upsert,
+        }
+      );
     }, callback);
   }
 
@@ -87,7 +102,9 @@ export class CouchbaseQueue<
     return await PromiseHelper.wrapAsync(async () => {
       for (let i = 0; i < 16; ++i) {
         try {
-          const res = await this._coll.lookupIn(this._key, [LookupInSpec.get('[-1]') as never]);
+          const res = await this._coll.lookupIn(this._key, [
+            LookupInSpec.get('[-1]') as never,
+          ]);
 
           const value = res.content[0].value;
 

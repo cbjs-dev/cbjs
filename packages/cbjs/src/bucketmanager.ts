@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import {
   BucketTypeName,
   CompressionModeName,
@@ -24,7 +26,6 @@ import {
   RequiredProps,
   StorageBackendName,
 } from '@cbjsdev/shared';
-import { promisify } from 'node:util';
 
 import { CppManagementClusterBucketSettings } from './binding';
 import {

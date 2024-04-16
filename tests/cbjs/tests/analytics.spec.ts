@@ -25,15 +25,15 @@ import {
   IndexExistsError,
   IndexNotFoundError,
 } from '@cbjsdev/cbjs';
+import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitFor } from '../utils/waitFor';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Analytics))
-  .shuffle('analytics', async () => {
+  .shuffle('analytics', { timeout: 10_000 }, async () => {
     const test = await createCouchbaseTest({
       useSampleData,
     });
@@ -42,274 +42,270 @@ describe
       await useDataverse();
     });
 
-    test(
-      'should successfully create & drop a dataverse',
-      async function ({ useDataverse }) {
-        await useDataverse();
-      },
-      { timeout: 10_000 }
-    );
+    test('should successfully create & drop a dataverse', async function ({
+      useDataverse,
+    }) {
+      await useDataverse();
+    });
 
-    test(
-      'should successfully upsert a non-existing dataverse',
-      async function ({ expect, serverTestContext, useDataverse }) {
-        const dv = await useDataverse();
-        await expect(
-          serverTestContext.c.analyticsIndexes().createDataverse(dv, {
-            ignoreIfExists: true,
-          })
-        ).resolves.toBeUndefined();
-      },
-      { timeout: 10_000 }
-    );
+    test('should successfully upsert a non-existing dataverse', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+    }) {
+      const dv = await useDataverse();
+      await expect(
+        serverTestContext.c.analyticsIndexes().createDataverse(dv, {
+          ignoreIfExists: true,
+        })
+      ).resolves.toBeUndefined();
+    });
 
-    test(
-      'should successfully upsert an existing dataverse',
-      async function ({ expect, serverTestContext, useDataverse }) {
-        const dv = await useDataverse();
-        await expect(
-          serverTestContext.c.analyticsIndexes().createDataverse(dv, {
-            ignoreIfExists: true,
-          })
-        ).resolves.toBeUndefined();
-      },
-      { timeout: 10_000 }
-    );
+    test('should successfully upsert an existing dataverse', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+    }) {
+      const dv = await useDataverse();
+      await expect(
+        serverTestContext.c.analyticsIndexes().createDataverse(dv, {
+          ignoreIfExists: true,
+        })
+      ).resolves.toBeUndefined();
+    });
 
-    test(
-      'should fail to overwrite an existing dataverse',
-      async function ({ expect, serverTestContext, useDataverse }) {
-        const dv = await useDataverse();
+    test('should fail to overwrite an existing dataverse', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+    }) {
+      const dv = await useDataverse();
 
-        await expect(
-          serverTestContext.c.analyticsIndexes().createDataverse(dv)
-        ).rejects.toThrowError(DataverseExistsError);
-      },
-      { timeout: 10_000 }
-    );
+      await expect(
+        serverTestContext.c.analyticsIndexes().createDataverse(dv)
+      ).rejects.toThrowError(DataverseExistsError);
+    });
 
-    test(
-      'should successfully create & drop a dataset',
-      async function ({ useDataverse, useDataset }) {
-        const dv = await useDataverse();
-        await useDataset({ dataverseName: dv });
-      },
-      { timeout: 10_000 }
-    );
+    test('should successfully create & drop a dataset', async function ({
+      useDataverse,
+      useDataset,
+    }) {
+      const dv = await useDataverse();
+      await useDataset({ dataverseName: dv });
+    });
 
-    test(
-      'should successfully upsert a dataset',
-      async function ({ serverTestContext, useDataverse, useDataset }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
+    test('should successfully upsert a dataset', async function ({
+      serverTestContext,
+      useDataverse,
+      useDataset,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
 
-        await serverTestContext.c
+      await serverTestContext.c
+        .analyticsIndexes()
+        .createDataset(serverTestContext.b.name, ds, {
+          dataverseName: dv,
+          ignoreIfExists: true,
+        });
+    });
+
+    test('should fail to overwrite an existing dataset', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+      useDataset,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+
+      await expect(
+        serverTestContext.c
           .analyticsIndexes()
           .createDataset(serverTestContext.b.name, ds, {
             dataverseName: dv,
-            ignoreIfExists: true,
-          });
-      },
-      { timeout: 10_000 }
-    );
+          })
+      ).rejects.toThrowError(DatasetExistsError);
+    });
 
-    test(
-      'should fail to overwrite an existing dataset',
-      async function ({ expect, serverTestContext, useDataverse, useDataset }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
+    test('should successfully create & drop an index', async function ({
+      useDataverse,
+      useDataset,
+      useAnalyticsIndex,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+      await useAnalyticsIndex({
+        dataverseName: dv,
+        datasetName: ds,
+        fields: {
+          name: 'string',
+        },
+      });
+    });
 
-        await expect(
-          serverTestContext.c
-            .analyticsIndexes()
-            .createDataset(serverTestContext.b.name, ds, {
-              dataverseName: dv,
-            })
-        ).rejects.toThrowError(DatasetExistsError);
-      },
-      { timeout: 10_000 }
-    );
+    test('should successfully upsert an index', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+      useDataset,
+      useAnalyticsIndex,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+      const index = await useAnalyticsIndex({
+        dataverseName: dv,
+        datasetName: ds,
+        fields: {
+          name: 'string',
+        },
+      });
 
-    test(
-      'should successfully create & drop an index',
-      async function ({ useDataverse, useDataset, useAnalyticsIndex }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
-        await useAnalyticsIndex({
-          dataverseName: dv,
-          datasetName: ds,
-          fields: {
-            name: 'string',
-          },
-        });
-      },
-      { timeout: 10_000 }
-    );
-
-    test(
-      'should successfully upsert an index',
-      async function ({
-        expect,
-        serverTestContext,
-        useDataverse,
-        useDataset,
-        useAnalyticsIndex,
-      }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
-        const index = await useAnalyticsIndex({
-          dataverseName: dv,
-          datasetName: ds,
-          fields: {
-            name: 'string',
-          },
-        });
-
-        await expect(
-          serverTestContext.c.analyticsIndexes().createIndex(
-            ds,
-            index,
-            { name: 'string' },
-            {
-              dataverseName: dv,
-              ignoreIfExists: true,
-            }
-          )
-        ).resolves.toBeUndefined();
-      },
-      { timeout: 10_000 }
-    );
-
-    test(
-      'should fail to overwrite an existing index',
-      async function ({ expect, useDataverse, useDataset, useAnalyticsIndex }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
-        const index = await useAnalyticsIndex({
-          dataverseName: dv,
-          datasetName: ds,
-          fields: {
-            name: 'string',
-          },
-        });
-
-        await expect(
-          useAnalyticsIndex({
-            indexName: index,
+      await expect(
+        serverTestContext.c.analyticsIndexes().createIndex(
+          ds,
+          index,
+          { name: 'string' },
+          {
             dataverseName: dv,
-            datasetName: ds,
-            fields: {
-              name: 'string',
-            },
-          })
-        ).rejects.toThrowError(IndexExistsError);
-      },
-      { timeout: 10_000 }
-    );
+            ignoreIfExists: true,
+          }
+        )
+      ).resolves.toBeUndefined();
+    });
 
-    test(
-      'should successfully create & drop a link',
-      async function ({ useDataverse, useAnalyticsLink }) {
-        const dataverseName = await useDataverse();
+    test('should fail to overwrite an existing index', async function ({
+      expect,
+      useDataverse,
+      useDataset,
+      useAnalyticsIndex,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+      const index = await useAnalyticsIndex({
+        dataverseName: dv,
+        datasetName: ds,
+        fields: {
+          name: 'string',
+        },
+      });
 
-        await useAnalyticsLink({
-          type: 's3',
+      await expect(
+        useAnalyticsIndex({
+          indexName: index,
+          dataverseName: dv,
+          datasetName: ds,
+          fields: {
+            name: 'string',
+          },
+        })
+      ).rejects.toThrowError(IndexExistsError);
+    });
+
+    test('should successfully create & drop a link', async function ({
+      useDataverse,
+      useAnalyticsLink,
+    }) {
+      const dataverseName = await useDataverse();
+
+      await useAnalyticsLink({
+        type: 's3',
+        name: 'testLink',
+        scope: dataverseName,
+        accessKeyId: 'testAccessKeyId',
+        region: 'eu-west-3',
+        secretAccessKey: 'testSecretAccessKey',
+      });
+    });
+
+    test('should successfully replace a link', async function ({
+      expect,
+      useDataverse,
+      useAnalyticsLink,
+      serverTestContext,
+    }) {
+      const dataverseName = await useDataverse();
+
+      await useAnalyticsLink({
+        type: 's3',
+        name: 'testLink',
+        scope: dataverseName,
+        accessKeyId: 'testAccessKeyId',
+        region: 'eu-west-3',
+        secretAccessKey: 'testSecretAccessKey',
+      });
+
+      await expect(
+        serverTestContext.cluster.analyticsIndexes().replaceLink({
           name: 'testLink',
           scope: dataverseName,
           accessKeyId: 'testAccessKeyId',
-          region: 'eu-west-3',
+          region: 'eu-west-1',
           secretAccessKey: 'testSecretAccessKey',
-        });
-      },
-      { timeout: 10_000 }
-    );
+        })
+      ).resolves.toBeUndefined();
+    });
 
-    test(
-      'should successfully replace a link',
-      async function ({ expect, useDataverse, useAnalyticsLink, serverTestContext }) {
-        const dataverseName = await useDataverse();
+    test('should successfully connect & disconnect a link', async function ({
+      useDataverse,
+      useAnalyticsLinkConnection,
+      serverTestContext,
+    }) {
+      // The link name must start with a letter, therefore the dv must also start with a letter
+      const dv = await useDataverse({
+        dataverseName: `test${serverTestContext.newUid()}`,
+      });
+      await useAnalyticsLinkConnection({ dataverseName: dv });
+    });
 
-        await useAnalyticsLink({
-          type: 's3',
-          name: 'testLink',
-          scope: dataverseName,
-          accessKeyId: 'testAccessKeyId',
-          region: 'eu-west-3',
-          secretAccessKey: 'testSecretAccessKey',
-        });
+    test('should successfully list all links', async function ({
+      expect,
+      useDataverse,
+      useAnalyticsLink,
+      serverTestContext,
+    }) {
+      const dv = await useDataverse();
+      await useAnalyticsLink({
+        type: 's3',
+        name: 'testLink',
+        scope: dv,
+        accessKeyId: 'testAccessKeyId',
+        region: 'eu-west-3',
+        secretAccessKey: 'testSecretAccessKey',
+      });
 
-        await expect(
-          serverTestContext.cluster.analyticsIndexes().replaceLink({
-            name: 'testLink',
-            scope: dataverseName,
-            accessKeyId: 'testAccessKeyId',
-            region: 'eu-west-1',
-            secretAccessKey: 'testSecretAccessKey',
-          })
-        ).resolves.toBeUndefined();
-      },
-      { timeout: 10_000 }
-    );
+      await waitFor(
+        async () => {
+          const res = await serverTestContext.cluster.analyticsIndexes().getAllLinks();
 
-    test(
-      'should successfully connect & disconnect a link',
-      async function ({ useDataverse, useAnalyticsLinkConnection, serverTestContext }) {
-        // The link name must start with a letter, therefore the dv must also start with a letter
-        const dv = await useDataverse({
-          dataverseName: `test${serverTestContext.newUid()}`,
-        });
-        await useAnalyticsLinkConnection({ dataverseName: dv });
-      },
-      { timeout: 10_000 }
-    );
+          expect(res).toHaveLength(1);
+        },
+        { timeout: 10_000 }
+      );
+    });
 
-    test(
-      'should successfully list all links',
-      async function ({ expect, useDataverse, useAnalyticsLink, serverTestContext }) {
-        const dv = await useDataverse();
-        await useAnalyticsLink({
-          type: 's3',
-          name: 'testLink',
-          scope: dv,
-          accessKeyId: 'testAccessKeyId',
-          region: 'eu-west-3',
-          secretAccessKey: 'testSecretAccessKey',
-        });
+    test('should successfully list all datasets', async function ({
+      serverTestContext,
+      expect,
+      useDataverse,
+      useDataset,
+    }) {
+      const dv = await useDataverse();
+      await useDataset({ dataverseName: dv });
+      await useDataset({ dataverseName: dv });
 
-        await waitFor(
-          async () => {
-            const res = await serverTestContext.cluster.analyticsIndexes().getAllLinks();
-
-            expect(res).toHaveLength(1);
-          },
-          { timeout: 10_000 }
-        );
-      },
-      { timeout: 10_000 }
-    );
-
-    test(
-      'should successfully list all datasets',
-      async function ({ serverTestContext, expect, useDataverse, useDataset }) {
-        const dv = await useDataverse();
-        await useDataset({ dataverseName: dv });
-        await useDataset({ dataverseName: dv });
-
-        await waitFor(
-          async () => {
-            const res = await serverTestContext.cluster
-              .analyticsIndexes()
-              .getAllDatasets();
-            expect(res).toHaveLength(2);
-          },
-          { timeout: 10_000 }
-        );
-      },
-      { timeout: 10_000 }
-    );
+      await waitFor(
+        async () => {
+          const res = await serverTestContext.cluster.analyticsIndexes().getAllDatasets();
+          expect(res).toHaveLength(2);
+        },
+        { timeout: 10_000 }
+      );
+    });
 
     test(
       'should successfully list all indexes',
+      { timeout: 20_000 },
       async function ({
         serverTestContext,
         expect,
@@ -337,8 +333,7 @@ describe
           const res = await serverTestContext.c.analyticsIndexes().getAllIndexes();
           expect(res).toHaveLength(4); // 2 primary created by default with each dataset + 2 secondary created in this test
         });
-      },
-      { timeout: 20_000 }
+      }
     );
 
     test.runIf(serverSupportsFeatures(ServerFeatures.AnalyticsPendingMutations))(
@@ -353,6 +348,7 @@ describe
 
     test(
       'should see test data correctly',
+      { timeout: 20_000 },
       async function ({
         expect,
         serverTestContext,
@@ -376,108 +372,96 @@ describe
           },
           { timeout: 20_000 }
         );
-      },
-      { timeout: 20_000 }
+      }
     );
 
-    test(
-      'should work with positional parameters correctly',
-      async function ({
-        expect,
-        serverTestContext,
-        useDataverse,
-        useDataset,
-        useSampleData,
-      }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
-        const sampleData = await useSampleData(serverTestContext.dco);
+    test('should work with positional parameters correctly', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+      useDataset,
+      useSampleData,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+      const sampleData = await useSampleData(serverTestContext.dco);
 
-        await waitFor(async () => {
-          const targetName = '`' + dv + '`.`' + ds + '`';
-          const qs = `SELECT * FROM ${targetName} WHERE testUid=$2`;
+      await waitFor(async () => {
+        const targetName = '`' + dv + '`.`' + ds + '`';
+        const qs = `SELECT * FROM ${targetName} WHERE testUid=$2`;
+        const res = await serverTestContext.c.analyticsQuery(qs, {
+          parameters: [undefined, sampleData.testUid],
+        });
+
+        expect(res.rows).toBeInstanceOf(Array);
+        expect(res.rows).toHaveLength(sampleData.sampleSize);
+        expect(res.meta).toBeTypeOf('object');
+      });
+    });
+
+    test('should work with named parameters correctly', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+      useDataset,
+      useSampleData,
+    }) {
+      const sampleData = await useSampleData(serverTestContext.dco);
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+
+      const targetName = '`' + dv + '`.`' + ds + '`';
+      const qs = `SELECT * FROM ${targetName} WHERE testUid=$tuid`;
+
+      await waitFor(
+        async () => {
           const res = await serverTestContext.c.analyticsQuery(qs, {
-            parameters: [undefined, sampleData.testUid],
+            parameters: {
+              tuid: sampleData.testUid,
+            },
           });
 
           expect(res.rows).toBeInstanceOf(Array);
           expect(res.rows).toHaveLength(sampleData.sampleSize);
           expect(res.meta).toBeTypeOf('object');
-        });
-      },
-      { timeout: 10_000 }
-    );
+        },
+        { timeout: 9_000, retryInterval: 1_000 }
+      );
+    });
 
-    test(
-      'should work with named parameters correctly',
-      async function ({
-        expect,
-        serverTestContext,
-        useDataverse,
-        useDataset,
-        useSampleData,
-      }) {
-        const sampleData = await useSampleData(serverTestContext.dco);
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
+    test('should filter undefined named parameters', async function ({
+      expect,
+      serverTestContext,
+      useDataverse,
+      useDataset,
+      useSampleData,
+    }) {
+      const dv = await useDataverse();
+      const ds = await useDataset({ dataverseName: dv });
+      const sampleData = await useSampleData(serverTestContext.dco);
 
-        const targetName = '`' + dv + '`.`' + ds + '`';
-        const qs = `SELECT * FROM ${targetName} WHERE testUid=$tuid`;
+      await waitFor(
+        async () => {
+          const targetName = '`' + dv + '`.`' + ds + '`';
+          const qs = `SELECT * FROM ${targetName} WHERE testUid=$tuid`;
+          const res = await serverTestContext.c.analyticsQuery(qs, {
+            parameters: {
+              tuid: sampleData.testUid,
+              filterMe: undefined,
+            },
+          });
 
-        await waitFor(
-          async () => {
-            const res = await serverTestContext.c.analyticsQuery(qs, {
-              parameters: {
-                tuid: sampleData.testUid,
-              },
-            });
-
-            expect(res.rows).toBeInstanceOf(Array);
-            expect(res.rows).toHaveLength(sampleData.sampleSize);
-            expect(res.meta).toBeTypeOf('object');
-          },
-          { timeout: 9_000, retryInterval: 1_000 }
-        );
-      },
-      { timeout: 10_000 }
-    );
-
-    test(
-      'should filter undefined named parameters',
-      async function ({
-        expect,
-        serverTestContext,
-        useDataverse,
-        useDataset,
-        useSampleData,
-      }) {
-        const dv = await useDataverse();
-        const ds = await useDataset({ dataverseName: dv });
-        const sampleData = await useSampleData(serverTestContext.dco);
-
-        await waitFor(
-          async () => {
-            const targetName = '`' + dv + '`.`' + ds + '`';
-            const qs = `SELECT * FROM ${targetName} WHERE testUid=$tuid`;
-            const res = await serverTestContext.c.analyticsQuery(qs, {
-              parameters: {
-                tuid: sampleData.testUid,
-                filterMe: undefined,
-              },
-            });
-
-            expect(res.rows).toBeInstanceOf(Array);
-            expect(res.rows).toHaveLength(sampleData.sampleSize);
-            expect(res.meta).toBeTypeOf('object');
-          },
-          { timeout: 9_000, retryInterval: 1_000 }
-        );
-      },
-      { timeout: 10_000 }
-    );
+          expect(res.rows).toBeInstanceOf(Array);
+          expect(res.rows).toHaveLength(sampleData.sampleSize);
+          expect(res.meta).toBeTypeOf('object');
+        },
+        { timeout: 9_000, retryInterval: 1_000 }
+      );
+    });
 
     test(
       'should work with lots of options specified',
+      { timeout: 20_000 },
       async function ({
         expect,
         serverTestContext,
@@ -507,8 +491,7 @@ describe
           expect(res.meta.signature).toBeTypeOf('object');
           expect(res.meta.metrics).toBeTypeOf('object');
         });
-      },
-      { timeout: 20_000 }
+      }
     );
 
     test('should successfully ignore a missing index when dropping', async function ({

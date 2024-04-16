@@ -17,10 +17,8 @@
 import { describe, vi } from 'vitest';
 
 import { CouchbaseError } from '@cbjsdev/cbjs';
-import { invariant } from '@cbjsdev/shared';
+import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
-
-import { waitFor } from '../utils/waitFor';
 
 describe('PromiseHelper', async () => {
   const test = await createCouchbaseTest();

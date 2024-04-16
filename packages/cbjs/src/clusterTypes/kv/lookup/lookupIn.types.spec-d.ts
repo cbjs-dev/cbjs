@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { connect, LookupInMacro, LookupInReplicaResult, LookupInResultEntry } from '../../..';
+import { DocDef } from '@cbjsdev/shared';
+
+import {
+  connect,
+  LookupInMacro,
+  LookupInReplicaResult,
+  LookupInResultEntry,
+} from '../../..';
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';
@@ -49,10 +55,10 @@ describe('LookupInSpecs', () => {
   type UserClusterTypes = {
     test: {
       _default: {
-        _default: [ DocDef<string, TestDoc>, DocDef<string, TestDoc2> ];
+        _default: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
       };
       testScope: {
-        testCollection: [ DocDef<string, TestDoc>, DocDef<string, TestDoc2> ];
+        testCollection: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
       };
     };
   };

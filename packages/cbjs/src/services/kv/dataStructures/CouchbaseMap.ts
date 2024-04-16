@@ -22,13 +22,18 @@ import {
   type MapEntry,
   ScopeName,
 } from '@cbjsdev/shared';
+
 import { AnyCollection } from '../../../clusterTypes';
 import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
 import { Collection } from '../../../collection';
 import { CouchbaseError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
+import {
+  type NodeCallback,
+  PromiseHelper,
+  type VoidNodeCallback,
+} from '../../../utilities';
 
 /**
  * CouchbaseMap provides a simplified interface for storing a map
@@ -164,9 +169,7 @@ export class CouchbaseMap<
     callback?: NodeCallback<MapDoc[ItemKey]>
   ): Promise<MapDoc[ItemKey]> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [
-        LookupInSpec.get(itemKey),
-      ]);
+      const res = await this._coll.lookupIn(this._key, [LookupInSpec.get(itemKey)]);
 
       const itemRes = res.content[0];
 

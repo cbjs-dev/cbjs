@@ -14,10 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BucketName, CollectionName, CouchbaseClusterTypes, DefaultClusterTypes, ScopeName } from '@cbjsdev/shared';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  ScopeName,
+} from '@cbjsdev/shared';
 
 import { AnalyticsExecutor } from './analyticsexecutor';
-import { AnalyticsMetaData, AnalyticsQueryOptions, AnalyticsResult } from './analyticstypes';
+import {
+  AnalyticsMetaData,
+  AnalyticsQueryOptions,
+  AnalyticsResult,
+} from './analyticstypes';
 import { CppConnection } from './binding';
 import { Bucket } from './bucket';
 import { Cluster } from './cluster';
@@ -26,7 +36,13 @@ import { QueryExecutor } from './queryexecutor';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
 import { ScopeSearchIndexManager } from './scopesearchindexmanager';
 import { SearchExecutor } from './searchexecutor';
-import { SearchMetaData, SearchQueryOptions, SearchRequest, SearchResult, SearchRow } from './searchtypes';
+import {
+  SearchMetaData,
+  SearchQueryOptions,
+  SearchRequest,
+  SearchResult,
+  SearchRow,
+} from './searchtypes';
 import { StreamableRowPromise } from './streamablepromises';
 import { Transcoder } from './transcoders';
 import { NodeCallback, PromiseHelper } from './utilities';
@@ -217,9 +233,6 @@ export class Scope<
 
     const exec = new SearchExecutor(this.cluster, this.bucket.name, this.name);
 
-    return PromiseHelper.wrapAsync(
-      () => exec.query(indexName, request, opts),
-      cb
-    )
+    return PromiseHelper.wrapAsync(() => exec.query(indexName, request, opts), cb);
   }
 }

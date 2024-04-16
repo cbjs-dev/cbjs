@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe } from 'vitest';
+
 import {
   BucketNotFoundError,
   DocumentExistsError,
@@ -25,125 +27,124 @@ import {
 } from '@cbjsdev/cbjs';
 import { invariant, sleep } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
-import { describe } from 'vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
-describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
-  'transactions',
-  async () => {
+describe
+  .runIf(serverSupportsFeatures(ServerFeatures.Transactions))
+  .shuffle('transactions', { timeout: 20_000, retry: 1 }, async () => {
     const test = await createCouchbaseTest(async ({ serverTestContext }) => {
       await sleep(2000);
       await serverTestContext.collection.queryIndexes().createPrimaryIndex();
     });
 
-    test(
-      'should work with a simple transaction',
-      async function ({ expect, serverTestContext, useDocumentKey }) {
-        const testDocKeyIns = useDocumentKey();
-        const testDocKeyRep = useDocumentKey();
-        const testDocKeyRem = useDocumentKey();
+    test('should work with a simple transaction', async function ({
+      expect,
+      serverTestContext,
+      useDocumentKey,
+    }) {
+      const testDocKeyIns = useDocumentKey();
+      const testDocKeyRep = useDocumentKey();
+      const testDocKeyRem = useDocumentKey();
 
-        await serverTestContext.collection.insert(testDocKeyRep, {
-          op: 'testDocKeyRep.kv.insert',
-        });
-        await serverTestContext.collection.insert(testDocKeyRem, {
-          op: 'testDocKeyRem.kv.insert',
-        });
+      await serverTestContext.collection.insert(testDocKeyRep, {
+        op: 'testDocKeyRep.kv.insert',
+      });
+      await serverTestContext.collection.insert(testDocKeyRem, {
+        op: 'testDocKeyRem.kv.insert',
+      });
 
-        await serverTestContext.cluster.transactions().run(
-          async (attempt) => {
-            await attempt.insert(serverTestContext.collection, testDocKeyIns, {
-              op: 'testDocKeyIns.tx.kv.insert',
-            });
+      await serverTestContext.cluster.transactions().run(
+        async (attempt) => {
+          await attempt.insert(serverTestContext.collection, testDocKeyIns, {
+            op: 'testDocKeyIns.tx.kv.insert',
+          });
 
-            const testDocRep = await attempt.get(
-              serverTestContext.collection,
-              testDocKeyRep
-            );
-            await attempt.replace(testDocRep, { op: 'testDocKeyRep.tx.kv.replace' });
+          const testDocRep = await attempt.get(
+            serverTestContext.collection,
+            testDocKeyRep
+          );
+          await attempt.replace(testDocRep, { op: 'testDocKeyRep.tx.kv.replace' });
 
-            const testDocRem = await attempt.get(
-              serverTestContext.collection,
-              testDocKeyRem
-            );
-            await attempt.remove(testDocRem);
+          const testDocRem = await attempt.get(
+            serverTestContext.collection,
+            testDocKeyRem
+          );
+          await attempt.remove(testDocRem);
 
-            // our changes should be visible within the transaction (Read Your Own Write)
-            await expect(
-              attempt.get(serverTestContext.collection, testDocKeyIns)
-            ).resolves.toEqual(
-              expect.objectContaining({
-                content: { op: 'testDocKeyIns.tx.kv.insert' },
-              })
-            );
+          // our changes should be visible within the transaction (Read Your Own Write)
+          await expect(
+            attempt.get(serverTestContext.collection, testDocKeyIns)
+          ).resolves.toEqual(
+            expect.objectContaining({
+              content: { op: 'testDocKeyIns.tx.kv.insert' },
+            })
+          );
 
-            await expect(
-              attempt.get(serverTestContext.collection, testDocKeyRep)
-            ).resolves.toEqual(
-              expect.objectContaining({
-                content: { op: 'testDocKeyRep.tx.kv.replace' },
-              })
-            );
+          await expect(
+            attempt.get(serverTestContext.collection, testDocKeyRep)
+          ).resolves.toEqual(
+            expect.objectContaining({
+              content: { op: 'testDocKeyRep.tx.kv.replace' },
+            })
+          );
 
-            await expect(
-              attempt.get(serverTestContext.collection, testDocKeyRem)
-            ).rejects.toThrowError();
-          },
-          { timeout: 5000 }
-        );
+          await expect(
+            attempt.get(serverTestContext.collection, testDocKeyRem)
+          ).rejects.toThrowError();
+        },
+        { timeout: 5000 }
+      );
 
-        await expect(serverTestContext.collection.get(testDocKeyIns)).resolves.toEqual(
-          expect.objectContaining({
-            content: { op: 'testDocKeyIns.tx.kv.insert' },
-          })
-        );
+      await expect(serverTestContext.collection.get(testDocKeyIns)).resolves.toEqual(
+        expect.objectContaining({
+          content: { op: 'testDocKeyIns.tx.kv.insert' },
+        })
+      );
 
-        await expect(serverTestContext.collection.get(testDocKeyRep)).resolves.toEqual(
-          expect.objectContaining({
-            content: { op: 'testDocKeyRep.tx.kv.replace' },
-          })
-        );
+      await expect(serverTestContext.collection.get(testDocKeyRep)).resolves.toEqual(
+        expect.objectContaining({
+          content: { op: 'testDocKeyRep.tx.kv.replace' },
+        })
+      );
 
-        await expect(
-          serverTestContext.collection.get(testDocKeyRem)
-        ).rejects.toThrowError();
-      },
-      { timeout: 15_000 }
-    );
+      await expect(
+        serverTestContext.collection.get(testDocKeyRem)
+      ).rejects.toThrowError();
+    });
 
-    test(
-      'should be able to check if a document exists within transaction',
-      async function ({ expect, serverTestContext, useDocumentKey }) {
-        const testDocKeyExists = useDocumentKey();
+    test('should be able to check if a document exists within transaction', async function ({
+      expect,
+      serverTestContext,
+      useDocumentKey,
+    }) {
+      const testDocKeyExists = useDocumentKey();
 
-        await serverTestContext.collection.insert(testDocKeyExists, {
-          op: 'testDocKeyExists.kv.exists',
-        });
+      await serverTestContext.collection.insert(testDocKeyExists, {
+        op: 'testDocKeyExists.kv.exists',
+      });
 
-        await serverTestContext.cluster.transactions().run(
-          async (attempt) => {
-            const docExists = await attempt.exists(
-              serverTestContext.collection,
-              testDocKeyExists
-            );
+      await serverTestContext.cluster.transactions().run(
+        async (attempt) => {
+          const docExists = await attempt.exists(
+            serverTestContext.collection,
+            testDocKeyExists
+          );
 
-            expect(docExists.exists).toBe(true);
-            expect(docExists.cas).toBeNonZeroCAS();
+          expect(docExists.exists).toBe(true);
+          expect(docExists.cas).toBeNonZeroCAS();
 
-            const missingDocExists = await attempt.exists(
-              serverTestContext.collection,
-              'missingDoc'
-            );
+          const missingDocExists = await attempt.exists(
+            serverTestContext.collection,
+            'missingDoc'
+          );
 
-            expect(missingDocExists.exists).toBe(false);
-            expect(missingDocExists.cas).toBeUndefined();
-          },
-          { timeout: 5000 }
-        );
-      },
-      { timeout: 15_000 }
-    );
+          expect(missingDocExists.exists).toBe(false);
+          expect(missingDocExists.cas).toBeUndefined();
+        },
+        { timeout: 5000 }
+      );
+    });
 
     test('should work with query', async function ({
       expect,
@@ -650,6 +651,4 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
 
       expect(() => cluster.transactions()).toThrowError(BucketNotFoundError);
     });
-  },
-  { timeout: 20_000, retry: 1 }
-);
+  });

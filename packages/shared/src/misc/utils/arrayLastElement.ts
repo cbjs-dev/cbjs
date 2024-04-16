@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ArrayLastElement } from '../../couchbase';
 
 export function arrayLastElement<const T extends ReadonlyArray<unknown>>(arr: T) {

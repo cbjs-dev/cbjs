@@ -17,16 +17,15 @@
 import { describe } from 'vitest';
 
 import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjsdev/cbjs';
-import { invariant } from '@cbjsdev/shared';
-import { sleep } from '@cbjsdev/shared';
-import { createCouchbaseTest } from '@cbjsdev/vitest';
-import { getRandomId } from '@cbjsdev/vitest';
+import { invariant, sleep } from '@cbjsdev/shared';
+import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Collections))(
   'query index collection api',
+  { timeout: 10_000 },
   async () => {
     const test = await createCouchbaseTest({
       useSampleData,
@@ -246,6 +245,5 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Colle
         expect(err.context).toBeInstanceOf(HttpErrorContext);
       }
     });
-  },
-  { timeout: 10_000 }
+  }
 );

@@ -44,10 +44,19 @@ import {
 import { Cluster } from './cluster';
 import { AnyCollection, AnyScope } from './clusterTypes';
 import { Collection } from './collection';
-import { DocumentNotFoundError, TransactionFailedError, TransactionOperationFailedError } from './errors';
+import {
+  DocumentNotFoundError,
+  TransactionFailedError,
+  TransactionOperationFailedError,
+} from './errors';
 import { DurabilityLevel } from './generaltypes';
 import { QueryExecutor } from './queryexecutor';
-import { QueryMetaData, QueryProfileMode, QueryResult, QueryScanConsistency } from './querytypes';
+import {
+  QueryMetaData,
+  QueryProfileMode,
+  QueryResult,
+  QueryScanConsistency,
+} from './querytypes';
 import { NodeCallback, PromiseHelper } from './utilities';
 
 /**

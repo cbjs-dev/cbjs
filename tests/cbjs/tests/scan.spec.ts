@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe, vi } from 'vitest';
+
 import {
   CollectionNotFoundError,
   InvalidArgumentError,
@@ -25,7 +27,6 @@ import {
   ScanTerm,
 } from '@cbjsdev/cbjs';
 import { couchbaseFixture, createCouchbaseTest } from '@cbjsdev/vitest';
-import { describe, vi } from 'vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 

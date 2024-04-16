@@ -29,185 +29,181 @@ import { testLogger } from '../setupLogger';
 import { connectionParams } from '../setupTests';
 import { triggerGC } from '../utils/triggerGC';
 
-describe.shuffle(
-  'cluster',
-  async () => {
-    const test = await createCouchbaseTest();
+describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
+  const test = await createCouchbaseTest();
 
-    test('should queue operations until connected', async ({
-      serverTestContext,
-      useDocumentKey,
-    }) => {
-      const testDocKey = useDocumentKey();
-      const cluster = await serverTestContext.newConnection();
+  test('should queue operations until connected', async ({
+    serverTestContext,
+    useDocumentKey,
+  }) => {
+    const testDocKey = useDocumentKey();
+    const cluster = await serverTestContext.newConnection();
 
-      await cluster
-        .bucket(serverTestContext.bucket.name)
-        .collection(serverTestContext.collection.name)
-        .insert(testDocKey, 'test');
+    await cluster
+      .bucket(serverTestContext.bucket.name)
+      .collection(serverTestContext.collection.name)
+      .insert(testDocKey, 'test');
 
-      await cluster.close();
-    });
+    await cluster.close();
+  });
 
-    test('should successfully gc connections', async ({ serverTestContext }) => {
-      await serverTestContext.collection.exists('missingDoc', { timeout: 5000 });
-      const cluster = await serverTestContext.newConnection();
+  test('should successfully gc connections', async ({ serverTestContext }) => {
+    await serverTestContext.collection.exists('missingDoc', { timeout: 5000 });
+    const cluster = await serverTestContext.newConnection();
 
-      const collection = cluster
-        .bucket(serverTestContext.bucket.name)
-        .collection(serverTestContext.collection.name);
+    const collection = cluster
+      .bucket(serverTestContext.bucket.name)
+      .collection(serverTestContext.collection.name);
 
-      await collection.exists('missingDoc', { timeout: 5000 });
-      await cluster.close();
+    await collection.exists('missingDoc', { timeout: 5000 });
+    await cluster.close();
 
-      triggerGC();
-    });
+    triggerGC();
+  });
 
-    test('should successfully close an unconnected cluster and error ops', async function ({
-      serverTestContext,
-      expect,
-      useDocumentKey,
-    }) {
-      const testDocKey = useDocumentKey();
-      const cluster = await serverTestContext.newConnection();
+  test('should successfully close an unconnected cluster and error ops', async function ({
+    serverTestContext,
+    expect,
+    useDocumentKey,
+  }) {
+    const testDocKey = useDocumentKey();
+    const cluster = await serverTestContext.newConnection();
 
-      const collection = cluster
-        .bucket(serverTestContext.bucket.name)
-        .collection(serverTestContext.collection.name);
+    const collection = cluster
+      .bucket(serverTestContext.bucket.name)
+      .collection(serverTestContext.collection.name);
 
-      await cluster.close();
+    await cluster.close();
 
-      await expect(
-        collection.insert(testDocKey, 'test', { timeout: 2_000 })
-      ).rejects.toThrowError();
-    });
+    await expect(
+      collection.insert(testDocKey, 'test', { timeout: 2_000 })
+    ).rejects.toThrowError();
+  });
 
-    test('should error ops after close and ignore superfluous closes', async function ({
-      serverTestContext,
-      expect,
-      useDocumentKey,
-    }) {
-      const testDocKey = useDocumentKey();
-      const testDocKey2 = useDocumentKey();
+  test('should error ops after close and ignore superfluous closes', async function ({
+    serverTestContext,
+    expect,
+    useDocumentKey,
+  }) {
+    const testDocKey = useDocumentKey();
+    const testDocKey2 = useDocumentKey();
 
-      const cluster = await serverTestContext.newConnection();
+    const cluster = await serverTestContext.newConnection();
 
-      const collection = cluster
-        .bucket(serverTestContext.bucket.name)
-        .collection(serverTestContext.collection.name);
+    const collection = cluster
+      .bucket(serverTestContext.bucket.name)
+      .collection(serverTestContext.collection.name);
 
-      testLogger.trace('inserted with active connection');
-      await collection.insert(testDocKey, 'test', { timeout: 2_000 });
+    testLogger.trace('inserted with active connection');
+    await collection.insert(testDocKey, 'test', { timeout: 2_000 });
 
-      await cluster.close();
-      await cluster.close();
-      await cluster.close();
-      await cluster.close();
+    await cluster.close();
+    await cluster.close();
+    await cluster.close();
+    await cluster.close();
 
-      await expect(
-        collection.insert(testDocKey2, 'test', { timeout: 2_000 })
-      ).rejects.toThrowError();
+    await expect(
+      collection.insert(testDocKey2, 'test', { timeout: 2_000 })
+    ).rejects.toThrowError();
 
-      await cluster.close();
-      await cluster.close();
-    });
+    await cluster.close();
+    await cluster.close();
+  });
 
-    test('lcbVersion property should be available', function ({ expect }) {
-      expect(lcbVersion).toBeTypeOf('string');
-    });
+  test('lcbVersion property should be available', function ({ expect }) {
+    expect(lcbVersion).toBeTypeOf('string');
+  });
 
-    test('should throw a AuthenticationFailureError when using invalid credentials', async function ({
-      serverTestContext,
-      expect,
-    }) {
-      expect.hasAssertions();
+  test('should throw a AuthenticationFailureError when using invalid credentials', async function ({
+    serverTestContext,
+    expect,
+  }) {
+    expect.hasAssertions();
 
-      try {
-        await serverTestContext.newConnection({
-          connectionString: connectionParams.connectionString,
-          credentials: {
-            username: 'wrongUsername',
-            password: connectionParams.credentials.password,
-          },
-        });
-      } catch (err) {
-        expect(err).toBeInstanceOf(AuthenticationFailureError);
-        invariant(err instanceof AuthenticationFailureError);
-        expect(err.context).toBeUndefined();
-      }
-    });
-
-    test('should use wanDevelopment config profile', async function ({
-      serverTestContext,
-      expect,
-      connectionParams,
-    }) {
-      connectionProfiles.resetProfiles();
-      const cluster = await serverTestContext.newConnection(connectionParams, {
-        configProfile: 'wanDevelopment',
-      });
-
-      expect(cluster.kvTimeout).toEqual(20000);
-      expect(cluster.kvDurableTimeout).toEqual(20000);
-      expect(cluster.analyticsTimeout).toEqual(120000);
-      expect(cluster.managementTimeout).toEqual(120000);
-      expect(cluster.queryTimeout).toEqual(120000);
-      expect(cluster.searchTimeout).toEqual(120000);
-      expect(cluster.viewTimeout).toEqual(120000);
-      expect(cluster.bootstrapTimeout).toEqual(120000);
-      expect(cluster.connectTimeout).toEqual(20000);
-      expect(cluster.resolveTimeout).toEqual(20000);
-    });
-
-    test('should error when config profile is not registered', async ({
-      expect,
-      serverTestContext,
-      connectionParams,
-    }) => {
-      connectionProfiles.resetProfiles();
-
-      await expect(
-        serverTestContext.newConnection(connectionParams, {
-          configProfile: 'missingProfile',
-        })
-      ).rejects.toThrowError('missingProfile is not a registered profile.');
-    });
-
-    test('should use custom config profile', async ({
-      serverTestContext,
-      expect,
-      connectionParams,
-    }) => {
-      const testProfile = {
-        apply(options: ConnectOptions) {
-          const timeouts = {
-            kvTimeout: 5000,
-            kvDurableTimeout: 10000,
-            analyticsTimeout: 60000,
-            managementTimeout: 60000,
-            queryTimeout: 60000,
-            searchTimeout: 60000,
-            viewTimeout: 60000,
-          };
-
-          options.timeouts = { ...options.timeouts, ...timeouts };
+    try {
+      await serverTestContext.newConnection({
+        connectionString: connectionParams.connectionString,
+        credentials: {
+          username: 'wrongUsername',
+          password: connectionParams.credentials.password,
         },
-      };
-
-      connectionProfiles.registerProfile('testProfile', testProfile);
-
-      const cluster = await serverTestContext.newConnection(connectionParams, {
-        configProfile: 'testProfile',
       });
+    } catch (err) {
+      expect(err).toBeInstanceOf(AuthenticationFailureError);
+      invariant(err instanceof AuthenticationFailureError);
+      expect(err.context).toBeUndefined();
+    }
+  });
 
-      expect(cluster.kvTimeout).toEqual(5000);
-      expect(cluster.kvDurableTimeout).toEqual(10000);
-      expect(cluster.analyticsTimeout).toEqual(60000);
-      expect(cluster.managementTimeout).toEqual(60000);
-      expect(cluster.queryTimeout).toEqual(60000);
-      expect(cluster.searchTimeout).toEqual(60000);
-      expect(cluster.viewTimeout).toEqual(60000);
+  test('should use wanDevelopment config profile', async function ({
+    serverTestContext,
+    expect,
+    connectionParams,
+  }) {
+    connectionProfiles.resetProfiles();
+    const cluster = await serverTestContext.newConnection(connectionParams, {
+      configProfile: 'wanDevelopment',
     });
-  },
-  { timeout: 10_000, repeats: 5 }
-);
+
+    expect(cluster.kvTimeout).toEqual(20000);
+    expect(cluster.kvDurableTimeout).toEqual(20000);
+    expect(cluster.analyticsTimeout).toEqual(120000);
+    expect(cluster.managementTimeout).toEqual(120000);
+    expect(cluster.queryTimeout).toEqual(120000);
+    expect(cluster.searchTimeout).toEqual(120000);
+    expect(cluster.viewTimeout).toEqual(120000);
+    expect(cluster.bootstrapTimeout).toEqual(120000);
+    expect(cluster.connectTimeout).toEqual(20000);
+    expect(cluster.resolveTimeout).toEqual(20000);
+  });
+
+  test('should error when config profile is not registered', async ({
+    expect,
+    serverTestContext,
+    connectionParams,
+  }) => {
+    connectionProfiles.resetProfiles();
+
+    await expect(
+      serverTestContext.newConnection(connectionParams, {
+        configProfile: 'missingProfile',
+      })
+    ).rejects.toThrowError('missingProfile is not a registered profile.');
+  });
+
+  test('should use custom config profile', async ({
+    serverTestContext,
+    expect,
+    connectionParams,
+  }) => {
+    const testProfile = {
+      apply(options: ConnectOptions) {
+        const timeouts = {
+          kvTimeout: 5000,
+          kvDurableTimeout: 10000,
+          analyticsTimeout: 60000,
+          managementTimeout: 60000,
+          queryTimeout: 60000,
+          searchTimeout: 60000,
+          viewTimeout: 60000,
+        };
+
+        options.timeouts = { ...options.timeouts, ...timeouts };
+      },
+    };
+
+    connectionProfiles.registerProfile('testProfile', testProfile);
+
+    const cluster = await serverTestContext.newConnection(connectionParams, {
+      configProfile: 'testProfile',
+    });
+
+    expect(cluster.kvTimeout).toEqual(5000);
+    expect(cluster.kvDurableTimeout).toEqual(10000);
+    expect(cluster.analyticsTimeout).toEqual(60000);
+    expect(cluster.managementTimeout).toEqual(60000);
+    expect(cluster.queryTimeout).toEqual(60000);
+    expect(cluster.searchTimeout).toEqual(60000);
+    expect(cluster.viewTimeout).toEqual(60000);
+  });
+});

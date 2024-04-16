@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
+
+import { DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding';
 import { connect } from '../../../couchbase';
@@ -43,10 +44,10 @@ type TestDoc2 = {
 type UserClusterTypes = {
   test: {
     _default: {
-      _default: [ DocDef<string, TestDoc>, DocDef<string, TestDoc2> ];
+      _default: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
     };
     testScope: {
-      testCollection: [ DocDef<string, TestDoc>, DocDef<string, TestDoc2> ];
+      testCollection: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
     };
   };
 };

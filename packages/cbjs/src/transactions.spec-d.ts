@@ -1,5 +1,6 @@
-import { Cas, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
+
+import { Cas, DocDef } from '@cbjsdev/shared';
 
 import { connect, DocumentId, TransactionDocInfo, TransactionGetResult } from '.';
 import { CppTransactionGetMetaData, CppTransactionLinks } from './binding';
@@ -16,7 +17,7 @@ type Book = {
 type UserClusterTypes = {
   store: {
     library: {
-      books: [ DocDef<`book::${string}`, Book> ];
+      books: [DocDef<`book::${string}`, Book>];
     };
   };
 };

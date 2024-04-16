@@ -90,7 +90,6 @@ describe.shuffle('ds set', async () => {
   test('should throw CouchbaseError when operating on a missing document', async ({
     expect,
     serverTestContext,
-    testDocKey,
   }) => {
     const set = serverTestContext.collection.set('missingDoc');
     await expect(set.size()).rejects.toThrowError(CouchbaseError);

@@ -256,23 +256,22 @@ export type SearchQueryOptions = {
    */
   timeout?: number;
 
-
   /**
    * Specifies that the search response should include the request JSON.
    */
-  showRequest?: boolean
+  showRequest?: boolean;
 
   /**
    * Uncommitted: This API is subject to change in the future.
    * Specifies that the search request should appear in the log.
    */
-  logRequest?: boolean
+  logRequest?: boolean;
 
   /**
    * Uncommitted: This API is subject to change in the future.
    * Specifies that the search response should appear in the log.
    */
-  logResponse?: boolean
+  logResponse?: boolean;
 };
 
 /**

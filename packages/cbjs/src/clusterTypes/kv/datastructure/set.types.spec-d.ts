@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
+
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { connect } from '../../..';
 import { CouchbaseSet } from '../../../services/kv/dataStructures';
@@ -26,14 +27,7 @@ describe('CouchbaseSet', function () {
       const collection = cluster.bucket('test').defaultCollection();
       const set = collection.set('docKey');
       expectTypeOf(set).toEqualTypeOf<
-        CouchbaseSet<
-          DefaultClusterTypes,
-          'test',
-          '_default',
-          '_default',
-          'docKey',
-          any
-        >
+        CouchbaseSet<DefaultClusterTypes, 'test', '_default', '_default', 'docKey', any>
       >();
     });
 
@@ -56,9 +50,9 @@ describe('CouchbaseSet', function () {
     type UserClusterTypes = {
       test: {
         _default: {
-          collectionOne: [ DocDef<string, string> ];
-          collectionTwo: [ DocDef<string, string[]> ];
-          collectionThree: [ DocDef<string, number[]> ];
+          collectionOne: [DocDef<string, string>];
+          collectionTwo: [DocDef<string, string[]>];
+          collectionThree: [DocDef<string, number[]>];
         };
       };
     };

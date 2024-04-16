@@ -27,7 +27,12 @@ import {
   LinkExistsError,
 } from './errors';
 import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
-import { cbQsStringify, NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+import {
+  cbQsStringify,
+  NodeCallback,
+  PromiseHelper,
+  VoidNodeCallback,
+} from './utilities';
 import { toEnumMember } from './utilities_internal';
 import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 

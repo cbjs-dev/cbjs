@@ -30,168 +30,164 @@ import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 import { apiConfig } from '../setupTests';
 import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
 
-describe.shuffle(
-  'kv lock',
-  async () => {
-    const test = await createCouchbaseTest(async ({ useDocumentKey }) => {
-      return {
-        testDocKey: useDocumentKey(),
-        testDocContent: { title: 'hello' },
-        replicaNumber: await getPool(apiConfig).then((p) => p.nodes.length),
-      };
-    });
+describe('kv lock', { timeout: 20_000 }, async () => {
+  const test = await createCouchbaseTest(async ({ useDocumentKey }) => {
+    return {
+      testDocKey: useDocumentKey(),
+      testDocContent: { title: 'hello' },
+      replicaNumber: await getPool(apiConfig).then((p) => p.nodes.length),
+    };
+  });
 
-    beforeEach<TestFixtures<typeof test>>(async function ({
-      serverTestContext,
-      testDocKey,
-      testDocContent,
-    }) {
-      await serverTestContext.collection.insert(testDocKey, testDocContent);
-    });
+  beforeEach<TestFixtures<typeof test>>(async function ({
+    serverTestContext,
+    testDocKey,
+    testDocContent,
+  }) {
+    await serverTestContext.collection.insert(testDocKey, testDocContent);
+  });
 
-    test('should be able to lock a document', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      const res = await serverTestContext.collection.getAndLock(testDocKey, 2);
+  test('should be able to lock a document', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const res = await serverTestContext.collection.getAndLock(testDocKey, 2);
 
-      expect(res.cas).toBeNonZeroCAS();
-      expect(res.content).toEqual({ title: 'hello' });
-      expect(res.value).toEqual({ title: 'hello' });
-    });
+    expect(res.cas).toBeNonZeroCAS();
+    expect(res.content).toEqual({ title: 'hello' });
+    expect(res.value).toEqual({ title: 'hello' });
+  });
 
-    test('should return an invalid CAS when getting a locked document', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      const resultLock = await serverTestContext.collection.getAndLock(testDocKey, 5);
-      const resultGet = await serverTestContext.collection.get(testDocKey);
+  test('should return an invalid CAS when getting a locked document', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const resultLock = await serverTestContext.collection.getAndLock(testDocKey, 5);
+    const resultGet = await serverTestContext.collection.get(testDocKey);
 
-      expect(CouchbaseCas.isEqual(resultLock.cas, resultGet.cas)).toBe(false);
-    });
+    expect(CouchbaseCas.isEqual(resultLock.cas, resultGet.cas)).toBe(false);
+  });
 
-    test.runIf(serverVersionSatisfies('<= 7.2.3'))(
-      'should throw AmbiguousTimeoutError when locking a document that is already locked',
-      async ({ expect, serverTestContext, testDocKey }) => {
-        expect.hasAssertions();
-        await serverTestContext.collection.getAndLock(testDocKey, 5);
+  test.runIf(serverVersionSatisfies('<= 7.2.3'))(
+    'should throw AmbiguousTimeoutError when locking a document that is already locked',
+    async ({ expect, serverTestContext, testDocKey }) => {
+      expect.hasAssertions();
+      await serverTestContext.collection.getAndLock(testDocKey, 5);
 
-        try {
-          await serverTestContext.collection.getAndLock(testDocKey, 2, {
-            timeout: 2_000,
-          });
-        } catch (err) {
-          expect(err).toBeInstanceOf(AmbiguousTimeoutError);
-          invariant(err instanceof AmbiguousTimeoutError);
-          expect(err.context).toBeInstanceOf(KeyValueErrorContext);
-        }
+      try {
+        await serverTestContext.collection.getAndLock(testDocKey, 2, {
+          timeout: 2_000,
+        });
+      } catch (err) {
+        expect(err).toBeInstanceOf(AmbiguousTimeoutError);
+        invariant(err instanceof AmbiguousTimeoutError);
+        expect(err.context).toBeInstanceOf(KeyValueErrorContext);
       }
+    }
+  );
+
+  // Waiting for the bug to be fixed on Couchbase Server.
+  test.skip('should throw DocumentLockedError when locking a document that is already locked', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    await serverTestContext.collection.getAndLock(testDocKey, 5);
+    await expect(
+      serverTestContext.collection.getAndLock(testDocKey, 5)
+    ).rejects.toThrowError(DocumentLockedError);
+  });
+
+  test('should be able to mutate a locked document with the correct CAS', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
+
+    const replaceResult = await serverTestContext.collection.replace(
+      testDocKey,
+      { title: 'Hello' },
+      { cas: res.cas }
     );
 
-    // Waiting for the bug to be fixed on Couchbase Server.
-    test.skip('should throw DocumentLockedError when locking a document that is already locked', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      await serverTestContext.collection.getAndLock(testDocKey, 5);
-      await expect(
-        serverTestContext.collection.getAndLock(testDocKey, 5)
-      ).rejects.toThrowError(DocumentLockedError);
-    });
+    expect(replaceResult.cas).toBeNonZeroCAS();
+    expect(replaceResult.token).toBeMutationToken();
+  });
 
-    test('should be able to mutate a locked document with the correct CAS', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
+  test('should be able to lock a document once mutated', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
 
-      const replaceResult = await serverTestContext.collection.replace(
+    const replaceResult = await serverTestContext.collection.replace(
+      testDocKey,
+      { title: 'Hello' },
+      { cas: res.cas }
+    );
+
+    expect(replaceResult.cas).toBeNonZeroCAS();
+    expect(replaceResult.token).toBeMutationToken();
+
+    await expect(
+      serverTestContext.collection.getAndLock(testDocKey, 2)
+    ).resolves.toBeDefined();
+  });
+
+  // Wait for Couchbase to fix this
+  // For the test to be meaningful, the lock must expire after the kv operation times out.
+  test.skip('should throw CasMismatchError when mutating a locked document with an incorrect CAS', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    await serverTestContext.collection.getAndLock(testDocKey, 3);
+
+    try {
+      await serverTestContext.collection.replace(
         testDocKey,
         { title: 'Hello' },
-        { cas: res.cas }
+        { cas: CouchbaseCas.from(100), timeout: 1_000 }
       );
+    } catch (err) {
+      expect(err).toBeInstanceOf(CasMismatchError);
+      invariant(err instanceof CasMismatchError);
+      expect(err.context).toBeInstanceOf(KeyValueErrorContext);
+    }
+  });
 
-      expect(replaceResult.cas).toBeNonZeroCAS();
-      expect(replaceResult.token).toBeMutationToken();
-    });
+  test('should unlock the document with the correct CAS', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
+    await expect(
+      serverTestContext.collection.unlock(testDocKey, res.cas)
+    ).resolves.toBeUndefined();
 
-    test('should be able to lock a document once mutated', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
+    await expect(
+      serverTestContext.collection.replace(testDocKey, { title: 'Hello' })
+    ).resolves.toBeDefined();
+  });
 
-      const replaceResult = await serverTestContext.collection.replace(
-        testDocKey,
-        { title: 'Hello' },
-        { cas: res.cas }
-      );
+  test('should throw CasMismatchError when unlocking a document with the wrong CAS', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    await serverTestContext.collection.getAndLock(testDocKey, 5);
 
-      expect(replaceResult.cas).toBeNonZeroCAS();
-      expect(replaceResult.token).toBeMutationToken();
-
-      await expect(
-        serverTestContext.collection.getAndLock(testDocKey, 2)
-      ).resolves.toBeDefined();
-    });
-
-    // Wait for Couchbase to fix this
-    // For the test to be meaningful, the lock must expire after the kv operation times out.
-    test.skip('should throw CasMismatchError when mutating a locked document with an incorrect CAS', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      await serverTestContext.collection.getAndLock(testDocKey, 3);
-
-      try {
-        await serverTestContext.collection.replace(
-          testDocKey,
-          { title: 'Hello' },
-          { cas: CouchbaseCas.from(100), timeout: 1_000 }
-        );
-      } catch (err) {
-        expect(err).toBeInstanceOf(CasMismatchError);
-        invariant(err instanceof CasMismatchError);
-        expect(err.context).toBeInstanceOf(KeyValueErrorContext);
-      }
-    });
-
-    test('should unlock the document with the correct CAS', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
-      await expect(
-        serverTestContext.collection.unlock(testDocKey, res.cas)
-      ).resolves.toBeUndefined();
-
-      await expect(
-        serverTestContext.collection.replace(testDocKey, { title: 'Hello' })
-      ).resolves.toBeDefined();
-    });
-
-    test('should throw CasMismatchError when unlocking a document with the wrong CAS', async ({
-      expect,
-      serverTestContext,
-      testDocKey,
-    }) => {
-      await serverTestContext.collection.getAndLock(testDocKey, 5);
-
-      try {
-        await serverTestContext.collection.unlock(testDocKey, CouchbaseCas.from(100));
-      } catch (err) {
-        expect(err).toBeInstanceOf(CasMismatchError);
-        invariant(err instanceof CasMismatchError);
-        expect(err.context).toBeInstanceOf(KeyValueErrorContext);
-      }
-    });
-  },
-  { timeout: 20_000 }
-);
+    try {
+      await serverTestContext.collection.unlock(testDocKey, CouchbaseCas.from(100));
+    } catch (err) {
+      expect(err).toBeInstanceOf(CasMismatchError);
+      invariant(err instanceof CasMismatchError);
+      expect(err.context).toBeInstanceOf(KeyValueErrorContext);
+    }
+  });
+});

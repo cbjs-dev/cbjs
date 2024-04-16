@@ -14,18 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HighlightStyle, HttpErrorContext, SearchIndexNotFoundError, SearchQuery } from '@cbjsdev/cbjs';
+import { describe } from 'vitest';
+
+import {
+  HighlightStyle,
+  HttpErrorContext,
+  SearchIndexNotFoundError,
+  SearchQuery,
+} from '@cbjsdev/cbjs';
 import { invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
-import { describe } from 'vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig';
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
-describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
-  'search',
-  async () => {
+describe
+  .runIf(serverSupportsFeatures(ServerFeatures.Search))
+  .shuffle('search', { retry: 2 }, async () => {
     const test = await createCouchbaseTest({
       useSampleData,
     });
@@ -52,6 +58,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
 
     test(
       'should successfully get all indexes',
+      { timeout: 30_000 },
       async ({ serverTestContext, useCollection, useSearchIndex, expect }) => {
         const collection = await useCollection();
         await sleep(2_000);
@@ -79,12 +86,12 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
             }),
           ])
         );
-      },
-      { timeout: 30_000 }
+      }
     );
 
     test(
       'should successfully get an index',
+      { timeout: 60_000 },
       async ({ serverTestContext, useCollection, useSearchIndex, expect }) => {
         const collection = await useCollection();
         await sleep(2_000);
@@ -107,12 +114,12 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
             name: indexName,
           })
         );
-      },
-      { timeout: 60_000 }
+      }
     );
 
     test(
       'should see test data correctly',
+      { timeout: 60_000 },
       async ({
         serverTestContext,
         useCollection,
@@ -155,12 +162,12 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
             expect(row.score).toBeTypeOf('number');
           });
         });
-      },
-      { timeout: 60_000 }
+      }
     );
 
     test(
       'should include the locations and fragments',
+      { timeout: 60_000 },
       async ({
         serverTestContext,
         useDocumentKey,
@@ -302,8 +309,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
             ],
           });
         });
-      },
-      { timeout: 60_000 }
+      }
     );
 
     test('should throw a SearchIndexNotFoundError when dropping a missing index', async ({
@@ -364,6 +370,4 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search)).shuffle(
         });
       });
     });
-  },
-  { retry: 2 }
-);
+  });

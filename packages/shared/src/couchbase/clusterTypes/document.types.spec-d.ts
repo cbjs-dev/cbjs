@@ -316,9 +316,9 @@ describe('DocDefMatchingKey', () => {
   it('default cluster types with any collection', () => {
     type T = DocDefMatchingKey<BookKey, any, any, any, any>;
     //   ^?
-    expectTypeOf<
-      DocDefMatchingKey<BookKey, any, any, any, any>
-    >().toEqualTypeOf<DocDef<string, any>>();
+    expectTypeOf<DocDefMatchingKey<BookKey, any, any, any, any>>().toEqualTypeOf<
+      DocDef<string, any>
+    >();
   });
 
   it('keyMatchingStrategy: firstMatch', () => {

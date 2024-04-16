@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { afterEach, beforeEach, describe, Test } from 'vitest';
+
 import {
   DesignDocument,
   DesignDocumentNamespace,
@@ -26,7 +28,6 @@ import { waitForViewDesignDocument } from '@cbjsdev/http-client';
 import { arrayFirstElement, waitFor } from '@cbjsdev/shared';
 import { arrayLastElement } from '@cbjsdev/shared/dist/src/misc/utils/arrayLastElement';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
-import { afterEach, beforeEach, describe, Test } from 'vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';

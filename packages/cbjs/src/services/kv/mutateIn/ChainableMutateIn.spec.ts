@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from '@cbjsdev/shared';
 import { describe, it } from 'vitest';
+
+import { DocDef } from '@cbjsdev/shared';
 
 import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes';
 import { MutateInSpec } from '../../../sdspecs';
@@ -34,7 +35,7 @@ type Book = {
 type UserClusterTypes = {
   store: {
     library: {
-      books: [ DocDef<BookId, Book> ];
+      books: [DocDef<BookId, Book>];
     };
   };
 };

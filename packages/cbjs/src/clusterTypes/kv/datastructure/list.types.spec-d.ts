@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 import { describe, expectTypeOf, it } from 'vitest';
+
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { connect, CouchbaseList } from '../../..';
 
@@ -52,8 +53,8 @@ describe('CouchbaseList', function () {
     type UserClusterTypes = {
       test: {
         _default: {
-          collectionOne: [ DocDef<string, string> ];
-          collectionTwo: [ DocDef<string, string[]> ];
+          collectionOne: [DocDef<string, string>];
+          collectionTwo: [DocDef<string, string[]>];
           collectionThree: [
             DocDef<`book::${number}`, { title: string }>,
             DocDef<`author::${number}`, string[]>,

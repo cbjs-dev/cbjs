@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import {
   ArrayElement,
   BucketName,
@@ -36,7 +38,6 @@ import {
   OneOf,
   ScopeName,
 } from '@cbjsdev/shared';
-import { promisify } from 'node:util';
 
 import {
   AppendOptions,
@@ -88,7 +89,10 @@ import type {
 } from './clusterTypes/kv/lookup/lookupIn.types';
 import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types';
 import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types';
-import type { MutateInResultEntries, MutateInSpecResults } from './clusterTypes/kv/mutation/mutateIn.types';
+import type {
+  MutateInResultEntries,
+  MutateInSpecResults,
+} from './clusterTypes/kv/mutation/mutateIn.types';
 import {
   CounterResult,
   ExistsResult,
@@ -110,7 +114,12 @@ import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
 import type { Scope } from './scope';
 import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
 import { SdUtils } from './sdutils';
-import { CouchbaseList, CouchbaseMap, CouchbaseQueue, CouchbaseSet } from './services/kv/dataStructures';
+import {
+  CouchbaseList,
+  CouchbaseMap,
+  CouchbaseQueue,
+  CouchbaseSet,
+} from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
 import type { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
@@ -566,11 +575,7 @@ export class Collection<
     }
 
     if (options.project !== undefined || options.withExpiry === true) {
-      return this._projectedGet(
-        key as never,
-        options,
-        callback
-      );
+      return this._projectedGet(key as never, options, callback);
     }
 
     const transcoder = options.transcoder ?? this.transcoder;
@@ -2354,7 +2359,10 @@ export class Collection<
    */
   map<
     Key extends DocDefMatchingBody<Record<string, unknown>, T, B, S, C>['Key'],
-    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], Record<string, unknown>>,
+    Doc extends Extract<
+      DocDefMatchingKey<Key, T, B, S, C>['Body'],
+      Record<string, unknown>
+    >,
     MapDoc extends If<IsAny<Doc>, Record<string, any>, Doc>,
     R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, MapDoc>>> extends true
       ? CouchbaseMap<T, B, S, C, Key, MapDoc>

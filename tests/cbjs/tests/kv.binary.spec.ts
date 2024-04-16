@@ -19,11 +19,10 @@ import { beforeEach, describe, vi } from 'vitest';
 
 import { DurabilityLevel } from '@cbjsdev/cbjs';
 import { getPool } from '@cbjsdev/http-client';
-import { invariant } from '@cbjsdev/shared';
+import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests';
-import { waitFor } from '../utils/waitFor';
 
 describe.shuffle('kv binary', async () => {
   const test = await createCouchbaseTest(async ({ useDocumentKey }) => {

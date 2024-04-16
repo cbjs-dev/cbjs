@@ -17,10 +17,9 @@
 import { beforeEach, describe, vi } from 'vitest';
 
 import { CasMismatchError, DefaultTranscoder, KeyValueErrorContext } from '@cbjsdev/cbjs';
-import { invariant } from '@cbjsdev/shared';
+import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { waitFor } from '../utils/waitFor';
 import { getLargeTestDocument } from './kv._helpers';
 
 describe.shuffle('kv replace', async () => {
@@ -31,11 +30,9 @@ describe.shuffle('kv replace', async () => {
     };
   });
 
-  beforeEach<TestFixtures<typeof test>>(
-    async ({ serverTestContext, testDocKey, testDocContent }) => {
-      await serverTestContext.collection.upsert(testDocKey, 'initialValue');
-    }
-  );
+  beforeEach<TestFixtures<typeof test>>(async ({ serverTestContext, testDocKey }) => {
+    await serverTestContext.collection.upsert(testDocKey, 'initialValue');
+  });
 
   test('should replace data correctly', async function ({
     serverTestContext,

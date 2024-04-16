@@ -49,7 +49,13 @@ import binding, {
   CppViewScanConsistency,
   CppViewSortOrder,
 } from './binding';
-import { BucketType, CompressionMode, ConflictResolutionType, EvictionPolicy, StorageBackend } from './bucketmanager';
+import {
+  BucketType,
+  CompressionMode,
+  ConflictResolutionType,
+  EvictionPolicy,
+  StorageBackend,
+} from './bucketmanager';
 import { EndpointState, PingState } from './diagnosticstypes';
 import {
   AnalyticsErrorContext,
@@ -1175,11 +1181,11 @@ export function designDocumentNamespaceToCpp(
 export function transactionKeyspaceToCpp(
   keyspace?: TransactionKeyspace
 ): CppTransactionKeyspace | undefined {
-  if (!keyspace) return undefined
+  if (!keyspace) return undefined;
 
   return {
     bucket_name: keyspace.bucket,
     scope_name: keyspace.scope ?? '_default',
     collection_name: keyspace.collection ?? '_default',
-  }
+  };
 }

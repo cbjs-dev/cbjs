@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
+
 import {
   designDocumentNamespaceToCpp,
   errorFromCpp,
@@ -24,7 +25,13 @@ import {
 import { Bucket } from './bucket';
 import { Cluster } from './cluster';
 import { StreamableRowPromise } from './streamablepromises';
-import { DesignDocumentNamespace, ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes';
+import {
+  DesignDocumentNamespace,
+  ViewMetaData,
+  ViewQueryOptions,
+  ViewResult,
+  ViewRow,
+} from './viewtypes';
 
 /**
  * @internal

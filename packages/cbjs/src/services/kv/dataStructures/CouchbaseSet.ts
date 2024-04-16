@@ -23,11 +23,16 @@ import {
   isArray,
   ScopeName,
 } from '@cbjsdev/shared';
+
 import type { Collection } from '../../../collection';
 import { CouchbaseError, PathExistsError } from '../../../errors';
 import { StoreSemantics } from '../../../generaltypes';
 import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
-import { type NodeCallback, PromiseHelper, type VoidNodeCallback } from '../../../utilities';
+import {
+  type NodeCallback,
+  PromiseHelper,
+  type VoidNodeCallback,
+} from '../../../utilities';
 
 /**
  * CouchbaseSet provides a simplified interface for storing a set
@@ -74,9 +79,13 @@ export class CouchbaseSet<
   async add(item: Item, callback?: NodeCallback<boolean>): Promise<boolean> {
     return await PromiseHelper.wrapAsync(async () => {
       try {
-        await this._coll.mutateIn(this._key, [MutateInSpec.arrayAddUnique('', item) as never], {
-          storeSemantics: StoreSemantics.Upsert,
-        });
+        await this._coll.mutateIn(
+          this._key,
+          [MutateInSpec.arrayAddUnique('', item) as never],
+          {
+            storeSemantics: StoreSemantics.Upsert,
+          }
+        );
       } catch (e) {
         if (e instanceof PathExistsError) {
           return false;
