@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, vi } from 'vitest';
-
 import {
   CollectionExistsError,
   CollectionNotFoundError,
@@ -24,16 +22,17 @@ import {
   ScopeExistsError,
   ScopeNotFoundError,
 } from '@cbjsdev/cbjs';
-import { getCollections, waitForCollection } from '@cbjsdev/http-client';
+import { getCollections } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { describe, vi } from 'vitest';
 
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
 
-describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
-  'collection manager',
-  async () => {
+describe
+  .runIf(serverSupportsFeatures(ServerFeatures.Collections))
+  .shuffle('collection manager', async () => {
     const test = await createCouchbaseTest();
 
     test('should successfully create and drop a scope', async function ({
@@ -395,7 +394,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
     test.runIf(serverSupportsFeatures(ServerFeatures.BucketDedup))(
       'should throw a FeatureNotAvailableError when updating a collection with history on a couchstore bucket',
       async function ({ serverTestContext, expect, useBucket, useScope, useCollection }) {
-        const bucketName = await useBucket();
+        const bucketName = serverTestContext.b.name;
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection({
           scopeName,
@@ -471,8 +470,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
 
     test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
       'should create a collection with max expiry when an empty settings object is provided',
-      async function ({ apiConfig, expect, useBucket, useScope, useCollection }) {
-        const bucketName = await useBucket();
+      async function ({ apiConfig, expect, serverTestContext, useScope, useCollection }) {
+        const bucketName = serverTestContext.b.name;
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection({
           scopeName,
@@ -488,8 +487,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
 
     test.runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))(
       'should successfully create a collection with no expiry (-1)',
-      async function ({ apiConfig, expect, useBucket, useScope, useCollection }) {
-        const bucketName = await useBucket();
+      async function ({ apiConfig, expect, serverTestContext, useScope, useCollection }) {
+        const bucketName = serverTestContext.b.name;
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection(
           {
@@ -510,8 +509,14 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
       .runIf(serverSupportsFeatures(ServerFeatures.NegativeCollectionMaxExpiry))
       .fails(
         'should fail to create a collection with an invalid maxExpiry',
-        async function ({ apiConfig, expect, useBucket, useScope, useCollection }) {
-          const bucketName = await useBucket();
+        async function ({
+          apiConfig,
+          expect,
+          serverTestContext,
+          useScope,
+          useCollection,
+        }) {
+          const bucketName = serverTestContext.b.name;
           const scopeName = await useScope({ bucketName });
           const collectionName = await useCollection(
             {
@@ -538,7 +543,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
         useCollection,
         serverTestContext,
       }) {
-        const bucketName = await useBucket();
+        const bucketName = serverTestContext.b.name;
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection(
           {
@@ -571,7 +576,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
         useCollection,
         serverTestContext,
       }) {
-        const bucketName = await useBucket();
+        const bucketName = serverTestContext.b.name;
         const scopeName = await useScope({ bucketName });
         const collectionName = await useCollection(
           {
@@ -590,9 +595,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Collections)).shuffle(
         const collections = await getCollections(apiConfig, bucketName, scopeName);
         const testCollection = collections.find((c) => c.name === collectionName);
 
-        expect(testCollection?.maxTTL).toEqual(0);
+        expect(testCollection?.maxTTL).toEqual(-1);
       }
     );
-  },
-  { timeout: 10_000, retry: 2 }
-);
+  });
