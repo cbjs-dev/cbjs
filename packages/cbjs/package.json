@@ -25,6 +25,7 @@
   },
   "scripts": {
     "install": "node ./scripts/install.mjs 4.2.11",
+    "reinstall": "rm src/couchbase-native.node && rm dist/src/couchbase-native.node && npm install",
     "build": "tsc -p tsconfig.build.json",
     "dev": "npm run build -- --watch",
     "test": "vitest --run",
