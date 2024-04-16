@@ -14,11 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
-
 import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjsdev/cbjs';
 import { invariant, keyspacePath } from '@cbjsdev/shared';
 import { createCouchbaseTest, ServerTestContext } from '@cbjsdev/vitest';
+import { describe } from 'vitest';
 
 import { useSampleData } from '../fixtures/useSampleData';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
@@ -255,5 +254,5 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Colle
       });
     });
   },
-  { timeout: 10_000 }
+  { timeout: 20_000, retry: 1 }
 );

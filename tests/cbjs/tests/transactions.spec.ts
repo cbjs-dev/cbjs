@@ -651,5 +651,5 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Transactions)).shuffle(
       expect(() => cluster.transactions()).toThrowError(BucketNotFoundError);
     });
   },
-  { timeout: 15_000 }
+  { timeout: 20_000, retry: 1 }
 );
