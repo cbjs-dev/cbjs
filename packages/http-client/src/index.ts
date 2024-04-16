@@ -20,4 +20,6 @@ export * from './services';
 export * from './types/Api';
 export * from './types/HttpClient';
 
+export * from './logger';
+
 export { CouchbaseHttpApiConfig } from './types';
