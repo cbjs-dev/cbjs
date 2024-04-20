@@ -71,7 +71,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
         name: explicitNamespace ? docId : `dev_${docId}`,
         views: {
           [viewName]: new DesignDocumentView({
-            map: getMapFunction(testUid),
+            realm: getMapFunction(testUid),
           }),
         },
       });

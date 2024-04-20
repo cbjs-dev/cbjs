@@ -15,6 +15,7 @@
  */
 import { Keyspace, parseKeyspacePath, resolveKeyspace } from '@cbjsdev/shared';
 
+import { getCurrentTaskAsyncContext } from '../../asyncContext';
 import { getQueryKeyspaces } from '../../parser';
 
 /*
@@ -35,7 +36,7 @@ import { getQueryKeyspaces } from '../../parser';
 import { TransformArgsMap } from '../types';
 
 export const transformArgs = {
-  query: (isolationMap, options, cb) => {
+  query: async (isolationPool, options, cb) => {
     const { query_context } = options;
 
     let queryContextKeyspace: Pick<Keyspace, 'bucket' | 'scope'> | undefined = undefined;
@@ -51,12 +52,17 @@ export const transformArgs = {
     }
 
     const queryKeyspaces = getQueryKeyspaces(options.statement);
-    const keyspacesToIsolate: Partial<Keyspace>[] = queryKeyspaces.map((k) =>
+    const keyspacesToIsolate = queryKeyspaces.map((k) =>
       resolveKeyspace(k.keyspaceParts, queryContextKeyspace)
     );
 
-    // TODO isolate the keyspaces
-    // TODO create the actual isolated keyspace
+    const isolatedKeyspaces = await Promise.all(
+      keyspacesToIsolate.map((k) =>
+        isolationPool.requireKeyspaceIsolation(getCurrentTaskAsyncContext().taskId, k)
+      )
+    );
+
+    // TODO modify the query statement to use the isolated keyspaces
     return [options, cb];
   },
 } as const satisfies Partial<TransformArgsMap>;

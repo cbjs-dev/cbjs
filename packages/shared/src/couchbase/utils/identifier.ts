@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, If, IsNever } from '../../misc/index.js';
+import { hasOwn, If, invariant, IsNever, OneOf } from '../../misc/index.js';
 import {
   BucketName,
   CollectionName,
@@ -35,6 +35,13 @@ export function trimIdentifier(name: string) {
   return name;
 }
 
+export type QueryContext<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+> = Pick<Keyspace<T, B, S, C>, 'bucket' | 'scope'>;
+
 /**
  * Represent a keyspace within a cluster.
  *
@@ -50,34 +57,48 @@ export function trimIdentifier(name: string) {
  * //       | { bucket: 'b1'; scope: 'b1s2'; collection: 'b1s2c1'; }
  *
  */
-
+// prettier-ignore
 export type Keyspace<
   T extends CouchbaseClusterTypes = DefaultClusterTypes,
   B extends BucketName<T> = BucketName<T>,
   S extends ScopeName<T, B> = ScopeName<T, B>,
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
 > =
-  IsNever<T> extends true
-    ? { bucket: string; scope: string; collection: string }
-    : If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets
-      ? AllBuckets extends BucketName<T>
-        ? If<IsKeyspaceWildcard<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes
-          ? AllScopes extends ScopeName<T, AllBuckets>
-            ? If<
-                IsKeyspaceWildcard<C>,
-                CollectionName<T, AllBuckets, AllScopes>,
-                C
-              > extends infer AllCollections
-              ? AllCollections extends CollectionName<T, AllBuckets, AllScopes>
-                ? { bucket: AllBuckets; scope: AllScopes; collection: AllCollections }
-                : never
-              : never
-            : never
-          : never
-        : never
-      : never;
+  IsNever<T> extends true ?
+    { bucket: string; scope: string; collection: string } :
+  If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets ?
+      AllBuckets extends BucketName<T> ?
+        If<IsKeyspaceWildcard<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes ?
+          AllScopes extends ScopeName<T, AllBuckets> ?
+            If<
+              IsKeyspaceWildcard<C>,
+              CollectionName<T, AllBuckets, AllScopes>,
+              C
+            > extends infer AllCollections ?
+              AllCollections extends CollectionName<T, AllBuckets, AllScopes> ?
+            { bucket: AllBuckets; scope: AllScopes; collection: AllCollections } :
+            never :
+          never :
+        never :
+      never :
+    never :
+  never
+;
 
-export function isPartialKeyspace(v: unknown): v is Partial<Keyspace> {
+export type PartialKeyspace<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+> = OneOf<
+  [
+    Pick<Keyspace<T, B, S, C>, 'bucket'>,
+    Pick<Keyspace<T, B, S, C>, 'bucket' | 'scope'>,
+    Pick<Keyspace<T, B, S, C>, 'bucket' | 'scope' | 'collection'>,
+  ]
+>;
+
+export function isPartialKeyspace(v: unknown): v is PartialKeyspace {
   if (!v) return false;
   if (typeof v !== 'object') return false;
 
@@ -87,22 +108,29 @@ export function isPartialKeyspace(v: unknown): v is Partial<Keyspace> {
 /**
  * Return a keyspace string with quoted identifiers.
  */
-export function keyspacePath(bucket: string, scope: string, collection: string): string;
-export function keyspacePath(ks: {
-  bucket: string;
-  scope: string;
-  collection: string;
-}): string;
-export function keyspacePath(bucket: string): string;
-export function keyspacePath(...args: ReadonlyArray<string> | [Keyspace]): string {
+export function keyspacePath(
+  bucket?: string,
+  scope?: string,
+  collection?: string
+): string;
+export function keyspacePath(ks: PartialKeyspace): string;
+
+export function keyspacePath(
+  ...args: ReadonlyArray<string | undefined> | [PartialKeyspace]
+): string {
   const identifiers: string[] = [];
 
   if (typeof args[0] === 'object') {
-    identifiers.push(args[0].bucket, args[0].scope, args[0].collection);
+    const { bucket, scope, collection } = args[0];
+    const ksIdentifiers = [bucket, scope, collection].filter(
+      (i) => i !== undefined
+    ) as string[];
+    identifiers.push(...ksIdentifiers);
   }
 
   if (typeof args[0] === 'string') {
-    identifiers.push(...(args as string[]));
+    const ksIdentifiers = args.filter((i) => i !== undefined) as string[];
+    identifiers.push(...ksIdentifiers);
   }
 
   return identifiers.map((a) => quoteIdentifier(a)).join('.');
@@ -143,8 +171,7 @@ export function isValidCollectionName(name: string): boolean {
  *
  * @param keyspacePath
  */
-
-export function parseKeyspacePath(keyspacePath: string): [string, string?, string?] {
+export function parseKeyspacePath(keyspacePath: string): string[] {
   const keyspaceChars = keyspacePath.trim().split('');
 
   if (keyspaceChars[0] === '`') {
@@ -159,16 +186,26 @@ export function parseKeyspacePath(keyspacePath: string): [string, string?, strin
       .filter((c) => c !== '')
       .map(trimIdentifier);
 
-    return [bucket, ...pathChunks] as [string, string?, string?];
+    return [bucket, ...pathChunks];
   }
 
-  return keyspacePath.trim().split('.').map(trimIdentifier) as [string, string?, string?];
+  return keyspacePath.trim().split('.').map(trimIdentifier);
 }
 
-export function resolveKeyspace(
+/**
+ *
+ * @param keyspaceParts
+ * @param queryContext
+ */
+export function resolveKeyspace<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+>(
   keyspaceParts: string[],
-  queryContext?: Pick<Keyspace, 'bucket' | 'scope'>
-): Partial<Keyspace> {
+  queryContext?: QueryContext<T, B, S, C>
+): PartialKeyspace<T, B, S, C> {
   if (queryContext && keyspaceParts.length === 1) {
     return {
       ...queryContext,

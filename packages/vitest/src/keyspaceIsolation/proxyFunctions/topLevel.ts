@@ -13,34 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '@cbjsdev/shared';
-
+import { getCurrentTaskAsyncContext } from '../../asyncContext';
 import { TransformArgsMap } from '../types';
 
 export const transformArgs = {
-  openBucket: (isolationMap, bucketName, cb) => {
-    const bucketIsolatedName = isolationMap.isolateBucketName(bucketName);
-    return [bucketIsolatedName, cb];
+  openBucket: async (isolationPool, bucketName, cb) => {
+    const isolatedKeyspace = await isolationPool.requireKeyspaceIsolation(
+      getCurrentTaskAsyncContext().taskId,
+      { bucket: bucketName }
+    );
+    return [isolatedKeyspace.bucket, cb];
   },
-  ping: (isolationMap, options, cb) => {
+  ping: async (isolationPool, options, cb) => {
     const nextOptions = { ...options };
 
     if (nextOptions.bucket_name) {
-      nextOptions.bucket_name = isolationMap.isolateBucketName(nextOptions.bucket_name);
+      const isolatedKeyspace = await isolationPool.requireKeyspaceIsolation(
+        getCurrentTaskAsyncContext().taskId,
+        { bucket: nextOptions.bucket_name }
+      );
+
+      nextOptions.bucket_name = isolatedKeyspace.bucket;
     }
 
     return [nextOptions, cb];
   },
-  scan: (isolationMap, bucket, scope, collection, ...rest) => {
-    isolationMap.isolateCollectionName(bucket, scope, collection);
-
-    const isolatedKeyspace = isolationMap.getIsolatedKeyspaceNames({
-      bucket,
-      scope,
-      collection,
-    });
-
-    invariant(isolatedKeyspace, 'keyspace is not isolated');
+  scan: async (isolationPool, bucket, scope, collection, ...rest) => {
+    const isolatedKeyspace = await isolationPool.requireKeyspaceIsolation(
+      getCurrentTaskAsyncContext().taskId,
+      { bucket, scope, collection }
+    );
 
     return [
       isolatedKeyspace.bucket,

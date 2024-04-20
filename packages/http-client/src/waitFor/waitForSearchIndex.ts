@@ -47,7 +47,7 @@ export async function waitForSearchIndex(
     ? (args as [Partial<Keyspace>, WaitForSearchIndexOptions])
     : [undefined, args[0]];
 
-  const resolvedOptions = {
+  const resolvedOptions: WaitForSearchIndexOptions = {
     ...waitOptionsModerate,
     ...options,
   };

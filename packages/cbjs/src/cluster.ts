@@ -732,7 +732,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       this._transactions = undefined;
     }
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._conn.shutdown((cppErr) => {
         wrapCallback(errorFromCpp(cppErr));
       });

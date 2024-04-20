@@ -15,9 +15,8 @@
  */
 import { DocumentId } from '@cbjsdev/cbjs';
 import { CppConnection, CppDocumentId } from '@cbjsdev/cbjs/internal';
-import { invariant, UnionToTuple } from '@cbjsdev/shared';
 
-import { proxifyFunction } from '../../utils/proxifyFunction';
+import { getCurrentTaskAsyncContext } from '../../asyncContext';
 import { KeyspaceIsolationPool } from '../KeyspaceIsolationPool';
 
 type CppConnectionScopedFunction =
@@ -70,26 +69,23 @@ const scopedMethods = [
   'managementCollectionsManifestGet',
 ] as const satisfies ReadonlyArray<CppConnectionScopedFunction>;
 
-const scopedMethodTransformArgsFunction = (
-  isolationMap: KeyspaceIsolationPool,
+async function scopedMethodTransformArgsFunction(
+  isolationPool: KeyspaceIsolationPool,
   options: { id: DocumentId },
   ...rest: never[]
-) => {
-  const { bucket, scope, collection } = options.id;
-  isolationMap.isolateCollectionName(bucket, scope, collection);
+) {
+  const { bucket, scope, collection, key } = options.id;
+  const isolatedKeyspace = await isolationPool.requireKeyspaceIsolation(
+    getCurrentTaskAsyncContext().taskId,
+    { bucket, scope, collection }
+  );
 
-  const isolatedKeyspace = isolationMap.getIsolatedKeyspaceNames({
-    bucket,
-    scope,
-    collection,
-  });
-
-  invariant(isolatedKeyspace, 'keyspace is not isolated');
-
-  const isolatedDocumentId = new DocumentId();
-  isolatedDocumentId.bucket = isolatedKeyspace.bucket;
-  isolatedDocumentId.scope = isolatedKeyspace.scope;
-  isolatedDocumentId.collection = isolatedKeyspace.collection;
+  const isolatedDocumentId = new DocumentId(
+    isolatedKeyspace.bucket,
+    isolatedKeyspace.scope,
+    isolatedKeyspace.collection,
+    key
+  );
 
   const nextOptions = {
     ...options,
@@ -97,7 +93,7 @@ const scopedMethodTransformArgsFunction = (
   };
 
   return [nextOptions, ...rest];
-};
+}
 
 export const transformArgs = Object.fromEntries(
   scopedMethods.map((methodName) => [methodName, scopedMethodTransformArgsFunction])

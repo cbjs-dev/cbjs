@@ -3,10 +3,12 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     workspace: './vitest.workspace.ts',
-    pool: 'forks',
-    fileParallelism: false,
+    // isolate: false,
+    pool: 'threads',
     minWorkers: 1,
     maxWorkers: 1,
+    hookTimeout: 30_000,
+    teardownTimeout: 10_000,
     sequence: {
       setupFiles: 'list',
       hooks: 'stack',
@@ -18,7 +20,9 @@ export default defineConfig({
       DEBUG: '1',
       LOG_LEVEL: 'info',
     },
-    reporters: ['default', 'html'],
+    reporters: process.env.GITHUB_ACTIONS
+      ? ['html', 'github-actions']
+      : ['html', 'default'],
     outputFile: {
       html: './tests-report/index.html',
     },

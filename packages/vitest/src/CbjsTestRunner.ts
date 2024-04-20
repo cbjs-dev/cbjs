@@ -15,16 +15,26 @@
  */
 import { Custom, ExtendedContext, TaskContext } from '@vitest/runner';
 import { executionAsyncId } from 'node:async_hooks';
-import { ResolvedConfig, Suite, Task, Test } from 'vitest';
+import SegfaultHandler from 'segfault-handler';
+import { ResolvedConfig, Suite, Task, Test, vi } from 'vitest';
 import { VitestTestRunner } from 'vitest/runners';
 
-import { invariant } from '@cbjsdev/shared';
+import { Cluster, connect } from '@cbjsdev/cbjs';
+import { CppConnection } from '@cbjsdev/cbjs/internal';
+import { getConnectionParams, invariant } from '@cbjsdev/shared';
 
-import { CbjsAsyncContextData } from './asyncContext/CbjsAsyncContextData';
+import {
+  CbjsAsyncContextData,
+  getCbjsContextTracking,
+  getTaskAsyncContext,
+} from './asyncContext';
 import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
-import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking';
 import { getChildrenTower } from './asyncContext/getChildrenTower';
-import { KeyspaceIsolationPool } from './keyspaceIsolation/KeyspaceIsolationPool';
+import { KeyspaceIsolationRealm, runWithoutKeyspaceIsolation } from './keyspaceIsolation';
+import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';
+import { isRealmInUse } from './keyspaceIsolation/isRealmInUse';
+
+SegfaultHandler.registerHandler('crash.log');
 
 export type CbjsTestContext = NonNullable<unknown>;
 
@@ -38,7 +48,33 @@ export function appendLog(...args: unknown[]) {
   logs.push(args);
 }
 
+vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
+  const { Cluster, ...rest } = await importOriginal<typeof import('@cbjsdev/cbjs')>();
+  const clusterConnectionProxy = Symbol('ClusterConnectionProxy');
+
+  Object.defineProperty(Cluster.prototype, 'conn', {
+    get: function (this: {
+      _conn: CppConnection;
+      [clusterConnectionProxy]: CppConnection;
+    }) {
+      if (this[clusterConnectionProxy] === undefined) {
+        this[clusterConnectionProxy] = createConnectionProxy(this._conn);
+      }
+
+      return this[clusterConnectionProxy];
+    },
+  });
+
+  return {
+    ...rest,
+    Cluster,
+  };
+});
+
 export default class CbjsTestRunner extends VitestTestRunner {
+  protected clusterConnectionError?: Error;
+  protected clusterPromise?: Promise<Cluster>;
+
   constructor(config: ResolvedConfig) {
     cbjsAsyncHooks.enable();
     super(config);
@@ -63,7 +99,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
     const defaultContextValues: Partial<CbjsAsyncContextData> = {
       keyspaceIsolationScope: false,
       keyspaceIsolationLevel: 'collection',
-      keyspaceIsolationMap: null,
+      keyspaceIsolationRealm: null,
     };
 
     const suiteContext: Partial<CbjsAsyncContextData> = {
@@ -91,16 +127,8 @@ export default class CbjsTestRunner extends VitestTestRunner {
       Object.assign(resolvedContext, parentSuiteContext, suiteContext);
     }
 
-    /*
-      scope local: the map is inherited
-      scope per-test: the test will have its own map
-      level bucket: the test will have its own map
-     */
-    if (
-      resolvedContext.keyspaceIsolationScope === 'per-suite' &&
-      resolvedContext.keyspaceIsolationLevel === 'collection'
-    ) {
-      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationPool();
+    if (resolvedContext.keyspaceIsolationScope === 'per-suite') {
+      resolvedContext.keyspaceIsolationRealm = new KeyspaceIsolationRealm(suite.id);
     }
 
     contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsAsyncContextData);
@@ -109,73 +137,82 @@ export default class CbjsTestRunner extends VitestTestRunner {
   }
 
   override async onBeforeRunTask(test: Test): Promise<void> {
-    const testAsyncId = executionAsyncId();
-    const contextTracking = getCbjsContextTracking();
+    try {
+      const testAsyncId = executionAsyncId();
+      const contextTracking = getCbjsContextTracking();
 
-    contextTracking.taskAsyncIdMap.set(test.id, testAsyncId);
-    contextTracking.taskAsyncIdReversedMap.set(testAsyncId, test.id);
+      contextTracking.taskAsyncIdMap.set(test.id, testAsyncId);
+      contextTracking.taskAsyncIdReversedMap.set(testAsyncId, test.id);
 
-    const testContext: Partial<CbjsAsyncContextData> = {
-      asyncId: testAsyncId,
-      taskId: test.id,
-      task: test,
-    };
+      const testContext: Partial<CbjsAsyncContextData> = {
+        asyncId: testAsyncId,
+        taskId: test.id,
+        task: test,
+      };
 
-    const suiteAsyncId = contextTracking.taskAsyncIdMap.get(test.suite.id);
-    invariant(suiteAsyncId, `AsyncId of suite ${test.suite.id} not found`);
+      const suiteAsyncId = contextTracking.taskAsyncIdMap.get(test.suite.id);
+      invariant(suiteAsyncId, `AsyncId of suite ${test.suite.id} not found`);
 
-    const suiteContext = contextTracking.contextMap.get(suiteAsyncId);
-    invariant(suiteContext, `Context of suite ${suiteAsyncId} not found`);
+      const suiteContext = contextTracking.contextMap.get(suiteAsyncId);
+      invariant(suiteContext, `Context of suite ${suiteAsyncId} not found`);
 
-    const resolvedContext = {
-      ...suiteContext,
-      ...testContext,
-    } satisfies CbjsAsyncContextData;
+      const resolvedContext = {
+        ...suiteContext,
+        ...testContext,
+      } satisfies CbjsAsyncContextData;
 
-    const privateKeyspace =
-      resolvedContext.keyspaceIsolationScope === 'per-test' ||
-      resolvedContext.keyspaceIsolationLevel === 'bucket';
+      if (resolvedContext.keyspaceIsolationScope === 'per-test') {
+        resolvedContext.keyspaceIsolationRealm = new KeyspaceIsolationRealm(test.id);
+      }
 
-    if (privateKeyspace) {
-      resolvedContext.keyspaceIsolationMap = new KeyspaceIsolationPool();
+      contextTracking.contextMap.set(testAsyncId, resolvedContext);
+
+      await super.onBeforeRunTask(test);
+    } catch (err) {
+      invariant(err instanceof Error);
     }
-
-    contextTracking.contextMap.set(testAsyncId, resolvedContext);
-    await super.onBeforeRunTask(test);
   }
 
   override async onAfterRunTask(test: Task) {
     // eslint-disable-next-line @typescript-eslint/await-thenable
     await super.onAfterRunTask(test);
+
+    const { keyspaceIsolationPool } = getCbjsContextTracking();
+    const { keyspaceIsolationRealm } = getTaskAsyncContext(test.id);
+
     this.clearTaskContextTracking(test.id);
+
+    if (keyspaceIsolationRealm && !isRealmInUse(keyspaceIsolationRealm)) {
+      keyspaceIsolationPool.releaseRealmAllocations(keyspaceIsolationRealm);
+    }
   }
 
   override async onAfterRunSuite(suite: Suite) {
     await super.onAfterRunSuite(suite);
+
+    const { keyspaceIsolationPool } = getCbjsContextTracking();
+    const { keyspaceIsolationRealm } = getTaskAsyncContext(suite.id);
+
     this.clearTaskContextTracking(suite.id);
-  }
 
-  clearTaskContextTracking(taskId: string) {
-    const contextTracking = getCbjsContextTracking();
-    const taskAsyncId = contextTracking.taskAsyncIdMap.get(taskId);
-
-    invariant(taskAsyncId);
-
-    const taskChildrenId = getChildrenTower(taskAsyncId);
-
-    contextTracking.contextMap.delete(taskAsyncId);
-
-    for (const taskChildId of taskChildrenId) {
-      contextTracking.parentMap.delete(taskChildId);
-      contextTracking.parentReversedMap.delete(taskAsyncId);
+    if (keyspaceIsolationRealm && !isRealmInUse(keyspaceIsolationRealm)) {
+      keyspaceIsolationPool.releaseRealmAllocations(keyspaceIsolationRealm);
     }
-
-    contextTracking.contextMap.delete(taskAsyncId);
-    contextTracking.taskAsyncIdReversedMap.delete(taskAsyncId);
-    contextTracking.taskAsyncIdMap.delete(taskId);
   }
 
   override async onAfterRunFiles() {
+    const { keyspaceIsolationPool } = getCbjsContextTracking();
+
+    cbjsAsyncHooks.disable();
+
+    await keyspaceIsolationPool.dispose();
+
+    if (this.clusterPromise) {
+      await runWithoutKeyspaceIsolation(() =>
+        this.clusterPromise?.then((c) => c.close())
+      );
+    }
+
     // Debug statement
     for (const log of logs) {
       console.log(...log);
@@ -185,20 +222,69 @@ export default class CbjsTestRunner extends VitestTestRunner {
     await super.onAfterRunFiles();
   }
 
-  // Executed during collection
+  clearTaskContextTracking(taskId: string) {
+    const contextTracking = getCbjsContextTracking();
+    const taskAsyncId = contextTracking.taskAsyncIdMap.get(taskId);
+
+    invariant(taskAsyncId);
+
+    const taskChildrenIds = getChildrenTower(taskAsyncId);
+
+    contextTracking.contextMap.delete(taskAsyncId);
+
+    for (const taskChildId of taskChildrenIds) {
+      contextTracking.parentMap.delete(taskChildId);
+      contextTracking.parentReversedMap.delete(taskAsyncId);
+    }
+
+    contextTracking.contextMap.delete(taskAsyncId);
+    contextTracking.taskAsyncIdReversedMap.delete(taskAsyncId);
+    contextTracking.taskAsyncIdMap.delete(taskId);
+  }
+
   override extendTaskContext<T extends Test | Custom>(
     context: TaskContext<T>
   ): ExtendedContext<T> {
     const ec = super.extendTaskContext(context);
+    const getClusterError = () => this.clusterConnectionError;
+    const getClusterPromise = () => this.clusterPromise;
+    const init = () => this.initClusterConnection();
 
-    // Object.defineProperty(ec, 'useKeyspaceIsolation', {
-    //   get() {
-    //     return (keyspaceIsolation: KeyspaceIsolationScope) => {
-    //       getCurrentCbjsAsyncContext().keyspaceIsolationScope = keyspaceIsolation;
-    //     };
-    //   },
-    // });
+    Object.defineProperty(ec, 'getCluster', {
+      get() {
+        return () => {
+          if (getClusterPromise() === undefined) {
+            init();
+          }
+
+          if (getClusterError()) {
+            throw getClusterError();
+          }
+
+          return getClusterPromise();
+        };
+      },
+    });
 
     return ec;
+  }
+
+  initClusterConnection() {
+    const { connectionString, credentials } = getConnectionParams();
+    this.clusterPromise = connect(
+      connectionString,
+      {
+        ...credentials,
+        timeouts: {
+          connectTimeout: 500,
+        },
+      },
+      (err, c) => {
+        if (err) {
+          this.clusterConnectionError = err;
+          return;
+        }
+      }
+    );
   }
 }

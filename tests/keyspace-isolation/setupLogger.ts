@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getCurrentTaskAsyncContext } from '../asyncContext';
+import pino, { stdTimeFunctions } from 'pino';
 
-export function getKeyspaceIsolation() {
-  const { keyspaceIsolationLevel, keyspaceIsolationScope, keyspaceIsolationRealm } =
-    getCurrentTaskAsyncContext();
-  return {
-    scope: keyspaceIsolationScope,
-    level: keyspaceIsolationLevel,
-    realm: keyspaceIsolationRealm,
-  };
-}
+export const testLogger = pino({
+  enabled: ['1', 'true', 'yes', 'y'].includes(process.env.DEBUG ?? ''),
+  level: 'trace',
+  timestamp: stdTimeFunctions.isoTime,
+  formatters: {
+    bindings: () => {
+      if (process.env.VITEST_POOL_ID) {
+        return {
+          VITEST_POOL_ID: process.env.VITEST_POOL_ID,
+        };
+      }
+
+      return {};
+    },
+  },
+  transport: {
+    target: 'pino/file',
+    options: {
+      destination: `vitest-pino.log`,
+      mkdir: true,
+      append: false,
+      sync: true,
+    },
+  },
+});

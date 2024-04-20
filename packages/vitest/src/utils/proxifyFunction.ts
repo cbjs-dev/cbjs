@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnyFunction, KeysByValue, Try } from '@cbjsdev/shared';
+import { CppConnection } from '@cbjsdev/cbjs/internal';
+import { AnyFunction, invariant, KeysByValue, Try } from '@cbjsdev/shared';
+
+import { getTestLogger } from '../logger';
 
 /**
  * Returns a function that properly handles the value of `this` within a proxy handler,
@@ -35,11 +38,27 @@ export function proxifyFunction<
   target: T,
   prop: K,
   receiver: T,
-  transformArgs?: (...args: Parameters<Fn>) => Readonly<Parameters<Fn>>
+  transformArgs?: (...args: Parameters<Fn>) => Promise<Readonly<Parameters<Fn>>>
 ) {
   return function (this: T, ...args: Parameters<Fn>) {
-    const fn = target[prop] as Fn;
-    const transformedArgs = transformArgs ? transformArgs(...args) : args;
-    return fn.apply(this === receiver ? target : this, transformedArgs);
+    const fn = function (this: T) {
+      const innerFn = target[prop] as Fn;
+      const innerFnBinded = innerFn.bind(this);
+      try {
+        if (!transformArgs) {
+          return innerFnBinded(...args);
+        }
+
+        void transformArgs(...args).then((transformedArgs) =>
+          innerFnBinded(...transformedArgs)
+        );
+      } catch (err) {
+        invariant(err instanceof Error);
+        getTestLogger()?.error(`Error during proxifyFunction: ${err.message}`);
+        throw err;
+      }
+    };
+
+    return fn.apply(this === receiver ? target : this);
   };
 }

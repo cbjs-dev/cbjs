@@ -15,17 +15,19 @@
  */
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 
-import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
+import { getCbjsContextTracking, getCurrentTaskAsyncContext } from '../asyncContext';
+import { flushLogger, getTestLogger } from '../logger';
 import { proxifyFunction } from '../utils/proxifyFunction';
 import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
 import { transformArgs as kvTransformArgs } from './proxyFunctions/kv';
 import { transformArgs as queryTransformArgs } from './proxyFunctions/query';
 import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel';
+import { bypassIsolationALS } from './runWithoutKeyspaceIsolation';
 
 export const connectionProxySymbol = Symbol('CppConnectionProxy');
 
-export function createProxyConnection(conn: CppConnection) {
-  const isolationMap = new KeyspaceIsolationPool();
+export function createConnectionProxy(conn: CppConnection) {
+  const isolationPool = getCbjsContextTracking().keyspaceIsolationPool;
 
   return new Proxy(conn, {
     get: (
@@ -37,6 +39,9 @@ export function createProxyConnection(conn: CppConnection) {
         return true;
       }
 
+      getTestLogger()?.trace(`ConnectionProxy: ${prop}`);
+      void flushLogger();
+
       const value = target[prop];
 
       // Future proofing
@@ -45,11 +50,17 @@ export function createProxyConnection(conn: CppConnection) {
         return value;
       }
 
-      const asyncContext = getCurrentCbjsAsyncContext();
-      const shouldIsolateKeyspace =
-        asyncContext && asyncContext.keyspaceIsolationScope !== false;
+      const bypassContext = bypassIsolationALS.getStore();
 
-      if (shouldIsolateKeyspace) {
+      if (bypassContext) {
+        return proxifyFunction(target, prop, receiver);
+      }
+
+      const asyncContext = getCurrentTaskAsyncContext();
+      const shouldIsolateKeyspace =
+        asyncContext !== undefined && asyncContext.keyspaceIsolationScope !== false;
+
+      if (!shouldIsolateKeyspace) {
         return proxifyFunction(target, prop, receiver);
       }
 
@@ -76,8 +87,8 @@ export function createProxyConnection(conn: CppConnection) {
           const transformFunction = transformArgs[targetMethod] as (
             m: KeyspaceIsolationPool,
             ...tArgs: typeof args
-          ) => typeof args;
-          return transformFunction(isolationMap, ...args);
+          ) => Promise<typeof args>;
+          return transformFunction(isolationPool, ...args);
         });
       }
 

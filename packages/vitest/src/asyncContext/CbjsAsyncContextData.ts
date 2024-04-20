@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 import { Task } from 'vitest';
-
-import { KeyspaceIsolationPool } from '../keyspaceIsolation/KeyspaceIsolationPool';
-import {
-  KeyspaceIsolationLevel,
-  KeyspaceIsolationScope,
-} from '../keyspaceIsolation/types';
+import { KeyspaceIsolationRealm } from '../keyspaceIsolation/KeyspaceIsolationRealm';
+import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from '../keyspaceIsolation/types';
 
 export type CbjsContextKeyspaceIsolation = {
   keyspaceIsolationScope: KeyspaceIsolationScope;
   keyspaceIsolationLevel: KeyspaceIsolationLevel;
-  keyspaceIsolationMap: KeyspaceIsolationPool | null;
+  keyspaceIsolationRealm: KeyspaceIsolationRealm | null;
 };
 
 export type CbjsAsyncContextData = {

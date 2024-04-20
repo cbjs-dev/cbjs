@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TaskMeta } from 'vitest';
+import { defineProject, mergeConfig } from 'vitest/config';
 
-import { CbjsAsyncContextData } from '../CbjsTestRunner';
+import sharedProjectConfig from '../../vitest.shared.projects';
 
-declare module 'vitest' {
-  interface TaskMeta {
-    cbjs?: CbjsAsyncStore;
-  }
-}
+export default mergeConfig(
+  sharedProjectConfig,
+  defineProject({
+    test: {
+      name: 'project:keyspace-isolation',
+      runner: '@cbjsdev/vitest/runner',
+    },
+  })
+);

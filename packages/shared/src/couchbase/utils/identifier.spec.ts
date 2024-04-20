@@ -16,7 +16,13 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import { ClusterTypes, DocDef } from '../clusterTypes/index.js';
-import { isValidBucketName, parseKeyspacePath, resolveKeyspace, Keyspace } from './identifier.js';
+import {
+  isValidBucketName,
+  Keyspace,
+  keyspacePath,
+  parseKeyspacePath,
+  resolveKeyspace,
+} from './identifier.js';
 
 describe('isValidBucketName', () => {
   it('should return true with a valid bucket name', ({ expect }) => {
@@ -33,6 +39,28 @@ describe('isValidBucketName', () => {
   });
 });
 
+describe('keyspacePath', () => {
+  it('should return the bucket path', ({ expect }) => {
+    expect(keyspacePath('store')).toEqual('`store`');
+    expect(keyspacePath({ bucket: 'store' })).toEqual('`store`');
+  });
+
+  it('should return the scope path', ({ expect }) => {
+    expect(keyspacePath('store', 'library')).toEqual('`store`.`library`');
+    expect(keyspacePath({ bucket: 'store', scope: 'library' })).toEqual(
+      '`store`.`library`'
+    );
+  });
+
+  it('should return the scope path', ({ expect }) => {
+    expect(keyspacePath('store', 'library', 'books')).toEqual(
+      '`store`.`library`.`books`'
+    );
+    expect(
+      keyspacePath({ bucket: 'store', scope: 'library', collection: 'books' })
+    ).toEqual('`store`.`library`.`books`');
+  });
+});
 
 describe('parseKeyspacePath', () => {
   it('should parse bucket name', ({ expect }) => {
@@ -124,7 +152,6 @@ describe('resolveKeyspace', () => {
   });
 });
 
-
 type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = ClusterTypes<{
   BucketOne: {
@@ -149,6 +176,14 @@ type UserClusterTypes = ClusterTypes<{
 describe('Keyspace', () => {
   it('should return a string keyspace when no cluster types are given', () => {
     expectTypeOf<Keyspace>().toEqualTypeOf<{
+      bucket: string;
+      scope: string;
+      collection: string;
+    }>();
+  });
+
+  it('should return a string keyspace when never is given as cluster types', () => {
+    expectTypeOf<Keyspace<never>>().toEqualTypeOf<{
       bucket: string;
       scope: string;
       collection: string;

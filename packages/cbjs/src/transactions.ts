@@ -68,10 +68,10 @@ import { NodeCallback, PromiseHelper } from './utilities.js';
  * @category Transactions
  */
 export class DocumentId<
-  T extends CouchbaseClusterTypes,
-  B extends BucketName<T>,
-  S extends ScopeName<T, B>,
-  C extends CollectionName<T, B, S>,
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 > {
   /**

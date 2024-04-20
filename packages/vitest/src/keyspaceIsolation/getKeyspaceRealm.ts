@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-Present Jonathan MASSUCHETTI.
+ * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject } from 'vitest/config';
+import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext';
 
-export default defineProject({
-  test: {
-    include: ['tests/**/*.spec.ts'],
-    setupFiles: ['./setupTests.ts'],
-    environment: 'node',
-    testTimeout: 5_000,
-    hookTimeout: 30_000,
-    slowTestThreshold: 5_000,
-    restoreMocks: true,
-    mockReset: true,
-    unstubGlobals: true,
-    unstubEnvs: true,
-    sequence: {
-      setupFiles: 'list',
-      hooks: 'stack',
-      shuffle: {
-        tests: true,
-        files: false,
-      },
-    },
-  },
-});
+export function getKeyspaceRealm() {
+  const { keyspaceIsolationLevel, keyspaceIsolationScope, keyspaceIsolationRealm } =
+    getCurrentTaskAsyncContext();
+  return {
+    scope: keyspaceIsolationScope,
+    level: keyspaceIsolationLevel,
+    map: keyspaceIsolationRealm,
+  };
+}

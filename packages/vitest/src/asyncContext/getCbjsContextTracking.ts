@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { KeyspaceIsolationPool } from '../keyspaceIsolation';
 import { CbjsAsyncContextData } from './CbjsAsyncContextData';
 
 export type CbjsContextTracking = {
@@ -42,6 +43,11 @@ export type CbjsContextTracking = {
    * Context per scope: <asyncId, context_data>
    */
   contextMap: Map<number, CbjsAsyncContextData>;
+
+  /**
+   * Keyspace isolation pool.
+   */
+  keyspaceIsolationPool: KeyspaceIsolationPool;
 };
 
 export function getCbjsContextTracking(): CbjsContextTracking {
@@ -56,7 +62,8 @@ export function getCbjsContextTracking(): CbjsContextTracking {
     taskAsyncIdMap: new Map<string, number>(),
     taskAsyncIdReversedMap: new Map<number, string>(),
     contextMap: new Map<number, CbjsAsyncContextData>(),
-  };
+    keyspaceIsolationPool: new KeyspaceIsolationPool(),
+  } satisfies CbjsContextTracking;
 
   Object.defineProperty(global, 'cbjsContextTracking', {
     value: contextTracking,

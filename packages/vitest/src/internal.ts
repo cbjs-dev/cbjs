@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-Present Jonathan MASSUCHETTI.
+ * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineProject } from 'vitest/config';
 
-export default defineProject({
-  test: {
-    include: ['tests/**/*.spec.ts'],
-    setupFiles: ['./setupTests.ts'],
-    environment: 'node',
-    testTimeout: 5_000,
-    hookTimeout: 30_000,
-    slowTestThreshold: 5_000,
-    restoreMocks: true,
-    mockReset: true,
-    unstubGlobals: true,
-    unstubEnvs: true,
-    sequence: {
-      setupFiles: 'list',
-      hooks: 'stack',
-      shuffle: {
-        tests: true,
-        files: false,
-      },
-    },
-  },
-});
+export {
+  KeyspaceIsolationRealm,
+  KeyspaceIsolationPool,
+  setKeyspaceIsolation,
+} from './keyspaceIsolation';
+export {
+  getCurrentTaskAsyncContext,
+  getTaskAsyncContext,
+  getCbjsContextTracking,
+} from './asyncContext';
+
+export { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';

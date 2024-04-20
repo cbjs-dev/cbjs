@@ -1,0 +1,17 @@
+{
+  "name": "test-project-keyspace-solation",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Test project for keyspaceIsolation",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@cbjsdev/cbjs": "*"
+  },
+  "devDependencies": {
+    "@cbjsdev/vitest": "*"
+  }
+}

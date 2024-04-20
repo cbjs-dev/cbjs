@@ -23,7 +23,7 @@ import { getConnectionParams, waitFor } from '@cbjsdev/shared';
 
 import { CbjsTestContext } from '../CbjsTestRunner';
 import { TestFixtures } from '../fixtures/types';
-import { connectionProxySymbol, createProxyConnection } from './createProxyConnection';
+import { connectionProxySymbol, createConnectionProxy } from './createConnectionProxy';
 import { setKeyspaceIsolation } from './setKeyspaceIsolation';
 
 vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
@@ -36,7 +36,7 @@ vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
       [clusterConnectionProxy]: CppConnection;
     }) {
       if (this[clusterConnectionProxy] === undefined) {
-        this[clusterConnectionProxy] = createProxyConnection(this._conn);
+        this[clusterConnectionProxy] = createConnectionProxy(this._conn);
       }
 
       return this[clusterConnectionProxy];

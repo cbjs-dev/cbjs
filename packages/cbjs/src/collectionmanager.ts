@@ -309,7 +309,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     const bucketName = this._bucket.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementScopeGetAll(
         {
           bucket_name: bucketName,
@@ -399,7 +399,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     const maxExpiry = settings.maxExpiry ?? 0;
     const history = settings.history ?? undefined;
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionCreate(
         {
           bucket_name: bucketName,
@@ -457,7 +457,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     const bucketName = this._bucket.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionDrop(
         {
           bucket_name: bucketName,
@@ -517,7 +517,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     const bucketName = this._bucket.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionUpdate(
         {
           bucket_name: bucketName,
@@ -567,7 +567,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     const bucketName = this._bucket.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementScopeCreate(
         {
           bucket_name: bucketName,
@@ -615,7 +615,7 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
     const bucketName = this._bucket.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrap((wrapCallback) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementScopeDrop(
         {
           bucket_name: bucketName,

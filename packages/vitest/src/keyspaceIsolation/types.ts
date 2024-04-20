@@ -22,7 +22,7 @@ export type KeyspaceIsolationLevel = 'bucket' | 'collection';
 
 export type TransformArgsMap = {
   [MethodName in keyof CppConnection]: (
-    isolationMap: KeyspaceIsolationPool,
+    isolationPool: KeyspaceIsolationPool,
     ...args: Readonly<Parameters<CppConnection[MethodName]>>
-  ) => Readonly<Parameters<CppConnection[MethodName]>>;
+  ) => Promise<Readonly<Parameters<CppConnection[MethodName]>>>;
 };

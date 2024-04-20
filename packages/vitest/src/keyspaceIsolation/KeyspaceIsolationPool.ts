@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Keyspace } from '@cbjsdev/shared';
+import { Cluster, connect } from '@cbjsdev/cbjs';
+import {
+  getConnectionParams,
+  invariant,
+  keyspacePath,
+  PartialKeyspace,
+} from '@cbjsdev/shared';
 
-import { getRandomId } from '../utils/getRandomId';
-import { KeyspaceIsolationLevel } from './types';
+import { getTaskAsyncContext } from '../asyncContext';
+import { flushLogger, getTestLogger } from '../logger';
+import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm';
+import { runWithoutKeyspaceIsolation } from './runWithoutKeyspaceIsolation';
 
 /*
 
@@ -29,310 +37,441 @@ we take from available scopes and collections, create more if needed and possibl
 
  */
 
+type ProvisionedBucket = {
+  name: string;
+  exclusive?: boolean;
+  allocatedToRealms: Set<KeyspaceIsolationRealm>;
+  readiness: Promise<void>;
+};
+
+type ProvisionedKeyspace = {
+  name: string;
+  allocatedToRealm?: KeyspaceIsolationRealm;
+  readiness: Promise<void>;
+};
+
 export class KeyspaceIsolationPool {
-  public readonly isolatedBuckets = new Map<
-    string,
-    {
-      isolatedName: string;
-      isolatedScopes: Map<
-        string,
-        {
-          isolatedName: string;
-          isolatedCollections: Map<string, string>;
-        }
-      >;
-    }
+  protected cluster?: Cluster;
+
+  /**
+   * Contains names of real/isolated keyspaces.
+   *
+   * <bucket, <scope, collection[]>>
+   */
+  public readonly provisionedKeyspaces = new Map<
+    ProvisionedBucket,
+    Map<ProvisionedKeyspace, ProvisionedKeyspace[]>
   >();
 
-  /**
-   * <scope, collection[]>
-   */
-  public readonly availableKeyspaces = new Map<string, string[]>();
+  async requireKeyspaceIsolation<T extends PartialKeyspace>(
+    taskId: string,
+    requestedKeyspace: T
+  ): Promise<T> {
+    try {
+      const { keyspaceIsolationRealm: realm, keyspaceIsolationLevel } =
+        getTaskAsyncContext(taskId);
+      invariant(realm, 'No keyspace realm exist in this task.');
 
-  /**
-   * <isolationId, <scope, collection[]>>
-   */
-  public readonly takenKeyspacesByIsolationId = new Map<string, Map<string, string[]>>();
+      if (realm.isKeyspaceIsolated(requestedKeyspace)) {
+        return realm.getIsolatedKeyspaceNames(requestedKeyspace) as T;
+      }
 
-  constructor();
-  constructor(mapToClone: KeyspaceIsolationPool, level: KeyspaceIsolationLevel);
-  constructor(
-    ...args: [] | [mapToClone: KeyspaceIsolationPool, level: KeyspaceIsolationLevel]
+      this.requireBucketIsolation(
+        realm,
+        requestedKeyspace,
+        keyspaceIsolationLevel === 'bucket'
+      );
+
+      if (requestedKeyspace.scope) this.requireScopeIsolation(realm, requestedKeyspace);
+      if (requestedKeyspace.collection)
+        this.requireCollectionIsolation(realm, requestedKeyspace);
+
+      const isolatedKeyspace = realm.getIsolatedKeyspaceNames(requestedKeyspace) as T;
+
+      let readiness: Promise<void> = this.getProvisionedBucket(
+        isolatedKeyspace.bucket
+      ).readiness;
+
+      if (isolatedKeyspace.scope) {
+        const isolatedScope = this.getProvisionedScope(
+          isolatedKeyspace.bucket,
+          isolatedKeyspace.scope
+        );
+        readiness = isolatedScope.readiness;
+      }
+
+      if (isolatedKeyspace.collection) {
+        const isolatedCollection = this.getProvisionedCollection(
+          isolatedKeyspace.bucket,
+          isolatedKeyspace.scope,
+          isolatedKeyspace.collection
+        );
+
+        readiness = isolatedCollection.readiness;
+      }
+
+      await readiness;
+
+      return isolatedKeyspace;
+    } catch (err) {
+      invariant(err instanceof Error);
+      throw new Error(`requireKeyspaceIsolation failed with : ${err.message}`);
+    }
+  }
+
+  protected requireBucketIsolation(
+    realm: KeyspaceIsolationRealm,
+    requestedKeyspace: PartialKeyspace,
+    exclusiveBucket: boolean
   ) {
-    if (args.length === 0) return;
-
-    const [mapToClone, level] = args;
-
-    if (level === 'bucket') {
+    if (realm.isBucketIsolated(requestedKeyspace.bucket)) {
       return;
     }
 
-    mapToClone.isolatedBuckets.forEach((bucketIsolation, originalBucketName) => {
-      this.isolatedBuckets.set(originalBucketName, {
-        isolatedName: bucketIsolation.isolatedName,
-        isolatedScopes: new Map(),
+    let provisionedBucket = this.getAvailableBucket(exclusiveBucket);
+
+    if (provisionedBucket === undefined) {
+      const newBucketIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
+        requestedKeyspace.bucket
+      );
+
+      this.provisionBucket(newBucketIsolatedName);
+      provisionedBucket = this.getProvisionedBucket(newBucketIsolatedName);
+    }
+
+    invariant(provisionedBucket);
+    provisionedBucket.allocatedToRealms.add(realm);
+    provisionedBucket.exclusive = exclusiveBucket;
+
+    realm.setIsolatedBucketName(requestedKeyspace.bucket, provisionedBucket.name);
+  }
+
+  protected requireScopeIsolation(
+    realm: KeyspaceIsolationRealm,
+    requestedKeyspace: PartialKeyspace
+  ) {
+    invariant(requestedKeyspace.scope);
+
+    if (realm.isScopeIsolated(requestedKeyspace.bucket, requestedKeyspace.scope)) {
+      return;
+    }
+
+    const isolatedBucketName = realm.getIsolatedBucketName(requestedKeyspace.bucket);
+    invariant(isolatedBucketName);
+
+    let provisionedScope = this.getAvailableScope(isolatedBucketName);
+
+    if (provisionedScope === undefined) {
+      const newScopeIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
+        requestedKeyspace.scope
+      );
+
+      this.provisionScope(isolatedBucketName, newScopeIsolatedName);
+      provisionedScope = this.getProvisionedScope(
+        isolatedBucketName,
+        newScopeIsolatedName
+      );
+    }
+
+    invariant(provisionedScope);
+    provisionedScope.allocatedToRealm = realm;
+
+    realm.setIsolatedScopeName(
+      requestedKeyspace.bucket,
+      requestedKeyspace.scope,
+      provisionedScope.name
+    );
+  }
+
+  protected requireCollectionIsolation(
+    realm: KeyspaceIsolationRealm,
+    requestedKeyspace: PartialKeyspace
+  ) {
+    invariant(requestedKeyspace.collection);
+
+    if (
+      realm.isCollectionIsolated(
+        requestedKeyspace.bucket,
+        requestedKeyspace.scope,
+        requestedKeyspace.collection
+      )
+    ) {
+      return;
+    }
+
+    const isolatedBucketName = realm.getIsolatedBucketName(requestedKeyspace.bucket);
+    invariant(isolatedBucketName);
+
+    const isolatedScopeName = realm.getIsolatedScopeName(
+      requestedKeyspace.bucket,
+      requestedKeyspace.scope
+    );
+    invariant(isolatedScopeName);
+
+    let provisionedCollection = this.getAvailableCollection(
+      isolatedBucketName,
+      isolatedScopeName
+    );
+
+    if (provisionedCollection === undefined) {
+      const newCollectionIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
+        requestedKeyspace.collection
+      );
+
+      this.provisionCollection(
+        isolatedBucketName,
+        isolatedScopeName,
+        newCollectionIsolatedName
+      );
+      provisionedCollection = this.getProvisionedCollection(
+        isolatedBucketName,
+        isolatedScopeName,
+        newCollectionIsolatedName
+      );
+    }
+
+    invariant(provisionedCollection);
+    provisionedCollection.allocatedToRealm = realm;
+
+    realm.setIsolatedCollectionName(
+      requestedKeyspace.bucket,
+      requestedKeyspace.scope,
+      requestedKeyspace.collection,
+      provisionedCollection.name
+    );
+  }
+
+  /**
+   * Create a bucket and declare it in the map.
+   *
+   * @param bucket Isolated bucket name.
+   */
+  provisionBucket(bucket: string) {
+    const bucketCreation = this.getCluster().then((cluster) => {
+      return runWithoutKeyspaceIsolation(() => {
+        return cluster.buckets().createBucket({
+          name: bucket,
+          ramQuotaMB: 256,
+          storageBackend: 'couchstore',
+          numReplicas: 0,
+          replicaIndexes: false,
+          compressionMode: 'off',
+          evictionPolicy: 'valueOnly',
+          minimumDurabilityLevel: 'none',
+        });
       });
     });
-  }
 
-  createIsolation(isolationId: string) {
-    this.takenKeyspacesByIsolationId.set(isolationId, new Map());
-
-    return {
-      isolateBucket: (originalBucketName: string) => {},
-    };
-  }
-
-  /**
-   * Isolate a bucket if not already isolated and return its isolated name.
-   *
-   * @param originalBucketName The original name of the bucket.
-   * @returns The isolated name of the bucket.
-   */
-  isolateBucketName(originalBucketName: string): string {
-    if (this.isBucketIsolated(originalBucketName)) {
-      return this.getIsolatedBucketName(originalBucketName)!;
-    }
-
-    const isolatedName = `${originalBucketName}_${getRandomId()}`;
-
-    this.isolatedBuckets.set(originalBucketName, {
-      isolatedName,
-      isolatedScopes: new Map(),
-    });
-
-    return isolatedName;
-  }
-
-  /**
-   * Isolate a scope if not already isolated and return its isolated name.
-   * It will isolate the bucket if it is not isolated already.
-   *
-   * @param originalBucketName The original name of the bucket.
-   * @param originalScopeName The original name of the scope.
-   * @returns The isolated name of the scope.
-   */
-  isolateScopeName(originalBucketName: string, originalScopeName: string): string {
-    if (this.isScopeIsolated(originalBucketName, originalScopeName)) {
-      return this.getIsolatedScopeName(originalBucketName, originalScopeName)!;
-    }
-
-    this.isolateBucketName(originalBucketName);
-
-    const isolatedName = `${originalScopeName}_${getRandomId()}`;
-
-    this.isolatedBuckets.get(originalBucketName)!.isolatedScopes.set(originalScopeName, {
-      isolatedName,
-      isolatedCollections: new Map(),
-    });
-
-    return isolatedName;
-  }
-
-  /**
-   * Isolate a collection if not already isolated and return its isolated name.
-   * It will isolate the bucket and scope if they are not isolated already.
-   *
-   * @param originalBucketName The original name of the bucket.
-   * @param originalScopeName The original name of the scope.
-   * @param originalCollectionName The original name of the collection.
-   * @returns The isolated name of the collection.
-   */
-  isolateCollectionName(
-    originalBucketName: string,
-    originalScopeName: string,
-    originalCollectionName: string
-  ): string {
-    if (
-      this.isCollectionIsolated(
-        originalBucketName,
-        originalScopeName,
-        originalCollectionName
-      )
-    ) {
-      return this.getIsolatedCollectionName(
-        originalBucketName,
-        originalScopeName,
-        originalCollectionName
-      )!;
-    }
-
-    this.isolateScopeName(originalBucketName, originalScopeName);
-
-    const isolatedName = `${originalCollectionName}_${getRandomId()}`;
-
-    this.isolatedBuckets
-      .get(originalBucketName)!
-      .isolatedScopes.get(originalScopeName)!
-      .isolatedCollections.set(originalCollectionName, isolatedName);
-
-    return isolatedName;
-  }
-
-  /**
-   * @param originalBucketName The original name of the bucket.
-   * @returns The isolated name of the bucket or `undefined` is the bucket is not isolated.
-   */
-  getIsolatedBucketName(originalBucketName: string): string | undefined {
-    if (!this.isBucketIsolated(originalBucketName)) {
-      return undefined;
-    }
-
-    return this.isolatedBuckets.get(originalBucketName)?.isolatedName;
-  }
-
-  /**
-   * @param originalBucketName The original name of the bucket.
-   * @param originalScopeName The original name of the scope.
-   * @returns The isolated name of the scope or `undefined` is the scope is not isolated.
-   */
-  getIsolatedScopeName(
-    originalBucketName: string,
-    originalScopeName: string
-  ): string | undefined {
-    if (!this.isScopeIsolated(originalBucketName, originalScopeName)) {
-      return undefined;
-    }
-
-    return this.isolatedBuckets
-      .get(originalBucketName)!
-      .isolatedScopes.get(originalScopeName)!.isolatedName;
-  }
-
-  /**
-   * @param originalBucketName The original name of the bucket.
-   * @param originalScopeName The original name of the scope.
-   * @param originalCollectionName The original name of the collection.
-   * @returns The isolated name of the collection or `undefined` is the collection is not isolated.
-   */
-  getIsolatedCollectionName(
-    originalBucketName: string,
-    originalScopeName: string,
-    originalCollectionName: string
-  ): string | undefined {
-    if (
-      !this.isCollectionIsolated(
-        originalBucketName,
-        originalScopeName,
-        originalCollectionName
-      )
-    ) {
-      return undefined;
-    }
-
-    return this.isolatedBuckets
-      .get(originalBucketName)!
-      .isolatedScopes.get(originalScopeName)!
-      .isolatedCollections.get(originalCollectionName);
-  }
-
-  getIsolatedKeyspaceNames(keyspace: Keyspace) {
-    if (!this.isKeyspaceIsolated(keyspace)) {
-      return undefined;
-    }
-
-    return {
-      bucket: this.getIsolatedBucketName(keyspace.bucket),
-      scope: this.getIsolatedScopeName(keyspace.bucket, keyspace.scope),
-      collection: this.getIsolatedCollectionName(
-        keyspace.bucket,
-        keyspace.scope,
-        keyspace.collection
-      ),
-    } as Keyspace;
-  }
-
-  isBucketIsolated(originalBucketName: string): boolean {
-    return this.isolatedBuckets.has(originalBucketName);
-  }
-
-  isScopeIsolated(originalBucketName: string, originalScopeName: string): boolean {
-    return (
-      this.isolatedBuckets
-        .get(originalBucketName)
-        ?.isolatedScopes.has(originalScopeName) === true
+    this.provisionedKeyspaces.set(
+      {
+        name: bucket,
+        allocatedToRealms: new Set(),
+        exclusive: undefined,
+        readiness: bucketCreation,
+      },
+      new Map()
     );
   }
 
-  isCollectionIsolated(
-    originalBucketName: string,
-    originalScopeName: string,
-    originalCollectionName: string
-  ): boolean {
-    return (
-      this.isolatedBuckets
-        .get(originalBucketName)
-        ?.isolatedScopes.get(originalScopeName)
-        ?.isolatedCollections.has(originalCollectionName) === true
+  /**
+   * Create a scope and declare it in the map.
+   *
+   * @param bucket Isolated bucket name.
+   * @param scope Isolated scope name.
+   */
+  provisionScope(bucket: string, scope: string) {
+    const provisionedBucket = this.getProvisionedBucket(bucket);
+
+    if (!provisionedBucket) {
+      throw new Error(
+        `trying to provision scope "${scope}" in bucket "${bucket}" but the bucket is not provisioned.`
+      );
+    }
+
+    const scopeCreation = provisionedBucket.readiness.then(async () => {
+      const cluster = await this.getCluster();
+      return await runWithoutKeyspaceIsolation(() =>
+        cluster.bucket(bucket).collections().createScope(scope)
+      );
+    });
+
+    provisionedBucket.scopes.set(
+      {
+        name: scope,
+        allocatedToRealm: undefined,
+        readiness: scopeCreation,
+      },
+      []
     );
   }
 
-  isKeyspaceIsolated({ bucket, scope, collection }: Keyspace) {
-    return this.isCollectionIsolated(bucket, scope, collection);
+  /**
+   * Create a collection and declare it in the map.
+   *
+   * @param bucket Isolated bucket name.
+   * @param scope Isolated scope name.
+   * @param collection Isolated collection name.
+   */
+  provisionCollection(bucket: string, scope: string, collection: string) {
+    const provisionedScope = this.getProvisionedScope(bucket, scope);
+
+    if (!provisionedScope) {
+      throw new Error(
+        `trying to provision collection ${collection} in "${keyspacePath(bucket, scope)}" but the scope is not provisioned.`
+      );
+    }
+
+    const collectionCreation = provisionedScope.readiness.then(async () => {
+      const cluster = await this.getCluster();
+      return await runWithoutKeyspaceIsolation(() =>
+        cluster.bucket(bucket).collections().createCollection({
+          name: collection,
+          scopeName: scope,
+        })
+      );
+    });
+
+    provisionedScope.collections.push({
+      name: collection,
+      allocatedToRealm: undefined,
+      readiness: collectionCreation,
+    });
   }
 
-  /**
-   * @returns the isolated bucket name or `undefined` if it has not been isolated.
-   * @param isolatedBucketName The isolated name of the bucket.
-   */
-  getOriginalBucketName(isolatedBucketName: string): string | undefined {
-    for (const [originalBucketName, isolatedBucket] of this.isolatedBuckets.entries()) {
-      if (isolatedBucket.isolatedName === isolatedBucketName) {
-        return originalBucketName;
+  async getCluster() {
+    if (!this.cluster) {
+      const params = getConnectionParams();
+      this.cluster = await connect(params.connectionString, params.credentials);
+    }
+
+    return this.cluster;
+  }
+
+  getAvailableBucket(exclusive: boolean) {
+    for (const [provisionedBucket] of this.provisionedKeyspaces) {
+      if (!exclusive) {
+        return provisionedBucket;
+      }
+
+      if (exclusive && provisionedBucket.allocatedToRealms.size === 0) {
+        return provisionedBucket;
+      }
+    }
+  }
+
+  getProvisionedBucket(bucket: string) {
+    for (const [bucketStatus, scopes] of this.provisionedKeyspaces) {
+      if (bucketStatus.name === bucket)
+        return {
+          ...bucketStatus,
+          scopes,
+        };
+    }
+
+    throw new Error(`bucket ${keyspacePath(bucket)} is not provisioned.`);
+  }
+
+  getAvailableScope(bucket: string) {
+    for (const [bucketStatus, bucketScopes] of this.provisionedKeyspaces) {
+      if (bucketStatus.name !== bucket) continue;
+
+      for (const [provisionedScope] of bucketScopes) {
+        if (provisionedScope.allocatedToRealm === undefined) return provisionedScope;
+      }
+    }
+  }
+
+  getProvisionedScope(bucket: string, scope: string) {
+    for (const [provisionedBucket, bucketScopes] of this.provisionedKeyspaces) {
+      if (provisionedBucket.name !== bucket) continue;
+
+      for (const [provisionedScope, collections] of bucketScopes) {
+        if (provisionedScope.name === scope) {
+          return {
+            ...provisionedScope,
+            collections,
+          };
+        }
       }
     }
 
-    return undefined;
+    throw new Error(`scope ${keyspacePath(bucket, scope)} is not provisioned.`);
   }
 
-  /**
-   * @returns the isolated scope name or `undefined` if it has not been isolated.
-   * @param originalBucketName The non-isolated name of the bucket.
-   * @param isolatedScopeName The isolated name of the scope.
-   */
-  getOriginalScopeName(
-    originalBucketName: string,
-    isolatedScopeName: string
-  ): string | undefined {
-    if (!this.isBucketIsolated(originalBucketName)) {
-      return undefined;
-    }
+  getAvailableCollection(bucket: string, scope: string) {
+    for (const [bucketStatus, bucketScopes] of this.provisionedKeyspaces) {
+      if (bucketStatus.name !== bucket) continue;
 
-    for (const [originalScopeName, isolatedScope] of this.isolatedBuckets
-      .get(originalBucketName)!
-      .isolatedScopes.entries()) {
-      if (isolatedScope.isolatedName === isolatedScopeName) {
-        return originalScopeName;
+      for (const [provisionedScope, scopeCollections] of bucketScopes) {
+        if (provisionedScope.name !== scope) continue;
+
+        for (const scopeCollection of scopeCollections) {
+          if (scopeCollection.allocatedToRealm === undefined) return scopeCollection;
+        }
+      }
+    }
+  }
+
+  getProvisionedCollection(bucket: string, scope: string, collection: string) {
+    for (const [bucketStatus, bucketScopes] of this.provisionedKeyspaces) {
+      if (bucketStatus.name !== bucket) continue;
+
+      for (const [provisionedScope, scopeCollections] of bucketScopes) {
+        if (provisionedScope.name !== scope) continue;
+
+        for (const scopeCollection of scopeCollections) {
+          if (scopeCollection.name === collection) return scopeCollection;
+        }
       }
     }
 
-    return undefined;
+    throw new Error(
+      `collection ${keyspacePath(bucket, scope, collection)} is not provisioned.`
+    );
   }
 
-  /**
-   * @returns the isolated collection name or `undefined` if it has not been isolated.
-   * @param originalBucketName The non-isolated name of the bucket.
-   * @param originalScopeName The non-isolated name of the scope.
-   * @param isolatedCollectionName The isolated name of the collection.
-   */
-  getOriginalCollectionName(
-    originalBucketName: string,
-    originalScopeName: string,
-    isolatedCollectionName: string
-  ): string | undefined {
-    if (!this.isScopeIsolated(originalBucketName, originalScopeName)) {
-      return undefined;
-    }
+  releaseRealmAllocations(realm: KeyspaceIsolationRealm) {
+    for (const [bucketStatus, bucketScopes] of this.provisionedKeyspaces) {
+      if (!bucketStatus.allocatedToRealms.has(realm)) continue;
 
-    for (const [originalCollectionName, isolatedName] of this.isolatedBuckets
-      .get(originalBucketName)!
-      .isolatedScopes.get(originalScopeName)!
-      .isolatedCollections.entries()) {
-      if (isolatedName === isolatedCollectionName) {
-        return originalCollectionName;
+      bucketStatus.allocatedToRealms.delete(realm);
+      if (bucketStatus.allocatedToRealms.size === 0 && bucketStatus.exclusive) {
+        bucketStatus.exclusive = undefined;
+      }
+
+      for (const [provisionedScope, provisionedCollections] of bucketScopes) {
+        if (provisionedScope.allocatedToRealm !== realm) continue;
+
+        provisionedScope.allocatedToRealm = undefined;
+
+        for (const provisionedCollection of provisionedCollections) {
+          if (provisionedCollection.allocatedToRealm !== realm) continue;
+
+          provisionedCollection.allocatedToRealm = undefined;
+        }
       }
     }
+  }
 
-    return undefined;
+  private async destroyProvisionedBuckets() {
+    const bucket = Array.from(this.provisionedKeyspaces.keys()).map((ksp) => ksp.name);
+
+    await runWithoutKeyspaceIsolation(() =>
+      Promise.all(bucket.map((b) => this.cluster?.buckets().dropBucket(b)))
+    );
+
+    getTestLogger()?.trace('Provisioned buckets dropped.');
+  }
+
+  async dispose() {
+    getTestLogger()?.trace('KeyspaceIsolationPool.dispose.');
+    await flushLogger();
+
+    if (this.cluster) {
+      await this.destroyProvisionedBuckets();
+      await runWithoutKeyspaceIsolation(() => this.cluster?.close());
+    }
+
+    await flushLogger();
   }
 }

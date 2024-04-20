@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AsyncLocalStorage } from 'async_hooks';
+
 import { AnyFunction } from '@cbjsdev/shared';
 
-import { getCurrentCbjsAsyncContext } from '../asyncContext/getCurrentCbjsAsyncContext';
+export const bypassIsolationALS = new AsyncLocalStorage();
 
-export async function runWithoutKeyspaceIsolation(fn: AnyFunction) {
-  const asyncContext = getCurrentCbjsAsyncContext();
-
-  if (asyncContext === undefined) {
-    return await fn();
-  }
-
-  const currentIsolation = asyncContext.keyspaceIsolationScope;
-  asyncContext.keyspaceIsolationScope = false;
-
-  const result = await fn();
-
-  asyncContext.keyspaceIsolationScope = currentIsolation ?? false;
-  return result;
+export function runWithoutKeyspaceIsolation(fn: AnyFunction) {
+  // The store doesn't really matter, we only test its presence
+  return bypassIsolationALS.run({ bypass: true }, fn);
 }
