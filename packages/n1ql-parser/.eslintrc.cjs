@@ -17,5 +17,5 @@
 
 module.exports = {
   extends: ['../../.eslintrc.cjs'],
-  ignorePatterns: ['src/antlr/**/generated'],
+  ignorePatterns: ['src/antlr/**/*'],
 };
