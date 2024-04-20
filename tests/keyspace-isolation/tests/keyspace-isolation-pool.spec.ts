@@ -42,6 +42,8 @@ describe('keyspace isolation pool', () => {
     expect(isolatedKeyspace.bucket).toEqual(expect.stringMatching(/^cbjs_b_/));
     expect(isolatedKeyspace.scope).toEqual(expect.stringMatching(/^cbjs_s_/));
     expect(isolatedKeyspace.collection).toEqual(expect.stringMatching(/^cbjs_c_/));
+
+    await pool.dispose();
   });
 
   test('should fill the keyspace isolation realm when isolating a keyspace', async ({
@@ -60,5 +62,7 @@ describe('keyspace isolation pool', () => {
     expect(keyspaceIsolationRealm.isBucketIsolated('b')).toBe(true);
     expect(keyspaceIsolationRealm.isScopeIsolated('b', 's')).toBe(true);
     expect(keyspaceIsolationRealm.isCollectionIsolated('b', 's', 'c')).toBe(true);
+
+    await pool.dispose();
   });
 });

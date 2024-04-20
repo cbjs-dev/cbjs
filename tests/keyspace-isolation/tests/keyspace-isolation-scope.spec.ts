@@ -26,7 +26,7 @@ describe.sequential('keyspace isolation scope', () => {
   const pool = new KeyspaceIsolationPool();
 
   afterAll(async () => {
-    await pool.destroyProvisionedBuckets();
+    await pool.dispose();
   });
 
   describe('per-test', () => {
