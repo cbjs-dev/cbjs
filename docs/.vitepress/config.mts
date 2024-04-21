@@ -20,6 +20,7 @@ import { version } from '../../packages/cbjs/package.json';
 
 const repositoryUrl = 'https://github.com/cbjs-dev/cbjs';
 
+// prettier-ignore
 export default defineConfig({
   srcDir: 'src',
   title: 'Cbjs',
@@ -32,55 +33,25 @@ export default defineConfig({
   },
 
   head: [
-    ['link', { rel: 'icon', href: '/favicon.ico', sizes: 'any' }],
-    ['link', { rel: 'icon', href: '/cbjs-logo.svg', type: 'image/svg+xml' }],
-    ['link', { rel: 'mask-icon', href: '/cbjs-logo.svg', color: '#ffffff' }],
-    [
-      'link',
-      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
-    ],
+    ['link', { rel: 'icon', href: '/favicon.png', media: '(prefers-color-scheme: light)' }],
+    ['link', { rel: 'icon', href: '/favicon-dark.png', media: '(prefers-color-scheme: dark)' }],
+    ['link', { rel: 'icon', href: '/cbjs-logo.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: light)' }],
+    ['link', { rel: 'icon', href: '/cbjs-logo.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' }],
+
+    ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' }],
+
     ['link', { rel: 'prefetch', href: '/cbjs-logo.svg', as: 'image' }],
 
     ['meta', { name: 'author', content: 'Jonathan MASSUCHETTI' }],
-    [
-      'meta',
-      {
-        name: 'og:title',
-        content: 'Cbjs | A modern Couchbase SDK for Node.js and TypeScript',
-      },
-    ],
-    [
-      'meta',
-      {
-        name: 'og:description',
-        content: 'Inferred return type, path autocompletion and more',
-      },
-    ],
+    ['meta', { name: 'og:title', content: 'Cbjs | A modern Couchbase SDK for Node.js and TypeScript' }],
+    ['meta', { name: 'og:description', content: 'Inferred return type, path autocompletion and more' }],
     ['meta', { name: 'og:url', content: 'https://cbjs.dev' }],
     ['meta', { name: 'og:image', content: 'https://cbjs.dev/cbjs-og-image.png' }],
-    [
-      'meta',
-      {
-        name: 'twitter:title',
-        content: 'Cbjs | A modern Couchbase SDK for Node.js and TypeScript',
-      },
-    ],
-    [
-      'meta',
-      {
-        name: 'twitter:description',
-        content: 'Inferred return type, path autocompletion and more',
-      },
-    ],
+    ['meta', { name: 'twitter:title', content: 'Cbjs | A modern Couchbase SDK for Node.js and TypeScript' }],
+    ['meta', { name: 'twitter:description', content: 'Inferred return type, path autocompletion and more' }],
     ['meta', { name: 'twitter:image', content: 'https://cbjs.dev/cbjs-og-image.png' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    [
-      'meta',
-      {
-        name: 'keywords',
-        content: 'cbjs, couchbase, sdk, typescript, vitest, esm, node',
-      },
-    ],
+    ['meta', { name: 'keywords', content: 'cbjs, couchbase, sdk, typescript, vitest, esm, node' }],
     [
       'script',
       { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-0TFQ0L2SG1' },
@@ -95,7 +66,11 @@ export default defineConfig({
     ],
   ],
   themeConfig: {
-    logo: '/cbjs-logotype.svg',
+    logo: {
+      light: '/cbjs-logotype.svg',
+      dark: '/cbjs-logotype-dark.svg',
+      alt: 'Cbjs logo',
+    },
     siteTitle: false,
     search: {
       provider: 'local',

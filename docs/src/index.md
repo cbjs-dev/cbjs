@@ -8,8 +8,9 @@ hero:
   text: 'Modern Couchbase client for JS runtimes'
   tagline: A drop-in replacement for the official library.
   image:
-      src: /cbjs-logo.svg
-      alt: Cbjs logo
+    light: /cbjs-logo.svg
+    dark: /cbjs-logo-dark.svg
+    alt: Cbjs logo
   actions:
     - theme: brand
       text: Get Started
