@@ -25,4 +25,7 @@ export {
   getCbjsContextTracking,
 } from './asyncContext';
 
-export { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';
+export {
+  createConnectionProxy,
+  connectionProxySymbol,
+} from './keyspaceIsolation/createConnectionProxy';

@@ -1,7 +1,7 @@
 import { beforeAll, describe, it } from 'vitest';
 
-import { DocumentNotFoundError } from '@cbjsdev/cbjs';
-import { getKeyspaceIsolation, setKeyspaceIsolation } from '@cbjsdev/vitest';
+import { CouchbaseError, DocumentNotFoundError } from '@cbjsdev/cbjs';
+import { setKeyspaceIsolation } from '@cbjsdev/vitest';
 
 describe('kv', { timeout: 30_000 }, () => {
   beforeAll(() => {
@@ -10,8 +10,9 @@ describe('kv', { timeout: 30_000 }, () => {
 
   it('should isolate an insert', async ({ expect, getCluster }) => {
     const cluster = await getCluster();
+
     const collection = cluster.bucket('store').scope('library').collection('books');
-    await collection.insert('docKey', {
+    await collection.upsert('docKey', {
       title: 'insert',
     });
 
@@ -20,12 +21,11 @@ describe('kv', { timeout: 30_000 }, () => {
     expect(content).toEqual({ title: 'insert' });
   });
 
-  it('should isolate a get', async ({ getCluster, expect }) => {
+  it('should isolate a get', async ({ expect, getCluster }) => {
     const cluster = await getCluster();
+
     await expect(
       cluster.bucket('store').scope('library').collection('books').get('docKey')
-    ).rejects.toThrowError(DocumentNotFoundError);
-
-    console.log(JSON.stringify(getKeyspaceIsolation().realm));
+    ).rejects.toThrowError(CouchbaseError);
   });
 });

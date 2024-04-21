@@ -19,7 +19,7 @@ import SegfaultHandler from 'segfault-handler';
 import { ResolvedConfig, Suite, Task, Test, vi } from 'vitest';
 import { VitestTestRunner } from 'vitest/runners';
 
-import { Cluster, connect } from '@cbjsdev/cbjs';
+import { Cluster, connect, ConnectOptions } from '@cbjsdev/cbjs';
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 
@@ -33,6 +33,7 @@ import { getChildrenTower } from './asyncContext/getChildrenTower';
 import { KeyspaceIsolationRealm, runWithoutKeyspaceIsolation } from './keyspaceIsolation';
 import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';
 import { isRealmInUse } from './keyspaceIsolation/isRealmInUse';
+import { getTestLogger } from './logger';
 
 SegfaultHandler.registerHandler('crash.log');
 
@@ -53,10 +54,7 @@ vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
   const clusterConnectionProxy = Symbol('ClusterConnectionProxy');
 
   Object.defineProperty(Cluster.prototype, 'conn', {
-    get: function (this: {
-      _conn: CppConnection;
-      [clusterConnectionProxy]: CppConnection;
-    }) {
+    get(this: { _conn: CppConnection; [clusterConnectionProxy]: CppConnection }) {
       if (this[clusterConnectionProxy] === undefined) {
         this[clusterConnectionProxy] = createConnectionProxy(this._conn);
       }
@@ -72,8 +70,7 @@ vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
 });
 
 export default class CbjsTestRunner extends VitestTestRunner {
-  protected clusterConnectionError?: Error;
-  protected clusterPromise?: Promise<Cluster>;
+  protected taskConnections = new Map<string, Promise<Cluster>[]>();
 
   constructor(config: ResolvedConfig) {
     cbjsAsyncHooks.enable();
@@ -207,11 +204,17 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
     await keyspaceIsolationPool.dispose();
 
-    if (this.clusterPromise) {
-      await runWithoutKeyspaceIsolation(() =>
-        this.clusterPromise?.then((c) => c.close())
-      );
-    }
+    const connectionClosing: Promise<unknown>[] = [];
+
+    await runWithoutKeyspaceIsolation(() =>
+      this.taskConnections.forEach((connections) => {
+        connections.forEach((connectionPromise) => {
+          connectionClosing.push(connectionPromise.then((c) => c.close()));
+        });
+      })
+    );
+
+    await Promise.allSettled(connectionClosing);
 
     // Debug statement
     for (const log of logs) {
@@ -246,45 +249,32 @@ export default class CbjsTestRunner extends VitestTestRunner {
     context: TaskContext<T>
   ): ExtendedContext<T> {
     const ec = super.extendTaskContext(context);
-    const getClusterError = () => this.clusterConnectionError;
-    const getClusterPromise = () => this.clusterPromise;
-    const init = () => this.initClusterConnection();
+
+    const { connectionString, credentials } = getConnectionParams();
+    const defaultOptions = {
+      ...credentials,
+      timeouts: {
+        connectTimeout: 500,
+      },
+    };
 
     Object.defineProperty(ec, 'getCluster', {
       get() {
-        return () => {
-          if (getClusterPromise() === undefined) {
-            init();
-          }
-
-          if (getClusterError()) {
-            throw getClusterError();
-          }
-
-          return getClusterPromise();
+        return (options: ConnectOptions = {}) => {
+          return connect(connectionString, {
+            ...defaultOptions,
+            ...options,
+          });
         };
       },
     });
 
-    return ec;
-  }
-
-  initClusterConnection() {
-    const { connectionString, credentials } = getConnectionParams();
-    this.clusterPromise = connect(
-      connectionString,
-      {
-        ...credentials,
-        timeouts: {
-          connectTimeout: 500,
-        },
+    Object.defineProperty(ec, 'getConnectionParams', {
+      get() {
+        return () => getConnectionParams();
       },
-      (err, c) => {
-        if (err) {
-          this.clusterConnectionError = err;
-          return;
-        }
-      }
-    );
+    });
+
+    return ec;
   }
 }

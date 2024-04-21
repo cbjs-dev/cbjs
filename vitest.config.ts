@@ -6,9 +6,10 @@ export default defineConfig({
     // isolate: false,
     pool: 'threads',
     minWorkers: 1,
-    maxWorkers: 1,
+    maxWorkers: 2,
     hookTimeout: 30_000,
     teardownTimeout: 10_000,
+    disableConsoleIntercept: true,
     sequence: {
       setupFiles: 'list',
       hooks: 'stack',
