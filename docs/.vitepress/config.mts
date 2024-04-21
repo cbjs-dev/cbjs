@@ -42,13 +42,37 @@ export default defineConfig({
     ['link', { rel: 'prefetch', href: '/cbjs-logo.svg', as: 'image' }],
 
     ['meta', { name: 'author', content: 'Jonathan MASSUCHETTI' }],
-    ['meta', { name: 'og:title', content: 'Cbjs' }],
-    ['meta', { name: 'og:description', content: 'Couchbase SDK for TypeScript' }],
+    [
+      'meta',
+      {
+        name: 'og:title',
+        content: 'Cbjs | A modern Couchbase SDK for Node.js and TypeScript',
+      },
+    ],
+    [
+      'meta',
+      {
+        name: 'og:description',
+        content: 'Inferred return type, path autocompletion and more',
+      },
+    ],
     ['meta', { name: 'og:url', content: 'https://cbjs.dev' }],
-    ['meta', { name: 'og:image', content: 'https://cbjs.dev/cbjs-logotype.png' }],
-    ['meta', { name: 'twitter:title', content: 'Cbjs' }],
-    ['meta', { name: 'twitter:description', content: 'Couchbase SDK for TypeScript' }],
-    ['meta', { name: 'twitter:image', content: 'https://cbjs.dev/cbjs-logotype.png' }],
+    ['meta', { name: 'og:image', content: 'https://cbjs.dev/cbjs-og-image.png' }],
+    [
+      'meta',
+      {
+        name: 'twitter:title',
+        content: 'Cbjs | A modern Couchbase SDK for Node.js and TypeScript',
+      },
+    ],
+    [
+      'meta',
+      {
+        name: 'twitter:description',
+        content: 'Inferred return type, path autocompletion and more',
+      },
+    ],
+    ['meta', { name: 'twitter:image', content: 'https://cbjs.dev/cbjs-og-image.png' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     [
       'meta',
