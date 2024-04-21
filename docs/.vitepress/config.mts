@@ -31,6 +31,7 @@ export default defineConfig({
     hostname: 'https://cbjs.dev',
   },
   head: [
+    ['link', { rel: 'icon', href: '/favicon.png' }],
     [
       'script',
       { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-0TFQ0L2SG1' },
