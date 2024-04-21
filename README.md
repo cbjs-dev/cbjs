@@ -1,8 +1,8 @@
 <h1 align="center">
- Cbjs
+ <img src="./docs/public/cbjs-logotype.svg" height="150" />
 </h1>
 <p align="center">
-Outstanding TypeScript client.
+Modern Couchbase SDK for Node.js & TypeScript.
 <p>
 
 <p align="center">
@@ -27,9 +27,10 @@ npm install @cbjsdev/cbjs
 ## Compatibility
 
 Built on top of the official library, Cbjs is a drop-in replacement for the `couchbase` package.  
-The package that is specific to your platform is downloaded during the install process, **you don't have to compile the binary anymore**.
+The package that is specific to your platform is downloaded during the install process.  
+Cbjs is also full **ESM native**.
 
-Cbjs is your new [Couchbase Node.js SDK](https://cbjs.dev/guide/features.html#compatible-with-the-official-client)
+Cbjs is your new [Couchbase SDK for Node.js with TypeScript](https://cbjs.dev/guide/features.html#compatible-with-the-official-client).
 
 ## Exclusive Features
 
