@@ -1,5 +1,6 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
+title: Cbjs
+titleTemplate: Modern Couchbase SDK for Node.js & TypeScript
 layout: home
 
 hero:
