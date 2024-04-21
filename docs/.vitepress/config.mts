@@ -30,8 +30,33 @@ export default defineConfig({
   sitemap: {
     hostname: 'https://cbjs.dev',
   },
+
   head: [
-    ['link', { rel: 'icon', href: '/favicon.png' }],
+    ['link', { rel: 'icon', href: '/favicon.ico', sizes: 'any' }],
+    ['link', { rel: 'icon', href: '/cbjs-logo.svg', type: 'image/svg+xml' }],
+    ['link', { rel: 'mask-icon', href: '/cbjs-logo.svg', color: '#ffffff' }],
+    [
+      'link',
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
+    ],
+    ['link', { rel: 'prefetch', href: '/cbjs-logo.svg', as: 'image' }],
+
+    ['meta', { name: 'author', content: 'Jonathan MASSUCHETTI' }],
+    ['meta', { name: 'og:title', content: 'Cbjs' }],
+    ['meta', { name: 'og:description', content: 'Couchbase SDK for TypeScript' }],
+    ['meta', { name: 'og:url', content: 'https://cbjs.dev' }],
+    ['meta', { name: 'og:image', content: 'https://cbjs.dev/cbjs-logotype.png' }],
+    ['meta', { name: 'twitter:title', content: 'Cbjs' }],
+    ['meta', { name: 'twitter:description', content: 'Couchbase SDK for TypeScript' }],
+    ['meta', { name: 'twitter:image', content: 'https://cbjs.dev/cbjs-logotype.png' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    [
+      'meta',
+      {
+        name: 'keywords',
+        content: 'cbjs, couchbase, sdk, typescript, vitest, esm, node',
+      },
+    ],
     [
       'script',
       { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-0TFQ0L2SG1' },
