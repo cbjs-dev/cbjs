@@ -24,10 +24,11 @@ export default defineConfig({
   srcDir: 'src',
   title: 'Cbjs',
   titleTemplate: 'Cbjs - Couchbbase SDK TypeScript',
-  description: 'A modern Couchbase SDK for Node.js clients written in TypeScript, compatible with the official library.',
+  description:
+    'A modern Couchbase SDK for Node.js clients written in TypeScript, compatible with the official library.',
   lastUpdated: true,
   sitemap: {
-    hostname: 'https://cbjs.dev'
+    hostname: 'https://cbjs.dev',
   },
   head: [
     [
@@ -44,6 +45,8 @@ export default defineConfig({
     ],
   ],
   themeConfig: {
+    logo: '/cbjs-logotype.svg',
+    siteTitle: false,
     search: {
       provider: 'local',
     },

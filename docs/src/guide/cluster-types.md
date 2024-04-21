@@ -101,9 +101,10 @@ await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467');
 
 ## Key Matching Strategy
 When inferring the type of a document, Cbjs matches the given key with the string template of the document definitions of the targeted collection.  
-If we just check if the key extends the template, we will have disappointing results.
+Three strategies are available : `always`, `delimiter`, `firstMatch`.
 
-Let's take a look at a common pattern for building document keys in a document database :
+### Always <Badge type="info" text="default" />
+This is the most basic strategy. It checks if the key extends the template.
 
 ```ts twoslash
 // ---cut-start---
@@ -131,9 +132,9 @@ const result = await collection.get('book::001::reviews');
 
 Because the key `'book::001::reviews'` extends both string templates, both documents are matched.
 
-This is the default key matching strategy, named `always`.
+This is the default key matching strategy.
 
-### Delimiter (recommended)
+### Delimiter <Badge type="tip" text="recommended" />
 
 Now let's see another strategy named `delimiter`, that uses the common delimiters to match the keys :
 
