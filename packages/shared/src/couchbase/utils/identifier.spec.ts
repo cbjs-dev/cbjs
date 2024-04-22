@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { DocDef } from '../clusterTypes';
+import { ClusterTypes, DocDef } from '../clusterTypes';
 import { isValidBucketName, Keyspace } from './identifier';
 
 describe('isValidBucketName', () => {
@@ -33,7 +33,7 @@ describe('isValidBucketName', () => {
 });
 
 type Doc<T extends string> = { [K in T]: string };
-type UserClusterTypes = {
+type UserClusterTypes = ClusterTypes<{
   BucketOne: {
     ScopeOne: {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
@@ -51,7 +51,7 @@ type UserClusterTypes = {
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
-};
+}>;
 
 describe('Keyspace', () => {
   it('should return a string keyspace when no cluster types are given', () => {

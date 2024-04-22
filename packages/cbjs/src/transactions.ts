@@ -20,7 +20,7 @@ import {
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
-  ExtractDocBodyByKey,
+  DocDefMatchingKey,
   If,
   invariant,
   KeyspaceDocDef,
@@ -286,7 +286,7 @@ export class TransactionGetResult<
   /**
    * The content of the document.
    */
-  content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>;
+  content: DocDefMatchingKey<Key, T, B, S, C>['Body'];
 
   /**
    * The CAS of the document.
@@ -639,7 +639,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
   >(
     collection: Collection<T, B, S, C>,
     key: Key,
-    content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>
+    content: DocDefMatchingKey<Key, T, B, S, C>['Body']
   ): Promise<TransactionGetResult<T, B, S, C, Key>> {
     return PromiseHelper.wrap(
       (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
@@ -676,7 +676,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
   >(
     doc: TransactionDocInfo<T, B, S, C, Key>,
-    content: ExtractDocBodyByKey<KeyspaceDocDef<T, B, S, C>, Key>
+    content: DocDefMatchingKey<Key, T, B, S, C>['Body']
   ): Promise<TransactionGetResult<T, B, S, C, Key>> {
     return PromiseHelper.wrap(
       (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {

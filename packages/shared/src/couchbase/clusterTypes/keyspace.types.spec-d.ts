@@ -15,12 +15,13 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CouchbaseClusterTypes } from './cluster.types';
+import { ClusterTypes, CouchbaseClusterTypes } from './cluster.types';
 import { DocDef } from './document.types';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types';
 
 type Doc<T extends string> = { [K in T]: string };
-type UserClusterTypes = {
+
+type UserClusterTypes = ClusterTypes<{
   BucketOne: {
     ScopeOne: {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
@@ -38,7 +39,7 @@ type UserClusterTypes = {
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
-};
+}>;
 
 describe('BucketName', () => {
   it('should describe the bucket names', () => {

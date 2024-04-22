@@ -60,7 +60,7 @@ export * from './viewexecutor';
 export * from './viewindexmanager';
 export * from './viewtypes';
 
-export type * from './clusterTypes';
+export * from './clusterTypes';
 
 export type { Keyspace } from '@cbjsdev/shared';
 export {

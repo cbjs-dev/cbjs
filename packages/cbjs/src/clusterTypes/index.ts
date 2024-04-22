@@ -21,13 +21,12 @@ export type {
   AnyCollection,
   AnyScope,
   AnyBucket,
-  AugmentClusterTypes,
   ClusterCollection,
   ClusterScope,
   ClusterBucket,
 } from './clusterTypes';
 
-export type {
+export {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   BucketName,

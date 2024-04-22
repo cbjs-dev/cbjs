@@ -15,7 +15,12 @@
  */
 import { IsAny, IsExactly, IsNever, Or } from '../../misc';
 import { Keyspace } from '../utils';
-import { ClusterTypesOptions, CouchbaseClusterTypes, DefaultClusterTypes, GetKeyspaceOptions } from './cluster.types';
+import {
+  ClusterTypesOptions,
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  GetKeyspaceOptions,
+} from './cluster.types';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types';
 import { DocumentPath } from './utils';
 
@@ -39,7 +44,7 @@ export type KeyspaceDocDef<
       KS['bucket'] extends infer KSB extends BucketName<T> ?
         KS['scope'] extends infer KSS extends ScopeName<T, KSB> ?
           KS['collection'] extends infer KSC extends CollectionName<T, KSB, KSS> ?
-            Extract<T[KSB][KSS][KSC], ReadonlyArray<unknown>>[number] :
+            T['definitions'][KSB]['definitions'][KSS]['definitions'][KSC]['definitions'][number] :
           never :
         never :
       never :
@@ -127,41 +132,6 @@ export type ObjectDocumentDef<Def extends DocDef> =
   never
 ;
 
-/**
- * Extract document definitions where the body extends `E`.
- */
-export type ExtractDefByBody<Def extends DocDef, Body> = Def extends unknown
-  ? Def['Body'] extends infer DocBody
-    ? DocBody extends Body
-      ? Def
-      : never
-    : never
-  : never;
-
-export type ExtractDocDefByKey<
-  Def extends DocDef,
-  Key extends string,
-> = Key extends unknown
-  ? Def extends unknown
-    ? Key extends Def['Key']
-      ? Def
-      : never
-    : never
-  : never;
-
-// TODO add logic to handle prefixes
-
-export type ExtractDocBodyByKey<
-  Def extends DocDef,
-  Key extends string,
-> = Key extends unknown
-  ? Def extends unknown
-    ? Key extends Def['Key']
-      ? Def['Body']
-      : never
-    : never
-  : never;
-
 // prettier-ignore
 export type DocDefMatchingKey<
   Key extends string,
@@ -173,7 +143,7 @@ export type DocDefMatchingKey<
   IsAny<T> extends true ?
     DocDef<string, any> :
   GetKeyspaceOptions<T, B, S, C> extends infer ResolvedOptions extends ClusterTypesOptions ?
-    Extract<T[B][S][C], ReadonlyArray<unknown>> extends infer Defs extends ReadonlyArray<DocDef> ?
+    T['definitions'][B]['definitions'][S]['definitions'][C]['definitions'] extends infer Defs extends ReadonlyArray<DocDef> ?
       Key extends unknown ?
         ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
           Defs[number] extends infer Def extends DocDef ?
@@ -226,7 +196,7 @@ export type DocDefMatchingBody<
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
 > =
-  Extract<T[B][S][C], ReadonlyArray<unknown>> extends infer Defs extends ReadonlyArray<DocDef> ?
+  T['definitions'][B]['definitions'][S]['definitions'][C]['definitions'] extends infer Defs extends ReadonlyArray<DocDef> ?
     Body extends unknown ?
       Defs[number] extends infer Def extends DocDef ?
         Def extends unknown ?

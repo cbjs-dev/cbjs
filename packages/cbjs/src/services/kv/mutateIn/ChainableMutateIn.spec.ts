@@ -16,7 +16,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
+import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes';
 import { MutateInSpec } from '../../../sdspecs';
@@ -32,13 +32,13 @@ type Book = {
   };
 };
 
-type UserClusterTypes = {
+type UserClusterTypes = ClusterTypes<{
   store: {
     library: {
       books: [DocDef<BookId, Book>];
     };
   };
-};
+}>;
 
 describe('ChainableMutateIn', function () {
   it('should return all the specs, in order, when the getter is called', function ({

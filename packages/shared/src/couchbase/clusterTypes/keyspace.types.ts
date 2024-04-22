@@ -44,7 +44,10 @@ export type WildcardFallback<T, F> = If<IsKeyspaceWildcard<T>, F, T>;
 /**
  * Bucket names existing in the cluster.
  */
-export type BucketName<T extends CouchbaseClusterTypes> = Extract<keyof T, string>;
+export type BucketName<T extends CouchbaseClusterTypes> = Extract<
+  keyof T['definitions'],
+  string
+>;
 
 /**
  * Scope names existing in a bucket. Distributive.
@@ -56,7 +59,7 @@ export type ScopeName<
 > =
   If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets ?
     AllBuckets extends BucketName<T> ?
-      Extract<keyof T[AllBuckets], string> :
+      Extract<keyof T['definitions'][AllBuckets]['definitions'], string> :
     never:
   never
 ;
@@ -74,7 +77,7 @@ export type CollectionName<
     AllBuckets extends BucketName<T> ?
       If<IsKeyspaceWildcard<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes ?
         AllScopes extends ScopeName<T, AllBuckets> ?
-          Extract<keyof T[AllBuckets][AllScopes], string> :
+          Extract<keyof T['definitions'][AllBuckets]['definitions'][AllScopes]['definitions'], string> :
         never :
       never :
     never :

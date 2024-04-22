@@ -15,13 +15,12 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { BucketName, DocDef, ScopeName } from '@cbjsdev/shared';
+import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { Bucket } from '../bucket';
 import { Collection } from '../collection';
 import { Scope } from '../scope';
 import {
-  AugmentClusterTypes,
   ClusterBucket,
   ClusterCollection,
   ClusterScope,
@@ -32,7 +31,7 @@ import {
 
 type Doc<T extends string> = { [K in T]: string };
 
-type UserClusterTypes = {
+type UserClusterTypes = ClusterTypes<{
   BucketOne: {
     ScopeOne: {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
@@ -55,44 +54,7 @@ type UserClusterTypes = {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
     };
   };
-};
-
-describe('AugmentClusterTypes', () => {
-  it('should add a new bucket', () => {
-    type Augmented = AugmentClusterTypes<UserClusterTypes, 'NewBucket'>;
-
-    expectTypeOf<BucketName<Augmented>>().toEqualTypeOf<
-      'BucketOne' | 'BucketTwo' | 'BucketThree' | 'NewBucket'
-    >();
-  });
-
-  it('should add a new scope in a single bucket', () => {
-    type Augmented = AugmentClusterTypes<UserClusterTypes, 'BucketOne', 'NewScope'>;
-
-    expectTypeOf<ScopeName<Augmented, 'BucketOne'>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeTwo' | 'NewScope'
-    >();
-    expectTypeOf<ScopeName<Augmented, 'BucketTwo'>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeThree' | 'ScopeFour'
-    >();
-  });
-
-  it('should add a new scope in a union of bucket', () => {
-    type Augmented = AugmentClusterTypes<
-      UserClusterTypes,
-      'BucketOne' | 'BucketTwo' | 'NewBucket',
-      'NewScope'
-    >;
-
-    expectTypeOf<ScopeName<Augmented, 'BucketOne'>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeTwo' | 'NewScope'
-    >();
-    expectTypeOf<ScopeName<Augmented, 'BucketTwo'>>().toEqualTypeOf<
-      'ScopeOne' | 'ScopeThree' | 'ScopeFour' | 'NewScope'
-    >();
-    expectTypeOf<ScopeName<Augmented, 'NewBucket'>>().toEqualTypeOf<'NewScope'>();
-  });
-});
+}>;
 
 describe('ClusterBucket', () => {
   it('should be extended by a Bucket that is within the described keyspace', () => {
@@ -106,7 +68,9 @@ describe('ClusterBucket', () => {
     >();
 
     // Negative
-    expectTypeOf<UserBucket>().not.toMatchTypeOf<ClusterBucket<NonNullable<unknown>>>();
+    expectTypeOf<UserBucket>().not.toMatchTypeOf<
+      ClusterBucket<ClusterTypes<NonNullable<unknown>>>
+    >();
     expectTypeOf<UserBucket>().not.toMatchTypeOf<
       ClusterBucket<UserClusterTypes, 'BucketTwo'>
     >();
@@ -142,7 +106,9 @@ describe('ClusterScope', () => {
     >();
 
     // Negative
-    expectTypeOf<UserScope>().not.toMatchTypeOf<ClusterScope<NonNullable<unknown>>>();
+    expectTypeOf<UserScope>().not.toMatchTypeOf<
+      ClusterScope<ClusterTypes<NonNullable<unknown>>>
+    >();
     expectTypeOf<UserScope>().not.toMatchTypeOf<
       ClusterScope<UserClusterTypes, 'BucketTwo'>
     >();
@@ -188,7 +154,7 @@ describe('ClusterCollection', () => {
 
     // Negative
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
-      ClusterCollection<NonNullable<unknown>>
+      ClusterCollection<ClusterTypes<NonNullable<unknown>>>
     >();
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
       ClusterCollection<UserClusterTypes, 'BucketTwo'>
@@ -257,7 +223,7 @@ describe('CollectionContainingDocDef', () => {
   type VegetableId = `vegetable::${number}`;
   type Vegetable = { name: string; expiry: number };
 
-  type UserClusterTypes = {
+  type UserClusterTypes = ClusterTypes<{
     store: {
       library: {
         books: [DocDef<BookId, Book>];
@@ -265,7 +231,7 @@ describe('CollectionContainingDocDef', () => {
         wtf: [DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>];
       };
     };
-  };
+  }>;
 
   it('should return all collections containing any of the given definitions', () => {
     expectTypeOf<
@@ -295,7 +261,7 @@ describe('CollectionMatchingDocDef', () => {
   type VegetableId = `vegetable::${number}`;
   type Vegetable = { name: string; expiry: number };
 
-  type UserClusterTypes = {
+  type UserClusterTypes = ClusterTypes<{
     store: {
       library: {
         books: [DocDef<BookId, Book>];
@@ -303,7 +269,7 @@ describe('CollectionMatchingDocDef', () => {
         wtf: [DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>];
       };
     };
-  };
+  }>;
 
   it('should return all collections matching any of the given definitions', () => {
     expectTypeOf<
@@ -333,7 +299,7 @@ describe('CollectionContainingDocBody', () => {
   type VegetableId = `vegetable::${number}`;
   type Vegetable = { name: string; expiry: number };
 
-  type UserClusterTypes = {
+  type UserClusterTypes = ClusterTypes<{
     store: {
       library: {
         books: [DocDef<BookId, Book>];
@@ -341,7 +307,7 @@ describe('CollectionContainingDocBody', () => {
         wtf: [DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>];
       };
     };
-  };
+  }>;
 
   it('should return all collections containing any of the given types', () => {
     expectTypeOf<

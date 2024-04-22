@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { ClusterTypes, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { connect } from '../../..';
 import { CouchbaseQueue } from '../../../services/kv/dataStructures';
@@ -47,7 +47,7 @@ describe('CouchbaseQueue', function () {
   });
 
   describe('User-defined ClusterTypes', function () {
-    type UserClusterTypes = {
+    type UserClusterTypes = ClusterTypes<{
       test: {
         _default: {
           collectionOne: [DocDef<string, string>];
@@ -55,7 +55,7 @@ describe('CouchbaseQueue', function () {
           collectionThree: [DocDef<string, number[]>];
         };
       };
-    };
+    }>;
 
     it('should allow to manage a queue only if the collection contains an array of the given type', async function () {
       const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');

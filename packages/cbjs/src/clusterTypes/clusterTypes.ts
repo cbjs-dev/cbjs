@@ -115,25 +115,6 @@ export type ClusterTypesWith<
   };
 };
 
-/**
- * Add additional bucket, scope, collection or documents to an existing cluster types definition.
- */
-export type AugmentClusterTypes<
-  T extends CouchbaseClusterTypes,
-  B extends string,
-  S extends string = never,
-  C extends string = never,
-  Doc = never,
-> = Pretty<
-  T & {
-    [AugmentedBucket in B]: {
-      [AugmentedScope in S]: {
-        [AugmentedCollection in C]: Doc;
-      };
-    };
-  }
->;
-
 export type AnyBucket = Bucket<any, any>;
 export type AnyScope = Scope<any, any, any>;
 export type AnyCollection = Collection<any, any, any, any>;

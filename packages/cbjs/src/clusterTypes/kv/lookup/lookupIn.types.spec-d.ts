@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
+import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import {
   connect,
@@ -52,7 +52,7 @@ describe('LookupInSpecs', () => {
     };
   };
 
-  type UserClusterTypes = {
+  type UserClusterTypes = ClusterTypes<{
     test: {
       _default: {
         _default: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
@@ -61,7 +61,7 @@ describe('LookupInSpecs', () => {
         testCollection: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
       };
     };
-  };
+  }>;
 
   describe('lookupIn', () => {
     describe('Default ClusterTypes', () => {
