@@ -66,6 +66,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tests-report-${{ github.sha }}
+          name: tests-report-${{ matrix.couchbase-server-version }}-${{ github.sha }}
           path: tests-report
           overwrite: true
