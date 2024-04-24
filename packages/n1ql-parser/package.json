@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "npm run build -- --watch",
+    "dev": "pnpm run build --watch",
     "test": "vitest --run",
     "prepack": "rm -rf dist && npm run build",
     "postinstall": "patch-package"
