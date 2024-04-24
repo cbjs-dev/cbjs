@@ -18,6 +18,7 @@ import { beforeEach, describe, expectTypeOf } from 'vitest';
 
 import {
   DocumentNotFoundError,
+  DocumentUnretrievableError,
   LookupInReplicaResult,
   LookupInSpec,
   PathNotFoundError,
@@ -200,7 +201,7 @@ describe
       expect(result.content).toHaveLength(4);
     });
 
-    test('should throw DocumentNotFoundError when lookupInAnyReplica a missing document', async ({
+    test('should throw DocumentUnretrievableError when lookupInAnyReplica a missing document', async ({
       serverTestContext,
       expect,
     }) => {
@@ -211,8 +212,8 @@ describe
           LookupInSpec.get('str'),
         ]);
       } catch (err) {
-        expect(err).toBeInstanceOf(DocumentNotFoundError);
-        invariant(err instanceof DocumentNotFoundError);
+        expect(err).toBeInstanceOf(DocumentUnretrievableError);
+        invariant(err instanceof DocumentUnretrievableError);
         // Issue JSCBC-1228
         // expect(err.context).toBeInstanceOf(KeyValueErrorContext);
       }
