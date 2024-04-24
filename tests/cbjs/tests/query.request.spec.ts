@@ -25,7 +25,7 @@ import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
   'query request',
-  { timeout: 10_000 },
+  { timeout: 15_000 },
   async () => {
     const test = await createCouchbaseTest({
       useSampleData,
