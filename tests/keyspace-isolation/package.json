@@ -8,10 +8,14 @@
   "scripts": {
     "test": "vitest --run"
   },
-  "dependencies": {
-    "@cbjsdev/cbjs": "*"
-  },
   "devDependencies": {
-    "@cbjsdev/vitest": "*"
+    "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/http-client": "workspace:*",
+    "@cbjsdev/shared": "workspace:*",
+    "@cbjsdev/vitest": "workspace:*",
+    "http-client": "^4.3.1",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
+    "vitest": "1.5.1"
   }
 }

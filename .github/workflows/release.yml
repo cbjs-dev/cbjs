@@ -16,9 +16,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 7
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18.x
+          cache: 'pnpm'
 
       - run: npx changelogithub
         env:
