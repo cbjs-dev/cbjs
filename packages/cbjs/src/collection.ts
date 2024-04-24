@@ -2154,7 +2154,7 @@ export class Collection<
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options: LookupInOptions,
+    options: LookupInAllReplicasOptions,
     callback?: NodeCallback<
       LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
     >
@@ -2177,7 +2177,7 @@ export class Collection<
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
-    specs?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
+    specs?: LookupInAllReplicasOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
   ): LookupInReturnType<this, 'lookupInAllReplicas', Key, SpecDefinitions>;
 
   lookupInAllReplicas<

@@ -234,6 +234,7 @@ describe
             testDocKey,
             [LookupInSpec.exists('$document.revid', { xattr: true })],
             {
+              // @ts-expect-error invalid option
               accessDeleted: true,
             }
           )
