@@ -21,7 +21,7 @@ import {
   waitForAnalyticsCluster,
   waitForIndexer,
 } from '@cbjsdev/http-client';
-import { getApiConfig, sleep } from '@cbjsdev/shared';
+import { getApiConfig } from '@cbjsdev/shared';
 
 const apiConfig = getApiConfig();
 
