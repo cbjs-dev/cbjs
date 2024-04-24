@@ -10,30 +10,22 @@
 }
 
 .is-home .icon > span.couchbase-logo {
-    border-radius: 9999px;
     background-color: white;
     background-image: url("/couchbase-logo-light.svg");
     color: #EC1218FF;
 }
 
 html.dark .is-home .icon > span.couchbase-logo {
-    border-radius: 9999px;
     background-color: #EC1218FF;
     background-image: url("/couchbase-logo-dark.svg");
 }
 
-.is-home .icon > span.autocompletion {
-    height: 29px;
-    width: 29px;
-    font-size: 0.6em;
-    font-weight: bolder;
-    color: var(--vp-button-brand-hover-bg);
+.is-home .icon > span.autocompletion-icon {
+    background-image: url("/autocompletion-icon.svg");
 }
 
-.is-home .icon > span.autocompletion span.prediction {
-    /*color: lightblue;*/
-    padding-left: 0.1em;
-    opacity: 40%;
+html.dark .is-home .icon > span.autocompletion-icon {
+    background-image: url("/autocompletion-icon-dark.svg");
 }
 
 :root {

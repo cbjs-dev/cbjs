@@ -21,7 +21,7 @@ hero:
 
 features:
   - title: Autocompletion
-    icon: <span class="autocompletion"><span>T</span><span class="prediction">itle</span></span>
+    icon: <span class="autocompletion-icon"></span>
     details: Your IDE will autocomplete document keys and document path for sub-document operations.
   - title: Amazing TypeScript support
     icon: <span><img src="/typescript-logo.svg" /></span>
