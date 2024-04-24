@@ -122,7 +122,7 @@ import {
 } from './services/kv/dataStructures';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
-import type { LookupInArgs, LookupInReturnType } from './services/kv/lookupIn/types';
+import type { LookupInReturnType } from './services/kv/lookupIn/types';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
 import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs';
 import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
@@ -1840,12 +1840,6 @@ export class Collection<
   /**
    * Performs a lookup-in operation against a document, fetching individual fields or
    * information about specific fields inside the document value.
-   *
-   * @param key The document key to look in.
-   * @param specsOrOptions { LookupInOptions | LookupInSpec[] } Lookup specs or parameters for this operation.
-   * an instance of {@link LookupSpecs}.
-   * @param optionsOrCallback { LookupInOptions | NodeCallback } Options for this operation or a node-style callback to be invoked after execution.
-   * @param callback Optional node-style callback to be invoked after execution.
    */
   lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
@@ -1853,11 +1847,13 @@ export class Collection<
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
-    ...args: LookupInArgs<
-      Doc,
-      SpecDefinitions,
-      LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>
-    >
+    ...args: [
+      specsOrOptions?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>,
+      optionsOrCallback?:
+        | LookupInOptions
+        | NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
+      callback?: NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
+    ]
   ): LookupInReturnType<this, 'lookupIn', Key, SpecDefinitions> {
     const { specs, options, callback: resolvedCallback } = resolveLookupInArgs(args);
 
@@ -2083,7 +2079,7 @@ export class Collection<
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options: LookupInOptions,
+    options: LookupInAnyReplicaOptions,
     callback?: NodeCallback<
       LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
     >
@@ -2106,7 +2102,7 @@ export class Collection<
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
-    specs?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
+    specs?: LookupInAnyReplicaOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
   ): LookupInReturnType<this, 'lookupInAnyReplica', Key, SpecDefinitions>;
 
   lookupInAnyReplica<
@@ -2115,11 +2111,17 @@ export class Collection<
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
-    ...args: LookupInArgs<
-      Doc,
-      SpecDefinitions,
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
-    >
+    ...args: [
+      specsOrOptions?:
+        | LookupInAnyReplicaOptions
+        | NarrowLookupSpecs<Doc, SpecDefinitions>,
+      optionsOrCallback?:
+        | LookupInOptions
+        | NodeCallback<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
+      callback?: NodeCallback<
+        LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
+      >,
+    ]
   ):
     | Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
     | ChainableLookupIn<this, 'lookupInAnyReplica', Key, []> {
@@ -2184,11 +2186,19 @@ export class Collection<
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   >(
     key: Key,
-    ...args: LookupInArgs<
-      Doc,
-      SpecDefinitions,
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
-    >
+    ...args: [
+      specsOrOptions?:
+        | LookupInAllReplicasOptions
+        | NarrowLookupSpecs<Doc, SpecDefinitions>,
+      optionsOrCallback?:
+        | LookupInAllReplicasOptions
+        | NodeCallback<
+            LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
+          >,
+      callback?: NodeCallback<
+        LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
+      >,
+    ]
   ):
     | Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>
     | ChainableLookupIn<this, 'lookupInAllReplicas', Key, []> {

@@ -19,7 +19,7 @@ import { If, IsArrayLengthKnown, PromiseValue } from '@cbjsdev/shared';
 import { AnyCollection } from '../../../clusterTypes';
 import { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
 import { LookupInSpecResults, NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types';
-import { LookupInOptions } from '../../../collection';
+import { LookupInAllReplicasOptions, LookupInAnyReplicaOptions, LookupInOptions } from '../../../collection';
 import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';
 import { NodeCallback } from '../../../utilities';
@@ -40,12 +40,12 @@ export type LookupMethod<
   lookupInAnyReplica: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInOptions | undefined
+    options: LookupInAnyReplicaOptions | undefined
   ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
   lookupInAllReplicas: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInOptions | undefined
+    options: LookupInAllReplicasOptions | undefined
   ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
 }[Method];
 
@@ -60,7 +60,7 @@ export type LookupInArgs<
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   OpResult
 > = readonly [
-      specsOrOptions?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>,
+      specsOrOptions?: LookupInOptions | LookupInAnyReplicaOptions | LookupInAllReplicasOptions | NarrowLookupSpecs<Doc, SpecDefinitions>,
       optionsOrCallback?: LookupInOptions | NodeCallback<OpResult>,
       callback?: NodeCallback<OpResult>
     ]

@@ -18,6 +18,7 @@ import { beforeEach, describe, expectTypeOf } from 'vitest';
 
 import {
   DocumentNotFoundError,
+  DocumentUnretrievableError,
   LookupInReplicaResult,
   LookupInSpec,
   PathNotFoundError,
@@ -224,22 +225,19 @@ describe
     });
 
     test.runIf(serverSupportsFeatures(ServerFeatures.Xattr))(
-      'should be able to lookup `revid` with accessDeleted successfully',
+      'should not be able to lookup `revid` with accessDeleted',
       async ({ serverTestContext, testDocKey, expect }) => {
         await serverTestContext.collection.remove(testDocKey);
 
-        const result = await serverTestContext.collection.lookupInAllReplicas(
-          testDocKey,
-          [LookupInSpec.exists('$document.revid', { xattr: true })],
-          {
-            accessDeleted: true,
-          }
-        );
-
-        expect(result).toBeInstanceOf(Array);
-        expect(result[0].cas).toBeNonZeroCAS();
-        expect(result[0].content[0].error).toBeNull();
-        expect(result[0].content[0].value).toEqual(true);
+        await expect(
+          serverTestContext.collection.lookupInAllReplicas(
+            testDocKey,
+            [LookupInSpec.exists('$document.revid', { xattr: true })],
+            {
+              accessDeleted: true,
+            }
+          )
+        ).rejects.toThrowError(DocumentNotFoundError);
       }
     );
   });
