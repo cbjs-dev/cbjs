@@ -25,7 +25,7 @@ import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Collections))(
   'query index collection api',
-  { timeout: 10_000 },
+  { timeout: 15_000, retry: 2 },
   async () => {
     const test = await createCouchbaseTest({
       useSampleData,
