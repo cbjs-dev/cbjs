@@ -62,7 +62,7 @@ jobs:
       - name: Run all tests
         run: |
           for i in {1..50}; do
-            NODE_OPTIONS="--max-old-space-size=8192" ./node_modules/.bin/vitest kv --project=project:keyspace-isolation --run
+            NODE_OPTIONS="--max-old-space-size=8192" ./node_modules/.bin/vitest kv --project=project:keyspace-isolation --run || true
           done
 
       - name: Upload Segfault if any
