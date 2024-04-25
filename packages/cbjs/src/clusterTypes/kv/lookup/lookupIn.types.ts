@@ -72,12 +72,16 @@ export type LookupInSpecResult<Spec extends LookupInSpec, CollectionDocuments> =
  *
  * @internal
  */
-export type LookupInResultEntries<Results extends ReadonlyArray<unknown>> =
+export type LookupInResultEntries<Results extends ReadonlyArray<unknown>, ThrowOnSpecError extends boolean> =
   Results extends readonly [infer Head extends unknown, ...infer Rest extends ReadonlyArray<unknown>] ?
-    [LookupInResultEntry<Head, null> | LookupInResultEntry<undefined, Error>, ...LookupInResultEntries<Rest>] :
+    ThrowOnSpecError extends true ?
+      [LookupInResultEntry<Head, null>, ...LookupInResultEntries<Rest, ThrowOnSpecError>] :
+    [LookupInResultEntry<Head, null> | LookupInResultEntry<undefined, Error>, ...LookupInResultEntries<Rest, ThrowOnSpecError>] :
   IsArrayLengthFixed<Results> extends true ?
     [] :
-  LookupInResultEntry<ArrayElement<Results>, null> | LookupInResultEntry<undefined, Error>[]
+  ThrowOnSpecError extends true ?
+    Array<LookupInResultEntry<ArrayElement<Results>, null>> :
+  Array<LookupInResultEntry<ArrayElement<Results>, null> | LookupInResultEntry<undefined, Error>>
 ;
 
 /**

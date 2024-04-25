@@ -235,11 +235,14 @@ export class LookupInResultEntry<Value = any, Err extends Error | null = Error |
  *
  * @category Key-Value
  */
-export class LookupInResult<Results extends ReadonlyArray<unknown> = any[]> {
+export class LookupInResult<
+  Results extends ReadonlyArray<unknown> = any[],
+  ThrowOnSpecError extends boolean = false,
+> {
   /**
    * A list of result entries for each sub-operation performed.
    */
-  content: LookupInResultEntries<Results>;
+  content: LookupInResultEntries<Results, ThrowOnSpecError>;
   /**
    * The cas of the document.
    */
@@ -248,7 +251,10 @@ export class LookupInResult<Results extends ReadonlyArray<unknown> = any[]> {
   /**
    * @internal
    */
-  constructor(data: { content: LookupInResultEntries<Results>; cas: Cas }) {
+  constructor(data: {
+    content: LookupInResultEntries<Results, ThrowOnSpecError>;
+    cas: Cas;
+  }) {
     this.content = data.content;
     this.cas = data.cas;
   }
@@ -258,10 +264,10 @@ export class LookupInResult<Results extends ReadonlyArray<unknown> = any[]> {
    *
    * @deprecated Use {@link LookupInResult.content} instead.
    */
-  get results(): LookupInResultEntries<Results> {
+  get results(): LookupInResultEntries<Results, ThrowOnSpecError> {
     return this.content;
   }
-  set results(v: LookupInResultEntries<Results>) {
+  set results(v: LookupInResultEntries<Results, ThrowOnSpecError>) {
     this.content = v;
   }
 }
@@ -271,11 +277,14 @@ export class LookupInResult<Results extends ReadonlyArray<unknown> = any[]> {
  *
  * @category Key-Value
  */
-export class LookupInReplicaResult<Results extends ReadonlyArray<unknown> = any[]> {
+export class LookupInReplicaResult<
+  Results extends ReadonlyArray<unknown> = any[],
+  ThrowOnSpecError extends boolean = false,
+> {
   /**
    * A list of result entries for each sub-operation performed.
    */
-  content: LookupInResultEntries<Results>;
+  content: LookupInResultEntries<Results, ThrowOnSpecError>;
   /**
    * The cas of the document.
    */
@@ -287,7 +296,7 @@ export class LookupInReplicaResult<Results extends ReadonlyArray<unknown> = any[
   isReplica: boolean;
 
   constructor(data: {
-    content: LookupInResultEntries<Results>;
+    content: LookupInResultEntries<Results, ThrowOnSpecError>;
     cas: Cas;
     isReplica: boolean;
   }) {

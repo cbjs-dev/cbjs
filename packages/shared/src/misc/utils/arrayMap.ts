@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ArrayElement, ArrayMap } from '../../couchbase';
+import { hasOwn } from './hasOwn';
 
-export { hasOwn } from './hasOwn';
+export function arrayMap<
+  const T extends ReadonlyArray<object>,
+  U extends keyof ArrayElement<T>,
+>(arr: T, prop: U) {
+  return arr.map((e) => {
+    if (hasOwn(e, prop)) {
+      return e[prop];
+    }
 
-export * from './invariant';
-export * from './raise';
-export * from './sleep';
-export * from './types';
-export * from './waitFor';
-export * from './arrayFirstElement';
-export * from './arrayLastElement';
-export * from './arrayMap';
-export * from './isArray';
-
-export * from './jsonToUrlSearchParams';
+    throw new Error(`Property ${prop.toString()} not found on an array element.`);
+  }) as ArrayMap<T, U>;
+}
