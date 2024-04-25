@@ -81,6 +81,11 @@ const { content } = await collection
   .count('metadata.tags');
 ```
 
+::: info
+When using the classic lookupIn, the request is executed immediately, regardless of it being awaited or not.
+Chained lookup will only trigger the request once awaited or `.then()` is called on it.
+:::
+
 #### Error handling
 
 During a `lookupIn`, the function will not throw if the error is related to a `LookupInSpec`. Instead, the result will include the error, and the value will be `undefined`.
@@ -96,10 +101,6 @@ const [
   comments, // { value: undefined; error: PathNotFoundError }
 ] = content;
 ```
-
-::: warning
-Be careful when checking for error, as the `error` property is null when the operation succeeds, but the value is `undefined` when the operation fails.
-:::
 
 ## Writing a document
 
