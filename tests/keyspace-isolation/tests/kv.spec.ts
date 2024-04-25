@@ -21,6 +21,8 @@ describe('kv', { timeout: 5_000 }, () => {
     expect(content).toEqual({ title: 'insert' });
   });
 
+  // TODO en regardant le segfault je vois "unknown_collection", peut-être que la collection n'est pas encore connue
+  // TODO de la bucket map du client
   it('should isolate a get', async ({ expect, getCluster }) => {
     const cluster = await getCluster();
 

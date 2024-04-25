@@ -26,18 +26,10 @@ describe('kv-no-isolation', () => {
       title: 'test',
     });
 
-    try {
-      await collection.insert('docKey', {
+    await expect(
+      collection.insert('docKey', {
         title: 'error',
-      });
-    } catch (err) {
-      expect(err).toBeInstanceOf(DocumentExistsError);
-    }
-
-    // await expect(
-    //   collection.insert('docKey', {
-    //     title: 'error',
-    //   })
-    // ).rejects.toThrowError(DocumentExistsError);
+      })
+    ).rejects.toThrowError(DocumentExistsError);
   });
 });
