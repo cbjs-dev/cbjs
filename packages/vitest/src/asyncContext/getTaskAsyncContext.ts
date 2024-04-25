@@ -31,13 +31,12 @@ export function getTaskAsyncContext(taskId: string): CbjsAsyncContextData {
   const { taskAsyncIdMap, contextMap } = getCbjsContextTracking();
 
   const taskAsyncId = taskAsyncIdMap.get(taskId);
-
-  if (!taskAsyncId) {
-    throw new TaskContextNotFoundError(taskId);
-  }
+  invariant(taskAsyncId, `Async ID not found for task '${taskId}'`);
 
   const asyncContext = contextMap.get(taskAsyncId);
-  invariant(asyncContext);
+  if (!asyncContext) {
+    throw new TaskContextNotFoundError(taskId);
+  }
 
   return asyncContext;
 }

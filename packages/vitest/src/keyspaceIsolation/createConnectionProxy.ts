@@ -84,11 +84,11 @@ export function createConnectionProxy(conn: CppConnection) {
       if (Object.keys(transformArgs).includes(prop)) {
         const targetMethod = prop as keyof typeof transformArgs;
         return proxifyFunction(target, targetMethod, receiver, (...args) => {
-          const transformFunction = transformArgs[targetMethod] as (
+          const transformArgsFunction = transformArgs[targetMethod] as (
             m: KeyspaceIsolationPool,
             ...tArgs: typeof args
           ) => Promise<typeof args>;
-          return transformFunction(isolationPool, ...args);
+          return transformArgsFunction(isolationPool, ...args);
         });
       }
 

@@ -70,7 +70,7 @@ export class KeyspaceIsolationPool {
     try {
       const { keyspaceIsolationRealm: realm, keyspaceIsolationLevel } =
         getTaskAsyncContext(taskId);
-      invariant(realm, 'No keyspace realm exist in this task.');
+      invariant(realm, `No keyspace realm exist for task '${taskId}'.`);
 
       if (realm.isKeyspaceIsolated(requestedKeyspace)) {
         return realm.getIsolatedKeyspaceNames(requestedKeyspace) as T;

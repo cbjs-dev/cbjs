@@ -3,11 +3,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     workspace: './vitest.workspace.ts',
-    // isolate: false,
     pool: 'threads',
+    fileParallelism: false,
     minWorkers: 1,
-    maxWorkers: 2,
-    hookTimeout: 30_000,
+    maxWorkers: 1,
+    hookTimeout: 10_000,
     teardownTimeout: 10_000,
     disableConsoleIntercept: true,
     sequence: {

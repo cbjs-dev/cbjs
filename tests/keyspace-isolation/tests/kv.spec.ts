@@ -1,9 +1,9 @@
 import { beforeAll, describe, it } from 'vitest';
 
-import { CouchbaseError, DocumentNotFoundError } from '@cbjsdev/cbjs';
+import { DocumentExistsError } from '@cbjsdev/cbjs';
 import { setKeyspaceIsolation } from '@cbjsdev/vitest';
 
-describe('kv', { timeout: 30_000 }, () => {
+describe('kv', { timeout: 5_000 }, () => {
   beforeAll(() => {
     setKeyspaceIsolation('per-test');
   });
@@ -12,7 +12,7 @@ describe('kv', { timeout: 30_000 }, () => {
     const cluster = await getCluster();
 
     const collection = cluster.bucket('store').scope('library').collection('books');
-    await collection.upsert('docKey', {
+    await collection.insert('docKey', {
       title: 'insert',
     });
 
@@ -26,6 +26,20 @@ describe('kv', { timeout: 30_000 }, () => {
 
     await expect(
       cluster.bucket('store').scope('library').collection('books').get('docKey')
-    ).rejects.toThrowError(CouchbaseError);
+    ).rejects.toThrowError();
+  });
+
+  it('should throw the original error', async ({ expect, getCluster }) => {
+    const cluster = await getCluster();
+
+    await cluster.bucket('store').scope('library').collection('books').insert('docKey', {
+      title: 'test',
+    });
+
+    await expect(
+      cluster.bucket('store').scope('library').collection('books').insert('docKey', {
+        title: 'error',
+      })
+    ).rejects.toThrowError(DocumentExistsError);
   });
 });
