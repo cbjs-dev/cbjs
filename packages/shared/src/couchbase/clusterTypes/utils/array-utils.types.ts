@@ -66,17 +66,17 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
       ? Rest['length']
       : never;
 
-
 /**
  * Return the type of the last element of the array.
  */
+// prettier-ignore
 export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
   GetArrayInfo<T> extends {
-      IsFullyStatic: unknown;
-      IsHeadStatic: unknown;
-      IsTailStatic: infer IsTailStatic extends boolean;
-      RestElement: infer RestElement extends unknown;
-      StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
+    IsFullyStatic: unknown;
+    IsHeadStatic: unknown;
+    IsTailStatic: infer IsTailStatic extends boolean;
+    RestElement: infer RestElement extends unknown;
+    StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
     } ?
     IsTailStatic extends true ?
       StaticSlice[ArrayLastIndex<StaticSlice>] :
@@ -87,13 +87,14 @@ export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
 /**
  * Return the type of the first element of the array.
  */
+// prettier-ignore
 export type ArrayFirstElement<T extends ReadonlyArray<unknown>> =
   GetArrayInfo<T> extends {
-      IsFullyStatic: unknown;
-      IsHeadStatic: infer IsHeadStatic extends boolean;
-      IsTailStatic: unknown;
-      RestElement: infer RestElement extends unknown;
-      StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
+    IsFullyStatic: unknown;
+    IsHeadStatic: infer IsHeadStatic extends boolean;
+    IsTailStatic: unknown;
+    RestElement: infer RestElement extends unknown;
+    StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
     } ?
     IsHeadStatic extends true ?
       StaticSlice[0] :
@@ -128,25 +129,34 @@ export type ArrayEntries<T extends ReadonlyArray<unknown>, FilterType = never> =
  * TupleFilter<[string], string> // [string]
  * TupleFilter<['title'], string> // [] because `string` cannot be assigned to the literal `title`
  */
+// prettier-ignore
 export type TupleFilter<
   T extends ReadonlyArray<unknown>,
   FilterType = never,
   ReverseExtend extends boolean = false,
   Filtered extends ReadonlyArray<unknown> = [],
 > =
-  IsNever<FilterType> extends true
-    ? T
-    : T extends readonly [infer Head, ...infer Rest]
-      ? ReverseExtend extends false
-        ? FilterType extends Head
-          ? TupleFilter<Rest, FilterType, ReverseExtend, [...Filtered, Head]>
-          : TupleFilter<Rest, FilterType, ReverseExtend, Filtered>
-        : ReverseExtend extends true
-          ? Head extends FilterType
-            ? TupleFilter<Rest, FilterType, ReverseExtend, [...Filtered, Head]>
-            : TupleFilter<Rest, FilterType, ReverseExtend, Filtered>
-          : never
-      : Filtered;
+  IsNever<FilterType> extends true ?
+    T :
+  T extends readonly [infer Head, ...infer Rest] ?
+    ReverseExtend extends false ?
+      FilterType extends Head ?
+        TupleFilter<Rest, FilterType, ReverseExtend, [...Filtered, Head]> :
+      TupleFilter<Rest, FilterType, ReverseExtend, Filtered> :
+    ReverseExtend extends true ?
+      Head extends FilterType ?
+        TupleFilter<Rest, FilterType, ReverseExtend, [...Filtered, Head]> :
+      TupleFilter<Rest, FilterType, ReverseExtend, Filtered> :
+    never :
+  Filtered
+;
+
+// prettier-ignore
+export type ArrayExclude<T extends ReadonlyArray<unknown>, U> =
+  T extends readonly [infer Head, ...infer Rest] ?
+    [Exclude<Head, U>, ...ArrayExclude<Rest, U>] :
+  []
+;
 
 /**
  * Information about an array.

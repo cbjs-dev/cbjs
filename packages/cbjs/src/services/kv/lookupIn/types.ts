@@ -30,38 +30,41 @@ export type LookupMethodName = 'lookupIn' | 'lookupInAnyReplica' | 'lookupInAllR
 export type LookupMethod<
   Method extends LookupMethodName,
   Doc,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  ThrowOnSpecError extends boolean
 > = {
   lookupIn: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInOptions | undefined
-  ) => Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
+    options: LookupInOptions<ThrowOnSpecError> | undefined
+  ) => Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>>;
   lookupInAnyReplica: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInAnyReplicaOptions | undefined
-  ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
+    options: LookupInAnyReplicaOptions<ThrowOnSpecError> | undefined
+  ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>>;
   lookupInAllReplicas: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInAllReplicasOptions | undefined
-  ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
+    options: LookupInAllReplicasOptions<ThrowOnSpecError> | undefined
+  ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]>;
 }[Method];
 
 export type LookupResult<
   Method extends LookupMethodName,
   Doc,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>
-> = PromiseValue<ReturnType<LookupMethod<Method, Doc, SpecDefinitions>>>;
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  ThrowOnSpecError extends boolean
+> = PromiseValue<ReturnType<LookupMethod<Method, Doc, SpecDefinitions, ThrowOnSpecError>>>;
 
 export type LookupInArgs<
   Doc extends object,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-  OpResult
+  OpResult,
+  ThrowOnSpecError extends boolean
 > = readonly [
-      specsOrOptions?: LookupInOptions | LookupInAnyReplicaOptions | LookupInAllReplicasOptions | NarrowLookupSpecs<Doc, SpecDefinitions>,
-      optionsOrCallback?: LookupInOptions | NodeCallback<OpResult>,
+      specsOrOptions?: LookupInOptions<ThrowOnSpecError> | LookupInAnyReplicaOptions<ThrowOnSpecError> | LookupInAllReplicasOptions<ThrowOnSpecError> | NarrowLookupSpecs<Doc, SpecDefinitions>,
+      optionsOrCallback?: LookupInOptions<ThrowOnSpecError> | LookupInAnyReplicaOptions<ThrowOnSpecError> | LookupInAllReplicasOptions<ThrowOnSpecError> | NodeCallback<OpResult>,
       callback?: NodeCallback<OpResult>
     ]
 ;
@@ -70,13 +73,14 @@ export type LookupInReturnType<
   C extends AnyCollection,
   Method extends LookupMethodName,
   Key extends ExtractCollectionJsonDocKey<C>,
-  SpecDefinitions
+  SpecDefinitions,
+  ThrowOnSpecError extends boolean
 > =
   SpecDefinitions extends ReadonlyArray<LookupInSpec> ?
     If<
       IsArrayLengthKnown<SpecDefinitions>,
-      Promise<LookupResult<Method, ExtractCollectionJsonDocBody<C, Key>, SpecDefinitions>>,
-      ChainableLookupIn<C, Method, Key, []>
+      Promise<LookupResult<Method, ExtractCollectionJsonDocBody<C, Key>, SpecDefinitions, ThrowOnSpecError>>,
+      ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError>
     > :
-  ChainableLookupIn<C, Method, Key, []>
+  ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError>
 ;

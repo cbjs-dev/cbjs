@@ -31,7 +31,11 @@ import type {
   LookupInExistsPath,
   LookupInGetPath,
 } from '../../../clusterTypes/kv/lookup/lookupOperations.types';
-import type { LookupInOptions } from '../../../collection';
+import type {
+  LookupInAllReplicasOptions,
+  LookupInAnyReplicaOptions,
+  LookupInOptions,
+} from '../../../collection';
 import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
 import { LookupInSpec } from '../../../sdspecs';
 import type { LookupMethodName } from './types';
@@ -40,29 +44,39 @@ type LookupMethod<
   Method extends LookupMethodName,
   Doc,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  ThrowOnSpecError extends boolean,
 > = {
   lookupIn: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInOptions | undefined
-  ) => Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
+    options: LookupInOptions<ThrowOnSpecError> | undefined
+  ) => Promise<
+    LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+  >;
   lookupInAnyReplica: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInOptions | undefined
-  ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
+    options: LookupInAnyReplicaOptions<ThrowOnSpecError> | undefined
+  ) => Promise<
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+  >;
   lookupInAllReplicas: (
     key: string,
     specs: SpecDefinitions,
-    options: LookupInOptions | undefined
-  ) => Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
+    options: LookupInAllReplicasOptions<ThrowOnSpecError> | undefined
+  ) => Promise<
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]
+  >;
 }[Method];
 
 type LookupResult<
   Method extends LookupMethodName,
   Doc,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-> = PromiseValue<ReturnType<LookupMethod<Method, Doc, SpecDefinitions>>>;
+  ThrowOnSpecError extends boolean,
+> = PromiseValue<
+  ReturnType<LookupMethod<Method, Doc, SpecDefinitions, ThrowOnSpecError>>
+>;
 
 type ThisAnd<T, Spec extends LookupInSpec> =
   T extends ChainableLookupIn<
@@ -70,9 +84,10 @@ type ThisAnd<T, Spec extends LookupInSpec> =
     infer Method,
     infer Key,
     infer SpecDefinitions,
+    infer ThrowOnSpecError,
     infer Doc
   >
-    ? ChainableLookupIn<C, Method, Key, [...SpecDefinitions, Spec], Doc>
+    ? ChainableLookupIn<C, Method, Key, [...SpecDefinitions, Spec], ThrowOnSpecError, Doc>
     : never;
 
 export class ChainableLookupIn<
@@ -80,17 +95,21 @@ export class ChainableLookupIn<
   Method extends LookupMethodName,
   Key extends ExtractCollectionJsonDocKey<C>,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  ThrowOnSpecError extends boolean,
   Doc extends ExtractCollectionJsonDocBody<C, Key> = ExtractCollectionJsonDocBody<C, Key>,
-> implements Promise<LookupResult<Method, Doc, SpecDefinitions>>
+> implements Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>>
 {
   // Promise stuff
 
   [Symbol.toStringTag] = 'ChainableLookupInSpecs';
 
-  then<TResult1 = LookupResult<Method, Doc, SpecDefinitions>, TResult2 = never>(
+  then<
+    TResult1 = LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>,
+    TResult2 = never,
+  >(
     onFulfilled?:
       | ((
-          value: LookupResult<Method, Doc, SpecDefinitions>
+          value: LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>
         ) => TResult1 | PromiseLike<TResult1>)
       | undefined
       | null,
@@ -104,13 +123,13 @@ export class ChainableLookupIn<
 
   catch<TResult = never>(
     onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null | undefined
-  ): Promise<LookupResult<Method, Doc, SpecDefinitions> | TResult> {
+  ): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError> | TResult> {
     return this.then(undefined, onRejected);
   }
 
   finally(
     onFinally?: (() => void) | null | undefined
-  ): Promise<LookupResult<Method, Doc, SpecDefinitions>> {
+  ): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>> {
     return this.then(
       (value) => {
         onFinally?.();
@@ -128,7 +147,7 @@ export class ChainableLookupIn<
     protected collection: C,
     protected method: Method,
     protected key: Key,
-    protected options: LookupInOptions | undefined,
+    protected options: LookupInOptions<ThrowOnSpecError> | undefined,
     protected specs: SpecDefinitions
   ) {}
 
@@ -136,12 +155,13 @@ export class ChainableLookupIn<
     C extends AnyCollection,
     Method extends LookupMethodName,
     Key extends ExtractCollectionJsonDocKey<C>,
+    ThrowOnSpecError extends boolean,
   >(
     collection: C,
     method: Method,
     key: Key,
-    options: LookupInOptions | undefined
-  ): ChainableLookupIn<C, Method, Key, []> {
+    options: LookupInOptions<ThrowOnSpecError> | undefined
+  ): ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError> {
     return new ChainableLookupIn(collection, method, key, options, []);
   }
 
@@ -156,7 +176,7 @@ export class ChainableLookupIn<
     ) as ThisAnd<this, Spec>;
   }
 
-  execute(): Promise<LookupResult<Method, Doc, SpecDefinitions>> {
+  execute(): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>> {
     const lookupMethod = this.collection[this.method as Method & keyof C];
     const lookup = lookupMethod.bind(this.collection) as any;
 

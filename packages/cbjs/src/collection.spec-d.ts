@@ -59,11 +59,11 @@ describe('Collection', async () => {
   describe('lookupIn', async () => {
     it('should have the correct return type', async () => {
       expectTypeOf(collection.lookupIn('book::001')).toEqualTypeOf<
-        ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', []>
+        ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', [], false>
       >();
 
       expectTypeOf(collection.lookupIn('book::001', { timeout: 200 })).toEqualTypeOf<
-        ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', []>
+        ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', [], false>
       >();
 
       expectTypeOf(
@@ -112,6 +112,20 @@ describe('Collection', async () => {
       expectTypeOf(title).toEqualTypeOf<
         LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>
       >();
+
+      if (title.error) return;
+
+      expectTypeOf(title.value).toEqualTypeOf<string>();
+    });
+
+    it('should narrow the type of LookupInResult properties with throwOnSpecError: true', async () => {
+      const { content } = await collection.lookupIn(
+        'book::001',
+        [LookupInSpec.get('title')],
+        { throwOnSpecError: true }
+      );
+      const [title] = content;
+      expectTypeOf(title).toEqualTypeOf<LookupInResultEntry<string, null>>();
 
       if (title.error) return;
 

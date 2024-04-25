@@ -86,6 +86,25 @@ describe.shuffle('kv lookupIn', async () => {
     expect(res.content).toStrictEqual(res.results);
   });
 
+  test('should throw during lookupIn if a spec fails and throwOnSpecError is true', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    await expect(
+      serverTestContext.collection.lookupIn(
+        testDocKey,
+        [
+          LookupInSpec.get('str'),
+          LookupInSpec.get('int'),
+          LookupInSpec.get('missingPath'),
+          LookupInSpec.exists('missingPath'),
+        ],
+        { throwOnSpecError: true }
+      )
+    ).resolves.toThrowError(PathNotFoundError);
+  });
+
   test('should lookupIn given specs with options', async ({
     serverTestContext,
     testDocKey,
@@ -123,7 +142,9 @@ describe.shuffle('kv lookupIn', async () => {
         expectTypeOf(err).toEqualTypeOf<Error | null>();
         if (err) return;
 
-        expectTypeOf(res).toEqualTypeOf<LookupInResult<[any, any, any, boolean]>>();
+        expectTypeOf(res).toEqualTypeOf<
+          LookupInResult<[any, any, any, boolean], false>
+        >();
       }
     );
 
@@ -149,7 +170,9 @@ describe.shuffle('kv lookupIn', async () => {
         expectTypeOf(err).toEqualTypeOf<Error | null>();
         if (err) return;
 
-        expectTypeOf(res).toEqualTypeOf<LookupInResult<[any, any, any, boolean]>>();
+        expectTypeOf(res).toEqualTypeOf<
+          LookupInResult<[any, any, any, boolean], false>
+        >();
       }
     );
 

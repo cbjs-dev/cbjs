@@ -526,7 +526,9 @@ describe('LookupInSpecs', () => {
 
   describe('LookupInResultEntries', () => {
     it('should infer the array of result', () => {
-      expectTypeOf<LookupInResultEntries<[string, number, boolean]>>().toEqualTypeOf<
+      expectTypeOf<
+        LookupInResultEntries<[string, number, boolean], false>
+      >().toEqualTypeOf<
         [
           LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>,
           LookupInResultEntry<number, null> | LookupInResultEntry<undefined, Error>,
@@ -534,8 +536,8 @@ describe('LookupInSpecs', () => {
         ]
       >();
 
-      expectTypeOf<LookupInResultEntries<boolean[]>>().toEqualTypeOf<
-        LookupInResultEntry<boolean, null> | LookupInResultEntry<undefined, Error>[]
+      expectTypeOf<LookupInResultEntries<boolean[], false>>().toEqualTypeOf<
+        Array<LookupInResultEntry<boolean, null> | LookupInResultEntry<undefined, Error>>
       >();
     });
   });

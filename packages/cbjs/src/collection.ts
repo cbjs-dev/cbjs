@@ -18,6 +18,7 @@ import { promisify } from 'node:util';
 
 import {
   ArrayElement,
+  ArrayExclude,
   BucketName,
   CollectionName,
   CouchbaseClusterTypes,
@@ -337,7 +338,7 @@ export interface UnlockOptions {
 /**
  * @category Key-Value
  */
-export interface LookupInOptions {
+export interface LookupInOptions<ThrowOnSpecError extends boolean = false> {
   /**
    * The timeout for this operation, represented in milliseconds.
    */
@@ -349,26 +350,50 @@ export interface LookupInOptions {
    * @internal
    */
   accessDeleted?: boolean;
+
+  /**
+   * When `true`, the operation will throw if any {@link LookupInSpec} fails.
+   * The first spec error will be thrown.
+   *
+   * @default false
+   */
+  throwOnSpecError?: ThrowOnSpecError;
 }
 
 /**
  * @category Key-Value
  */
-export interface LookupInAnyReplicaOptions {
+export interface LookupInAnyReplicaOptions<ThrowOnSpecError extends boolean = false> {
   /**
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * When `true`, the operation will throw if any {@link LookupInSpec} fails.
+   * The first spec error will be thrown.
+   *
+   * @default false
+   */
+  throwOnSpecError?: ThrowOnSpecError;
 }
 
 /**
  * @category Key-Value
  */
-export interface LookupInAllReplicasOptions {
+export interface LookupInAllReplicasOptions<ThrowOnSpecError extends boolean = false> {
   /**
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * When `true`, the operation will throw if any {@link LookupInSpec} fails.
+   * The first spec error will be thrown.
+   *
+   * @default false
+   */
+  throwOnSpecError?: ThrowOnSpecError;
 }
 
 /**
@@ -664,7 +689,8 @@ export class Collection<
       const res = await this.lookupIn<
         ExtractCollectionJsonDocKey<this>,
         Doc,
-        typeof specs
+        typeof specs,
+        false
       >(key, specs as ValidateLookupInSpecs<Doc, typeof specs>, {
         ...options,
       });
@@ -673,6 +699,7 @@ export class Collection<
       let expiry: number | undefined = undefined;
 
       if (expiryStart >= 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const expiryRes = res.content[expiryStart] as LookupInResultEntry<
           LookupInMacroResult<typeof LookupInMacro.Expiry>
         >;
@@ -683,6 +710,7 @@ export class Collection<
         if (!needReproject) {
           for (let i = 0; i < paths.length; ++i) {
             const projPath = paths[i];
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             const projRes = res.content[projStart + i] as LookupInResultEntry;
             if (!projRes.error) {
               content = SdUtils.insertByPath(content, projPath, projRes.value);
@@ -691,6 +719,7 @@ export class Collection<
         } else {
           content = {};
 
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           const reprojRes = res.content[projStart] as LookupInResultEntry;
           for (const reprojPath of paths) {
             const value = SdUtils.getByPath(reprojRes.value, reprojPath);
@@ -1845,16 +1874,23 @@ export class Collection<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     ...args: [
-      specsOrOptions?: LookupInOptions | NarrowLookupSpecs<Doc, SpecDefinitions>,
+      specsOrOptions?:
+        | LookupInOptions<ThrowOnSpecError>
+        | NarrowLookupSpecs<Doc, SpecDefinitions>,
       optionsOrCallback?:
-        | LookupInOptions
-        | NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
-      callback?: NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
+        | LookupInOptions<ThrowOnSpecError>
+        | NodeCallback<
+            LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+          >,
+      callback?: NodeCallback<
+        LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+      >,
     ]
-  ): LookupInReturnType<this, 'lookupIn', Key, SpecDefinitions> {
+  ): LookupInReturnType<this, 'lookupIn', Key, SpecDefinitions, ThrowOnSpecError> {
     const { specs, options, callback: resolvedCallback } = resolveLookupInArgs(args);
 
     if (specs === undefined) {
@@ -1862,7 +1898,8 @@ export class Collection<
         this,
         'lookupIn',
         Key,
-        SpecDefinitions
+        SpecDefinitions,
+        ThrowOnSpecError
       >;
     }
 
@@ -1871,23 +1908,35 @@ export class Collection<
       specs as NoInfer<SpecDefinitions>,
       options,
       resolvedCallback
-    ) as LookupInReturnType<this, 'lookupIn', Key, NoInfer<SpecDefinitions>>;
+    ) as LookupInReturnType<
+      this,
+      'lookupIn',
+      Key,
+      NoInfer<SpecDefinitions>,
+      ThrowOnSpecError
+    >;
   }
 
   private async _lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     specs: SpecDefinitions,
-    options: LookupInOptions,
-    callback?: NodeCallback<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>>
-  ): Promise<LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>>> {
+    options: LookupInOptions<ThrowOnSpecError>,
+    callback?: NodeCallback<
+      LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+    >
+  ): Promise<
+    LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+  > {
     try {
       const defaultOptions = {
         timeout: this.cluster.kvTimeout,
         accessDeleted: false,
+        throwOnSpecError: false,
       } satisfies LookupInOptions;
 
       const resolvedOptions = {
@@ -1917,6 +1966,10 @@ export class Collection<
       const content: LookupInResultEntry[] = [];
 
       for (const itemRes of response.fields) {
+        if (options.throwOnSpecError && itemRes.ec) {
+          throw itemRes.ec;
+        }
+
         let error: Error | null = errorFromCpp(itemRes.ec);
 
         let value: any = undefined;
@@ -1939,7 +1992,8 @@ export class Collection<
 
       const result = new LookupInResult({
         content: content as LookupInResultEntries<
-          LookupInSpecResults<SpecDefinitions, Doc>
+          LookupInSpecResults<SpecDefinitions, Doc>,
+          ThrowOnSpecError
         >,
         cas: response.cas,
       });
@@ -1963,24 +2017,29 @@ export class Collection<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     lookupInAllReplicas: boolean,
     specs: SpecDefinitions,
-    options?: { timeout?: number }
+    options?: LookupInAllReplicasOptions<ThrowOnSpecError>
   ): StreamableReplicasPromise<
     [
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>,
-      ...LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[],
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>,
+      ...LookupInReplicaResult<
+        LookupInSpecResults<SpecDefinitions, Doc>,
+        ThrowOnSpecError
+      >[],
     ],
-    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
   > {
     if (!options) {
       options = {};
     }
 
     type ResultFromReplica = LookupInReplicaResult<
-      LookupInSpecResults<SpecDefinitions, Doc>
+      LookupInSpecResults<SpecDefinitions, Doc>,
+      ThrowOnSpecError
     >;
 
     const emitter = new StreamableReplicasPromise<
@@ -2076,55 +2135,78 @@ export class Collection<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options: LookupInAnyReplicaOptions,
+    options: LookupInAnyReplicaOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
     >
-  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
+  ): Promise<
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+  >;
   lookupInAnyReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: string,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
     callback?: NodeCallback<
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
     >
-  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>;
+  ): Promise<
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+  >;
 
   lookupInAnyReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs?: LookupInAnyReplicaOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
-  ): LookupInReturnType<this, 'lookupInAnyReplica', Key, SpecDefinitions>;
+    specs?:
+      | LookupInAnyReplicaOptions<ThrowOnSpecError>
+      | NarrowLookupSpecs<Doc, SpecDefinitions>
+  ): LookupInReturnType<
+    this,
+    'lookupInAnyReplica',
+    Key,
+    SpecDefinitions,
+    ThrowOnSpecError
+  >;
 
   lookupInAnyReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ExtractCollectionJsonDocBody<this, Key>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     ...args: [
       specsOrOptions?:
-        | LookupInAnyReplicaOptions
+        | LookupInAnyReplicaOptions<ThrowOnSpecError>
         | NarrowLookupSpecs<Doc, SpecDefinitions>,
       optionsOrCallback?:
-        | LookupInOptions
-        | NodeCallback<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>,
+        | LookupInAnyReplicaOptions<ThrowOnSpecError>
+        | NodeCallback<
+            LookupInReplicaResult<
+              LookupInSpecResults<SpecDefinitions, Doc>,
+              ThrowOnSpecError
+            >
+          >,
       callback?: NodeCallback<
-        LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>
+        LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
       >,
     ]
   ):
-    | Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>>
-    | ChainableLookupIn<this, 'lookupInAnyReplica', Key, []> {
+    | Promise<
+        LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+      >
+    | ChainableLookupIn<this, 'lookupInAnyReplica', Key, [], ThrowOnSpecError> {
     const { specs, options, callback } = resolveLookupInArgs(args);
 
     if (specs === undefined) {
@@ -2151,57 +2233,84 @@ export class Collection<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
-    options: LookupInAllReplicasOptions,
+    options: LookupInAllReplicasOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]
     >
-  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
+  ): Promise<
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]
+  >;
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     specs: NarrowLookupSpecs<Doc, SpecDefinitions>,
     callback?: NodeCallback<
-      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
+      LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]
     >
-  ): Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>;
+  ): Promise<
+    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]
+  >;
 
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs?: LookupInAllReplicasOptions | NarrowLookupSpecs<Doc, SpecDefinitions>
-  ): LookupInReturnType<this, 'lookupInAllReplicas', Key, SpecDefinitions>;
+    specs?:
+      | LookupInAllReplicasOptions<ThrowOnSpecError>
+      | NarrowLookupSpecs<Doc, SpecDefinitions>
+  ): LookupInReturnType<
+    this,
+    'lookupInAllReplicas',
+    Key,
+    SpecDefinitions,
+    ThrowOnSpecError
+  >;
 
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
     Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
     ...args: [
       specsOrOptions?:
-        | LookupInAllReplicasOptions
+        | LookupInAllReplicasOptions<ThrowOnSpecError>
         | NarrowLookupSpecs<Doc, SpecDefinitions>,
       optionsOrCallback?:
-        | LookupInAllReplicasOptions
+        | LookupInAllReplicasOptions<ThrowOnSpecError>
         | NodeCallback<
-            LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
+            LookupInReplicaResult<
+              LookupInSpecResults<SpecDefinitions, Doc>,
+              ThrowOnSpecError
+            >[]
           >,
       callback?: NodeCallback<
-        LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]
+        LookupInReplicaResult<
+          LookupInSpecResults<SpecDefinitions, Doc>,
+          ThrowOnSpecError
+        >[]
       >,
     ]
   ):
-    | Promise<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>>[]>
-    | ChainableLookupIn<this, 'lookupInAllReplicas', Key, []> {
+    | Promise<
+        LookupInReplicaResult<
+          LookupInSpecResults<SpecDefinitions, Doc>,
+          ThrowOnSpecError
+        >[]
+      >
+    | ChainableLookupIn<this, 'lookupInAllReplicas', Key, [], ThrowOnSpecError> {
     const { specs, options, callback } = resolveLookupInArgs(args);
 
     if (specs === undefined) {

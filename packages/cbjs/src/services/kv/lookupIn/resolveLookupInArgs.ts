@@ -21,8 +21,12 @@ import { LookupInSpec } from '../../../sdspecs';
 import type { NodeCallback } from '../../../utilities';
 import type { LookupInArgs } from './types';
 
-type ResolvedArgs<SpecDefinitions extends ReadonlyArray<LookupInSpec>, OpResult> = {
-  options: LookupInOptions;
+type ResolvedArgs<
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  OpResult,
+  ThrowOnSpecError extends boolean,
+> = {
+  options: LookupInOptions<ThrowOnSpecError>;
   callback: NodeCallback<OpResult> | undefined;
   specs: SpecDefinitions | undefined;
 };
@@ -31,18 +35,19 @@ export function resolveLookupInArgs<
   Doc extends object,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   OpResult,
+  ThrowOnSpecError extends boolean,
 >(
-  args: LookupInArgs<Doc, SpecDefinitions, OpResult>
-): ResolvedArgs<SpecDefinitions, OpResult> {
+  args: LookupInArgs<Doc, SpecDefinitions, OpResult, ThrowOnSpecError>
+): ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError> {
   if (!isArray(args[0])) {
     return {
-      options: (args[0] as LookupInOptions) ?? {},
+      options: (args[0] as LookupInOptions<ThrowOnSpecError>) ?? {},
       specs: undefined,
       callback: undefined,
-    } satisfies ResolvedArgs<SpecDefinitions, OpResult>;
+    } satisfies ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError>;
   }
 
-  const resolvedArgs: ResolvedArgs<SpecDefinitions, OpResult> = {
+  const resolvedArgs: ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError> = {
     options: {},
     callback: undefined,
     specs: undefined,
