@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     workspace: './vitest.workspace.ts',
     pool: 'forks',
+    fileParallelism: false,
     minWorkers: 1,
     maxWorkers: 1,
     sequence: {

@@ -34,6 +34,7 @@ import { Cluster } from './cluster';
 import { Collection } from './collection';
 import { QueryExecutor } from './queryexecutor';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
+import { ScopeEventingFunctionManager } from './scopeeventingfunctionmanager';
 import { ScopeSearchIndexManager } from './scopesearchindexmanager';
 import { SearchExecutor } from './searchexecutor';
 import {
@@ -106,6 +107,15 @@ export class Scope<
    */
   searchIndexes(): ScopeSearchIndexManager<T, B, S> {
     return new ScopeSearchIndexManager(this.cluster, this.bucket.name, this.name);
+  }
+
+  /**
+   * Returns a ScopeEventingFunctionManager which can be used to manage the eventing
+   * functions of this scope.
+   * Uncommitted: This API is subject to change in the future.
+   */
+  eventingFunctions(): ScopeEventingFunctionManager<T, B, S> {
+    return new ScopeEventingFunctionManager(this.cluster, this.bucket.name, this.name);
   }
 
   /**
