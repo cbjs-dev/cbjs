@@ -160,7 +160,7 @@ describe('kv lock', { timeout: 20_000 }, async () => {
     }
   });
 
-  test('should unlock the document with the correct CAS', async ({
+  test('should unlock the document with the correct/returned CAS', async ({
     expect,
     serverTestContext,
     testDocKey,
@@ -168,6 +168,39 @@ describe('kv lock', { timeout: 20_000 }, async () => {
     const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
     await expect(
       serverTestContext.collection.unlock(testDocKey, res.cas)
+    ).resolves.toBeUndefined();
+
+    await expect(
+      serverTestContext.collection.replace(testDocKey, { title: 'Hello' })
+    ).resolves.toBeDefined();
+  });
+
+  test('should unlock the document with a CAS string', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
+    await expect(
+      serverTestContext.collection.unlock(testDocKey, res.cas.toString())
+    ).resolves.toBeUndefined();
+
+    await expect(
+      serverTestContext.collection.replace(testDocKey, { title: 'Hello' })
+    ).resolves.toBeDefined();
+  });
+
+  test('should unlock the document with a CAS Buffer', async ({
+    expect,
+    serverTestContext,
+    testDocKey,
+  }) => {
+    const res = await serverTestContext.collection.getAndLock(testDocKey, 5);
+    const casBuffer = Buffer.allocUnsafe(8);
+    casBuffer.writeBigUInt64LE(BigInt(res.cas.toString()));
+
+    await expect(
+      serverTestContext.collection.unlock(testDocKey, casBuffer)
     ).resolves.toBeUndefined();
 
     await expect(

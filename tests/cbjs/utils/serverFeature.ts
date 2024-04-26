@@ -48,6 +48,7 @@ export const ServerFeatures = {
   VectorSearch: 'vector_search',
   ScopeSearch: 'scope_search',
   ScopeSearchIndexManagement: 'scope_search_index_management',
+  ScopeEventingFunctionManagement: 'scope_eventing_function_management',
   NotLockedKVStatus: 'kv_not_locked',
 } as const;
 

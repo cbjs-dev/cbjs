@@ -17,11 +17,9 @@
 import { describe } from 'vitest';
 
 import {
-  EventingFunction,
   EventingFunctionBucketAccess,
   EventingFunctionBucketBinding,
   EventingFunctionKeyspace,
-  EventingFunctionSettings,
   EventingFunctionUrlAuthBasic,
   EventingFunctionUrlBinding,
   Scope,
@@ -33,22 +31,30 @@ import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe
-  .runIf(serverSupportsFeatures(ServerFeatures.Collections, ServerFeatures.Eventing))
-  .sequential('eventing', { timeout: 30_000 }, async function () {
+  .runIf(
+    serverSupportsFeatures(
+      ServerFeatures.Collections,
+      ServerFeatures.Eventing,
+      ServerFeatures.ScopeEventingFunctionManagement
+    )
+  )
+  .sequential('eventing scoped', { timeout: 30_000 }, async function () {
     const eventingFunctionName = getRandomId();
 
-    const test = await createCouchbaseTest(async ({ useBucket, useCollection }) => {
-      const metadataBucket = await useBucket().get();
-      const metadataCollection = await useCollection({
-        bucketName: metadataBucket,
-      }).get();
+    const test = await createCouchbaseTest(
+      async ({ useBucket, useScope, useCollection }) => {
+        const metadataBucket = await useBucket().get();
+        const metadataCollection = await useCollection({
+          bucketName: metadataBucket,
+        }).get();
 
-      return {
-        metadataBucket,
-        metadataCollection,
-        testFnName: eventingFunctionName,
-      };
-    });
+        return {
+          metadataBucket,
+          metadataCollection,
+          testFnName: eventingFunctionName,
+        };
+      }
+    );
 
     test(
       'should upsert a function successfully',
@@ -83,6 +89,13 @@ describe
           }),
         ];
 
+        const constantBindings = [
+          {
+            alias: 'someconstant',
+            literal: 'someliteral',
+          },
+        ];
+
         // Give time to the eventing service to acknowledge the new buckets
         await sleep(2000);
 
@@ -98,31 +111,21 @@ describe
           collection: serverTestContext.collection.name,
         });
 
-        const eventFunction = new EventingFunction({
-          version: '1',
-          enforceSchema: false,
-          handlerUuid: Math.ceil(Math.random() * 1000),
-          functionInstanceId: getRandomId(),
+        const code = `
+          function OnUpdate(doc, meta) {
+            log('data:', doc, meta)
+          }
+        `;
+
+        await serverTestContext.scope.eventingFunctions().upsertFunction({
           name: testFnName,
-          code: `
-              function OnUpdate(doc, meta) {
-                log('data:', doc, meta)
-              }
-            `,
+          code,
           bucketBindings,
           urlBindings,
-          constantBindings: [
-            {
-              alias: 'someconstant',
-              literal: 'someliteral',
-            },
-          ],
+          constantBindings,
           metadataKeyspace,
           sourceKeyspace,
-          settings: {},
         });
-
-        await serverTestContext.cluster.eventingFunctions().upsertFunction(eventFunction);
       },
       { timeout: 15_000 }
     );
@@ -133,7 +136,7 @@ describe
       testFnName,
     }) {
       await waitFor(async () => {
-        const eventingFunctions = await serverTestContext.cluster
+        const eventingFunctions = await serverTestContext.scope
           .eventingFunctions()
           .getAllFunctions();
         const testFn = eventingFunctions.find((f) => f.name === testFnName);
@@ -147,7 +150,7 @@ describe
       testFnName,
     }) {
       await waitFor(async () => {
-        const statuses = await serverTestContext.cluster
+        const statuses = await serverTestContext.scope
           .eventingFunctions()
           .functionsStatus();
         const testFnStatus = statuses.functions.find((f) => f.name === testFnName);
@@ -173,7 +176,7 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await serverTestContext.cluster.eventingFunctions().deployFunction(testFnName);
+      await serverTestContext.scope.eventingFunctions().deployFunction(testFnName);
       await expect(
         waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
       ).resolves.toBeUndefined();
@@ -185,7 +188,7 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await serverTestContext.cluster.eventingFunctions().pauseFunction(testFnName);
+      await serverTestContext.scope.eventingFunctions().pauseFunction(testFnName);
       await expect(
         waitForEventingFunction(apiConfig, testFnName, 'paused', { timeout: 30_000 })
       ).resolves.toBeUndefined();
@@ -197,7 +200,7 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await serverTestContext.cluster.eventingFunctions().resumeFunction(testFnName);
+      await serverTestContext.scope.eventingFunctions().resumeFunction(testFnName);
       await expect(
         waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
       ).resolves.toBeUndefined();
@@ -209,7 +212,7 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await serverTestContext.cluster.eventingFunctions().undeployFunction(testFnName);
+      await serverTestContext.scope.eventingFunctions().undeployFunction(testFnName);
       await expect(
         waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
           timeout: 30_000,
@@ -222,7 +225,7 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await serverTestContext.cluster.eventingFunctions().dropFunction(testFnName);
+      await serverTestContext.scope.eventingFunctions().dropFunction(testFnName);
 
       await waitForEventingFunction(apiConfig, testFnName, {
         timeout: 30_000,

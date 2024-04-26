@@ -17,6 +17,7 @@
 import {
   BucketName,
   Cas,
+  CasInput,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
@@ -28,6 +29,8 @@ import {
 } from '@cbjsdev/shared';
 
 import binding, {
+  CppCas,
+  CppCasInput,
   CppTransaction,
   CppTransactionGetMetaData,
   CppTransactionGetResult,
@@ -291,7 +294,7 @@ export class TransactionGetResult<
   /**
    * The CAS of the document.
    */
-  cas: Cas;
+  cas: CppCas;
 
   /**
    * @internal
@@ -493,12 +496,24 @@ function translateGetResult<
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
 >(cppRes: CppTransactionGetResult): TransactionGetResult<T, B, S, C, Key> {
+  let content: any = cppRes.content;
+
+  try {
+    content = JSON.parse(cppRes.content.toString('utf8'));
+  } catch (e) {
+    /* this is a binary document, let's keep its content as-is */
+  }
+
+  const id = new DocumentId<T, B, S, C, Key>(
+    cppRes.id.bucket as B,
+    cppRes.id.scope as S,
+    cppRes.id.collection as C,
+    cppRes.id.key as Key
+  );
+
   return new TransactionGetResult({
-    id: cppRes.id as DocumentId<T, B, S, C, Key>,
-    content:
-      cppRes.content && cppRes.content.length > 0
-        ? JSON.parse(cppRes.content.toString('utf8'))
-        : undefined,
+    id,
+    content,
     cas: cppRes.cas,
     _links: cppRes.links,
     _metadata: cppRes.metadata,
@@ -675,7 +690,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
     Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
   >(
-    doc: TransactionDocInfo<T, B, S, C, Key>,
+    doc: Exclude<TransactionDocInfo<T, B, S, C, Key>, 'cas'> & { cas: CasInput },
     content: DocDefMatchingKey<Key, T, B, S, C>['Body']
   ): Promise<TransactionGetResult<T, B, S, C, Key>> {
     return PromiseHelper.wrap(
@@ -716,7 +731,9 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     S extends ScopeName<T, B> = ScopeName<T, B>,
     C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
     Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
-  >(doc: TransactionDocInfo<T, B, S, C, Key>): Promise<void> {
+  >(
+    doc: Exclude<TransactionDocInfo<T, B, S, C, Key>, 'cas'> & { cas: CasInput }
+  ): Promise<void> {
     return PromiseHelper.wrap((wrapCallback) => {
       this._impl.remove(
         {

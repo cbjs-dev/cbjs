@@ -18,7 +18,6 @@ import { beforeEach, describe, expectTypeOf } from 'vitest';
 
 import {
   DocumentNotFoundError,
-  DocumentUnretrievableError,
   LookupInReplicaResult,
   LookupInSpec,
   PathNotFoundError,

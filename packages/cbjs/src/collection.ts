@@ -20,6 +20,7 @@ import {
   ArrayElement,
   ArrayExclude,
   BucketName,
+  CasInput,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
@@ -129,7 +130,7 @@ import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs'
 import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
 import { StreamableReplicasPromise, StreamableScanPromise } from './streamablepromises';
 import type { Transcoder } from './transcoders';
-import type { Cas, NodeCallback, VoidNodeCallback } from './utilities';
+import { expiryToTimestamp, NodeCallback, VoidNodeCallback } from './utilities';
 import { getDocId, PromiseHelper } from './utilities';
 
 /**
@@ -214,7 +215,7 @@ export type MutationOptions = Partial<DurabilityOptions> & {
    * If specified, indicates that operation should be failed if the CAS
    * has changed from this value, indicating that the document has changed.
    */
-  cas?: Cas;
+  cas?: CasInput;
 
   /**
    * The timeout for this operation, represented in milliseconds.
@@ -1079,7 +1080,7 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry ?? 0;
+    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
     const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
@@ -1179,7 +1180,7 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry ?? 0;
+    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
     const preserve_expiry = options.preserveExpiry ?? false;
     const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
@@ -1279,7 +1280,7 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry ?? 0;
+    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
     const cas = options.cas ?? zeroCas;
     const preserve_expiry = options.preserveExpiry ?? false;
     const transcoder = options.transcoder ?? this.transcoder;
@@ -1471,7 +1472,7 @@ export class Collection<
 
       const response = await getAndTouch({
         id: this.getDocId(key),
-        expiry,
+        expiry: expiryToTimestamp(expiry),
         timeout,
         partition: 0,
         opaque: 0,
@@ -1540,7 +1541,7 @@ export class Collection<
 
       const response = await touch({
         id: this.getDocId(key),
-        expiry,
+        expiry: expiryToTimestamp(expiry),
         timeout,
         partition: 0,
         opaque: 0,
@@ -1654,18 +1655,18 @@ export class Collection<
    */
   async unlock<Key extends CT<this>['Key']>(
     key: Key,
-    cas: Cas,
+    cas: CasInput,
     options: UnlockOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
   async unlock<Key extends CT<this>['Key']>(
     key: Key,
-    cas: Cas,
+    cas: CasInput,
     callback?: VoidNodeCallback
   ): Promise<void>;
   async unlock<Key extends CT<this>['Key']>(
     key: Key,
-    cas: Cas,
+    cas: CasInput,
     options?: UnlockOptions | VoidNodeCallback,
     callback?: VoidNodeCallback
   ): Promise<void> {
@@ -2368,7 +2369,7 @@ export class Collection<
     const storeSemantics = options.upsertDocument
       ? StoreSemantics.Upsert
       : options.storeSemantics;
-    const expiry = options.expiry;
+    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : undefined;
     const preserveExpiry = options.preserveExpiry ?? false;
     const cas = options.cas ?? zeroCas;
     const durabilityLevel = options.durabilityLevel;
@@ -2547,7 +2548,7 @@ export class Collection<
     }
 
     const initial_value = options.initial;
-    const expiry = options.expiry ?? 0;
+    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
@@ -2631,7 +2632,7 @@ export class Collection<
     }
 
     const initial_value = options.initial;
-    const expiry = options.expiry ?? 0;
+    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
