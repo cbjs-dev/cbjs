@@ -15,8 +15,12 @@
  */
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 
-import { getCbjsContextTracking, getCurrentTaskAsyncContext } from '../asyncContext';
-import { flushLogger, getTestLogger } from '../logger';
+import {
+  getCbjsContextTracking,
+  getCurrentTaskAsyncContext,
+  getTaskLogger,
+} from '../asyncContext';
+import { flushLogger } from '../logger';
 import { proxifyFunction } from '../utils/proxifyFunction';
 import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
 import { transformArgs as kvTransformArgs } from './proxyFunctions/kv';
@@ -40,7 +44,7 @@ export function createConnectionProxy(conn: CppConnection) {
         return true;
       }
 
-      getTestLogger()?.trace(`ConnectionProxy: ${prop}`);
+      getTaskLogger()?.trace(`ConnectionProxy: ${prop}`);
       void flushLogger();
 
       const value = target[prop];
@@ -54,7 +58,7 @@ export function createConnectionProxy(conn: CppConnection) {
       const bypassContext = bypassIsolationALS.getStore();
 
       if (bypassContext) {
-        getTestLogger()?.trace('ConnexionProxy: Bypass');
+        getTaskLogger()?.trace('ConnexionProxy: Bypass Context');
         return proxifyFunction(target, prop, receiver);
       }
 
@@ -63,6 +67,9 @@ export function createConnectionProxy(conn: CppConnection) {
         asyncContext !== undefined && asyncContext.keyspaceIsolationScope !== false;
 
       if (!shouldIsolateKeyspace) {
+        getTaskLogger()?.trace(
+          'ConnexionProxy: No Async Context OR KeyspaceIsolationScope = false '
+        );
         return proxifyFunction(target, prop, receiver);
       }
 

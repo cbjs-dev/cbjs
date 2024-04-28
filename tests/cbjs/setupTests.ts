@@ -21,12 +21,12 @@ import { getApiConfig, getConnectionParams, hasOwn } from '@cbjsdev/shared';
 import {
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
-  setTestLogger,
+  setVitestLogger,
 } from '@cbjsdev/vitest';
 
 import { testLogger } from './setupLogger.js';
 
-setTestLogger(testLogger);
+setVitestLogger(testLogger);
 setHttpClientLogger(testLogger);
 
 export const connectionParams = getConnectionParams();

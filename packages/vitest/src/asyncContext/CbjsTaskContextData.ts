@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { executionAsyncId } from 'node:async_hooks';
+import { Task } from 'vitest';
 
-import { CbjsTaskContextData } from './CbjsTaskContextData';
-import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { CouchbaseLogger } from '@cbjsdev/shared';
 
-export function getCurrentCbjsAsyncContext(): CbjsTaskContextData | undefined {
-  const { contextMap } = getCbjsContextTracking();
-  const asyncId = executionAsyncId();
+import { KeyspaceIsolationRealm } from '../keyspaceIsolation';
+import {
+  KeyspaceIsolationLevel,
+  KeyspaceIsolationScope,
+} from '../keyspaceIsolation/types';
 
-  return contextMap.get(asyncId);
-}
+export type CbjsContextKeyspaceIsolation = {
+  keyspaceIsolationScope: KeyspaceIsolationScope;
+  keyspaceIsolationLevel: KeyspaceIsolationLevel;
+  keyspaceIsolationRealm: KeyspaceIsolationRealm | null;
+};
+
+export type CbjsTaskContextData = {
+  logger?: CouchbaseLogger;
+  asyncId: number;
+  taskId: string;
+  task: Task;
+} & CbjsContextKeyspaceIsolation;

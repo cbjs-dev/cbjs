@@ -19,10 +19,13 @@ import {
   invariant,
   keyspacePath,
   PartialKeyspace,
+  sleep,
 } from '@cbjsdev/shared';
 
 import { getTaskAsyncContext } from '../asyncContext';
-import { flushLogger, getTestLogger } from '../logger';
+import { getTaskLogger } from '../asyncContext/getTaskLogger';
+import { registerContextCleanupAction } from '../hook';
+import { flushLogger } from '../logger';
 import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm';
 import { runWithoutKeyspaceIsolation } from './runWithoutKeyspaceIsolation';
 
@@ -113,7 +116,7 @@ export class KeyspaceIsolationPool {
       try {
         await readiness;
       } catch (err) {
-        getTestLogger()?.error('An error occurred while awaiting for the keyspace.');
+        getTaskLogger()?.error('An error occurred while awaiting for the keyspace.');
       }
 
       return isolatedKeyspace;
@@ -267,7 +270,8 @@ export class KeyspaceIsolationPool {
           })
           .catch((err) => {
             invariant(err instanceof Error);
-            getTestLogger()?.error(err.message);
+            getTaskLogger()?.error(err.message);
+            throw err;
           });
       });
     });
@@ -349,9 +353,17 @@ export class KeyspaceIsolationPool {
   }
 
   async getCluster() {
+    getTaskLogger()?.trace('KeyspaceIsolationPool: getCluster().');
+
     if (!this.clusterPromise) {
+      getTaskLogger()?.trace(
+        'KeyspaceIsolationPool: clusterPromise is missing, creating a connection.'
+      );
       const params = getConnectionParams();
-      this.clusterPromise = connect(params.connectionString, params.credentials);
+      this.clusterPromise = sleep(500).then(() =>
+        connect(params.connectionString, params.credentials)
+      );
+      getTaskLogger()?.trace('KeyspaceIsolationPool: connection created.');
     }
 
     return await this.clusterPromise;
@@ -441,19 +453,19 @@ export class KeyspaceIsolationPool {
   }
 
   releaseRealmAllocations(realm: KeyspaceIsolationRealm) {
-    getTestLogger()?.debug(
+    getTaskLogger()?.debug(
       `Release allocation check for realm.rootTaskId: ${realm.rootTaskId}`
     );
     for (const [provisionedBucket, bucketScopes] of this.provisionedKeyspaces) {
       if (!provisionedBucket.allocatedToRealms.has(realm)) continue;
 
-      getTestLogger()?.trace(
+      getTaskLogger()?.trace(
         `Bucket '${provisionedBucket.name}' is allocated to the realm, removing.`
       );
       provisionedBucket.allocatedToRealms.delete(realm);
 
       if (provisionedBucket.allocatedToRealms.size === 0 && provisionedBucket.exclusive) {
-        getTestLogger()?.debug(
+        getTaskLogger()?.debug(
           `Bucket '${provisionedBucket.name}' no longer allocated to any realm, resetting 'exclusive' boolean.`
         );
         provisionedBucket.exclusive = undefined;
@@ -462,7 +474,7 @@ export class KeyspaceIsolationPool {
       for (const [provisionedScope, provisionedCollections] of bucketScopes) {
         if (provisionedScope.allocatedToRealm !== realm) continue;
 
-        getTestLogger()?.trace(
+        getTaskLogger()?.trace(
           `Scope '${provisionedScope.name}' is allocated to the realm, removing.`
         );
         provisionedScope.allocatedToRealm = undefined;
@@ -470,7 +482,7 @@ export class KeyspaceIsolationPool {
         for (const provisionedCollection of provisionedCollections) {
           if (provisionedCollection.allocatedToRealm !== realm) continue;
 
-          getTestLogger()?.trace(
+          getTaskLogger()?.trace(
             `Collection '${provisionedCollection.name}' is allocated to the realm, removing.`
           );
           provisionedCollection.allocatedToRealm = undefined;
@@ -491,21 +503,28 @@ export class KeyspaceIsolationPool {
       Promise.all(bucket.map((b) => cluster.buckets().dropBucket(b)))
     );
 
-    getTestLogger()?.trace(`Provisioned buckets dropped : ${bucket.join(', ')}.`);
+    getTaskLogger()?.trace(`Provisioned buckets dropped : ${bucket.join(', ')}.`);
   }
 
   async dispose() {
-    getTestLogger()?.debug('KeyspaceIsolationPool.dispose.');
-    await flushLogger();
+    try {
+      getTaskLogger()?.debug('KeyspaceIsolationPool.dispose.');
 
-    if (this.clusterPromise === undefined) {
-      return;
+      if (this.clusterPromise === undefined) {
+        getTaskLogger()?.debug(
+          'KeyspaceIsolationPool: no connection opened, returning immediately.'
+        );
+        await flushLogger();
+        return;
+      }
+
+      const cluster = await this.getCluster();
+      await this.destroyProvisionedBuckets();
+      await cluster.close();
+    } catch (err) {
+      getTaskLogger()?.error(err);
+    } finally {
+      await flushLogger();
     }
-
-    const cluster = await this.getCluster();
-    await this.destroyProvisionedBuckets();
-    await cluster.close();
-
-    await flushLogger();
   }
 }

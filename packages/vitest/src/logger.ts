@@ -13,21 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Suite, Test } from 'vitest';
+
 import { CouchbaseLogger } from '@cbjsdev/shared';
 
-let logger: CouchbaseLogger | undefined = undefined;
+export type CbjsVitestLogger = CouchbaseLogger;
 
-export function setTestLogger(userLogger: CouchbaseLogger) {
-  logger = userLogger;
+let logger: CbjsVitestLogger | undefined = undefined;
+let buildTestLogger: ((test: Test) => CbjsVitestLogger) | undefined = undefined;
+let buildSuiteLogger: ((suite: Suite) => CbjsVitestLogger) | undefined = undefined;
+
+export function setVitestLogger(
+  genericLogger: CbjsVitestLogger,
+  createTestLogger?: (test: Test) => CbjsVitestLogger,
+  createSuiteLogger?: (suite: Suite) => CbjsVitestLogger
+) {
+  logger = genericLogger;
+  buildTestLogger = createTestLogger;
+  buildSuiteLogger = createSuiteLogger;
 }
 
-export function getTestLogger() {
+export function getVitestLogger() {
   return logger;
+}
+
+export function createTestLogger(test: Test) {
+  return buildTestLogger?.(test);
+}
+
+export function createSuiteLogger(suite: Suite) {
+  return buildSuiteLogger?.(suite);
 }
 
 export async function flushLogger(): Promise<void> {
   return new Promise<void>((res, rej) => {
-    getTestLogger()?.flush?.((err) => {
+    getVitestLogger()?.flush?.((err) => {
       if (err) {
         rej(err);
         return;

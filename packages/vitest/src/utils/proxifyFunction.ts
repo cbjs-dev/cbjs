@@ -15,7 +15,8 @@
  */
 import { AnyFunction, invariant, KeysByValue, Try } from '@cbjsdev/shared';
 
-import { getTestLogger } from '../logger';
+import { getTaskLogger } from '../asyncContext';
+import { flushLogger, getVitestLogger } from '../logger';
 
 /**
  * Returns a function that properly handles the value of `this` within a proxy handler,
@@ -40,26 +41,56 @@ export function proxifyFunction<
   transformArgs?: (...args: Parameters<Fn>) => Promise<Readonly<Parameters<Fn>>>
 ) {
   return function (this: T, ...args: Parameters<Fn>) {
+    getTaskLogger()?.trace(`proxifyFunction: entering`);
     const fn = function (this: T) {
+      getTaskLogger()?.trace(`proxifyFunction: wrappedCall`);
       const innerFn = target[prop] as Fn;
       const innerFnBinded = innerFn.bind(this);
+      getTaskLogger()?.trace(`proxifyFunction: binded`);
       try {
+        getTaskLogger()?.trace(`proxifyFunction: input arguments: %o`, args);
+
         if (!transformArgs) {
-          getTestLogger()?.trace(`Arguments: %o`, args);
+          getTaskLogger()?.trace(`proxifyFunction: no transformArgs`, args);
+          getTaskLogger()?.trace(`proxifyFunction: Arguments: %o`, args);
           return innerFnBinded(...args);
         }
 
-        return transformArgs(...args).then((transformedArgs) => {
-          getTestLogger()?.trace(`Arguments: %o`, args);
-          return innerFnBinded(...transformedArgs);
-        });
+        getTaskLogger()?.trace(`proxifyFunction: transformArgs exists`, args);
+
+        return transformArgs(...args)
+          .then((transformedArgs) => {
+            getTaskLogger()?.trace(
+              `proxifyFunction: transformed arguments: %o`,
+              transformedArgs
+            );
+            return transformedArgs;
+          })
+          .catch((err) => {
+            getTaskLogger()?.trace(`ProxifyFunction: transformArgs() error: %o`, err);
+            throw err;
+          })
+          .then((transformedArgs) => {
+            return innerFnBinded(...transformedArgs);
+          })
+          .catch((err) => {
+            invariant(err instanceof Error);
+            getTaskLogger()?.trace(`ProxifyFunction: binded call error: ${err.message}`);
+            throw err;
+          });
       } catch (err) {
         invariant(err instanceof Error);
-        getTestLogger()?.error(`Error during proxifyFunction: ${err.message}`);
+        getTaskLogger()?.error(`ProxifyFunction: Error - ${err.message}`);
+
         throw err;
       }
     };
 
-    return fn.apply(this === receiver ? target : this);
+    try {
+      return fn.apply(this === receiver ? target : this);
+    } catch (err) {
+      invariant(err instanceof Error);
+      getTaskLogger()?.error(`ProxifyFunction: Error during apply: ${err.message}`);
+    }
   };
 }

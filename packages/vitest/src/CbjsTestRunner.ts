@@ -24,8 +24,9 @@ import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 
 import {
-  CbjsAsyncContextData,
+  CbjsTaskContextData,
   getCbjsContextTracking,
+  getCurrentTaskAsyncContext,
   getTaskAsyncContext,
 } from './asyncContext';
 import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
@@ -33,7 +34,12 @@ import { getChildrenTower } from './asyncContext/getChildrenTower';
 import { KeyspaceIsolationRealm, runWithoutKeyspaceIsolation } from './keyspaceIsolation';
 import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';
 import { isRealmInUse } from './keyspaceIsolation/isRealmInUse';
-import { getTestLogger } from './logger';
+import {
+  createSuiteLogger,
+  createTestLogger,
+  flushLogger,
+  getVitestLogger,
+} from './logger';
 
 SegfaultHandler.registerHandler('crash.log');
 
@@ -51,12 +57,13 @@ const defaultIsolationContextValues = {
   keyspaceIsolationScope: false,
   keyspaceIsolationLevel: 'collection',
   keyspaceIsolationRealm: null,
-} satisfies Partial<CbjsAsyncContextData>;
+} satisfies Partial<CbjsTaskContextData>;
 
 export default class CbjsTestRunner extends VitestTestRunner {
-  protected taskConnections = new Map<string, Promise<Cluster>[]>();
+  protected taskConnections = new Map<string, Cluster[]>();
 
   constructor(config: ResolvedConfig) {
+    console.log('CbjsTestRunner created.');
     cbjsAsyncHooks.enable();
     super(config);
   }
@@ -71,26 +78,6 @@ export default class CbjsTestRunner extends VitestTestRunner {
   }
 
   override async onBeforeRunSuite(suite: Suite): Promise<void> {
-    vi.mock('@cbjsdev/cbjs', async (importOriginal) => {
-      const { Cluster, ...rest } = await importOriginal<typeof import('@cbjsdev/cbjs')>();
-      const clusterConnectionProxy = Symbol('ClusterConnectionProxy');
-
-      Object.defineProperty(Cluster.prototype, 'conn', {
-        get(this: { _conn: CppConnection; [clusterConnectionProxy]: CppConnection }) {
-          if (this[clusterConnectionProxy] === undefined) {
-            this[clusterConnectionProxy] = createConnectionProxy(this._conn);
-          }
-
-          return this[clusterConnectionProxy];
-        },
-      });
-
-      return {
-        ...rest,
-        Cluster,
-      };
-    });
-
     const suiteAsyncId = executionAsyncId();
     const contextTracking = getCbjsContextTracking();
 
@@ -101,9 +88,9 @@ export default class CbjsTestRunner extends VitestTestRunner {
       asyncId: suiteAsyncId,
       taskId: suite.id,
       task: suite,
-    } satisfies Partial<CbjsAsyncContextData>;
+    } satisfies Partial<CbjsTaskContextData>;
 
-    const resolvedContext: Partial<CbjsAsyncContextData> = {
+    const resolvedContext: Partial<CbjsTaskContextData> = {
       ...suiteContext,
       ...defaultIsolationContextValues,
     };
@@ -126,7 +113,12 @@ export default class CbjsTestRunner extends VitestTestRunner {
       resolvedContext.keyspaceIsolationRealm = new KeyspaceIsolationRealm(suite.id);
     }
 
-    contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsAsyncContextData);
+    const suiteLogger = createSuiteLogger(suite);
+    if (suiteLogger) {
+      resolvedContext.logger = suiteLogger;
+    }
+
+    contextTracking.contextMap.set(suiteAsyncId, resolvedContext as CbjsTaskContextData);
 
     await super.onBeforeRunSuite(suite);
   }
@@ -138,13 +130,13 @@ export default class CbjsTestRunner extends VitestTestRunner {
     contextTracking.taskAsyncIdMap.set(test.id, testAsyncId);
     contextTracking.taskAsyncIdReversedMap.set(testAsyncId, test.id);
 
-    const testContext: Partial<CbjsAsyncContextData> = {
+    const testContext: Partial<CbjsTaskContextData> = {
       asyncId: testAsyncId,
       taskId: test.id,
       task: test,
     };
 
-    const resolvedContext: Partial<CbjsAsyncContextData> = {
+    const resolvedContext: Partial<CbjsTaskContextData> = {
       ...testContext,
       ...defaultIsolationContextValues,
     };
@@ -163,7 +155,12 @@ export default class CbjsTestRunner extends VitestTestRunner {
       resolvedContext.keyspaceIsolationRealm = new KeyspaceIsolationRealm(test.id);
     }
 
-    contextTracking.contextMap.set(testAsyncId, resolvedContext as CbjsAsyncContextData);
+    const testLogger = createTestLogger(test);
+    if (testLogger) {
+      resolvedContext.logger = testLogger;
+    }
+
+    contextTracking.contextMap.set(testAsyncId, resolvedContext as CbjsTaskContextData);
 
     await super.onBeforeRunTask(test);
   }
@@ -196,30 +193,30 @@ export default class CbjsTestRunner extends VitestTestRunner {
   }
 
   override async onAfterRunFiles() {
-    const { keyspaceIsolationPool } = getCbjsContextTracking();
+    try {
+      const { keyspaceIsolationPool } = getCbjsContextTracking();
 
-    cbjsAsyncHooks.disable();
+      cbjsAsyncHooks.disable();
 
-    await keyspaceIsolationPool.dispose();
+      await keyspaceIsolationPool.dispose();
 
-    const connectionClosing: Promise<unknown>[] = [];
+      const taskConnections = Array.from(this.taskConnections.values()).flat();
 
-    await runWithoutKeyspaceIsolation(() =>
-      this.taskConnections.forEach((connections) => {
-        connections.forEach((connectionPromise) => {
-          connectionClosing.push(connectionPromise.then((c) => c.close()));
-        });
-      })
-    );
+      appendLog(`CbjsTestRunner: ${taskConnections.length} connections to close`);
 
-    await Promise.allSettled(connectionClosing);
+      await Promise.all(taskConnections.map((c) => c.close()));
 
-    // Debug statement
-    for (const log of logs) {
-      console.log(...log);
+      // Debug statement
+      for (const log of logs) {
+        console.log(...log);
+      }
+
+      console.log('CbjsTestRunner: Closed');
+      getVitestLogger()?.flush?.();
+    } catch (err) {
+      console.error(err);
+      getVitestLogger()?.error?.(err);
     }
-
-    getTestLogger()?.flush?.();
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
     await super.onAfterRunFiles();
@@ -258,6 +255,8 @@ export default class CbjsTestRunner extends VitestTestRunner {
       },
     };
 
+    const taskConnections = this.taskConnections;
+
     Object.defineProperty(ec, 'getCluster', {
       get() {
         return async (options: ConnectOptions = {}) => {
@@ -278,6 +277,14 @@ export default class CbjsTestRunner extends VitestTestRunner {
               return this[clusterConnectionProxy];
             },
           });
+
+          const { taskId } = getCurrentTaskAsyncContext();
+
+          if (!taskConnections.has(taskId)) {
+            taskConnections.set(taskId, []);
+          }
+
+          taskConnections.get(taskId)!.push(cluster);
 
           return cluster;
         };

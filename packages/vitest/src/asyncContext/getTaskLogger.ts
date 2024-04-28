@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Task } from 'vitest';
-import { KeyspaceIsolationRealm } from '../keyspaceIsolation/KeyspaceIsolationRealm';
-import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from '../keyspaceIsolation/types';
+import { getVitestLogger } from '../logger';
+import { AsyncContextNotFoundError } from './AsyncContextNotFoundError';
+import { getCurrentTaskAsyncContext } from './getCurrentTaskAsyncContext';
 
-export type CbjsContextKeyspaceIsolation = {
-  keyspaceIsolationScope: KeyspaceIsolationScope;
-  keyspaceIsolationLevel: KeyspaceIsolationLevel;
-  keyspaceIsolationRealm: KeyspaceIsolationRealm | null;
-};
+/**
+ * Return the logger associated with the task context.
+ * If not available, fallback to the generic test logger.
+ */
+export function getTaskLogger() {
+  try {
+    const { logger } = getCurrentTaskAsyncContext();
+    return logger;
+  } catch (error) {
+    if (error instanceof AsyncContextNotFoundError) {
+      return getVitestLogger();
+    }
 
-export type CbjsAsyncContextData = {
-  asyncId: number;
-  taskId: string;
-  task: Task;
-} & CbjsContextKeyspaceIsolation;
+    throw error;
+  }
+}

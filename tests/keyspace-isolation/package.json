@@ -14,8 +14,8 @@
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
     "http-client": "^4.3.1",
-    "pino": "^8.16.2",
-    "pino-pretty": "^10.2.3",
+    "pino": "^8.21.0",
+    "pino-pretty": "^11.0.0",
     "vitest": "1.5.2"
   }
 }

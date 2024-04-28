@@ -16,7 +16,7 @@
 import { DocumentId } from '@cbjsdev/cbjs';
 import { CppConnection, CppDocumentId } from '@cbjsdev/cbjs/internal';
 
-import { getCurrentTaskAsyncContext } from '../../asyncContext';
+import { getCurrentTaskAsyncContext, getTaskLogger } from '../../asyncContext';
 import { KeyspaceIsolationPool } from '../KeyspaceIsolationPool';
 
 type CppConnectionScopedFunction =
@@ -75,9 +75,20 @@ async function scopedMethodTransformArgsFunction(
   ...rest: never[]
 ) {
   const { bucket, scope, collection, key } = options.id;
+
+  getTaskLogger()?.trace(
+    `scopedMethodTransformArgsFunction: require keyspace isolation for %o`,
+    options.id
+  );
+
   const isolatedKeyspace = await isolationPool.requireKeyspaceIsolation(
     getCurrentTaskAsyncContext().taskId,
     { bucket, scope, collection }
+  );
+
+  getTaskLogger()?.trace(
+    `scopedMethodTransformArgsFunction: keyspace isolated with %o`,
+    isolatedKeyspace
   );
 
   const isolatedDocumentId = new DocumentId(
@@ -91,6 +102,8 @@ async function scopedMethodTransformArgsFunction(
     ...options,
     id: isolatedDocumentId,
   };
+
+  getTaskLogger()?.trace(`scopedMethodTransformArgsFunction: returning new args`);
 
   return [nextOptions, ...rest];
 }

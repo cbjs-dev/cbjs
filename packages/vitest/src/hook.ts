@@ -14,28 +14,40 @@
  * limitations under the License.
  */
 import { serverTestContexts } from './context.js';
-import { flushLogger, getTestLogger } from './logger.js';
+import { flushLogger, getVitestLogger } from './logger.js';
 
 const testCleanupHooks: Array<{ description: string; action: () => Promise<void> }> = [];
 const contextCleanupHooks: Array<{ description: string; action: () => Promise<void> }> =
   [];
 
+/**
+ * Register an function that will be executed after each tests.
+ *
+ * @param description
+ * @param action
+ */
 export function registerTestCleanupAction(
   description: string,
   action: () => Promise<void>
 ) {
-  getTestLogger()?.debug(`Register test cleanup action: ${description}`);
+  getVitestLogger()?.debug(`Register test cleanup action: ${description}`);
   testCleanupHooks.push({
     description,
     action,
   });
 }
 
+/**
+ * Register an function that will be executed after all the tests have ran.
+ *
+ * @param description
+ * @param action
+ */
 export function registerContextCleanupAction(
   description: string,
   action: () => Promise<void>
 ) {
-  getTestLogger()?.debug(`Register context cleanup action: ${description}`);
+  getVitestLogger()?.debug(`Register context cleanup action: ${description}`);
   contextCleanupHooks.push({
     description,
     action,
@@ -43,7 +55,7 @@ export function registerContextCleanupAction(
 }
 
 export async function cleanupCouchbaseAfterEach() {
-  const logger = getTestLogger();
+  const logger = getVitestLogger();
   logger?.debug(`Cleanup begins (${testCleanupHooks.length} actions)`);
 
   for (const hook of testCleanupHooks.reverse()) {
@@ -60,7 +72,7 @@ export async function cleanupCouchbaseAfterEach() {
 }
 
 export async function cleanupCouchbaseAfterAll() {
-  const logger = getTestLogger();
+  const logger = getVitestLogger();
 
   for (const hook of contextCleanupHooks.reverse()) {
     try {

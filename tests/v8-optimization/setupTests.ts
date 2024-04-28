@@ -4,12 +4,12 @@ import { getApiConfig, hasOwn } from '@cbjsdev/shared';
 import {
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
-  setTestLogger,
+  setVitestLogger,
 } from '@cbjsdev/vitest';
 
 import { testLogger } from './setupLogger.js';
 
-setTestLogger(testLogger);
+setVitestLogger(testLogger);
 
 export const apiConfig = getApiConfig();
 

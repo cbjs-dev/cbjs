@@ -33,7 +33,7 @@ import {
   UnknownContext,
 } from '../fixtures/types.js';
 import { useFixture } from '../fixtures/useFixture.js';
-import { getTestLogger } from '../logger.js';
+import { getVitestLogger } from '../logger.js';
 
 type WithLogger<T> = T & { logger: CouchbaseLogger | undefined };
 
@@ -147,7 +147,7 @@ export function makeCreateTest<
     const userFixtures =
       (await userArg({
         ...(createTestFixtures as CreateTestFixtureRecords<RawCreatorFixtures>),
-        logger: getTestLogger(),
+        logger: getVitestLogger(),
       })) || {};
 
     const userFixturesEntries = Object.entries(userFixtures).map(([key, value]) => {

@@ -29,3 +29,5 @@ export {
   createConnectionProxy,
   connectionProxySymbol,
 } from './keyspaceIsolation/createConnectionProxy';
+
+export { getTaskLogger } from './asyncContext';

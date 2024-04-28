@@ -18,7 +18,7 @@ import type { TaskContext } from 'vitest';
 import type { Class } from '@cbjsdev/shared';
 
 import { registerContextCleanupAction, registerTestCleanupAction } from '../hook.js';
-import { getTestLogger } from '../logger.js';
+import { getVitestLogger } from '../logger.js';
 import { FixtureFunctionValue } from './FixtureFunctionValue.js';
 import type { FixtureContext, UnknownContext } from './types.js';
 
@@ -41,7 +41,7 @@ export class CreateTestFixtureFunction<
 
     const ctx = {
       ...this.context,
-      logger: getTestLogger(),
+      logger: getVitestLogger(),
     } as FixtureContext<Context>;
 
     this.registerFixtureCleanup(ctx, fixtureInstance);
@@ -72,12 +72,12 @@ export class CreateTestFixtureFunction<
         : registerTestCleanupAction;
 
     if (fixtureInstance.cleanup === undefined) {
-      getTestLogger()?.trace(`no cleanup action for ${fixtureInstance.fixtureName}`);
+      getVitestLogger()?.trace(`no cleanup action for ${fixtureInstance.fixtureName}`);
       return;
     }
 
     registerCleanUpAction(`${fixtureInstance.fixtureName}`, async () => {
-      getTestLogger()?.trace(`Cleanup of ${fixtureInstance.fixtureName} called`);
+      getVitestLogger()?.trace(`Cleanup of ${fixtureInstance.fixtureName} called`);
       return fixtureInstance.cleanup?.(ctx);
     });
   }

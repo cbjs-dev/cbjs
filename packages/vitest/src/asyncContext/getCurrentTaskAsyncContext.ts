@@ -15,10 +15,11 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { CbjsAsyncContextData } from './CbjsAsyncContextData';
+import { AsyncContextNotFoundError } from './AsyncContextNotFoundError';
+import { CbjsTaskContextData } from './CbjsTaskContextData';
 import { getCbjsContextTracking } from './getCbjsContextTracking';
 
-export function getCurrentTaskAsyncContext(): CbjsAsyncContextData {
+export function getCurrentTaskAsyncContext(): CbjsTaskContextData {
   const { parentMap, taskAsyncIdReversedMap, contextMap } = getCbjsContextTracking();
   let asyncId: number | undefined = executionAsyncId();
 
@@ -29,5 +30,5 @@ export function getCurrentTaskAsyncContext(): CbjsAsyncContextData {
     asyncId = parentMap.get(asyncId);
   }
 
-  throw new Error('No cbjs async context found');
+  throw new AsyncContextNotFoundError();
 }

@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { executionAsyncId } from 'node:async_hooks';
 
-import { CbjsTaskContextData } from './CbjsTaskContextData';
-import { getCbjsContextTracking } from './getCbjsContextTracking';
-
-export function getCurrentCbjsAsyncContext(): CbjsTaskContextData | undefined {
-  const { contextMap } = getCbjsContextTracking();
-  const asyncId = executionAsyncId();
-
-  return contextMap.get(asyncId);
+export class AsyncContextNotFoundError extends Error {
+  constructor(message?: string) {
+    super(message ?? `No Cbjs async context could be found`);
+  }
 }

@@ -37,7 +37,7 @@ import {
   sleep,
 } from '@cbjsdev/shared';
 
-import { getTestLogger } from './logger.js';
+import { getVitestLogger } from './logger.js';
 import { getRandomId } from './utils/getRandomId.js';
 
 export class ServerTestContext {
@@ -63,7 +63,7 @@ export class ServerTestContext {
     this.contextId = getRandomId();
     this.contextNamespace = `cbjs_${this.contextId}`;
     this.keyCounter = 0;
-    this.logger = getTestLogger();
+    this.logger = getVitestLogger();
   }
 
   newUid() {
@@ -77,7 +77,7 @@ export class ServerTestContext {
     params?: ConnectionParams,
     opts: Omit<ConnectOptions, 'username' | 'password'> = {}
   ) {
-    // The NAPI contains a bug leading to frozen connection if one is create while the previous one is not established yet
+    // The NAPI contains a bug leading to frozen connection if one is created while the previous one is not established yet
     if (this.connections.length > 0) {
       await sleep(200);
     }

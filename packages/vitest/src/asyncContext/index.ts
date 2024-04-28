@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-export * from './CbjsAsyncContextData';
+export * from './CbjsTaskContextData';
 export * from './getCbjsContextTracking';
 export * from './getCurrentCbjsAsyncContext';
 export * from './getCurrentTaskAsyncContext';
 export * from './getTaskAsyncContext';
+export * from './getTaskLogger';

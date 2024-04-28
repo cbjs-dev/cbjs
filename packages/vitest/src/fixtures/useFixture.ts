@@ -18,7 +18,7 @@ import type { TaskContext, Test } from 'vitest';
 import type { Class } from '@cbjsdev/shared';
 
 import { registerTestCleanupAction } from '../hook.js';
-import { getTestLogger } from '../logger.js';
+import { getVitestLogger } from '../logger.js';
 import { CreateTestFixtureFunction } from './CreateTestFixtureFunction.js';
 import {
   FixtureFunctionValue,
@@ -70,7 +70,7 @@ export function useFixture<
       const fixtureInstance = new fixtureClass();
       const augmentedCtx = {
         ...ctx,
-        logger: getTestLogger(),
+        logger: getVitestLogger(),
       } as FixtureContext<Context>;
 
       if (fixtureInstance.cleanup) {
@@ -106,7 +106,7 @@ function getSuiteFixture<
       const fixtureInstance = new fixtureClass();
       const augmentedCtx = {
         ...ctx,
-        logger: getTestLogger(),
+        logger: getVitestLogger(),
       } as FixtureContext<Context>;
       return fixtureInstance.use(augmentedCtx);
     }

@@ -30,7 +30,7 @@ export { FixtureFunctionValue } from './fixtures/FixtureFunctionValue.js';
 
 export { getDefaultServerTestContext, createServerTestContext } from './context.js';
 export { cleanupCouchbaseAfterEach, cleanupCouchbaseAfterAll } from './hook.js';
-export { setTestLogger, getTestLogger } from './logger.js';
+export { CbjsVitestLogger, setVitestLogger, getVitestLogger } from './logger.js';
 
 export * from './matchers/index.js';
 export * from './utils/getRandomId.js';
