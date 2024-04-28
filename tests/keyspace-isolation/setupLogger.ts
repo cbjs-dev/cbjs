@@ -36,7 +36,7 @@ export const testLogger = pino({
     options: {
       destination: `vitest-pino.log`,
       mkdir: true,
-      append: false,
+      append: true,
       sync: true,
     },
   },

@@ -20,6 +20,7 @@ import { flushLogger, getTestLogger } from '../logger';
 import { proxifyFunction } from '../utils/proxifyFunction';
 import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
 import { transformArgs as kvTransformArgs } from './proxyFunctions/kv';
+import { passthrough } from './proxyFunctions/passthrough';
 import { transformArgs as queryTransformArgs } from './proxyFunctions/query';
 import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel';
 import { bypassIsolationALS } from './runWithoutKeyspaceIsolation';
@@ -53,6 +54,7 @@ export function createConnectionProxy(conn: CppConnection) {
       const bypassContext = bypassIsolationALS.getStore();
 
       if (bypassContext) {
+        getTestLogger()?.trace('ConnexionProxy: Bypass');
         return proxifyFunction(target, prop, receiver);
       }
 
@@ -73,8 +75,6 @@ export function createConnectionProxy(conn: CppConnection) {
         ...kvTransformArgs,
         ...queryTransformArgs,
       };
-
-      const passthrough = ['connect', 'shutdown', 'httpNoop', 'diagnostics'] as const;
 
       type MissingHandlers = Exclude<
         keyof CppConnection,

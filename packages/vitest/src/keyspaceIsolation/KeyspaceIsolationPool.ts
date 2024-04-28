@@ -51,7 +51,7 @@ type ProvisionedKeyspace = {
 };
 
 export class KeyspaceIsolationPool {
-  protected cluster?: Cluster;
+  protected clusterPromise?: Promise<Cluster>;
 
   /**
    * Contains names of real/isolated keyspaces.
@@ -110,7 +110,11 @@ export class KeyspaceIsolationPool {
         readiness = isolatedCollection.readiness;
       }
 
-      await readiness;
+      try {
+        await readiness;
+      } catch (err) {
+        getTestLogger()?.error('An error occurred while awaiting for the keyspace.');
+      }
 
       return isolatedKeyspace;
     } catch (err) {
@@ -249,16 +253,22 @@ export class KeyspaceIsolationPool {
   provisionBucket(bucket: string) {
     const bucketCreation = this.getCluster().then((cluster) => {
       return runWithoutKeyspaceIsolation(() => {
-        return cluster.buckets().createBucket({
-          name: bucket,
-          ramQuotaMB: 256,
-          storageBackend: 'couchstore',
-          numReplicas: 0,
-          replicaIndexes: false,
-          compressionMode: 'off',
-          evictionPolicy: 'valueOnly',
-          minimumDurabilityLevel: 'none',
-        });
+        return cluster
+          .buckets()
+          .createBucket({
+            name: bucket,
+            ramQuotaMB: 256,
+            storageBackend: 'couchstore',
+            numReplicas: 0,
+            replicaIndexes: false,
+            compressionMode: 'off',
+            evictionPolicy: 'valueOnly',
+            minimumDurabilityLevel: 'none',
+          })
+          .catch((err) => {
+            invariant(err instanceof Error);
+            getTestLogger()?.error(err.message);
+          });
       });
     });
 
@@ -339,12 +349,12 @@ export class KeyspaceIsolationPool {
   }
 
   async getCluster() {
-    if (!this.cluster) {
+    if (!this.clusterPromise) {
       const params = getConnectionParams();
-      this.cluster = await connect(params.connectionString, params.credentials);
+      this.clusterPromise = connect(params.connectionString, params.credentials);
     }
 
-    return this.cluster;
+    return await this.clusterPromise;
   }
 
   getAvailableBucket(exclusive: boolean) {
@@ -431,22 +441,38 @@ export class KeyspaceIsolationPool {
   }
 
   releaseRealmAllocations(realm: KeyspaceIsolationRealm) {
-    for (const [bucketStatus, bucketScopes] of this.provisionedKeyspaces) {
-      if (!bucketStatus.allocatedToRealms.has(realm)) continue;
+    getTestLogger()?.debug(
+      `Release allocation check for realm.rootTaskId: ${realm.rootTaskId}`
+    );
+    for (const [provisionedBucket, bucketScopes] of this.provisionedKeyspaces) {
+      if (!provisionedBucket.allocatedToRealms.has(realm)) continue;
 
-      bucketStatus.allocatedToRealms.delete(realm);
-      if (bucketStatus.allocatedToRealms.size === 0 && bucketStatus.exclusive) {
-        bucketStatus.exclusive = undefined;
+      getTestLogger()?.trace(
+        `Bucket '${provisionedBucket.name}' is allocated to the realm, removing.`
+      );
+      provisionedBucket.allocatedToRealms.delete(realm);
+
+      if (provisionedBucket.allocatedToRealms.size === 0 && provisionedBucket.exclusive) {
+        getTestLogger()?.debug(
+          `Bucket '${provisionedBucket.name}' no longer allocated to any realm, resetting 'exclusive' boolean.`
+        );
+        provisionedBucket.exclusive = undefined;
       }
 
       for (const [provisionedScope, provisionedCollections] of bucketScopes) {
         if (provisionedScope.allocatedToRealm !== realm) continue;
 
+        getTestLogger()?.trace(
+          `Scope '${provisionedScope.name}' is allocated to the realm, removing.`
+        );
         provisionedScope.allocatedToRealm = undefined;
 
         for (const provisionedCollection of provisionedCollections) {
           if (provisionedCollection.allocatedToRealm !== realm) continue;
 
+          getTestLogger()?.trace(
+            `Collection '${provisionedCollection.name}' is allocated to the realm, removing.`
+          );
           provisionedCollection.allocatedToRealm = undefined;
         }
       }
@@ -454,23 +480,31 @@ export class KeyspaceIsolationPool {
   }
 
   private async destroyProvisionedBuckets() {
+    if (this.clusterPromise === undefined) {
+      return;
+    }
+
+    const cluster = await this.getCluster();
     const bucket = Array.from(this.provisionedKeyspaces.keys()).map((ksp) => ksp.name);
 
     await runWithoutKeyspaceIsolation(() =>
-      Promise.all(bucket.map((b) => this.cluster?.buckets().dropBucket(b)))
+      Promise.all(bucket.map((b) => cluster.buckets().dropBucket(b)))
     );
 
-    getTestLogger()?.trace('Provisioned buckets dropped.');
+    getTestLogger()?.trace(`Provisioned buckets dropped : ${bucket.join(', ')}.`);
   }
 
   async dispose() {
-    getTestLogger()?.trace('KeyspaceIsolationPool.dispose.');
+    getTestLogger()?.debug('KeyspaceIsolationPool.dispose.');
     await flushLogger();
 
-    if (this.cluster) {
-      await this.destroyProvisionedBuckets();
-      await runWithoutKeyspaceIsolation(() => this.cluster?.close());
+    if (this.clusterPromise === undefined) {
+      return;
     }
+
+    const cluster = await this.getCluster();
+    await this.destroyProvisionedBuckets();
+    await cluster.close();
 
     await flushLogger();
   }

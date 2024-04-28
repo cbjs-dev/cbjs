@@ -33,10 +33,9 @@ import { getChildrenTower } from './asyncContext/getChildrenTower';
 import { KeyspaceIsolationRealm, runWithoutKeyspaceIsolation } from './keyspaceIsolation';
 import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';
 import { isRealmInUse } from './keyspaceIsolation/isRealmInUse';
+import { getTestLogger } from './logger';
 
 SegfaultHandler.registerHandler('crash.log');
-
-export type CbjsTestContext = NonNullable<unknown>;
 
 const logs: unknown[][] = [];
 
@@ -219,6 +218,8 @@ export default class CbjsTestRunner extends VitestTestRunner {
     for (const log of logs) {
       console.log(...log);
     }
+
+    getTestLogger()?.flush?.();
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
     await super.onAfterRunFiles();

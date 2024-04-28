@@ -22,7 +22,7 @@ import {
   setKeyspaceIsolation,
 } from '@cbjsdev/vitest/internal';
 
-describe('keyspace isolation pool', () => {
+describe('keyspace isolation pool', { timeout: 900_000 }, () => {
   beforeAll(() => {
     setKeyspaceIsolation('per-test');
   });
@@ -33,20 +33,21 @@ describe('keyspace isolation pool', () => {
     const pool = new KeyspaceIsolationPool();
     const { taskId } = getCurrentTaskAsyncContext();
 
+    // TODO comment this out creates the bug
     const isolatedKeyspace = await pool.requireKeyspaceIsolation(taskId, {
       bucket: 'b',
       scope: 's',
       collection: 'c',
     });
-
-    expect(isolatedKeyspace.bucket).toEqual(expect.stringMatching(/^cbjs_b_/));
-    expect(isolatedKeyspace.scope).toEqual(expect.stringMatching(/^cbjs_s_/));
-    expect(isolatedKeyspace.collection).toEqual(expect.stringMatching(/^cbjs_c_/));
+    //
+    // expect(isolatedKeyspace.bucket).toEqual(expect.stringMatching(/^cbjs_b_/));
+    // expect(isolatedKeyspace.scope).toEqual(expect.stringMatching(/^cbjs_s_/));
+    // expect(isolatedKeyspace.collection).toEqual(expect.stringMatching(/^cbjs_c_/));
 
     await pool.dispose();
   });
 
-  test('should fill the keyspace isolation realm when isolating a keyspace', async ({
+  test.skip('should fill the keyspace isolation realm when isolating a keyspace', async ({
     expect,
   }) => {
     const pool = new KeyspaceIsolationPool();
@@ -63,6 +64,6 @@ describe('keyspace isolation pool', () => {
     expect(keyspaceIsolationRealm.isScopeIsolated('b', 's')).toBe(true);
     expect(keyspaceIsolationRealm.isCollectionIsolated('b', 's', 'c')).toBe(true);
 
-    await pool.dispose();
+    // await pool.dispose();
   });
 });

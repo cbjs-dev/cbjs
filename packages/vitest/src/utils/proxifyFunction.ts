@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { AnyFunction, invariant, KeysByValue, Try } from '@cbjsdev/shared';
 
 import { getTestLogger } from '../logger';
@@ -46,12 +45,14 @@ export function proxifyFunction<
       const innerFnBinded = innerFn.bind(this);
       try {
         if (!transformArgs) {
+          getTestLogger()?.trace(`Arguments: %o`, args);
           return innerFnBinded(...args);
         }
 
-        void transformArgs(...args).then((transformedArgs) =>
-          innerFnBinded(...transformedArgs)
-        );
+        return transformArgs(...args).then((transformedArgs) => {
+          getTestLogger()?.trace(`Arguments: %o`, args);
+          return innerFnBinded(...transformedArgs);
+        });
       } catch (err) {
         invariant(err instanceof Error);
         getTestLogger()?.error(`Error during proxifyFunction: ${err.message}`);

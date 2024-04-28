@@ -14,3 +14,4 @@
  * limitations under the License.
  */
 
+export const passthrough = ['connect', 'shutdown', 'httpNoop', 'diagnostics'] as const;

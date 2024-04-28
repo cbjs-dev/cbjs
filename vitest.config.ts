@@ -9,7 +9,6 @@ export default defineConfig({
     maxWorkers: 1,
     hookTimeout: 10_000,
     teardownTimeout: 10_000,
-    disableConsoleIntercept: true,
     sequence: {
       setupFiles: 'list',
       hooks: 'stack',
