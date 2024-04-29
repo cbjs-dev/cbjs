@@ -75,8 +75,8 @@ export type LookupInSpecResult<Spec extends LookupInSpec, CollectionDocuments> =
 export type LookupInResultEntries<Results extends ReadonlyArray<unknown>, ThrowOnSpecError extends boolean> =
   Results extends readonly [infer Head extends unknown, ...infer Rest extends ReadonlyArray<unknown>] ?
     ThrowOnSpecError extends true ?
-      [LookupInResultEntry<Head, null>, ...LookupInResultEntries<Rest, ThrowOnSpecError>] :
-    [LookupInResultEntry<Head, null> | LookupInResultEntry<undefined, Error>, ...LookupInResultEntries<Rest, ThrowOnSpecError>] :
+      [LookupInResultEntry<Exclude<Head, undefined>, null>, ...LookupInResultEntries<Rest, ThrowOnSpecError>] :
+    [LookupInResultEntry<Exclude<Head, undefined>, null> | LookupInResultEntry<undefined, Error>, ...LookupInResultEntries<Rest, ThrowOnSpecError>] :
   IsArrayLengthFixed<Results> extends true ?
     [] :
   ThrowOnSpecError extends true ?
