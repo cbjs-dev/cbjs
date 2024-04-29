@@ -96,6 +96,7 @@ export function versionSupports(version: string, feature: ServerFeature) {
     case ServerFeatures.ScopeSearchIndexManagement:
     case ServerFeatures.NegativeCollectionMaxExpiry:
     case ServerFeatures.NotLockedKVStatus:
+    case ServerFeatures.ScopeEventingFunctionManagement:
       return gte(version, '7.6.0');
   }
 
