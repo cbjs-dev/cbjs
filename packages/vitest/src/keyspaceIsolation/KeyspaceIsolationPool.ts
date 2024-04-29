@@ -360,9 +360,18 @@ export class KeyspaceIsolationPool {
         'KeyspaceIsolationPool: clusterPromise is missing, creating a connection.'
       );
       const params = getConnectionParams();
+
+      /**
+       * Remove the sleep() and the tests crashes.
+       * If you change the value for 200, it also crashes.
+       */
+
       this.clusterPromise = sleep(500).then(() =>
         connect(params.connectionString, params.credentials)
       );
+
+      // this.clusterPromise = connect(params.connectionString, params.credentials);
+
       getTaskLogger()?.trace('KeyspaceIsolationPool: connection created.');
     }
 

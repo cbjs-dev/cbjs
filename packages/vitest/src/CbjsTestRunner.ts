@@ -63,7 +63,6 @@ export default class CbjsTestRunner extends VitestTestRunner {
   protected taskConnections = new Map<string, Cluster[]>();
 
   constructor(config: ResolvedConfig) {
-    console.log('CbjsTestRunner created.');
     cbjsAsyncHooks.enable();
     super(config);
   }
@@ -202,8 +201,6 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
       const taskConnections = Array.from(this.taskConnections.values()).flat();
 
-      appendLog(`CbjsTestRunner: ${taskConnections.length} connections to close`);
-
       await Promise.all(taskConnections.map((c) => c.close()));
 
       // Debug statement
@@ -211,7 +208,6 @@ export default class CbjsTestRunner extends VitestTestRunner {
         console.log(...log);
       }
 
-      console.log('CbjsTestRunner: Closed');
       getVitestLogger()?.flush?.();
     } catch (err) {
       console.error(err);

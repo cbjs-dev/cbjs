@@ -1,6 +1,7 @@
 import { beforeAll, describe, it } from 'vitest';
 
 import { DocumentExistsError } from '@cbjsdev/cbjs';
+import { sleep } from '@cbjsdev/shared';
 import { setKeyspaceIsolation } from '@cbjsdev/vitest';
 
 // TODO reproduce the segfault and get its stacktrace
