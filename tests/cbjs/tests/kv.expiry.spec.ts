@@ -63,7 +63,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Xattr))('kv expiry', async 
       await serverTestContext.collection.upsert(
         docKey,
         { title: 'expiry test' },
-        { expiry: -1 }
+        { expiry }
       );
 
       const {
