@@ -540,5 +540,11 @@ describe('LookupInSpecs', () => {
         Array<LookupInResultEntry<boolean, null> | LookupInResultEntry<undefined, Error>>
       >();
     });
+
+    it('should exclude `undefined` from the union types when ThrowOnSpecError is true', () => {
+      expectTypeOf<LookupInResultEntries<[string | undefined], true>>().toEqualTypeOf<
+        [LookupInResultEntry<string, null>]
+      >();
+    });
   });
 });
