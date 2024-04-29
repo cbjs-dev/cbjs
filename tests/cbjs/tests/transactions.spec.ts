@@ -651,4 +651,29 @@ describe
 
       expect(() => cluster.transactions()).toThrowError(BucketNotFoundError);
     });
+
+    // JSCBC-1243:  Although we do not support binary docs (at least until we add ExtBinarySupport),
+    // we should not crash if a user happens to attempt a get on a binary doc w/in a txn lambda.
+    test('should successfully get a binary document within the transaction lambda', async ({
+      serverTestContext,
+      expect,
+      useDocumentKey,
+    }) => {
+      const testDocKey = useDocumentKey();
+      const testBinVal = Buffer.from(
+        '00092bc691fb824300a6871ceddf7090d7092bc691fb824300a6871ceddf7090d7',
+        'hex'
+      );
+
+      await serverTestContext.co.insert(testDocKey, testBinVal);
+
+      await serverTestContext.cluster.transactions().run(
+        async (attempt) => {
+          const result = await attempt.get(serverTestContext.collection, testDocKey);
+
+          expect(result.content).toEqual(testBinVal);
+        },
+        { timeout: 5000 }
+      );
+    });
   });

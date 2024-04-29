@@ -102,7 +102,7 @@ describe.shuffle('kv lookupIn', async () => {
         ],
         { throwOnSpecError: true }
       )
-    ).resolves.toThrowError(PathNotFoundError);
+    ).rejects.toThrowError(PathNotFoundError);
   });
 
   test('should lookupIn given specs with options', async ({

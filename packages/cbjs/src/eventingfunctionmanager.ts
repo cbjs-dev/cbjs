@@ -1,51 +1,40 @@
-/*
- * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
- * Copyright (c) 2013-Present Couchbase Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import {
-  ApiEventingFunction,
-  ApiEventingFunctionBucketBinding,
-  ApiEventingFunctionConstantBinding,
-  ApiEventingFunctionCurlBinding,
-  ApiEventingFunctionStatus,
-  ApiFunctionStatusDescription,
-} from '@cbjsdev/http-client';
-import { ApiEventingFunctionSettings } from '@cbjsdev/http-client/dist/src/types/Api/eventing/ApiEventingFunctionSettings';
-import {
-  CouchbaseClusterTypes,
-  DefaultClusterTypes,
-  EventingFunctionScope,
-  hasOwn,
-  invariant,
-} from '@cbjsdev/shared';
+import { CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
 
-import { Cluster } from './cluster';
 import {
-  CollectionNotFoundError,
-  CouchbaseError,
-  EventingFunctionCompilationFailureError,
-  EventingFunctionDeployedError,
-  EventingFunctionIdenticalKeyspaceError,
-  EventingFunctionNotBootstrappedError,
-  EventingFunctionNotDeployedError,
-  EventingFunctionNotFoundError,
-} from './errors';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
+  CppManagementEventingFunction,
+  CppManagementEventingFunctionBucketBinding,
+  CppManagementEventingFunctionConstantBinding,
+  CppManagementEventingFunctionSettings,
+  CppManagementEventingFunctionState,
+  CppManagementEventingFunctionUrlAuthBasic,
+  CppManagementEventingFunctionUrlAuthBearer,
+  CppManagementEventingFunctionUrlAuthDigest,
+  CppManagementEventingFunctionUrlBinding,
+  CppManagementEventingStatus,
+} from './binding';
+import {
+  errorFromCpp,
+  eventingBucketBindingAccessFromCpp,
+  eventingBucketBindingAccessToCpp,
+  eventingFunctionDcpBoundaryFromCpp,
+  eventingFunctionDcpBoundaryToCpp,
+  eventingFunctionDeploymentStatusFromCpp,
+  eventingFunctionDeploymentStatusToCpp,
+  eventingFunctionLanguageCompatibilityFromCpp,
+  eventingFunctionLanguageCompatibilityToCpp,
+  eventingFunctionLogLevelFromCpp,
+  eventingFunctionLogLevelToCpp,
+  eventingFunctionProcessingStatusFromCpp,
+  eventingFunctionProcessingStatusToCpp,
+  eventingFunctionStatusFromCpp,
+  queryScanConsistencyFromCpp,
+  queryScanConsistencyToCpp,
+} from './bindingutilities';
+import { Cluster } from './cluster';
+import { InvalidArgumentError } from './errors';
 import { QueryScanConsistency } from './querytypes';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
-import { toEnumMember } from './utilities_internal';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
 
 /**
  * Represents the various dcp boundary options for eventing functions.
@@ -159,6 +148,12 @@ export enum EventingFunctionLanguageCompatibility {
    * Couchbase Server 6.6.2.
    */
   Version_6_6_2 = '6.6.2',
+
+  /**
+   * Indicates that the function should run with compatibility with
+   * Couchbase Server 7.2.0.
+   */
+  Version_7_2_0 = '7.2.0',
 }
 
 /**
@@ -295,30 +290,34 @@ export class EventingFunctionBucketBinding {
   /**
    * @internal
    */
-  static _fromEvtData(
-    data: ApiEventingFunctionBucketBinding
+  static _fromCppData(
+    data: CppManagementEventingFunctionBucketBinding
   ): EventingFunctionBucketBinding {
     return new EventingFunctionBucketBinding({
-      name: new EventingFunctionKeyspace({
-        bucket: data.bucket_name,
-        scope: data.scope_name,
-        collection: data.collection_name,
-      }),
       alias: data.alias,
-      access: toEnumMember(EventingFunctionBucketAccess, data.access),
+      name: new EventingFunctionKeyspace({
+        bucket: data.name.bucket,
+        scope: data.name.scope,
+        collection: data.name.collection,
+      }),
+      access: eventingBucketBindingAccessFromCpp(data.access),
     });
   }
 
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunctionBucketBinding): any {
+  static _toCppData(
+    data: EventingFunctionBucketBinding
+  ): CppManagementEventingFunctionBucketBinding {
     return {
-      bucket_name: data.name.bucket,
-      scope_name: data.name.scope,
-      collection_name: data.name.collection,
       alias: data.alias,
-      access: data.access,
+      name: {
+        bucket: data.name.bucket,
+        scope: data.name.scope,
+        collection: data.name.collection,
+      },
+      access: eventingBucketBindingAccessToCpp(data.access),
     };
   }
 }
@@ -452,36 +451,38 @@ export class EventingFunctionUrlBinding {
   /**
    * @internal
    */
-  static _fromEvtData(data: ApiEventingFunctionCurlBinding): EventingFunctionUrlBinding {
-    let authObj = undefined;
+  static _fromCppData(
+    data: CppManagementEventingFunctionUrlBinding
+  ): EventingFunctionUrlBinding {
+    let authObj;
 
-    switch (data.auth_type) {
-      case 'no-auth':
-        break;
-      case EventingFunctionUrlAuthMethod.Basic:
-        authObj = new EventingFunctionUrlAuthBasic({
-          username: data.username,
-          password: data.password,
-        });
-        break;
-      case EventingFunctionUrlAuthMethod.Digest:
-        authObj = new EventingFunctionUrlAuthDigest({
-          username: data.username,
-          password: data.password,
-        });
-        break;
-      case EventingFunctionUrlAuthMethod.Bearer:
-        authObj = new EventingFunctionUrlAuthBearer({
-          key: data.bearer_key,
-        });
-        break;
-      default:
-        throw new Error('invalid auth type specified');
+    if (data.auth_name === 'function_url_no_auth') {
+      authObj = undefined;
+    } else if (data.auth_name === 'function_url_auth_basic') {
+      authObj = new EventingFunctionUrlAuthBasic({
+        username: (data.auth_value as CppManagementEventingFunctionUrlAuthBasic).username,
+        password: (data.auth_value as CppManagementEventingFunctionUrlAuthBasic).password,
+      });
+    } else if (data.auth_name === 'function_url_auth_digest') {
+      authObj = new EventingFunctionUrlAuthDigest({
+        username: (data.auth_value as CppManagementEventingFunctionUrlAuthDigest)
+          .username,
+        password: (data.auth_value as CppManagementEventingFunctionUrlAuthDigest)
+          .password,
+      });
+    } else if (data.auth_name === 'function_url_auth_bearer') {
+      authObj = new EventingFunctionUrlAuthBearer({
+        key: (data.auth_value as CppManagementEventingFunctionUrlAuthBearer).key,
+      });
+    } else {
+      throw new InvalidArgumentError(
+        `Unrecognized EventingFunctionUrlBinding: ${data.auth_name}`
+      );
     }
 
     return {
       hostname: data.hostname,
-      alias: data.value,
+      alias: data.alias,
       allowCookies: data.allow_cookies,
       validateSslCertificate: data.validate_ssl_certificate,
       auth: authObj,
@@ -491,16 +492,43 @@ export class EventingFunctionUrlBinding {
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunctionUrlBinding) {
+  static _toCppData(
+    data: EventingFunctionUrlBinding
+  ): CppManagementEventingFunctionUrlBinding {
+    let authObj;
+    let auth_name;
+
+    if (!data.auth || data.auth.method === EventingFunctionUrlAuthMethod.None) {
+      authObj = {};
+      auth_name = 'function_url_no_auth';
+    } else if (data.auth.method === EventingFunctionUrlAuthMethod.Basic) {
+      authObj = {
+        username: (data.auth as EventingFunctionUrlAuthBasic).username,
+        password: (data.auth as EventingFunctionUrlAuthBasic).password,
+      } as CppManagementEventingFunctionUrlAuthBasic;
+      auth_name = 'function_url_auth_basic';
+    } else if (data.auth.method === EventingFunctionUrlAuthMethod.Digest) {
+      authObj = {
+        username: (data.auth as EventingFunctionUrlAuthDigest).username,
+        password: (data.auth as EventingFunctionUrlAuthDigest).password,
+      } as CppManagementEventingFunctionUrlAuthDigest;
+      auth_name = 'function_url_auth_digest';
+    } else if (data.auth.method === EventingFunctionUrlAuthMethod.Bearer) {
+      authObj = {
+        key: (data.auth as EventingFunctionUrlAuthBearer).key,
+      } as CppManagementEventingFunctionUrlAuthBearer;
+      auth_name = 'function_url_auth_bearer';
+    } else {
+      throw new InvalidArgumentError('Unrecognized EventingFunctionUrlBinding');
+    }
+
     return {
+      alias: data.alias,
       hostname: data.hostname,
-      value: data.alias,
       allow_cookies: data.allowCookies,
       validate_ssl_certificate: data.validateSslCertificate,
-      auth_type: data.auth ? data.auth.method : EventingFunctionUrlAuthMethod.None,
-      username: hasOwn(data, 'username') ? data.username : undefined,
-      password: hasOwn(data, 'password') ? data.password : undefined,
-      bearer_key: hasOwn(data, 'key') ? data.key : undefined,
+      auth_name: auth_name,
+      auth_value: authObj,
     };
   }
 }
@@ -529,11 +557,11 @@ export class EventingFunctionConstantBinding {
   /**
    * @internal
    */
-  static _fromEvtData(
-    data: ApiEventingFunctionConstantBinding
+  static _fromCppData(
+    data: CppManagementEventingFunctionConstantBinding
   ): EventingFunctionConstantBinding {
     return new EventingFunctionConstantBinding({
-      alias: data.value,
+      alias: data.alias,
       literal: data.literal,
     });
   }
@@ -541,9 +569,11 @@ export class EventingFunctionConstantBinding {
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunctionConstantBinding): any {
+  static _toCppData(
+    data: EventingFunctionConstantBinding
+  ): CppManagementEventingFunctionConstantBinding {
     return {
-      value: data.alias,
+      alias: data.alias,
       literal: data.literal,
     };
   }
@@ -591,184 +621,175 @@ export class EventingFunctionSettings {
   /**
    * The number of worker threads to use for the function.
    */
-  cppWorkerThreadCount: number;
+  cppWorkerThreadCount?: number;
 
   /**
    * The DCP stream boundary to use.
    */
-  dcpStreamBoundary: EventingFunctionDcpBoundary;
+  dcpStreamBoundary?: EventingFunctionDcpBoundary;
 
   /**
    * A description of this eventing function.
    */
-  description: string;
+  description?: string;
 
   /**
    * The current deployment status of the function.
    */
-  deploymentStatus: EventingFunctionDeploymentStatus;
+  deploymentStatus?: EventingFunctionDeploymentStatus;
 
   /**
    * The current processing status of the function.
    */
-  processingStatus: EventingFunctionProcessingStatus;
+  processingStatus?: EventingFunctionProcessingStatus;
 
   /**
    * The active compatibility mode for the function.
    */
-  languageCompatibility: EventingFunctionLanguageCompatibility;
+  languageCompatibility?: EventingFunctionLanguageCompatibility;
 
   /**
    * The level of logging that should be captured for the function.
    */
-  logLevel: EventingFunctionLogLevel;
+  logLevel?: EventingFunctionLogLevel;
 
   /**
    * The maximum period of time the function can execute on a document
    * before timing out.
    */
-  executionTimeout: number;
+  executionTimeout?: number;
 
   /**
    * The maximum number of internal clients that the function should
    * maintain for KV operations.
    */
-  lcbInstCapacity: number;
+  lcbInstCapacity?: number;
 
   /**
    * The maximum number of times to retry a KV operation before failing
    * the function.
    */
-  lcbRetryCount: number;
+  lcbRetryCount?: number;
 
   /**
    * The maximum period of time a KV operation within the function can
    * operate before timing out.
    */
-  lcbTimeout: number;
+  lcbTimeout?: number;
 
   /**
    * The level of consistency to use when performing queries in the function.
    */
-  queryConsistency: QueryScanConsistency;
+  queryConsistency?: QueryScanConsistency;
 
   /**
    * The number of partitions that should be used for timer tracking.
    */
-  numTimerPartitions: number;
+  numTimerPartitions?: number;
 
   /**
    * The batch size for messages from producer to consumer.
    */
-  sockBatchSize: number;
+  sockBatchSize?: number;
 
   /**
    * The duration to log stats from this handler, in milliseconds.
    */
-  tickDuration: number;
+  tickDuration?: number;
 
   /**
    * The size limit of timer context object.
    */
-  timerContextSize: number;
+  timerContextSize?: number;
 
   /**
    * The key prefix for all data stored in metadata by this handler.
    */
-  userPrefix: string;
+  userPrefix?: string;
 
   /**
    * The maximum size in bytes the bucket cache can grow to.
    */
-  bucketCacheSize: number;
+  bucketCacheSize?: number;
 
   /**
    * The time in milliseconds after which a cached bucket object is considered stale.
    */
-  bucketCacheAge: number;
+  bucketCacheAge?: number;
 
   /**
    * The maximum allowable curl call response in 'MegaBytes'. Setting the value to 0
    * lifts the upper limit off. This parameters affects v8 engine stability since it
    * defines the maximum amount of heap space acquired by a curl call.
    */
-  curlMaxAllowedRespSize: number;
+  curlMaxAllowedRespSize?: number;
 
   /**
    * Whether to automatically prepare all query statements in the handler.
    */
-  queryPrepareAll: boolean;
+  queryPrepareAll?: boolean;
 
   /**
    * The number of worker processes handler utilizes on each eventing node.
    */
-  workerCount: number;
+  workerCount?: number;
 
   /**
    * The code to automatically prepend to top of handler code.
    */
-  handlerHeaders: string[];
+  handlerHeaders?: string[];
 
   /**
    * The code to automatically append to bottom of handler code.
    */
-  handlerFooters: string[];
+  handlerFooters?: string[];
 
   /**
    * Whether to enable rotating this handlers log() message files.
    */
-  enableAppLogRotation: boolean;
+  enableAppLogRotation?: boolean;
 
   /**
    * The directory to write content of log() message files.
    */
-  appLogDir: string;
+  appLogDir?: string;
 
   /**
    * The size in bytes of the log file when the file should be rotated.
    */
-  appLogMaxSize: number;
+  appLogMaxSize?: number;
 
   /**
    * The number of log() message files to retain when rotating.
    */
-  appLogMaxFiles: number;
+  appLogMaxFiles?: number;
 
   /**
    * The number of seconds before writing a progress checkpoint.
    */
-  checkpointInterval: number;
+  checkpointInterval?: number;
 
   /**
    * @internal
    */
-  static _fromEvtData(data: ApiEventingFunctionSettings): EventingFunctionSettings {
-    // The function is not deployed yet.
-    // This case is ignored by upstream, recipe for headaches.
-    // Solvable once the classes are dropped for types.
-    if (data.deployment_status !== true) {
-      return new EventingFunctionSettings({} as any);
-    }
-
-    invariant(data.deployment_status === true, 'Function is not deployed yet.');
-
+  static _fromCppData(
+    data: CppManagementEventingFunctionSettings
+  ): EventingFunctionSettings {
     return new EventingFunctionSettings({
-      cppWorkerThreadCount: data.cpp_worker_thread_count,
-      dcpStreamBoundary: toEnumMember(
-        EventingFunctionDcpBoundary,
-        data.dcp_stream_boundary
-      ),
+      cppWorkerThreadCount: data.cpp_worker_count,
+      dcpStreamBoundary: eventingFunctionDcpBoundaryFromCpp(data.dcp_stream_boundary),
       description: data.description,
-      logLevel: toEnumMember(EventingFunctionLogLevel, data.log_level),
-      languageCompatibility: toEnumMember(
-        EventingFunctionLanguageCompatibility,
+      deploymentStatus: eventingFunctionDeploymentStatusFromCpp(data.deployment_status),
+      processingStatus: eventingFunctionProcessingStatusFromCpp(data.processing_status),
+      logLevel: eventingFunctionLogLevelFromCpp(data.log_level),
+      languageCompatibility: eventingFunctionLanguageCompatibilityFromCpp(
         data.language_compatibility
       ),
       executionTimeout: data.execution_timeout,
       lcbInstCapacity: data.lcb_inst_capacity,
       lcbRetryCount: data.lcb_retry_count,
       lcbTimeout: data.lcb_timeout,
-      queryConsistency: toEnumMember(QueryScanConsistency, data.n1ql_consistency),
+      queryConsistency: queryScanConsistencyFromCpp(data.query_consistency),
       numTimerPartitions: data.num_timer_partitions,
       sockBatchSize: data.sock_batch_size,
       tickDuration: data.tick_duration,
@@ -777,45 +798,46 @@ export class EventingFunctionSettings {
       bucketCacheSize: data.bucket_cache_size,
       bucketCacheAge: data.bucket_cache_age,
       curlMaxAllowedRespSize: data.curl_max_allowed_resp_size,
+      queryPrepareAll: data.query_prepare_all,
       workerCount: data.worker_count,
-      queryPrepareAll: data.n1ql_prepare_all,
       handlerHeaders: data.handler_headers,
       handlerFooters: data.handler_footers,
-      enableAppLogRotation: data.enable_applog_rotation,
+      enableAppLogRotation: data.enable_app_log_rotation,
       appLogDir: data.app_log_dir,
       appLogMaxSize: data.app_log_max_size,
       appLogMaxFiles: data.app_log_max_files,
       checkpointInterval: data.checkpoint_interval,
-      deploymentStatus: data.deployment_status
-        ? EventingFunctionDeploymentStatus.Deployed
-        : EventingFunctionDeploymentStatus.Undeployed,
-      processingStatus: data.processing_status
-        ? EventingFunctionProcessingStatus.Running
-        : EventingFunctionProcessingStatus.Paused,
     });
   }
 
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunctionSettings): ApiEventingFunctionSettings {
+  static _toCppData(
+    data?: EventingFunctionSettings
+  ): CppManagementEventingFunctionSettings {
     if (!data) {
       return {
-        deployment_status: false,
+        handler_headers: [],
+        handler_footers: [],
       };
     }
 
     return {
-      cpp_worker_thread_count: data.cppWorkerThreadCount,
-      dcp_stream_boundary: data.dcpStreamBoundary,
+      cpp_worker_count: data.cppWorkerThreadCount,
+      dcp_stream_boundary: eventingFunctionDcpBoundaryToCpp(data.dcpStreamBoundary),
       description: data.description,
-      log_level: data.logLevel,
-      language_compatibility: data.languageCompatibility,
+      deployment_status: eventingFunctionDeploymentStatusToCpp(data.deploymentStatus),
+      processing_status: eventingFunctionProcessingStatusToCpp(data.processingStatus),
+      log_level: eventingFunctionLogLevelToCpp(data.logLevel),
+      language_compatibility: eventingFunctionLanguageCompatibilityToCpp(
+        data.languageCompatibility
+      ),
       execution_timeout: data.executionTimeout,
       lcb_inst_capacity: data.lcbInstCapacity,
       lcb_retry_count: data.lcbRetryCount,
       lcb_timeout: data.lcbTimeout,
-      n1ql_consistency: data.queryConsistency,
+      query_consistency: queryScanConsistencyToCpp(data.queryConsistency),
       num_timer_partitions: data.numTimerPartitions,
       sock_batch_size: data.sockBatchSize,
       tick_duration: data.tickDuration,
@@ -824,19 +846,15 @@ export class EventingFunctionSettings {
       bucket_cache_size: data.bucketCacheSize,
       bucket_cache_age: data.bucketCacheAge,
       curl_max_allowed_resp_size: data.curlMaxAllowedRespSize,
+      query_prepare_all: data.queryPrepareAll,
       worker_count: data.workerCount,
-      n1ql_prepare_all: data.queryPrepareAll,
-      handler_headers: data.handlerHeaders,
-      handler_footers: data.handlerFooters,
-      enable_applog_rotation: data.enableAppLogRotation,
+      handler_headers: data.handlerHeaders ?? [],
+      handler_footers: data.handlerFooters ?? [],
+      enable_app_log_rotation: data.enableAppLogRotation,
       app_log_dir: data.appLogDir,
       app_log_max_size: data.appLogMaxSize,
       app_log_max_files: data.appLogMaxFiles,
       checkpoint_interval: data.checkpointInterval,
-      deployment_status:
-        data.deploymentStatus === EventingFunctionDeploymentStatus.Deployed,
-      processing_status:
-        data.processingStatus === EventingFunctionProcessingStatus.Running,
     };
   }
 }
@@ -849,10 +867,6 @@ export class EventingFunctionSettings {
 export class EventingFunction {
   constructor(v: EventingFunction) {
     this.name = v.name;
-    this.functionScope = v.functionScope || {
-      bucket: '*',
-      scope: '*',
-    };
     this.code = v.code;
     this.version = v.version;
     this.enforceSchema = v.enforceSchema;
@@ -882,22 +896,22 @@ export class EventingFunction {
   /**
    * The authoring version of this eventing function.
    */
-  version: string;
+  version?: string;
 
   /**
    * Whether to enable stricter validation of settings and configuration.
    */
-  enforceSchema: boolean;
+  enforceSchema?: boolean;
 
   /**
    * The unique ID for this eventing function.
    */
-  handlerUuid: number;
+  handlerUuid?: number;
 
   /**
    * The unique id for the deployment of the handler.
    */
-  functionInstanceId: string;
+  functionInstanceId?: string;
 
   /**
    * The keyspace to store the functions metadata.
@@ -927,81 +941,76 @@ export class EventingFunction {
   /**
    * The settings for this function.
    */
-  settings: EventingFunctionSettings;
-
-  /**
-   * The function scope.
-   */
-  functionScope: EventingFunctionScope;
+  settings?: EventingFunctionSettings;
 
   /**
    * @internal
    */
-  static _fromEvtData(data: ApiEventingFunction): EventingFunction {
+  static _fromCppData(data: CppManagementEventingFunction): EventingFunction {
     return new EventingFunction({
-      name: data.appname,
-      functionScope: data.function_scope,
-      code: data.appcode,
-      settings: EventingFunctionSettings._fromEvtData(data.settings),
-      version: data.version,
-      enforceSchema: data.enforce_schema,
-      handlerUuid: data.handleruuid,
-      functionInstanceId: data.function_instance_id,
+      name: data.name,
+      code: data.code,
       metadataKeyspace: new EventingFunctionKeyspace({
-        bucket: data.depcfg.metadata_bucket,
-        scope: data.depcfg.metadata_scope,
-        collection: data.depcfg.metadata_collection,
+        bucket: data.metadata_keyspace.bucket,
+        scope: data.metadata_keyspace.scope,
+        collection: data.metadata_keyspace.collection,
       }),
       sourceKeyspace: new EventingFunctionKeyspace({
-        bucket: data.depcfg.source_bucket,
-        scope: data.depcfg.source_scope,
-        collection: data.depcfg.source_collection,
+        bucket: data.source_keyspace.bucket,
+        scope: data.source_keyspace.scope,
+        collection: data.source_keyspace.collection,
       }),
-      constantBindings:
-        data.depcfg.constants?.map((bindingData) =>
-          EventingFunctionConstantBinding._fromEvtData(bindingData)
-        ) || [],
-      bucketBindings:
-        data.depcfg.buckets?.map((bindingData) =>
-          EventingFunctionBucketBinding._fromEvtData(bindingData)
-        ) || [],
-      urlBindings:
-        data.depcfg.curl?.map((bindingData) =>
-          EventingFunctionUrlBinding._fromEvtData(bindingData)
-        ) || [],
+      version: data.version,
+      enforceSchema: data.enforce_schema,
+      handlerUuid: data.handler_uuid,
+      functionInstanceId: data.function_instance_id,
+      bucketBindings: data.bucket_bindings.map(
+        (bindingData: CppManagementEventingFunctionBucketBinding) =>
+          EventingFunctionBucketBinding._fromCppData(bindingData)
+      ),
+      urlBindings: data.url_bindings.map(
+        (bindingData: CppManagementEventingFunctionUrlBinding) =>
+          EventingFunctionUrlBinding._fromCppData(bindingData)
+      ),
+      constantBindings: data.constant_bindings.map(
+        (bindingData: CppManagementEventingFunctionConstantBinding) =>
+          EventingFunctionConstantBinding._fromCppData(bindingData)
+      ),
+      settings: EventingFunctionSettings._fromCppData(data.settings),
     });
   }
 
   /**
    * @internal
    */
-  static _toEvtData(data: EventingFunction): any {
+  static _toCppData(data: EventingFunction): CppManagementEventingFunction {
     return {
-      appname: data.name,
-      function_scope: data.functionScope,
-      appcode: data.code,
-      settings: EventingFunctionSettings._toEvtData(data.settings),
+      name: data.name,
+      code: data.code,
+      metadata_keyspace: {
+        bucket: data.metadataKeyspace.bucket,
+        scope: data.metadataKeyspace.scope,
+        collection: data.metadataKeyspace.collection,
+      },
+      source_keyspace: {
+        bucket: data.sourceKeyspace.bucket,
+        scope: data.sourceKeyspace.scope,
+        collection: data.sourceKeyspace.collection,
+      },
       version: data.version,
       enforce_schema: data.enforceSchema,
-      handleruuid: data.handlerUuid,
+      handler_uuid: data.handlerUuid,
       function_instance_id: data.functionInstanceId,
-      depcfg: {
-        metadata_bucket: data.metadataKeyspace.bucket,
-        metadata_scope: data.metadataKeyspace.scope,
-        metadata_collection: data.metadataKeyspace.collection,
-        source_bucket: data.sourceKeyspace.bucket,
-        source_scope: data.sourceKeyspace.scope,
-        source_collection: data.sourceKeyspace.collection,
-        constants: data.constantBindings.map((binding) =>
-          EventingFunctionConstantBinding._toEvtData(binding)
-        ),
-        buckets: data.bucketBindings.map((binding) =>
-          EventingFunctionBucketBinding._toEvtData(binding)
-        ),
-        curl: data.urlBindings.map((binding) =>
-          EventingFunctionUrlBinding._toEvtData(binding)
-        ),
-      },
+      bucket_bindings: data.bucketBindings.map((binding) =>
+        EventingFunctionBucketBinding._toCppData(binding)
+      ),
+      url_bindings: data.urlBindings.map((binding) =>
+        EventingFunctionUrlBinding._toCppData(binding)
+      ),
+      constant_bindings: data.constantBindings.map((binding) =>
+        EventingFunctionConstantBinding._toCppData(binding)
+      ),
+      settings: EventingFunctionSettings._toCppData(data.settings),
     };
   }
 }
@@ -1054,18 +1063,19 @@ export class EventingFunctionState {
   /**
    * @internal
    */
-  static _fromEvtData(data: ApiFunctionStatusDescription): EventingFunctionState {
+  static _fromCppData(data: CppManagementEventingFunctionState): EventingFunctionState {
     return new EventingFunctionState({
       name: data.name,
-      status: toEnumMember(EventingFunctionStatus, data.composite_status),
+      status: eventingFunctionStatusFromCpp(data.status),
       numBootstrappingNodes: data.num_bootstrapping_nodes,
       numDeployedNodes: data.num_deployed_nodes,
-      deploymentStatus: data.deployment_status
-        ? EventingFunctionDeploymentStatus.Deployed
-        : EventingFunctionDeploymentStatus.Undeployed,
-      processingStatus: data.processing_status
-        ? EventingFunctionProcessingStatus.Running
-        : EventingFunctionProcessingStatus.Paused,
+      // deploymentStatus & processingStatus are required in the EventingFunctionState, and always set in the c++ interface, so asserting the type here.
+      deploymentStatus: eventingFunctionDeploymentStatusFromCpp(
+        data.deployment_status
+      ) as EventingFunctionDeploymentStatus,
+      processingStatus: eventingFunctionProcessingStatusFromCpp(
+        data.processing_status
+      ) as EventingFunctionProcessingStatus,
     });
   }
 }
@@ -1094,11 +1104,11 @@ export class EventingState {
   /**
    * @internal
    */
-  static _fromEvtData(data: ApiEventingFunctionStatus): EventingState {
+  static _fromCppData(data: CppManagementEventingStatus): EventingState {
     return new EventingState({
       numEventingNodes: data.num_eventing_nodes,
-      functions: data.apps.map((functionData) =>
-        EventingFunctionState._fromEvtData(functionData)
+      functions: data.functions.map((functionData: CppManagementEventingFunctionState) =>
+        EventingFunctionState._fromCppData(functionData)
       ),
     });
   }
@@ -1213,10 +1223,6 @@ export class EventingFunctionManager<
     this._cluster = cluster;
   }
 
-  private get _http() {
-    return new HttpExecutor(this._cluster.conn);
-  }
-
   /**
    * Creates or updates an eventing function.
    *
@@ -1229,54 +1235,42 @@ export class EventingFunctionManager<
     options: UpsertFunctionOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Creates or updates an eventing function.
+   *
+   * @param functionDefinition The description of the eventing function to upsert.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async upsertFunction(
     functionDefinition: EventingFunction,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
   async upsertFunction(
     functionDefinition: EventingFunction,
-    options?: UpsertFunctionOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
+    ...args:
+      | [options: UpsertFunctionOptions, callback?: VoidNodeCallback]
+      | [callback?: VoidNodeCallback]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const functionName = functionDefinition.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const encodedData = EventingFunction._toEvtData(functionDefinition);
-
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Post,
-        path: `/api/v1/functions/${functionName}`,
-        contentType: 'application/json',
-        body: JSON.stringify(encodedData),
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_collection_missing')) {
-          throw new CollectionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingUpsertFunction(
+        {
+          function: EventingFunction._toCppData(functionDefinition),
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-        if (errText.includes('err_src_mb_same')) {
-          throw new EventingFunctionIdenticalKeyspaceError(undefined, errCtx);
-        }
-        if (errText.includes('err_handler_compilation')) {
-          throw new EventingFunctionCompilationFailureError(undefined, errCtx);
-        }
-
-        throw new CouchbaseError('failed to upsert function', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -1292,47 +1286,39 @@ export class EventingFunctionManager<
     options: DropFunctionOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Deletes an eventing function.
+   *
+   * @param name The name of the eventing function to delete.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async dropFunction(name: string, callback?: VoidNodeCallback): Promise<void>;
+
   async dropFunction(
     name: string,
-    options?: DropFunctionOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
+    ...args:
+      | [options: DropFunctionOptions, callback?: VoidNodeCallback]
+      | [callback?: VoidNodeCallback]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const functionName = name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Delete,
-        path: `/api/v1/functions/${functionName}`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_app_not_found_ts')) {
-          throw new EventingFunctionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingDropFunction(
+        {
+          name: name,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-        if (errText.includes('err_app_not_deployed')) {
-          throw new EventingFunctionNotDeployedError(undefined, errCtx);
-        }
-        if (errText.includes('err_app_not_undeployed')) {
-          throw new EventingFunctionDeployedError(undefined, errCtx);
-        }
-
-        throw new CouchbaseError('failed to drop function', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -1346,41 +1332,41 @@ export class EventingFunctionManager<
     options: GetAllFunctionsOptions,
     callback?: NodeCallback<EventingFunction[]>
   ): Promise<EventingFunction[]>;
+
+  /**
+   * Fetches all eventing functions.
+   *
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async getAllFunctions(
     callback?: NodeCallback<EventingFunction[]>
   ): Promise<EventingFunction[]>;
+
   async getAllFunctions(
-    options?: GetAllFunctionsOptions | NodeCallback<EventingFunction[]>,
-    callback?: NodeCallback<EventingFunction[]>
+    ...args:
+      | [options: GetAllFunctionsOptions, callback?: NodeCallback<EventingFunction[]>]
+      | [callback?: NodeCallback<EventingFunction[]>]
   ): Promise<EventingFunction[]> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Get,
-        path: `/api/v1/functions`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        throw new CouchbaseError('failed to get functions', undefined, errCtx);
-      }
-
-      const functionsData = JSON.parse(res.body.toString()) as ApiEventingFunction[];
-
-      return functionsData.map((functionData) =>
-        EventingFunction._fromEvtData(functionData)
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingGetAllFunctions(
+        {
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const functions = resp.functions.map(
+            (functionData: CppManagementEventingFunction) =>
+              EventingFunction._fromCppData(functionData)
+          );
+          wrapCallback(null, functions);
+        }
       );
     }, callback);
   }
@@ -1414,30 +1400,23 @@ export class EventingFunctionManager<
       options = {};
     }
 
-    const functionName = name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Get,
-        path: `/api/v1/functions/${functionName}`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_app_not_found_ts')) {
-          throw new EventingFunctionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingGetFunction(
+        {
+          name: name,
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const eventingFunction = EventingFunction._fromCppData(resp.function);
+          wrapCallback(null, eventingFunction);
         }
-
-        throw new CouchbaseError('failed to get function', undefined, errCtx);
-      }
-
-      const functionData = JSON.parse(res.body.toString());
-      return EventingFunction._fromEvtData(functionData);
+      );
     }, callback);
   }
 
@@ -1453,44 +1432,39 @@ export class EventingFunctionManager<
     options: DeployFunctionOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Deploys an eventing function.
+   *
+   * @param name The name of the eventing function to deploy.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async deployFunction(name: string, callback?: VoidNodeCallback): Promise<void>;
+
   async deployFunction(
     name: string,
-    options?: DeployFunctionOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
+    ...args:
+      | [options: DeployFunctionOptions, callback?: VoidNodeCallback]
+      | [callback?: VoidNodeCallback]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const functionName = name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Post,
-        path: `/api/v1/functions/${functionName}/deploy`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_app_not_found_ts')) {
-          throw new EventingFunctionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingDeployFunction(
+        {
+          name: name,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-        if (errText.includes('err_app_not_bootstrapped')) {
-          throw new EventingFunctionNotBootstrappedError(undefined, errCtx);
-        }
-
-        throw new CouchbaseError('failed to deploy function', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -1506,44 +1480,39 @@ export class EventingFunctionManager<
     options: DeployFunctionOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Undeploys an eventing function.
+   *
+   * @param name The name of the eventing function to undeploy.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async undeployFunction(name: string, callback?: VoidNodeCallback): Promise<void>;
+
   async undeployFunction(
     name: string,
-    options?: DeployFunctionOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
+    ...args:
+      | [options: DeployFunctionOptions, callback?: VoidNodeCallback]
+      | [callback?: VoidNodeCallback]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const functionName = name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Post,
-        path: `/api/v1/functions/${functionName}/undeploy`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_app_not_found_ts')) {
-          throw new EventingFunctionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingUndeployFunction(
+        {
+          name: name,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-        if (errText.includes('err_app_not_deployed')) {
-          throw new EventingFunctionNotDeployedError(undefined, errCtx);
-        }
-
-        throw new CouchbaseError('failed to undeploy function', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -1559,44 +1528,39 @@ export class EventingFunctionManager<
     options: PauseFunctionOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Pauses an eventing function.
+   *
+   * @param name The name of the eventing function to pause.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async pauseFunction(name: string, callback?: VoidNodeCallback): Promise<void>;
+
   async pauseFunction(
     name: string,
-    options?: PauseFunctionOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
+    ...args:
+      | [options: PauseFunctionOptions, callback?: VoidNodeCallback]
+      | [callback?: VoidNodeCallback]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const functionName = name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Post,
-        path: `/api/v1/functions/${functionName}/pause`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_app_not_found_ts')) {
-          throw new EventingFunctionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingPauseFunction(
+        {
+          name: name,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-        if (errText.includes('err_app_not_bootstrapped')) {
-          throw new EventingFunctionNotBootstrappedError(undefined, errCtx);
-        }
-
-        throw new CouchbaseError('failed to pause function', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -1612,44 +1576,39 @@ export class EventingFunctionManager<
     options: ResumeFunctionOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
+
+  /**
+   * Resumes an eventing function.
+   *
+   * @param name The name of the eventing function to resume.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async resumeFunction(name: string, callback?: VoidNodeCallback): Promise<void>;
+
   async resumeFunction(
     name: string,
-    options?: ResumeFunctionOptions | VoidNodeCallback,
-    callback?: VoidNodeCallback
+    ...args:
+      | [options: ResumeFunctionOptions, callback?: VoidNodeCallback]
+      | [callback?: VoidNodeCallback]
   ): Promise<void> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
-    const functionName = name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Post,
-        path: `/api/v1/functions/${functionName}/resume`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        const errText = res.body.toString().toLowerCase();
-        if (errText.includes('err_app_not_found_ts')) {
-          throw new EventingFunctionNotFoundError(undefined, errCtx);
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingResumeFunction(
+        {
+          name: name,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
         }
-        if (errText.includes('err_app_not_deployed')) {
-          throw new EventingFunctionNotDeployedError(undefined, errCtx);
-        }
-
-        throw new CouchbaseError('failed to resume function', undefined, errCtx);
-      }
+      );
     }, callback);
   }
 
@@ -1663,37 +1622,36 @@ export class EventingFunctionManager<
     options: FunctionsStatusOptions,
     callback?: NodeCallback<EventingState>
   ): Promise<EventingState>;
+
+  /**
+   * Fetches the status of all eventing functions.
+   *
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async functionsStatus(callback?: NodeCallback<EventingState>): Promise<EventingState>;
   async functionsStatus(
-    options?: FunctionsStatusOptions | NodeCallback<EventingState>,
-    callback?: NodeCallback<EventingState>
+    ...args:
+      | [options: FunctionsStatusOptions, callback?: NodeCallback<EventingState>]
+      | [callback?: NodeCallback<EventingState>]
   ): Promise<EventingState> {
-    if (options instanceof Function) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options) {
-      options = {};
-    }
+    const [options = {}, callback] = resolveOptionsAndCallback(args);
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Eventing,
-        method: HttpMethod.Get,
-        path: `/api/v1/status`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        const errCtx = HttpExecutor.errorContextFromResponse(res);
-
-        throw new CouchbaseError('failed to fetch functions status', undefined, errCtx);
-      }
-
-      const statusData = JSON.parse(res.body.toString());
-      return EventingState._fromEvtData(statusData);
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementEventingGetStatus(
+        {
+          timeout: timeout,
+        },
+        (cppErr, resp) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
+          }
+          const state = EventingState._fromCppData(resp.status);
+          wrapCallback(null, state);
+        }
+      );
     }, callback);
   }
 }

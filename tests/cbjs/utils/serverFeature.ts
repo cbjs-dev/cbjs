@@ -48,6 +48,7 @@ export const ServerFeatures = {
   VectorSearch: 'vector_search',
   ScopeSearch: 'scope_search',
   ScopeSearchIndexManagement: 'scope_search_index_management',
+  ScopeEventingFunctionManagement: 'scope_eventing_function_management',
   NotLockedKVStatus: 'kv_not_locked',
 } as const;
 
@@ -95,6 +96,7 @@ export function versionSupports(version: string, feature: ServerFeature) {
     case ServerFeatures.ScopeSearchIndexManagement:
     case ServerFeatures.NegativeCollectionMaxExpiry:
     case ServerFeatures.NotLockedKVStatus:
+    case ServerFeatures.ScopeEventingFunctionManagement:
       return gte(version, '7.6.0');
   }
 

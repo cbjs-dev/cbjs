@@ -33,6 +33,8 @@ export type Cas = {
   toJSON(): string;
 };
 
+export type CasInput = Cas | string | Buffer;
+
 type CouchbaseCasInput = Cas | Buffer | string | bigint | number;
 
 /**
