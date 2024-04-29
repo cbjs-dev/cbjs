@@ -67,6 +67,64 @@ For this operation, only the `timeout` option is available.
 
 If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted collection, the paths will be type checked and the result will be typed accordingly.
 
+#### Throw on spec error
+
+Each sub-document spec may fail individually. For this reason, the operation may return a result to you but filled with errors. You can see below that `bookTitle` contains a union type, forcing you to check the error for each sub-doc operation.
+
+```ts twoslash
+import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = ClusterTypes<{
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+}>;
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const { content: [bookTitle, book3rdAuthor] } = 
+  await collection.lookupIn('book::001').get('title').get('authors[2]');
+
+if (bookTitle.error !== null || book3rdAuthor.error !== null) {
+  // handle the errors
+}
+```
+
+Because this is annoying and because you often need all the data in order to proceed, Cbjs provides an additional option when performing the request : `throwOnSpecError`.
+Using that option, the whole operation will fail if any spec led to an error. This frees you from checking each individual result. 
+
+```ts twoslash
+import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = ClusterTypes<{
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+}>;
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const { content: [bookTitle, book3rdAuthor] } = await collection
+  .lookupIn('book::001', { throwOnSpecError: true })
+  .get('title')
+  .get('authors[2]');
+
+// Look at the type of `bookTitle` and `book3rdAuthor`. No more union.
+// If either `title` or `authors[2]` don't exist at runtime, it will throw an error, so this is type safe.
+```
+
 #### Chainable sub-doc operations
 
 Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
