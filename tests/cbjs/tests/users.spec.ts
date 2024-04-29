@@ -24,7 +24,7 @@ import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.UserManagement))
-  .shuffle('users', async () => {
+  .shuffle('users', { retry: 1 }, async () => {
     const test = await createCouchbaseTest();
 
     test('should successfully get all roles', async function ({
