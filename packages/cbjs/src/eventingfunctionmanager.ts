@@ -11,7 +11,7 @@ import {
   CppManagementEventingFunctionUrlAuthDigest,
   CppManagementEventingFunctionUrlBinding,
   CppManagementEventingStatus,
-} from './binding';
+} from './binding.js';
 import {
   errorFromCpp,
   eventingBucketBindingAccessFromCpp,
@@ -29,12 +29,12 @@ import {
   eventingFunctionStatusFromCpp,
   queryScanConsistencyFromCpp,
   queryScanConsistencyToCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
-import { InvalidArgumentError } from './errors';
-import { QueryScanConsistency } from './querytypes';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { InvalidArgumentError } from './errors.js';
+import { QueryScanConsistency } from './querytypes.js';
+import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
 
 /**
  * Represents the various dcp boundary options for eventing functions.

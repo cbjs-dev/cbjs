@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LookupInMacro, MutateInMacro } from '../sdspecs';
+import { LookupInMacro, MutateInMacro } from '../sdspecs.js';
 
 /**
  * The value is an instance of {@link LookupInMacro}.

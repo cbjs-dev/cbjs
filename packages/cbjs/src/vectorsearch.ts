@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InvalidArgumentError } from './errors';
+import { InvalidArgumentError } from './errors.js';
 
 /**
  * Specifies how multiple vector searches are combined.

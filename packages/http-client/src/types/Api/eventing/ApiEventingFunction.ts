@@ -15,7 +15,7 @@
  */
 import { EventingFunctionUrlAuthData } from '@cbjsdev/shared';
 
-import { ApiEventingFunctionSettings } from './ApiEventingFunctionSettings';
+import { ApiEventingFunctionSettings } from './ApiEventingFunctionSettings.js';
 
 export type ApiEventingFunctionConstantBinding = {
   value: string;

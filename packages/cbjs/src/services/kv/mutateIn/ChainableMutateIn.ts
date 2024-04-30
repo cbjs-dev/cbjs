@@ -14,18 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import { AnyCollection } from '../../../clusterTypes';
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import { AnyCollection } from '../../../clusterTypes/index.js';
 import {
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
-} from '../../../clusterTypes/clusterTypes';
+} from '../../../clusterTypes/clusterTypes.js';
 import {
   AnyMutateInPath,
   AnyMutateInValue,
   MutateInSpecResults,
   MutateInValue,
-} from '../../../clusterTypes/kv/mutation/mutateIn.types';
+} from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
 import {
   MutateInArrayAddUniqueOptions,
   MutateInArrayAppendOptions,
@@ -36,10 +36,10 @@ import {
   MutateInInsertOptions,
   MutateInRemoveOptions,
   MutateInUpsertOptions,
-} from '../../../clusterTypes/kv/mutation/mutationOperations.types';
-import { MutateInOptions } from '../../../collection';
-import { MutateInResult } from '../../../crudoptypes';
-import { MutateInSpec } from '../../../sdspecs';
+} from '../../../clusterTypes/kv/mutation/mutationOperations.types.js';
+import { MutateInOptions } from '../../../collection.js';
+import { MutateInResult } from '../../../crudoptypes.js';
+import { MutateInSpec } from '../../../sdspecs.js';
 
 type ThisAnd<T, Spec extends MutateInSpec> =
   T extends ChainableMutateIn<infer C, infer Key, infer SpecDefinitions>

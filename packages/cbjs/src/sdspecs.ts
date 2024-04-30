@@ -14,29 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import binding, { CppProtocolSubdocOpcode } from './binding';
-import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards';
+import binding, { CppProtocolSubdocOpcode } from './binding.js';
+import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
 import {
   LookupInInternalPath,
   LookupInPath,
   LookupInSpecOpCode,
   MakeLookupInSpec,
   ToLookupInternalPath,
-} from './clusterTypes/kv/lookup/lookupIn.types';
-import { LookupInMacroReturnType } from './clusterTypes/kv/lookup/lookupInMacro.types';
+} from './clusterTypes/kv/lookup/lookupIn.types.js';
+import { LookupInMacroReturnType } from './clusterTypes/kv/lookup/lookupInMacro.types.js';
 import {
   LookupInCountPath,
   LookupInExistsPath,
   LookupInGetPath,
-} from './clusterTypes/kv/lookup/lookupOperations.types';
+} from './clusterTypes/kv/lookup/lookupOperations.types.js';
 import {
   AnyMutateInPath,
   AnyMutateInValue,
   MutateInPath,
   MutateInSpecOpcode,
   MutateInValue,
-} from './clusterTypes/kv/mutation/mutateIn.types';
-import { MutateInMacroReturnType } from './clusterTypes/kv/mutation/mutateInMacro.types';
+} from './clusterTypes/kv/mutation/mutateIn.types.js';
+import { MutateInMacroReturnType } from './clusterTypes/kv/mutation/mutateInMacro.types.js';
 import {
   MutateInArrayAddUniqueOptions,
   MutateInArrayAppendOptions,
@@ -48,7 +48,7 @@ import {
   MutateInRemoveOptions,
   MutateInReplaceOptions,
   MutateInUpsertOptions,
-} from './clusterTypes/kv/mutation/mutationOperations.types';
+} from './clusterTypes/kv/mutation/mutationOperations.types.js';
 
 /**
  * Represents a macro that can be passed to a lookup-in operation to

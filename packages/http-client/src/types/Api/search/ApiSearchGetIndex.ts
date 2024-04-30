@@ -19,7 +19,7 @@ import {
   SearchIndexConfigSourceParams,
   SearchIndexType,
   SearchSourceType,
-} from './types';
+} from './types.js';
 
 export type ApiSearchGetIndex = {
   status: 'ok' | (string & NonNullable<unknown>);

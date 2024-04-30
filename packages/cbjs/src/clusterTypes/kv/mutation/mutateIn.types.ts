@@ -15,10 +15,10 @@
  */
 
 import type { IsFuzzyDocument, Try } from '@cbjsdev/shared';
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import { MutateInResultEntry } from '../../../crudoptypes';
-import { MutateInMacro, MutateInSpec } from '../../../sdspecs';
-import type { MutateInMacroReturnType } from './mutateInMacro.types';
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import { MutateInResultEntry } from '../../../crudoptypes.js';
+import { MutateInMacro, MutateInSpec } from '../../../sdspecs.js';
+import type { MutateInMacroReturnType } from './mutateInMacro.types.js';
 import type {
   MutateInArrayAddUniquePath,
   MutateInArrayAddUniqueValue,
@@ -37,7 +37,7 @@ import type {
   MutateInReplaceValue,
   MutateInUpsertPath,
   MutateInUpsertValue,
-} from './mutationOperations.types';
+} from './mutationOperations.types.js';
 
 /**
  * Results of a {@link Collection.mutateIn} operation.

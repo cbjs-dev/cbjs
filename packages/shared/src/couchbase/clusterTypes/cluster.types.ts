@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsNever, Pretty } from '../../misc';
-import { DocDef, KeyspaceDocDef } from './document.types';
+import { IsAny, IsNever, Pretty } from '../../misc/index.js';
+import { DocDef, KeyspaceDocDef } from './document.types.js';
 import {
   BucketName,
   CollectionName,
   DefaultCollectionName,
   DefaultScopeName,
   ScopeName,
-} from './keyspace.types';
+} from './keyspace.types.js';
 
 export type ClusterTypesOptions =
   | {

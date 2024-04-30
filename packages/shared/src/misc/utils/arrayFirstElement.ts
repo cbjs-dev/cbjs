@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ArrayFirstElement } from '../../couchbase';
+import { ArrayFirstElement } from '../../couchbase/index.js';
 
 export function arrayFirstElement<const T extends ReadonlyArray<unknown>>(arr: T) {
   return arr[0] as ArrayFirstElement<T>;

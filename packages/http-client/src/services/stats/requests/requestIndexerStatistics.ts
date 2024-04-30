@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiGET } from '../../../utils/apiGET';
-import { INDEX_STATISTICS } from '../../../utils/ports';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+import { INDEX_STATISTICS } from '../../../utils/ports.js';
 
 export async function requestIndexerStatistics(
   apiConfig: CouchbaseHttpApiConfig,

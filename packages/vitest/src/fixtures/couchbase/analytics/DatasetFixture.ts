@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
-import { FixtureFunctionValue } from '../../FixtureFunctionValue';
-import { FixtureContext } from '../../types';
+import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
+import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
+import { FixtureContext } from '../../types.js';
 
 export type DatasetFixtureParams = {
   datasetName?: string;

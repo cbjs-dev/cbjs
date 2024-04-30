@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes';
-import { getPoolNodes } from './getPoolNodes';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes.js';
+import { getPoolNodes } from './getPoolNodes.js';
 
 export type ClusterReleaseFlavor = 'community' | 'enterprise';
 export type ClusterRelease = {

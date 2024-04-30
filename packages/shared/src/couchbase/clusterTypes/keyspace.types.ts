@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsAny, IsNever, Or } from '../../misc';
-import { CouchbaseClusterTypes } from './cluster.types';
+import { If, IsAny, IsNever, Or } from '../../misc/index.js';
+import { CouchbaseClusterTypes } from './cluster.types.js';
 
 /**
  * Default scope name.

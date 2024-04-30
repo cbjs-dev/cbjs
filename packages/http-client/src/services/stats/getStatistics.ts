@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { createHttpError } from '../../utils/createHttpError';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { createHttpError } from '../../utils/createHttpError.js';
 import {
   requestStatistics,
   StatisticDefinition,
   StatisticsResult,
-} from './requests/requestStatistics';
+} from './requests/requestStatistics.js';
 
 export async function getStatistics(
   apiConfig: CouchbaseHttpApiConfig,

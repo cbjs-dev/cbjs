@@ -28,8 +28,8 @@ import { getCollections } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Collections))

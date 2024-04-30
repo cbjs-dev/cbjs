@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { If, IsExactly, IsNever, Join, Primitive, TrySafe, UnionToTuple } from '../../../misc';
-import { ArrayEntries, TupleFilter } from './array-utils.types';
+import type { If, IsExactly, IsNever, Join, Primitive, TrySafe, UnionToTuple } from '../../../misc/index.js';
+import { ArrayEntries, TupleFilter } from './array-utils.types.js';
 
 /**
  * Basic string description of a type.

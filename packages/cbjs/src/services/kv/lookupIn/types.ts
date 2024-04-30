@@ -16,14 +16,14 @@
  */
 import { If, IsArrayLengthKnown, PromiseValue } from '@cbjsdev/shared';
 
-import { AnyCollection } from '../../../clusterTypes';
-import { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
-import { LookupInSpecResults, NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types';
-import { LookupInAllReplicasOptions, LookupInAnyReplicaOptions, LookupInOptions } from '../../../collection';
-import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
-import { LookupInSpec } from '../../../sdspecs';
-import { NodeCallback } from '../../../utilities';
-import { ChainableLookupIn } from './ChainableLookupIn';
+import { AnyCollection } from '../../../clusterTypes/index.js';
+import { ExtractCollectionJsonDocBody, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
+import { LookupInSpecResults, NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types.js';
+import { LookupInAllReplicasOptions, LookupInAnyReplicaOptions, LookupInOptions } from '../../../collection.js';
+import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes.js';
+import { LookupInSpec } from '../../../sdspecs.js';
+import { NodeCallback } from '../../../utilities.js';
+import { ChainableLookupIn } from './ChainableLookupIn.js';
 
 export type LookupMethodName = 'lookupIn' | 'lookupInAnyReplica' | 'lookupInAllReplicas';
 

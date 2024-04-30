@@ -17,16 +17,16 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
-import { connect } from '../../couchbase';
+import { connect } from '../../couchbase.js';
 import {
   GetReplicaResult,
   GetResult,
   LookupInResult,
   ScanResult,
-} from '../../crudoptypes';
-import { PrefixScan, SamplingScan } from '../../rangeScan';
-import { LookupInSpec } from '../../sdspecs';
-import { StreamableReplicasPromise } from '../../streamablepromises';
+} from '../../crudoptypes.js';
+import { PrefixScan, SamplingScan } from '../../rangeScan.js';
+import { LookupInSpec } from '../../sdspecs.js';
+import { StreamableReplicasPromise } from '../../streamablepromises.js';
 
 type Book = { title: string };
 type QuarterSales = { sales: number[] };

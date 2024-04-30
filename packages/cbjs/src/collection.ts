@@ -47,7 +47,7 @@ import {
   DecrementOptions,
   IncrementOptions,
   PrependOptions,
-} from './binarycollection';
+} from './binarycollection.js';
 import type {
   CppAppendResponse,
   CppConnection,
@@ -64,8 +64,8 @@ import type {
   CppReplaceResponse,
   CppScanIterator,
   CppUpsertResponse,
-} from './binding';
-import binding, { zeroCas } from './binding';
+} from './binding.js';
+import binding, { zeroCas } from './binding.js';
 import {
   durabilityToCpp,
   errorFromCpp,
@@ -74,27 +74,27 @@ import {
   replicateToToCpp,
   scanTypeToCpp,
   storeSemanticToCpp,
-} from './bindingutilities';
-import type { Cluster } from './cluster';
+} from './bindingutilities.js';
+import type { Cluster } from './cluster.js';
 import {
   AnyCollection,
   CollectionMatchingDocDef,
   CT,
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
-} from './clusterTypes/clusterTypes';
+} from './clusterTypes/clusterTypes.js';
 import type {
   LookupInResultEntries,
   LookupInSpecResults,
   NarrowLookupSpecs,
   ValidateLookupInSpecs,
-} from './clusterTypes/kv/lookup/lookupIn.types';
-import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types';
-import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types';
+} from './clusterTypes/kv/lookup/lookupIn.types.js';
+import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types.js';
+import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types.js';
 import type {
   MutateInResultEntries,
   MutateInSpecResults,
-} from './clusterTypes/kv/mutation/mutateIn.types';
+} from './clusterTypes/kv/mutation/mutateIn.types.js';
 import {
   CounterResult,
   ExistsResult,
@@ -107,31 +107,34 @@ import {
   MutateInResultEntry,
   MutationResult,
   ScanResult,
-} from './crudoptypes';
-import { InvalidArgumentError } from './errors';
-import { DurabilityLevel, StoreSemantics } from './generaltypes';
-import { MutationState } from './mutationstate';
-import { CollectionQueryIndexManager } from './queryindexmanager';
-import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
-import type { Scope } from './scope';
-import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs';
-import { SdUtils } from './sdutils';
+} from './crudoptypes.js';
+import { InvalidArgumentError } from './errors.js';
+import { DurabilityLevel, StoreSemantics } from './generaltypes.js';
+import { MutationState } from './mutationstate.js';
+import { CollectionQueryIndexManager } from './queryindexmanager.js';
+import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
+import type { Scope } from './scope.js';
+import { LookupInMacro, LookupInSpec, MutateInSpec } from './sdspecs.js';
+import { SdUtils } from './sdutils.js';
 import {
   CouchbaseList,
   CouchbaseMap,
   CouchbaseQueue,
   CouchbaseSet,
-} from './services/kv/dataStructures';
-import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
-import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs';
-import type { LookupInReturnType } from './services/kv/lookupIn/types';
-import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
-import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs';
-import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types';
-import { StreamableReplicasPromise, StreamableScanPromise } from './streamablepromises';
-import type { Transcoder } from './transcoders';
-import { expiryToTimestamp, NodeCallback, VoidNodeCallback } from './utilities';
-import { getDocId, PromiseHelper } from './utilities';
+} from './services/kv/dataStructures/index.js';
+import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
+import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs.js';
+import type { LookupInReturnType } from './services/kv/lookupIn/types.js';
+import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn.js';
+import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs.js';
+import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types.js';
+import {
+  StreamableReplicasPromise,
+  StreamableScanPromise,
+} from './streamablepromises.js';
+import type { Transcoder } from './transcoders.js';
+import { expiryToTimestamp, NodeCallback, VoidNodeCallback } from './utilities.js';
+import { getDocId, PromiseHelper } from './utilities.js';
 
 /**
  * @category Key-Value

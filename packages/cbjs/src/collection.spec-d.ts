@@ -18,13 +18,13 @@ import { describe, expectTypeOf, it, test } from 'vitest';
 
 import { ClusterTypes, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
-import { Collection } from './collection';
-import { connect } from './couchbase';
-import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes';
-import { LookupInSpec, MutateInSpec } from './sdspecs';
-import { CouchbaseMap, CouchbaseSet } from './services/kv/dataStructures';
-import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
-import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn';
+import { Collection } from './collection.js';
+import { connect } from './couchbase.js';
+import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes.js';
+import { LookupInSpec, MutateInSpec } from './sdspecs.js';
+import { CouchbaseMap, CouchbaseSet } from './services/kv/dataStructures/index.js';
+import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
+import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn.js';
 
 type TestDoc = {
   title: string;

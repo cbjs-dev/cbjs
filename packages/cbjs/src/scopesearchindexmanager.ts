@@ -19,9 +19,9 @@ import { promisify } from 'node:util';
 import { ApiSearchIndexSuccessfulAnalysis } from '@cbjsdev/http-client';
 import { BucketName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
 
-import { CppError } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Cluster } from './cluster';
+import { CppError } from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { Cluster } from './cluster.js';
 import {
   AllowSearchQueryingOptions,
   AnalyzeSearchDocumentOptions,
@@ -37,9 +37,9 @@ import {
   SearchIndex,
   UnfreezeSearchPlanOptions,
   UpsertSearchIndexOptions,
-} from './searchindexmanager';
-import { NodeCallback, VoidNodeCallback } from './utilities';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+} from './searchindexmanager.js';
+import { NodeCallback, VoidNodeCallback } from './utilities.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
 
 /**
  * SearchIndexManager provides an interface for managing the

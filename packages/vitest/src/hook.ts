@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { serverTestContexts } from './context';
-import { flushLogger, getTestLogger } from './logger';
+import { serverTestContexts } from './context.js';
+import { flushLogger, getTestLogger } from './logger.js';
 
 const testCleanupHooks: Array<{ description: string; action: () => Promise<void> }> = [];
 const contextCleanupHooks: Array<{ description: string; action: () => Promise<void> }> =

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-export * from './MapEntry';
-export * from './OneOf';
-export * from './OptionalMerge';
-export * from './RelaxedUnion';
-export * from './UnionKeys';
-export * from './TupleToUnion';
+export * from './MapEntry.js';
+export * from './OneOf.js';
+export * from './OptionalMerge.js';
+export * from './RelaxedUnion.js';
+export * from './UnionKeys.js';
+export * from './TupleToUnion.js';

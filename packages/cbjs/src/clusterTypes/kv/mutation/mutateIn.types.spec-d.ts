@@ -17,12 +17,12 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { ClusterTypes, DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
 
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import { connect } from '../../../couchbase';
-import { MutateInResult, MutateInResultEntry } from '../../../crudoptypes';
-import { MutateInSpec } from '../../../sdspecs';
-import { mutationSpec } from '../../../specBuilders';
-import { MutateInResultEntries, MutateInSpecResults } from './mutateIn.types';
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import { connect } from '../../../couchbase.js';
+import { MutateInResult, MutateInResultEntry } from '../../../crudoptypes.js';
+import { MutateInSpec } from '../../../sdspecs.js';
+import { mutationSpec } from '../../../specBuilders.js';
+import { MutateInResultEntries, MutateInSpecResults } from './mutateIn.types.js';
 
 type TestDoc = {
   title: string;

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CppMutationToken } from './binding';
+import { CppMutationToken } from './binding.js';
 
 /**
  * Represents the mutation token returned by the server.

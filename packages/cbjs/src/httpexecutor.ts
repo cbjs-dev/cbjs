@@ -16,11 +16,11 @@
  */
 import { EventEmitter } from 'events';
 
-import binding from './binding';
-import { CppConnection } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { HttpErrorContext } from './errorcontexts';
-import { TypedEmitter } from './utils/TypedEmitter';
+import binding from './binding.js';
+import { CppConnection } from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { HttpErrorContext } from './errorcontexts.js';
+import { TypedEmitter } from './utils/TypedEmitter.js';
 
 /**
  * @internal

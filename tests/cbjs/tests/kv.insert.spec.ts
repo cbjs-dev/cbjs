@@ -20,7 +20,7 @@ import { DocumentExistsError, KeyValueErrorContext } from '@cbjsdev/cbjs';
 import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { getLargeTestDocument } from './kv._helpers';
+import { getLargeTestDocument } from './kv._helpers.js';
 
 describe.shuffle('kv insert', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {

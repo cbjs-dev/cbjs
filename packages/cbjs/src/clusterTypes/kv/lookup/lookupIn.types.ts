@@ -15,11 +15,11 @@
  */
 import { ArrayElement, If, IsArrayLengthFixed, IsExactly, IsFuzzyDocument, SubDocument, Try } from '@cbjsdev/shared';
 
-import type { CppProtocolSubdocOpcode } from '../../../binding';
-import type { LookupInResultEntry } from '../../../crudoptypes';
-import type { LookupInMacro, LookupInSpec } from '../../../sdspecs';
-import type { LookupInMacroReturnType } from './lookupInMacro.types';
-import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './lookupOperations.types';
+import type { CppProtocolSubdocOpcode } from '../../../binding.js';
+import type { LookupInResultEntry } from '../../../crudoptypes.js';
+import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
+import type { LookupInMacroReturnType } from './lookupInMacro.types.js';
+import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './lookupOperations.types.js';
 
 /**
  * Infer the actual {@link CppProtocolSubdocOpcode} from the given path for a {@link LookupInSpec.get} operation.

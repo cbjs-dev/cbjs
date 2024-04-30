@@ -29,7 +29,7 @@ import { getPool } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { apiConfig } from '../setupTests';
+import { apiConfig } from '../setupTests.js';
 
 describe.shuffle('kv mutateIn', async () => {
   const test = await createCouchbaseTest(async ({ useDocumentKey }) => {

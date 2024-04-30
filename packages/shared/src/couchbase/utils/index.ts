@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './identifier';
-export * from './getApiConfig';
-export * from './getConnectionParams';
-export * from './getRoleScope';
+export * from './identifier.js';
+export * from './getApiConfig.js';
+export * from './getConnectionParams.js';
+export * from './getRoleScope.js';

@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './ApiNode';
-export * from './ApiPool';
-export * from './ApiPoolNodes';
+export * from './ApiNode.js';
+export * from './ApiPool.js';
+export * from './ApiPoolNodes.js';

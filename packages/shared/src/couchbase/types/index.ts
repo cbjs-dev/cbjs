@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-export * from './analytics.types';
-export * from './bucket.types';
-export * from './cluster.types';
-export * from './durability.types';
-export * from './eventing.types';
-export * from './logger.types';
-export * from './query.types';
-export * from './rbac.types';
+export * from './analytics.types.js';
+export * from './bucket.types.js';
+export * from './cluster.types.js';
+export * from './durability.types.js';
+export * from './eventing.types.js';
+export * from './logger.types.js';
+export * from './query.types.js';
+export * from './rbac.types.js';

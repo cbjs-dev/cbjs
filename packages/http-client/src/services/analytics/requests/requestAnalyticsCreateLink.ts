@@ -15,10 +15,10 @@
  */
 import { jsonToUrlSearchParams } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { ApiAnalyticsLink } from '../../../types/Api';
-import { apiPOST } from '../../../utils/apiPOST';
-import { ANALYTICS_PORT } from '../../../utils/ports';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { ApiAnalyticsLink } from '../../../types/Api/index.js';
+import { apiPOST } from '../../../utils/apiPOST.js';
+import { ANALYTICS_PORT } from '../../../utils/ports.js';
 
 export async function requestAnalyticsCreateLink(
   apiConfig: CouchbaseHttpApiConfig,

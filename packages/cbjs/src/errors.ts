@@ -16,7 +16,7 @@
  */
 import { hasOwn } from '@cbjsdev/shared';
 
-import { CppCodedError, CppServiceError, CppTxnAnyError } from './binding';
+import { CppCodedError, CppServiceError, CppTxnAnyError } from './binding.js';
 import {
   AnalyticsErrorContext,
   HttpErrorContext,
@@ -25,7 +25,7 @@ import {
   SearchErrorContext,
   ServiceErrorContext,
   ViewErrorContext,
-} from './errorcontexts';
+} from './errorcontexts.js';
 
 function appendReason(reason?: string) {
   if (reason) return `: ${reason}`;

@@ -21,8 +21,8 @@ import { createCouchbaseTest } from '@cbjsdev/vitest';
 // import vector from '../data/test_vector.json';
 // import searchDocuments from '../data/test_vector_search_docs.json';
 // import { getVectorSearchIndexConfig } from '../data/vectorSearchIndexConfig';
-import { DataSample } from '../utils/dataSample';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { DataSample } from '../utils/dataSample.js';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.VectorSearch))

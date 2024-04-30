@@ -19,7 +19,7 @@ import { satisfies } from 'semver';
 import { ClusterReleaseFlavor } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 
-import { clusterRelease } from '../clusterRelease';
+import { clusterRelease } from '../clusterRelease.js';
 
 export function serverVersionSatisfies(version: string): boolean;
 export function serverVersionSatisfies(

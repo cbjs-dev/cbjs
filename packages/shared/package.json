@@ -10,20 +10,21 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "npm run build -- --watch",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest --run",
-    "prepack": "rm -rf dist && npm run build"
+    "prepack": "rm -rf dist && pnpm run build"
   },
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "files": [
-    "dist/**/*",
+    "dist/**/*.{js,js.map,d.ts}",
     "LICENSE",
     "NOTICE"
   ],
   "devDependencies": {
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "vitest": "1.5.2"
   },
   "publishConfig": {
     "access": "public"

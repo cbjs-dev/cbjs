@@ -19,9 +19,9 @@ import type { TaskContext, TestAPI } from 'vitest';
 
 import type { CouchbaseLogger, PromiseValue } from '@cbjsdev/shared';
 
-import { CreateTestFixtureFunction } from './CreateTestFixtureFunction';
-import { FixtureFunctionValue } from './FixtureFunctionValue';
-import { FixturePlainValue } from './FixturePlainValue';
+import { CreateTestFixtureFunction } from './CreateTestFixtureFunction.js';
+import { FixtureFunctionValue } from './FixtureFunctionValue.js';
+import { FixturePlainValue } from './FixturePlainValue.js';
 
 export type FixtureContext<T> = T extends UnknownContext
   ? T & { logger: CouchbaseLogger | undefined }

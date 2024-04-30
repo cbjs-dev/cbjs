@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Extends, If, IsExactly } from '../../../misc';
-import { ResolveNegativeIndex } from './array-utils.types';
-import { TargetableArrayIndexes } from './path-utils.types';
+import { Extends, If, IsExactly } from '../../../misc/index.js';
+import { ResolveNegativeIndex } from './array-utils.types.js';
+import { TargetableArrayIndexes } from './path-utils.types.js';
 
 /**
  * THIS IS FOR TESTS PURPOSES ONLY.

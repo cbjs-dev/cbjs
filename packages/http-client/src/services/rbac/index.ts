@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export * from './getUser';
-export * from './getUserGroup';
-export * from './getUsers';
-export * from './getUserGroups';
-export * from './getRoles';
+export * from './getUser.js';
+export * from './getUserGroup.js';
+export * from './getUsers.js';
+export * from './getUserGroups.js';
+export * from './getRoles.js';

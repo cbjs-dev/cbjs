@@ -16,14 +16,14 @@
  */
 import { CouchbaseClusterTypes, invariant } from '@cbjsdev/shared';
 
-import { CppError, CppQueryResponse } from './binding';
+import { CppError, CppQueryResponse } from './binding.js';
 import {
   errorFromCpp,
   mutationStateToCpp,
   queryProfileToCpp,
   queryScanConsistencyToCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
 import {
   QueryMetaData,
   QueryMetrics,
@@ -31,8 +31,8 @@ import {
   QueryResult,
   QueryStatus,
   QueryWarning,
-} from './querytypes';
-import { StreamableRowPromise } from './streamablepromises';
+} from './querytypes.js';
+import { StreamableRowPromise } from './streamablepromises.js';
 
 /**
  * @internal

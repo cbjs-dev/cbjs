@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './misc';
-export * from './couchbase';
+export * from './misc/index.js';
+export * from './couchbase/index.js';

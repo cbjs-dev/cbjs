@@ -22,14 +22,14 @@ import {
   AnalyticsQueryOptions,
   AnalyticsResult,
   AnalyticsWarning,
-} from './analyticstypes';
+} from './analyticstypes.js';
 import {
   analyticsScanConsistencyToCpp,
   analyticsStatusFromCpp,
   errorFromCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
-import { StreamableRowPromise } from './streamablepromises';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { StreamableRowPromise } from './streamablepromises.js';
 
 /**
  * @internal

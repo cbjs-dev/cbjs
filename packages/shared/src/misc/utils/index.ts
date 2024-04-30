@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-export { hasOwn } from './hasOwn';
+export { hasOwn } from './hasOwn.js';
 
-export * from './invariant';
-export * from './raise';
-export * from './sleep';
-export * from './types';
-export * from './waitFor';
-export * from './arrayFirstElement';
-export * from './arrayLastElement';
-export * from './arrayMap';
-export * from './isArray';
+export * from './invariant.js';
+export * from './raise.js';
+export * from './sleep.js';
+export * from './types.js';
+export * from './waitFor.js';
+export * from './arrayFirstElement.js';
+export * from './arrayLastElement.js';
+export * from './arrayMap.js';
+export * from './isArray.js';
 
-export * from './jsonToUrlSearchParams';
+export * from './jsonToUrlSearchParams.js';

@@ -15,8 +15,8 @@
  */
 import { describe, expectTypeOf, test } from 'vitest';
 
-import { BucketTypes, ClusterTypes, CollectionTypes, ScopeTypes } from './cluster.types';
-import { DocDef } from './document.types';
+import { BucketTypes, ClusterTypes, CollectionTypes, ScopeTypes } from './cluster.types.js';
+import { DocDef } from './document.types.js';
 
 describe('full types', () => {
   expectTypeOf<

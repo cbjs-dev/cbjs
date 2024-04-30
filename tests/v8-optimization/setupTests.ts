@@ -7,7 +7,7 @@ import {
   setTestLogger,
 } from '@cbjsdev/vitest';
 
-import { testLogger } from './setupLogger';
+import { testLogger } from './setupLogger.js';
 
 setTestLogger(testLogger);
 

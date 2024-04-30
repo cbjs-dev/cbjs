@@ -15,12 +15,12 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getCollections, getPoolNodes } from '../services';
-import { CouchbaseHttpApiConfig } from '../types';
-import { ApiCollection } from '../types/Api/kv/ApiCollection';
-import { mapNodes } from '../utils/mapNodes';
-import { waitOptionsModerate } from './options';
-import { WaitForOptions } from './types';
+import { getCollections, getPoolNodes } from '../services/index.js';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { ApiCollection } from '../types/Api/kv/ApiCollection.js';
+import { mapNodes } from '../utils/mapNodes.js';
+import { waitOptionsModerate } from './options.js';
+import { WaitForOptions } from './types.js';
 
 export async function waitForCollection(
   params: CouchbaseHttpApiConfig,

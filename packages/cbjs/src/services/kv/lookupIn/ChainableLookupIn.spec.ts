@@ -16,9 +16,9 @@
  */
 import { describe, it } from 'vitest';
 
-import { AnyCollection } from '../../../clusterTypes';
-import { LookupInSpec } from '../../../sdspecs';
-import { ChainableLookupIn } from './ChainableLookupIn';
+import { AnyCollection } from '../../../clusterTypes/index.js';
+import { LookupInSpec } from '../../../sdspecs.js';
+import { ChainableLookupIn } from './ChainableLookupIn.js';
 
 describe('ChainableLookupIn', function () {
   it('should return all the specs, in order, when the getter is called', function ({

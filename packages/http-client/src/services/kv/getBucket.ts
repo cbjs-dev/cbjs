@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiBucket } from '../../types/Api/kv/ApiBucket';
-import { requestGetBucket } from './requests/requestGetBucket';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiBucket } from '../../types/Api/kv/ApiBucket.js';
+import { requestGetBucket } from './requests/requestGetBucket.js';
 
 export async function getBucket(params: CouchbaseHttpApiConfig, bucketName: string) {
   const response = await requestGetBucket(params, bucketName);

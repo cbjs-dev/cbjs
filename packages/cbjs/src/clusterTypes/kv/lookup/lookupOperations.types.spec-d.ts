@@ -21,7 +21,7 @@ import type {
   LookupInCountPath,
   LookupInExistsPath,
   LookupInGetPath,
-} from './lookupOperations.types';
+} from './lookupOperations.types.js';
 
 describe('lookup operations', function () {
   type TestDoc = {

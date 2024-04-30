@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsExactly, IsNever, Or } from '../../misc';
-import { Keyspace } from '../utils';
+import { IsAny, IsExactly, IsNever, Or } from '../../misc/index.js';
+import { Keyspace } from '../utils/index.js';
 import {
   ClusterTypesOptions,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   GetKeyspaceOptions,
-} from './cluster.types';
-import { BucketName, CollectionName, ScopeName } from './keyspace.types';
-import { DocumentPath } from './utils';
+} from './cluster.types.js';
+import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
+import { DocumentPath } from './utils/index.js';
 
 export type DocDef<Key extends string = string, Body = unknown> = {
   Key: Key;

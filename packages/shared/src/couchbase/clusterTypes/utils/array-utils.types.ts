@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsExactly, IsNever, Or } from '../../../misc';
+import { If, IsExactly, IsNever, Or } from '../../../misc/index.js';
 
 /**
  * A union of all the possible types in the array.

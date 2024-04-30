@@ -20,7 +20,7 @@ import { InvalidArgumentError, LookupInMacro } from '@cbjsdev/cbjs';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Xattr))('kv expiry', async () => {
   const test = await createCouchbaseTest();

@@ -1,46 +1,42 @@
 {
   "name": "@cbjsdev/monorepo",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
-  "workspaces": [
-    "docs",
-    "packages/shared",
-    "packages/http-client",
-    "packages/cbjs",
-    "packages/vitest",
-    "tests/cbjs",
-    "tests/http-client",
-    "tests/v8-optimization"
-  ],
+  "packageManager": "pnpm@9.0.6",
+  "private": true,
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "build": "lerna run --stream build --scope @cbjsdev/*",
     "dev": "lerna run --parallel dev --scope @cbjsdev/*",
-    "lint:check": "eslint --quiet --cache packages tests",
+    "lint:check": "eslint --quiet packages tests",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "test": "vitest --run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "clearDatabase": "pnpm -r --filter='./tests/scripts' run clear"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "4.3.0",
     "@typescript-eslint/eslint-plugin": "6.21.0",
     "@typescript-eslint/parser": "6.21.0",
-    "@vitest/coverage-v8": "^1.2.2",
-    "@vitest/ui": "^1.2.2",
+    "@vitest/coverage-v8": "1.5.2",
+    "@vitest/runner": "1.5.2",
+    "@vitest/ui": "1.5.2",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-jsdoc": "48.0.5",
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-prettier": "5.1.3",
     "eslint-plugin-vitest": "^0.3.9",
+    "glob": "^10.3.10",
     "husky": "^9.0.10",
     "lerna": "^8.1.2",
-    "pino": "^8.17.2",
+    "patch-package": "^8.0.0",
+    "pino": "^8.21.0",
     "prettier": "3.2.5",
     "tsup": "^8.0.1",
     "typescript": "5.2.2",
     "vite": "^5.0.13",
-    "vitest": "^1.5.0"
+    "vitest": "1.5.2"
   }
 }

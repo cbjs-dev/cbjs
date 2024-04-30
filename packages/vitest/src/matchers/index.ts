@@ -18,9 +18,9 @@
 import 'vitest';
 
 import './expectCAS';
-import type { ExpectCAS } from './expectCAS';
+import type { ExpectCAS } from './expectCAS.js';
 import './expectMutationToken';
-import type { ExpectMutationToken } from './expectMutationToken';
+import type { ExpectMutationToken } from './expectMutationToken.js';
 
 declare module 'vitest' {
   interface Assertion<T = any> extends ExpectCAS<T>, ExpectMutationToken<T> {}

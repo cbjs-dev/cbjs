@@ -15,7 +15,7 @@
  */
 import { AnalyticsEncryptionLevelName, OneOf } from '@cbjsdev/shared';
 
-import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink';
+import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink.js';
 
 export type ApiAnalyticsCouchbaseAuthBasic = {
   /**

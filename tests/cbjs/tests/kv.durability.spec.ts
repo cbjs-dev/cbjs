@@ -30,7 +30,7 @@ import { getPool } from '@cbjsdev/http-client';
 import { hasOwn, invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, ServerTestContext } from '@cbjsdev/vitest';
 
-import { apiConfig } from '../setupTests';
+import { apiConfig } from '../setupTests.js';
 
 export type NodeCallback<T> = (...args: [null, T] | [Error, null]) => void;
 

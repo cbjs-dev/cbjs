@@ -17,9 +17,9 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { DefaultClusterTypes } from '@cbjsdev/shared';
 
-import { connect } from '../../..';
-import { BinaryCollection } from '../../../binarycollection';
-import { Collection } from '../../../collection';
+import { connect } from '../../../index.js';
+import { BinaryCollection } from '../../../binarycollection.js';
+import { Collection } from '../../../collection.js';
 
 describe('BinaryCollection', function () {
   it('should allow to manage a binary', async function () {

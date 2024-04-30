@@ -16,9 +16,9 @@
  */
 import { CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
 
-import binding from './binding';
-import { Cluster, ConnectOptions } from './cluster';
-import { NodeCallback } from './utilities';
+import binding from './binding.js';
+import { Cluster, ConnectOptions } from './cluster.js';
+import { NodeCallback } from './utilities.js';
 
 /**
  * Acts as the entrypoint into the rest of the library.  Connecting to the cluster

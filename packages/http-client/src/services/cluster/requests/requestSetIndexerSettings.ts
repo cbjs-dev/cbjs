@@ -15,9 +15,9 @@
  */
 import { jsonToUrlSearchParams } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiPOST } from '../../../utils/apiPOST';
-import { MANAGEMENT_PORT } from '../../../utils/ports';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiPOST } from '../../../utils/apiPOST.js';
+import { MANAGEMENT_PORT } from '../../../utils/ports.js';
 
 export type CouchbaseIndexerSettings = Partial<{
   indexerThreads: number;

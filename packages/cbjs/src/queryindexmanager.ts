@@ -23,17 +23,17 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import { CppError, CppQueryContext } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Cluster } from './cluster';
-import { Collection } from './collection';
-import { CouchbaseError, IndexNotFoundError } from './errors';
+import { CppError, CppQueryContext } from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { Collection } from './collection.js';
+import { CouchbaseError, IndexNotFoundError } from './errors.js';
 import {
   CompoundTimeout,
   NodeCallback,
   PromiseHelper,
   VoidNodeCallback,
-} from './utilities';
+} from './utilities.js';
 
 /**
  * Contains a specific index configuration for the query service.

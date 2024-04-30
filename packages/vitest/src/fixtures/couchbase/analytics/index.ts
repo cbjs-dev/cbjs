@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export * from './DataverseFixture';
-export * from './DatasetFixture';
-export * from './AnalyticsIndexFixture';
-export * from './AnalyticsLinkFixture';
-export * from './AnalyticsLinkConnectionFixture';
+export * from './DataverseFixture.js';
+export * from './DatasetFixture.js';
+export * from './AnalyticsIndexFixture.js';
+export * from './AnalyticsLinkFixture.js';
+export * from './AnalyticsLinkConnectionFixture.js';

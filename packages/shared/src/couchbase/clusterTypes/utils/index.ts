@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-export type * from './array-utils.types';
-export type * from './document-path.types';
-export type * from './misc-utils.types';
-export type * from './path-utils.types';
-export type * from './string-utils.types';
-export type * from './test-utils.types';
+export type * from './array-utils.types.js';
+export type * from './document-path.types.js';
+export type * from './misc-utils.types.js';
+export type * from './path-utils.types.js';
+export type * from './string-utils.types.js';
+export type * from './test-utils.types.js';

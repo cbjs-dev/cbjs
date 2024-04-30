@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './executeStatement';
-export * from './getQueryBuckets';
-export * from './getQueryIndexes';
+export * from './executeStatement.js';
+export * from './getQueryBuckets.js';
+export * from './getQueryIndexes.js';

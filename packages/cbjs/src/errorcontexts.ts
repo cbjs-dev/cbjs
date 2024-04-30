@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Cas } from './utilities';
+import { Cas } from './utilities.js';
 
 /**
  * Generic base class for all known error context types.

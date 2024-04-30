@@ -20,10 +20,10 @@ import { ParsedUrlQueryInput } from 'querystring';
 import type { Cas, DurabilityLevelName, NonVoid } from '@cbjsdev/shared';
 import { CouchbaseCas, durabilityLevels } from '@cbjsdev/shared';
 
-import type { AnyCollection } from './clusterTypes';
-import { InvalidArgumentError } from './errors';
-import { DurabilityLevel } from './generaltypes';
-import { toEnumMember } from './utilities_internal';
+import type { AnyCollection } from './clusterTypes/index.js';
+import { InvalidArgumentError } from './errors.js';
+import { DurabilityLevel } from './generaltypes.js';
+import { toEnumMember } from './utilities_internal.js';
 
 // We re-export from here to avoid import issues from the user side.
 export { type Cas, CouchbaseCas };

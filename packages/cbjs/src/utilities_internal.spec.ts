@@ -16,7 +16,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { toEnumMember } from './utilities_internal';
+import { toEnumMember } from './utilities_internal.js';
 
 describe('utilities internal', function () {
   enum StringEnum {

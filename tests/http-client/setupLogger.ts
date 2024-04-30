@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import pino, { stdTimeFunctions } from 'pino';
+import { pino, stdTimeFunctions } from 'pino';
 
 export const testLogger = pino({
   enabled: ['1', 'true', 'yes', 'y'].includes(process.env.DEBUG ?? ''),

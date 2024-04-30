@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getHttpClientLogger } from '../logger';
-import { WaitForOptions } from './types';
+import { getHttpClientLogger } from '../logger.js';
+import { WaitForOptions } from './types.js';
 
 export const waitOptionsModerate = {
   timeout: 10_000,

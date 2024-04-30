@@ -15,9 +15,9 @@
  */
 import type { EventingFunctionScope } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../types';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestChangeEventingFunctionStatus } from './requests/requestChangeEventingFunctionStatus';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestChangeEventingFunctionStatus } from './requests/requestChangeEventingFunctionStatus.js';
 
 export async function undeployEventingFunction(
   params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,

@@ -15,7 +15,7 @@
  */
 import { hasOwn } from '@cbjsdev/shared';
 
-import { FixtureContext, UnknownContext } from './types';
+import { FixtureContext, UnknownContext } from './types.js';
 
 export const FixtureFunctionValueSymbol: unique symbol = Symbol();
 

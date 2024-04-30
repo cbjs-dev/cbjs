@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiViewDesignDocuments } from '../../types/Api/views/ApiViewDesignDocument';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetViewDesignDocuments } from './requests/requestGetViewDesignDocuments';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiViewDesignDocuments } from '../../types/Api/views/ApiViewDesignDocument.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetViewDesignDocuments } from './requests/requestGetViewDesignDocuments.js';
 
 export async function getViewDesignDocuments(
   params: CouchbaseHttpApiConfig,

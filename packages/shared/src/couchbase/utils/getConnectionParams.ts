@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant } from '../../misc';
+import { invariant } from '../../misc/index.js';
 
 export type ConnectionParams = {
   connectionString: string;

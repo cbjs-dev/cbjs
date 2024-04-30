@@ -16,29 +16,29 @@
  */
 import type { PromiseValue } from '@cbjsdev/shared';
 
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import type { AnyCollection } from '../../../clusterTypes';
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import type { AnyCollection } from '../../../clusterTypes/index.js';
 import type {
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
-} from '../../../clusterTypes/clusterTypes';
+} from '../../../clusterTypes/clusterTypes.js';
 import type {
   LookupInSpecResults,
   MakeLookupInSpec,
-} from '../../../clusterTypes/kv/lookup/lookupIn.types';
+} from '../../../clusterTypes/kv/lookup/lookupIn.types.js';
 import type {
   LookupInCountPath,
   LookupInExistsPath,
   LookupInGetPath,
-} from '../../../clusterTypes/kv/lookup/lookupOperations.types';
+} from '../../../clusterTypes/kv/lookup/lookupOperations.types.js';
 import type {
   LookupInAllReplicasOptions,
   LookupInAnyReplicaOptions,
   LookupInOptions,
-} from '../../../collection';
-import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes';
-import { LookupInSpec } from '../../../sdspecs';
-import type { LookupMethodName } from './types';
+} from '../../../collection.js';
+import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes.js';
+import { LookupInSpec } from '../../../sdspecs.js';
+import type { LookupMethodName } from './types.js';
 
 type LookupMethod<
   Method extends LookupMethodName,

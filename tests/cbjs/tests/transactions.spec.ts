@@ -28,7 +28,7 @@ import {
 import { invariant, sleep } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Transactions))

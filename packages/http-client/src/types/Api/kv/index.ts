@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './ApiBucket';
-export * from './ApiBucketScopes';
-export * from './ApiScope';
-export * from './ApiCollection';
+export * from './ApiBucket.js';
+export * from './ApiBucketScopes.js';
+export * from './ApiScope.js';
+export * from './ApiCollection.js';

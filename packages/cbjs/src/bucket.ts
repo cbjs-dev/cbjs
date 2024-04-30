@@ -23,20 +23,20 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import { CppConnection } from './binding';
-import { Cluster } from './cluster';
-import { DefaultCollection, DefaultScope } from './clusterTypes';
-import { Collection } from './collection';
-import { CollectionManager } from './collectionmanager';
-import { PingExecutor } from './diagnosticsexecutor';
-import { PingOptions, PingResult } from './diagnosticstypes';
-import { Scope } from './scope';
-import { StreamableRowPromise } from './streamablepromises';
-import { Transcoder } from './transcoders';
-import { NodeCallback, PromiseHelper } from './utilities';
-import { ViewExecutor } from './viewexecutor';
-import { ViewIndexManager } from './viewindexmanager';
-import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes';
+import { CppConnection } from './binding.js';
+import { Cluster } from './cluster.js';
+import { DefaultCollection, DefaultScope } from './clusterTypes/index.js';
+import { Collection } from './collection.js';
+import { CollectionManager } from './collectionmanager.js';
+import { PingExecutor } from './diagnosticsexecutor.js';
+import { PingOptions, PingResult } from './diagnosticstypes.js';
+import { Scope } from './scope.js';
+import { StreamableRowPromise } from './streamablepromises.js';
+import { Transcoder } from './transcoders.js';
+import { NodeCallback, PromiseHelper } from './utilities.js';
+import { ViewExecutor } from './viewexecutor.js';
+import { ViewIndexManager } from './viewindexmanager.js';
+import { ViewMetaData, ViewQueryOptions, ViewResult, ViewRow } from './viewtypes.js';
 
 /**
  * Exposes the operations which are available to be performed against a bucket.

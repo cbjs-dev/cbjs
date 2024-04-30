@@ -1,8 +1,8 @@
 import { describe, expectTypeOf, test } from 'vitest';
 
-import { connect } from './couchbase';
-import { DesignDocument, DesignDocumentView } from './viewindexmanager';
-import { DesignDocumentNamespace } from './viewtypes';
+import { connect } from './couchbase.js';
+import { DesignDocument, DesignDocumentView } from './viewindexmanager.js';
+import { DesignDocumentNamespace } from './viewtypes.js';
 
 describe('view index manager', async () => {
   const cluster = await connect('...');

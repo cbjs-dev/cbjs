@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ServiceType } from './generaltypes';
+import { ServiceType } from './generaltypes.js';
 
 /**
  * Represents the status of an an endpoint in a diagnostics report.

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CppProtocolSubdocOpcode } from './binding';
-import { MakeLookupInSpec } from './clusterTypes/kv/lookup/lookupIn.types';
+import { CppProtocolSubdocOpcode } from './binding.js';
+import { MakeLookupInSpec } from './clusterTypes/kv/lookup/lookupIn.types.js';
 import {
   LookupInCountPath,
   LookupInExistsPath,
@@ -23,12 +23,12 @@ import {
   LookupInSpecCountFunction,
   LookupInSpecExistsFunction,
   LookupInSpecGetFunction,
-} from './clusterTypes/kv/lookup/lookupOperations.types';
+} from './clusterTypes/kv/lookup/lookupOperations.types.js';
 import {
   AnyMutateInPath,
   AnyMutateInValue,
   MutateInValue,
-} from './clusterTypes/kv/mutation/mutateIn.types';
+} from './clusterTypes/kv/mutation/mutateIn.types.js';
 import {
   MutateInArrayAddUniqueFunction,
   MutateInArrayAddUniqueOptions,
@@ -49,8 +49,8 @@ import {
   MutateInReplaceFunction,
   MutateInUpsertFunction,
   MutateInUpsertOptions,
-} from './clusterTypes/kv/mutation/mutationOperations.types';
-import { LookupInSpec, MutateInSpec } from './sdspecs';
+} from './clusterTypes/kv/mutation/mutationOperations.types.js';
+import { LookupInSpec, MutateInSpec } from './sdspecs.js';
 
 /**
  * Object of functions to construct, locally typed, {@link LookupInSpec} instance.

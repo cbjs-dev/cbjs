@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getRandomId } from '../../utils/getRandomId';
-import { FixtureFunctionValue } from '../FixtureFunctionValue';
-import { UnknownContext } from '../types';
+import { getRandomId } from '../../utils/getRandomId.js';
+import { FixtureFunctionValue } from '../FixtureFunctionValue.js';
+import { UnknownContext } from '../types.js';
 
 export class RandomFixture extends FixtureFunctionValue<[], string, UnknownContext> {
   public readonly fixtureName = 'RandomFixture';

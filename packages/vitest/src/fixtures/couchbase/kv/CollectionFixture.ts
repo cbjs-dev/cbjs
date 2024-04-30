@@ -19,9 +19,9 @@ import { CreateCollectionSettings, Scope } from '@cbjsdev/cbjs';
 import { waitForCollection } from '@cbjsdev/http-client';
 import { keyspacePath } from '@cbjsdev/shared';
 
-import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
-import { FixtureFunctionValue } from '../../FixtureFunctionValue';
-import { FixtureContext } from '../../types';
+import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
+import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
+import { FixtureContext } from '../../types.js';
 
 export type CollectionFixtureParams = {
   collectionName?: string;

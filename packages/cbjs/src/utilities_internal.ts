@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import packageJson from '#packageJson' assert { type: 'json' };
-
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: the bundler will remove the assertion for CommonJS
 // eslint-disable-next-line prettier/prettier
 import { invariant } from '@cbjsdev/shared';
+
+import { couchnodeVersion } from './version.js';
 
 /**
  * @internal
@@ -30,7 +30,7 @@ export function generateClientString(): string {
   // the version identifiers (mainly newlines and such).
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-  const couchnodeVer = packageJson.version.trim();
+  const couchnodeVer = couchnodeVersion;
   const nodeVer = process.versions.node.trim();
   const v8Ver = process.versions.v8.trim();
   const sslVer = process.versions.openssl.trim();

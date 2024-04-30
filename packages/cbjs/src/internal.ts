@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
+export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';

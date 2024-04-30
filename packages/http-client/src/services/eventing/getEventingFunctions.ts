@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiEventingFunction } from '../../types/Api/eventing/ApiEventingFunction';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetEventingFunctions } from './requests/requestGetEventingFunctions';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiEventingFunction } from '../../types/Api/eventing/ApiEventingFunction.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetEventingFunctions } from './requests/requestGetEventingFunctions.js';
 
 export async function getEventingFunctions(
   params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-export * from './waitFor';
-export * from './services';
+export * from './waitFor/index.js';
+export * from './services/index.js';
 
-export * from './types/Api';
-export * from './types/HttpClient';
+export * from './types/Api/index.js';
+export * from './types/HttpClient/index.js';
 
-export * from './logger';
+export * from './logger.js';
 
-export { CouchbaseHttpApiConfig } from './types';
+export { CouchbaseHttpApiConfig } from './types.js';

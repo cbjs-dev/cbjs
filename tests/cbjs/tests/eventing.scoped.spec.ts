@@ -28,7 +28,7 @@ import { waitForEventingFunction } from '@cbjsdev/http-client';
 import { sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { requestExecuteStatement } from '../../query/requests/requestExecuteStatement';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { requestExecuteStatement } from '../../query/requests/requestExecuteStatement.js';
 
 export async function requestQuerySearchIndexes(params: CouchbaseHttpApiConfig) {
   return await requestExecuteStatement(

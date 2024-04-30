@@ -19,8 +19,8 @@ import { describe } from 'vitest';
 
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { rootDir } from '../constants';
-import { runCase } from '../utils/runCase';
+import { rootDir } from '../constants.js';
+import { runCase } from '../utils/runCase.js';
 
 describe('optimization', async () => {
   const test = await createCouchbaseTest();

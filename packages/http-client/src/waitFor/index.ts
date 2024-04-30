@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-export * from './types';
-export * from './waitForBucket';
-export * from './waitForScope';
-export * from './waitForCollection';
-export * from './waitForUser';
-export * from './waitForUserGroup';
-export * from './waitForSearchIndex';
-export * from './waitForEventingFunction';
-export * from './waitForViewDesignDocument';
-export * from './waitForIndexer';
-export * from './waitForQueryIndex';
-export * from './waitForAnalyticsCluster';
+export * from './types.js';
+export * from './waitForBucket.js';
+export * from './waitForScope.js';
+export * from './waitForCollection.js';
+export * from './waitForUser.js';
+export * from './waitForUserGroup.js';
+export * from './waitForSearchIndex.js';
+export * from './waitForEventingFunction.js';
+export * from './waitForViewDesignDocument.js';
+export * from './waitForIndexer.js';
+export * from './waitForQueryIndex.js';
+export * from './waitForAnalyticsCluster.js';

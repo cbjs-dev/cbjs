@@ -21,17 +21,17 @@ import {
   errorFromCpp,
   viewOrderingToCpp,
   viewScanConsistencyToCpp,
-} from './bindingutilities';
-import { Bucket } from './bucket';
-import { Cluster } from './cluster';
-import { StreamableRowPromise } from './streamablepromises';
+} from './bindingutilities.js';
+import { Bucket } from './bucket.js';
+import { Cluster } from './cluster.js';
+import { StreamableRowPromise } from './streamablepromises.js';
 import {
   DesignDocumentNamespace,
   ViewMetaData,
   ViewQueryOptions,
   ViewResult,
   ViewRow,
-} from './viewtypes';
+} from './viewtypes.js';
 
 /**
  * @internal

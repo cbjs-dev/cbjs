@@ -20,7 +20,7 @@ import { HttpErrorContext, UserNotFoundError } from '@cbjsdev/cbjs';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.UserManagement))

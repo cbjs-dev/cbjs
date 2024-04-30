@@ -15,9 +15,9 @@
  */
 import fetch from 'cross-fetch';
 
-import { getHttpClientLogger } from '../logger';
-import { CouchbaseHttpApiConfig } from '../types';
-import { MANAGEMENT_PORT } from './ports';
+import { getHttpClientLogger } from '../logger.js';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { MANAGEMENT_PORT } from './ports.js';
 
 /**
  *

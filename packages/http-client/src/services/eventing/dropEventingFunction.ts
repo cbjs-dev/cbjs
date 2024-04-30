@@ -15,9 +15,9 @@
  */
 import type { EventingFunctionScope } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../types';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestDeleteEventingFunction } from './requests/requestDeleteEventingFunction';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestDeleteEventingFunction } from './requests/requestDeleteEventingFunction.js';
 
 export async function dropEventingFunction(
   params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,

@@ -28,7 +28,7 @@ import {
   ResolveNegativeIndex,
   TupleFilter,
   TupleIndexes,
-} from './array-utils.types';
+} from './array-utils.types.js';
 
 describe('ArrayIndexes', function () {
   it('should return all the keys of a tuple', function () {

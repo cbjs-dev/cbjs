@@ -16,7 +16,7 @@
  */
 import { CouchbaseFixtures } from '@cbjsdev/vitest';
 
-import { DataSample, SampleCollection } from '../utils/dataSample';
+import { DataSample, SampleCollection } from '../utils/dataSample.js';
 
 export async function useSampleData(
   { serverTestContext }: CouchbaseFixtures,

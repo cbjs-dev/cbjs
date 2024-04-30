@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-export * from './analytics';
-export * from './cluster';
-export * from './eventing';
-export * from './kv';
-export * from './query';
-export * from './rbac';
-export * from './search';
-export * from './views';
+export * from './analytics/index.js';
+export * from './cluster/index.js';
+export * from './eventing/index.js';
+export * from './kv/index.js';
+export * from './query/index.js';
+export * from './rbac/index.js';
+export * from './search/index.js';
+export * from './views/index.js';

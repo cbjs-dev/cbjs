@@ -22,15 +22,15 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import type { Collection } from '../../../collection';
-import { CouchbaseError, PathInvalidError } from '../../../errors';
-import { StoreSemantics } from '../../../generaltypes';
-import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
+import type { Collection } from '../../../collection.js';
+import { CouchbaseError, PathInvalidError } from '../../../errors.js';
+import { StoreSemantics } from '../../../generaltypes.js';
+import { LookupInSpec, MutateInSpec } from '../../../sdspecs.js';
 import {
   type NodeCallback,
   PromiseHelper,
   type VoidNodeCallback,
-} from '../../../utilities';
+} from '../../../utilities.js';
 
 /**
  * CouchbaseQueue provides a simplified interface for storing a queue

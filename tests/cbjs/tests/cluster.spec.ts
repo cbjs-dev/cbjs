@@ -25,9 +25,9 @@ import {
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { testLogger } from '../setupLogger';
-import { connectionParams } from '../setupTests';
-import { triggerGC } from '../utils/triggerGC';
+import { testLogger } from '../setupLogger.js';
+import { connectionParams } from '../setupTests.js';
+import { triggerGC } from '../utils/triggerGC.js';
 
 describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
   const test = await createCouchbaseTest();

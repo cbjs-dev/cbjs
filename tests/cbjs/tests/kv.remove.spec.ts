@@ -20,7 +20,7 @@ import { DocumentNotFoundError, KeyValueErrorContext } from '@cbjsdev/cbjs';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { getLargeTestDocument } from './kv._helpers';
+import { getLargeTestDocument } from './kv._helpers.js';
 
 describe.shuffle('kv remove', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {

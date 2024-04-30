@@ -16,10 +16,10 @@
  */
 import { DocDef, If } from '@cbjsdev/shared';
 
-import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types';
-import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types';
-import { MutationToken } from './mutationstate';
-import { Cas } from './utilities';
+import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types.js';
+import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types.js';
+import { MutationToken } from './mutationstate.js';
+import { Cas } from './utilities.js';
 
 /**
  * Contains the results of a Get operation.

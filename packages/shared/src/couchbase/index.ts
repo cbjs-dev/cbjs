@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './CouchbaseCas';
-export * from './utils';
-export * from './types';
-export * from './clusterTypes';
+export * from './CouchbaseCas.js';
+export * from './utils/index.js';
+export * from './types/index.js';
+export * from './clusterTypes/index.js';

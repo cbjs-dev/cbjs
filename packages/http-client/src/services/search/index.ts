@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './getSearchIndex';
-export * from './getSearchIndexes';
-export * from './querySearchIndexes';
+export * from './getSearchIndex.js';
+export * from './getSearchIndexes.js';
+export * from './querySearchIndexes.js';

@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InvalidArgumentError } from './errors';
-import { MutationState } from './mutationstate';
-import { SearchFacet } from './searchfacet';
-import { SearchQuery } from './searchquery';
-import { SearchSort } from './searchsort';
-import { VectorSearch } from './vectorsearch';
+import { InvalidArgumentError } from './errors.js';
+import { MutationState } from './mutationstate.js';
+import { SearchFacet } from './searchfacet.js';
+import { SearchQuery } from './searchquery.js';
+import { SearchSort } from './searchsort.js';
+import { VectorSearch } from './vectorsearch.js';
 
 /**
  * SearchMetaData represents the meta-data available from a search query.

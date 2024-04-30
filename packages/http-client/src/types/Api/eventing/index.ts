@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './ApiEventingFunction';
-export * from './ApiEventingFunctionStatus';
+export * from './ApiEventingFunction.js';
+export * from './ApiEventingFunctionStatus.js';

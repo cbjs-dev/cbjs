@@ -25,9 +25,9 @@ import {
 import { invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { getSearchIndexConfig } from '../data/searchIndexConfig';
-import { useSampleData } from '../fixtures/useSampleData';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { getSearchIndexConfig } from '../data/searchIndexConfig.js';
+import { useSampleData } from '../fixtures/useSampleData.js';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Search))

@@ -37,8 +37,8 @@ import {
   sleep,
 } from '@cbjsdev/shared';
 
-import { getTestLogger } from './logger';
-import { getRandomId } from './utils/getRandomId';
+import { getTestLogger } from './logger.js';
+import { getRandomId } from './utils/getRandomId.js';
 
 export class ServerTestContext {
   public readonly contextId: string;

@@ -8,10 +8,13 @@
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {
+    "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/shared": "workspace:*",
     "@shikijs/vitepress-twoslash": "^1.2.4",
     "@vitejs/plugin-vue": "latest",
-    "svg-path-reverse": "^1.7.0",
+    "typescript": "5.2.2",
     "vite": "^5.0.0",
-    "vitepress": "^1.1.3"
+    "vitepress": "1.1.3",
+    "vue": "^3.4.26"
   }
 }

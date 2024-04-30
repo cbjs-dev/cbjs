@@ -15,8 +15,8 @@
  */
 import fetch from 'cross-fetch';
 
-import { CouchbaseHttpApiConfig } from '../types';
-import { MANAGEMENT_PORT } from './ports';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { MANAGEMENT_PORT } from './ports.js';
 
 /**
  *

@@ -15,7 +15,7 @@
  */
 import { Logger } from 'pino';
 
-import { FixtureFunctionValue } from '../FixtureFunctionValue';
+import { FixtureFunctionValue } from '../FixtureFunctionValue.js';
 
 export class LoggerFixture extends FixtureFunctionValue<[], Logger, { logger: Logger }> {
   public readonly fixtureName = 'LoggerFixture';

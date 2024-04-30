@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export * from './QueryResultIndexes';
+export * from './QueryResultIndexes.js';

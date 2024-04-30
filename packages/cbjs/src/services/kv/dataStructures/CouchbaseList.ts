@@ -24,16 +24,16 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import type { Collection } from '../../../collection';
-import { LookupInResultEntry } from '../../../crudoptypes';
-import { CouchbaseError } from '../../../errors';
-import { StoreSemantics } from '../../../generaltypes';
-import { LookupInSpec, MutateInSpec } from '../../../sdspecs';
+import type { Collection } from '../../../collection.js';
+import { LookupInResultEntry } from '../../../crudoptypes.js';
+import { CouchbaseError } from '../../../errors.js';
+import { StoreSemantics } from '../../../generaltypes.js';
+import { LookupInSpec, MutateInSpec } from '../../../sdspecs.js';
 import {
   type NodeCallback,
   PromiseHelper,
   type VoidNodeCallback,
-} from '../../../utilities';
+} from '../../../utilities.js';
 
 /**
  * CouchbaseList provides a simplified interface for storing lists

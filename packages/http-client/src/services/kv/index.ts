@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './getBucket';
-export * from './getScopes';
-export * from './getCollections';
+export * from './getBucket.js';
+export * from './getScopes.js';
+export * from './getCollections.js';

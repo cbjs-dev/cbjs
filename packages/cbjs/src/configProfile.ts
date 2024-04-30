@@ -16,7 +16,7 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { ConnectOptions } from './cluster';
+import { ConnectOptions } from './cluster.js';
 
 /**
  * IConfigProfile specifies a ConfigProfile which applies
