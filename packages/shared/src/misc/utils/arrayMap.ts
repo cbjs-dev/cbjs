@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ArrayElement, ArrayMap } from '../../couchbase';
-import { hasOwn } from './hasOwn';
+import { ArrayElement, ArrayMap } from '../../couchbase/index.js';
+import { hasOwn } from './hasOwn.js';
 
 export function arrayMap<
   const T extends ReadonlyArray<object>,

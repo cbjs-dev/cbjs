@@ -16,14 +16,14 @@
  */
 import { If, IsArrayLengthKnown, NoInfer } from '@cbjsdev/shared';
 
-import { AnyCollection } from '../../../clusterTypes';
-import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes';
-import { MutateInSpecResults, NarrowMutationSpecs } from '../../../clusterTypes/kv/mutation/mutateIn.types';
-import { MutateInOptions } from '../../../collection';
-import { MutateInResult } from '../../../crudoptypes';
-import { MutateInSpec } from '../../../sdspecs';
-import { NodeCallback } from '../../../utilities';
-import { ChainableMutateIn } from './ChainableMutateIn';
+import { AnyCollection } from '../../../clusterTypes/index.js';
+import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
+import { MutateInSpecResults, NarrowMutationSpecs } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
+import { MutateInOptions } from '../../../collection.js';
+import { MutateInResult } from '../../../crudoptypes.js';
+import { MutateInSpec } from '../../../sdspecs.js';
+import { NodeCallback } from '../../../utilities.js';
+import { ChainableMutateIn } from './ChainableMutateIn.js';
 
 export type MutateInArgs<
   Doc extends object,

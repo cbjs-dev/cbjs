@@ -2,8 +2,13 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { Cas, ClusterTypes, DocDef } from '@cbjsdev/shared';
 
-import { connect, DocumentId, TransactionDocInfo, TransactionGetResult } from '.';
-import { CppTransactionGetMetaData, CppTransactionLinks } from './binding';
+import { CppTransactionGetMetaData, CppTransactionLinks } from './binding.js';
+import {
+  connect,
+  DocumentId,
+  TransactionDocInfo,
+  TransactionGetResult,
+} from './index.js';
 
 type Book = {
   title: string;

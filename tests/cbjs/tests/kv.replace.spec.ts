@@ -20,7 +20,7 @@ import { CasMismatchError, DefaultTranscoder, KeyValueErrorContext } from '@cbjs
 import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { getLargeTestDocument } from './kv._helpers';
+import { getLargeTestDocument } from './kv._helpers.js';
 
 describe.shuffle('kv replace', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {

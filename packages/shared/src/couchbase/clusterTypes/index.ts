@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export * from './cluster.types';
+export * from './cluster.types.js';
 
-export type * from './document.types';
-export type * from './keyspace.types';
-export type * from './utils';
+export type * from './document.types.js';
+export type * from './keyspace.types.js';
+export type * from './utils/index.js';

@@ -15,12 +15,12 @@
  */
 import { describe, expectTypeOf } from 'vitest';
 
-import { AsyncEchoFixture } from '../fixtures/misc/AsyncEchoFixture';
-import { CounterFixture } from '../fixtures/misc/CounterFixture';
-import { EchoFixture } from '../fixtures/misc/EchoFixture';
-import { FailureFixture } from '../fixtures/misc/FailureFixture';
-import { RandomFixture } from '../fixtures/misc/RandomFixture';
-import { makeCreateTest } from './makeCreateTest';
+import { AsyncEchoFixture } from '../fixtures/misc/AsyncEchoFixture.js';
+import { CounterFixture } from '../fixtures/misc/CounterFixture.js';
+import { EchoFixture } from '../fixtures/misc/EchoFixture.js';
+import { FailureFixture } from '../fixtures/misc/FailureFixture.js';
+import { RandomFixture } from '../fixtures/misc/RandomFixture.js';
+import { makeCreateTest } from './makeCreateTest.js';
 
 describe('makeCreateTest', async () => {
   describe('creator with no fixture', async () => {

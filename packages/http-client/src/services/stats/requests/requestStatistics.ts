@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiPOST } from '../../../utils/apiPOST';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiPOST } from '../../../utils/apiPOST.js';
 
 export async function requestStatistics(
   apiConfig: CouchbaseHttpApiConfig,

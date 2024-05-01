@@ -17,23 +17,23 @@ import { test, TestAPI } from 'vitest';
 
 import { Class, CouchbaseLogger } from '@cbjsdev/shared';
 
-import { CreateTestFixtureFunction } from '../fixtures/CreateTestFixtureFunction';
+import { CreateTestFixtureFunction } from '../fixtures/CreateTestFixtureFunction.js';
 import {
   FixtureFunctionValue,
   isFixtureFunctionValueClass,
-} from '../fixtures/FixtureFunctionValue';
+} from '../fixtures/FixtureFunctionValue.js';
 import {
   FixturePlainValue,
   isFixturePlainValueClass,
-} from '../fixtures/FixturePlainValue';
+} from '../fixtures/FixturePlainValue.js';
 import {
   CreateTestFixtureOf,
   FixtureUseValues,
   TestFixtureOf,
   UnknownContext,
-} from '../fixtures/types';
-import { useFixture } from '../fixtures/useFixture';
-import { getTestLogger } from '../logger';
+} from '../fixtures/types.js';
+import { useFixture } from '../fixtures/useFixture.js';
+import { getTestLogger } from '../logger.js';
 
 type WithLogger<T> = T & { logger: CouchbaseLogger | undefined };
 

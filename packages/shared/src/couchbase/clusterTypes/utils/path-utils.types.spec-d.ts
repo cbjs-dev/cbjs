@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { Json } from '../document.types';
+import { Json } from '../document.types.js';
 import {
   DocumentPath,
   MaybeMissing,
@@ -26,7 +26,7 @@ import {
   PathToParentPropertyOrSelf,
   SubDocument,
   TargetableArrayIndexes,
-} from './path-utils.types';
+} from './path-utils.types.js';
 
 describe('DocumentPath', function () {
   type Doc = {

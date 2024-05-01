@@ -22,12 +22,12 @@ import {
 } from '@cbjsdev/http-client';
 import { CouchbaseClusterTypes } from '@cbjsdev/shared';
 
-import { CppError, CppManagementSearchIndex } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Cluster } from './cluster';
-import { SearchIndexManagementError, SearchIndexNotFoundError } from './errors';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+import { CppError, CppManagementSearchIndex } from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { SearchIndexManagementError, SearchIndexNotFoundError } from './errors.js';
+import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor.js';
+import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities.js';
 
 /**
  * Provides information about a search index.  This class is currently

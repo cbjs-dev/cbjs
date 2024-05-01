@@ -24,9 +24,9 @@ export type {
   ClusterCollection,
   ClusterScope,
   ClusterBucket,
-} from './clusterTypes';
+} from './clusterTypes.js';
 
-export {
+export type {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   BucketName,

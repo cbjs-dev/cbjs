@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsExactly, IsNever } from '../../../misc';
+import { IsExactly, IsNever } from '../../../misc/index.js';
 import {
   ArrayInfoShape,
   ExtractAppendableArray,
@@ -24,9 +24,9 @@ import {
   ResolveNegativeIndex,
   TupleFilter,
   TupleIndexes,
-} from './array-utils.types';
+} from './array-utils.types.js';
 
-import type { WritableKeys } from './misc-utils.types';
+import type { WritableKeys } from './misc-utils.types.js';
 import type {
   DocumentPath,
   ParentDocument,
@@ -34,7 +34,7 @@ import type {
   PathToClosestProperty,
   PathToParentAccessor,
   SubDocument,
-} from './path-utils.types';
+} from './path-utils.types.js';
 
 /**
  *  Extract document paths for which `Type` extends the target property type.

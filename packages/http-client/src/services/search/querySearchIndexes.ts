@@ -15,12 +15,12 @@
  */
 import { hasOwn, invariant, Keyspace } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiQueryResponseBody } from '../../types/Api';
-import { HttpClientSearchIndex } from '../../types/HttpClient/HttpClientSearchIndex';
-import { QueryResultSearchIndex } from '../../types/QueryResult';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestQuerySearchIndexes } from './requests/requestQuerySearchIndexes';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiQueryResponseBody } from '../../types/Api/index.js';
+import { HttpClientSearchIndex } from '../../types/HttpClient/HttpClientSearchIndex.js';
+import { QueryResultSearchIndex } from '../../types/QueryResult/index.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestQuerySearchIndexes } from './requests/requestQuerySearchIndexes.js';
 
 export async function querySearchIndexes(
   params: CouchbaseHttpApiConfig,

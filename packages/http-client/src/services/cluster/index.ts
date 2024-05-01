@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export * from './getPool';
-export * from './getPoolNodes';
-export * from './initCluster';
-export * from './getClusterRelease';
-export * from './setIndexerSettings';
+export * from './getPool.js';
+export * from './getPoolNodes.js';
+export * from './initCluster.js';
+export * from './getClusterRelease.js';
+export * from './setIndexerSettings.js';

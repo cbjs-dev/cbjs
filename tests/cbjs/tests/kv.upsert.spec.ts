@@ -18,13 +18,13 @@ import { describe, vi } from 'vitest';
 
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
-import { waitForFailure } from '../utils/waitForFailure';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { waitForFailure } from '../utils/waitForFailure.js';
 import {
   getBinaryTestDocument,
   getLargeTestDocument,
   getUtf8TestDocument,
-} from './kv._helpers';
+} from './kv._helpers.js';
 
 describe.shuffle('kv upsert', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {

@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { arrayLastElement } from './arrayLastElement';
+import { arrayLastElement } from './arrayLastElement.js';
 
 describe('arrayLastElement', () => {
   it('should return the type of the last element of a tuple', () => {

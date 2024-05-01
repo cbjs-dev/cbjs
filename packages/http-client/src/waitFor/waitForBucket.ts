@@ -15,13 +15,13 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getPoolNodes, getQueryBuckets } from '../services';
-import { requestGetBucket } from '../services/kv/requests/requestGetBucket';
-import { CouchbaseHttpApiConfig } from '../types';
-import { ApiBucket } from '../types/Api/kv/ApiBucket';
-import { mapNodes } from '../utils/mapNodes';
-import { waitOptionsModerate } from './options';
-import { WaitForOptions } from './types';
+import { getPoolNodes, getQueryBuckets } from '../services/index.js';
+import { requestGetBucket } from '../services/kv/requests/requestGetBucket.js';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { ApiBucket } from '../types/Api/kv/ApiBucket.js';
+import { mapNodes } from '../utils/mapNodes.js';
+import { waitOptionsModerate } from './options.js';
+import { WaitForOptions } from './types.js';
 
 export async function waitForBucket(
   apiConfig: CouchbaseHttpApiConfig,

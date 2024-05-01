@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './ApiRole';
-export * from './ApiUser';
-export * from './ApiUserGroup';
+export * from './ApiRole.js';
+export * from './ApiUser.js';
+export * from './ApiUserGroup.js';

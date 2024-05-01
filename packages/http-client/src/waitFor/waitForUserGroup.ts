@@ -15,12 +15,12 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getPoolNodes } from '../services';
-import { requestGetUserGroup } from '../services/rbac/requests/requestGetUserGroup';
-import { CouchbaseHttpApiConfig } from '../types';
-import { mapNodes } from '../utils/mapNodes';
-import { waitOptionsModerate } from './options';
-import { WaitForOptions } from './types';
+import { getPoolNodes } from '../services/index.js';
+import { requestGetUserGroup } from '../services/rbac/requests/requestGetUserGroup.js';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { mapNodes } from '../utils/mapNodes.js';
+import { waitOptionsModerate } from './options.js';
+import { WaitForOptions } from './types.js';
 
 export async function waitForUserGroup(
   apiConfig: CouchbaseHttpApiConfig,

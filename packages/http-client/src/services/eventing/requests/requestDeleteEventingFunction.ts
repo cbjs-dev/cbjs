@@ -15,8 +15,8 @@
  */
 import type { EventingFunctionScope } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiDELETE } from '../../../utils/apiDELETE';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiDELETE } from '../../../utils/apiDELETE.js';
 
 export async function requestDeleteEventingFunction(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,

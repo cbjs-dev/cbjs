@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FixtureFunctionValue } from '../FixtureFunctionValue';
-import { FixtureContext, UnknownContext } from '../types';
+import { FixtureFunctionValue } from '../FixtureFunctionValue.js';
+import { FixtureContext, UnknownContext } from '../types.js';
 
 export type FailFixtureParams = {
   useFailsWithReason?: string;

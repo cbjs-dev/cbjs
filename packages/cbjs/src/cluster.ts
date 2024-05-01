@@ -16,52 +16,52 @@
  */
 import { BucketName, CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
 
-import { AnalyticsExecutor } from './analyticsexecutor';
-import { AnalyticsIndexManager } from './analyticsindexmanager';
+import { AnalyticsExecutor } from './analyticsexecutor.js';
+import { AnalyticsIndexManager } from './analyticsindexmanager.js';
 import {
   AnalyticsMetaData,
   AnalyticsQueryOptions,
   AnalyticsResult,
-} from './analyticstypes';
+} from './analyticstypes.js';
 import {
   Authenticator,
   CertificateAuthenticator,
   PasswordAuthenticator,
-} from './authenticators';
-import binding, { CppClusterCredentials, CppConnection } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Bucket } from './bucket';
-import { BucketManager } from './bucketmanager';
-import { connectionProfiles } from './configProfile';
-import { ConnSpec } from './connspec';
-import { DiagnoticsExecutor, PingExecutor } from './diagnosticsexecutor';
+} from './authenticators.js';
+import binding, { CppClusterCredentials, CppConnection } from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { Bucket } from './bucket.js';
+import { BucketManager } from './bucketmanager.js';
+import { connectionProfiles } from './configProfile.js';
+import { ConnSpec } from './connspec.js';
+import { DiagnoticsExecutor, PingExecutor } from './diagnosticsexecutor.js';
 import {
   DiagnosticsOptions,
   DiagnosticsResult,
   PingOptions,
   PingResult,
-} from './diagnosticstypes';
-import { EventingFunctionManager } from './eventingfunctionmanager';
-import { QueryExecutor } from './queryexecutor';
-import { QueryIndexManager } from './queryindexmanager';
-import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
-import { SearchExecutor } from './searchexecutor';
-import { SearchIndexManager } from './searchindexmanager';
-import { SearchQuery } from './searchquery';
+} from './diagnosticstypes.js';
+import { EventingFunctionManager } from './eventingfunctionmanager.js';
+import { QueryExecutor } from './queryexecutor.js';
+import { QueryIndexManager } from './queryindexmanager.js';
+import { QueryMetaData, QueryOptions, QueryResult } from './querytypes.js';
+import { SearchExecutor } from './searchexecutor.js';
+import { SearchIndexManager } from './searchindexmanager.js';
+import { SearchQuery } from './searchquery.js';
 import {
   SearchMetaData,
   SearchQueryOptions,
   SearchRequest,
   SearchResult,
   SearchRow,
-} from './searchtypes';
-import { StreamableRowPromise } from './streamablepromises';
-import { Transactions, TransactionsConfig } from './transactions';
-import { DefaultTranscoder, Transcoder } from './transcoders';
-import { UserManager } from './usermanager';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
-import { generateClientString } from './utilities_internal';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+} from './searchtypes.js';
+import { StreamableRowPromise } from './streamablepromises.js';
+import { Transactions, TransactionsConfig } from './transactions.js';
+import { DefaultTranscoder, Transcoder } from './transcoders.js';
+import { UserManager } from './usermanager.js';
+import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities.js';
+import { generateClientString } from './utilities_internal.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
 
 /**
  * Specifies the timeout options for the client.

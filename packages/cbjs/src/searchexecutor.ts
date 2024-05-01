@@ -16,24 +16,24 @@
  */
 import { BucketName, CouchbaseClusterTypes, ScopeName } from '@cbjsdev/shared';
 
-import { CppSearchRequest } from './binding';
+import { CppSearchRequest } from './binding.js';
 import {
   errorFromCpp,
   mutationStateToCpp,
   searchHighlightStyleToCpp,
   searchScanConsistencyToCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
-import { MatchNoneSearchQuery, SearchQuery } from './searchquery';
-import { SearchSort } from './searchsort';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { MatchNoneSearchQuery, SearchQuery } from './searchquery.js';
+import { SearchSort } from './searchsort.js';
 import {
   SearchMetaData,
   SearchQueryOptions,
   SearchRequest,
   SearchResult,
   SearchRow,
-} from './searchtypes';
-import { StreamableRowPromise } from './streamablepromises';
+} from './searchtypes.js';
+import { StreamableRowPromise } from './streamablepromises.js';
 
 /**
  * @internal

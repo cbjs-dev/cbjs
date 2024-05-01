@@ -17,10 +17,10 @@ import type { TaskContext } from 'vitest';
 
 import type { Class } from '@cbjsdev/shared';
 
-import { registerContextCleanupAction, registerTestCleanupAction } from '../hook';
-import { getTestLogger } from '../logger';
-import { FixtureFunctionValue } from './FixtureFunctionValue';
-import type { FixtureContext, UnknownContext } from './types';
+import { registerContextCleanupAction, registerTestCleanupAction } from '../hook.js';
+import { getTestLogger } from '../logger.js';
+import { FixtureFunctionValue } from './FixtureFunctionValue.js';
+import type { FixtureContext, UnknownContext } from './types.js';
 
 export class CreateTestFixtureFunction<
   Args extends ReadonlyArray<unknown>,

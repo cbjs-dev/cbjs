@@ -27,8 +27,8 @@ import { getPool } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { apiConfig } from '../setupTests';
-import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies';
+import { apiConfig } from '../setupTests.js';
+import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies.js';
 
 describe('kv lock', { timeout: 20_000 }, async () => {
   const test = await createCouchbaseTest(async ({ useDocumentKey }) => {

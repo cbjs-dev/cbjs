@@ -27,7 +27,7 @@ import {
   StorageBackendName,
 } from '@cbjsdev/shared';
 
-import { CppManagementClusterBucketSettings } from './binding';
+import { CppManagementClusterBucketSettings } from './binding.js';
 import {
   bucketCompressionModeFromCpp,
   bucketCompressionModeToCpp,
@@ -41,17 +41,17 @@ import {
   durabilityFromCpp,
   durabilityToCpp,
   errorFromCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
-import { DurabilityLevel } from './generaltypes';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { DurabilityLevel } from './generaltypes.js';
 import {
   duraLevelToNsServerStr,
   NodeCallback,
   nsServerStrToDuraLevel,
   PromiseHelper,
   VoidNodeCallback,
-} from './utilities';
-import { toEnumMember } from './utilities_internal';
+} from './utilities.js';
+import { toEnumMember } from './utilities_internal.js';
 
 /**
  * Represents the various conflict resolution modes which can be used for

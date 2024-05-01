@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-export * from './ApiSearchGetAllIndexes';
-export * from './ApiSearchGetIndex';
-export * from './ApiSearchIndexAnalyzeDocument';
-export * from './ApiSearchIndexCountDocuments';
-export * from './ApiSearchQuery';
-export * from './types';
+export * from './ApiSearchGetAllIndexes.js';
+export * from './ApiSearchGetIndex.js';
+export * from './ApiSearchIndexAnalyzeDocument.js';
+export * from './ApiSearchIndexCountDocuments.js';
+export * from './ApiSearchQuery.js';
+export * from './types.js';

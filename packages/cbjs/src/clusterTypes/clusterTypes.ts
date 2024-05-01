@@ -35,9 +35,9 @@ import {
   WildcardFallback,
 } from '@cbjsdev/shared';
 
-import { Bucket } from '../bucket';
-import type { Collection } from '../collection';
-import type { Scope } from '../scope';
+import { Bucket } from '../bucket.js';
+import type { Collection } from '../collection.js';
+import type { Scope } from '../scope.js';
 
 /**
  * Collection's documents types, as a CollectionDocumentBag.

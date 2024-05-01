@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { CppProtocolSubdocOpcode } from '../../../binding';
-import type { LookupInMacro, LookupInSpec } from '../../../sdspecs';
-import type { MakeLookupInSpec } from './lookupIn.types';
+import type { CppProtocolSubdocOpcode } from '../../../binding.js';
+import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
+import type { MakeLookupInSpec } from './lookupIn.types.js';
 import type { DocumentPath, ExtractPathToArray, ExtractPathToObject, If, IsFuzzyDocument } from '@cbjsdev/shared';
 
 /**

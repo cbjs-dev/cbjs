@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiGET } from '../../../utils/apiGET';
-import { ANALYTICS_PORT } from '../../../utils/ports';
-import { GetAnalyticsLinksOptions } from '../getAnalyticsLinks';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+import { ANALYTICS_PORT } from '../../../utils/ports.js';
+import { GetAnalyticsLinksOptions } from '../getAnalyticsLinks.js';
 
 export async function requestAnalyticsGetAllLinks(
   apiConfig: CouchbaseHttpApiConfig,

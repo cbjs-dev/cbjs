@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export * from './SearchIndexFixture';
+export * from './SearchIndexFixture.js';

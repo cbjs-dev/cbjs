@@ -1,7 +1,7 @@
 import { connect } from '@cbjsdev/cbjs';
 import { getConnectionParams } from '@cbjsdev/shared';
 
-import { isOptimized } from '../../utils/optimization';
+import { isOptimized } from '../../utils/optimization.js';
 
 const bucketName = process.argv[2];
 const prefix = Math.random().toString(16).substring(2, 8);

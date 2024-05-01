@@ -17,7 +17,7 @@
 import { ApiAnalyticsLink } from '@cbjsdev/http-client';
 import { CouchbaseClusterTypes } from '@cbjsdev/shared';
 
-import { Cluster } from './cluster';
+import { Cluster } from './cluster.js';
 import {
   CouchbaseError,
   DatasetExistsError,
@@ -25,16 +25,16 @@ import {
   DataverseExistsError,
   DataverseNotFoundError,
   LinkExistsError,
-} from './errors';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
+} from './errors.js';
+import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor.js';
 import {
   cbQsStringify,
   NodeCallback,
   PromiseHelper,
   VoidNodeCallback,
-} from './utilities';
-import { toEnumMember } from './utilities_internal';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+} from './utilities.js';
+import { toEnumMember } from './utilities_internal.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
 
 /**
  * Represents the type of an analytics link.

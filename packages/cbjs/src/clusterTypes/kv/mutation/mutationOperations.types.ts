@@ -30,15 +30,15 @@ import type {
   PathToRemovableProperty,
   SubDocument,
 } from '@cbjsdev/shared';
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import { MutateInSpec } from '../../../sdspecs';
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import { MutateInSpec } from '../../../sdspecs.js';
 
 import type {
   AnyMutateInPath,
   AnyMutateInValue,
   CompatibleMacro,
   MutateInValue,
-} from './mutateIn.types';
+} from './mutateIn.types.js';
 
 /**
  * Wrap the value in a `ReadonlyArray` if `Multi` is `true`.

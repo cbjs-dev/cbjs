@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink';
+import { ApiAnalyticsLinkSharedProperties } from './ApiAnalyticsLink.js';
 
 export type ApiAnalyticsGoogleStorageRemoteLink = {
   type: 'gcs';

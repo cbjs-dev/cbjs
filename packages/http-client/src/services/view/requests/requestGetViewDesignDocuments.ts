@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { apiGET } from '../../../utils/apiGET';
-import { pathname } from '../../../utils/pathname';
-import { MANAGEMENT_PORT } from '../../../utils/ports';
-import { getPoolNodes } from '../../cluster';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+import { pathname } from '../../../utils/pathname.js';
+import { MANAGEMENT_PORT } from '../../../utils/ports.js';
+import { getPoolNodes } from '../../cluster/index.js';
 
 export async function requestGetViewDesignDocuments(
   params: CouchbaseHttpApiConfig,

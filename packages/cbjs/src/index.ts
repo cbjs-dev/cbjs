@@ -15,52 +15,52 @@
  * limitations under the License.
  */
 
-export * from './analyticsindexmanager';
-export * from './analyticstypes';
-export * from './authenticators';
+export * from './analyticsindexmanager.js';
+export * from './analyticstypes.js';
+export * from './authenticators.js';
 export type {
   AppendOptions,
   PrependOptions,
   IncrementOptions,
   DecrementOptions,
-} from './binarycollection';
-export * from './bucket';
-export * from './bucketmanager';
-export * from './cluster';
-export * from './couchbase';
-export * from './collection';
-export * from './collectionmanager';
-export { type IConfigProfile, connectionProfiles } from './configProfile';
-export * from './crudoptypes';
-export * from './services/kv/dataStructures';
-export * from './diagnosticstypes';
-export * from './errorcontexts';
-export * from './errors';
-export * from './eventingfunctionmanager';
-export * from './generaltypes';
-export * from './mutationstate';
-export * from './queryindexmanager';
-export * from './querytypes';
-export * from './rangeScan';
-export * from './scope';
-export * from './scopesearchindexmanager';
-export * from './sdspecs';
-export * from './searchfacet';
-export * from './searchindexmanager';
-export * from './searchquery';
-export * from './searchsort';
-export * from './searchtypes';
-export * from './streamablepromises';
-export * from './transactions';
-export * from './transcoders';
-export * from './usermanager';
-export { type Cas, CouchbaseCas } from './utilities';
-export * from './vectorsearch';
-export * from './viewexecutor';
-export * from './viewindexmanager';
-export * from './viewtypes';
+} from './binarycollection.js';
+export * from './bucket.js';
+export * from './bucketmanager.js';
+export * from './cluster.js';
+export * from './couchbase.js';
+export * from './collection.js';
+export * from './collectionmanager.js';
+export { type IConfigProfile, connectionProfiles } from './configProfile.js';
+export * from './crudoptypes.js';
+export * from './services/kv/dataStructures/index.js';
+export * from './diagnosticstypes.js';
+export * from './errorcontexts.js';
+export * from './errors.js';
+export * from './eventingfunctionmanager.js';
+export * from './generaltypes.js';
+export * from './mutationstate.js';
+export * from './queryindexmanager.js';
+export * from './querytypes.js';
+export * from './rangeScan.js';
+export * from './scope.js';
+export * from './scopesearchindexmanager.js';
+export * from './sdspecs.js';
+export * from './searchfacet.js';
+export * from './searchindexmanager.js';
+export * from './searchquery.js';
+export * from './searchsort.js';
+export * from './searchtypes.js';
+export * from './streamablepromises.js';
+export * from './transactions.js';
+export * from './transcoders.js';
+export * from './usermanager.js';
+export { type Cas, CouchbaseCas } from './utilities.js';
+export * from './vectorsearch.js';
+export * from './viewexecutor.js';
+export * from './viewindexmanager.js';
+export * from './viewtypes.js';
 
-export * from './clusterTypes';
+export * from './clusterTypes/index.js';
 
 export type { Keyspace, CasInput } from '@cbjsdev/shared';
 export {

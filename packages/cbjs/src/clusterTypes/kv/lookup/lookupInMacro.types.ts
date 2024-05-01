@@ -15,7 +15,7 @@
  */
 
 import { StringDigits, StringHex, TimestampSeconds } from '@cbjsdev/shared';
-import type { LookupInMacro } from "../../../sdspecs";
+import type { LookupInMacro } from "../../../sdspecs.js";
 
 /**
  * Return the result type of the given {@link LookupInMacro}.

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './CouchbaseList';
-export * from './CouchbaseSet';
-export * from './CouchbaseQueue';
-export * from './CouchbaseMap';
+export * from './CouchbaseList.js';
+export * from './CouchbaseSet.js';
+export * from './CouchbaseQueue.js';
+export * from './CouchbaseMap.js';

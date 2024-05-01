@@ -5,9 +5,9 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import { CppManagementEventingFunction } from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Cluster } from './cluster';
+import { CppManagementEventingFunction } from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { Cluster } from './cluster.js';
 import {
   DeployFunctionOptions,
   DropFunctionOptions,
@@ -19,9 +19,9 @@ import {
   PauseFunctionOptions,
   ResumeFunctionOptions,
   UpsertFunctionOptions,
-} from './eventingfunctionmanager';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+} from './eventingfunctionmanager.js';
+import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
 
 /**
  * ScopeEventingFunctionManager provides an interface for managing the

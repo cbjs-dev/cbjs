@@ -16,7 +16,7 @@
  */
 import { DurabilityLevelName, invariant } from '@cbjsdev/shared';
 
-import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes';
+import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes.js';
 import binding, {
   CppAnalyticsResponseAnalyticsStatus,
   CppAnalyticsScanConsistency,
@@ -55,15 +55,15 @@ import binding, {
   CppVectorQueryCombination,
   CppViewScanConsistency,
   CppViewSortOrder,
-} from './binding';
+} from './binding.js';
 import {
   BucketType,
   CompressionMode,
   ConflictResolutionType,
   EvictionPolicy,
   StorageBackend,
-} from './bucketmanager';
-import { EndpointState, PingState } from './diagnosticstypes';
+} from './bucketmanager.js';
+import { EndpointState, PingState } from './diagnosticstypes.js';
 import {
   AnalyticsErrorContext,
   HttpErrorContext,
@@ -72,7 +72,7 @@ import {
   SearchErrorContext,
   ServiceErrorContext,
   ViewErrorContext,
-} from './errorcontexts';
+} from './errorcontexts.js';
 import {
   AmbiguousTimeoutError,
   AuthenticationFailureError,
@@ -154,7 +154,7 @@ import {
   ValueTooDeepError,
   ValueTooLargeError,
   ViewNotFoundError,
-} from './errors';
+} from './errors.js';
 import {
   EventingFunctionBucketAccess,
   EventingFunctionDcpBoundary,
@@ -163,16 +163,21 @@ import {
   EventingFunctionLogLevel,
   EventingFunctionProcessingStatus,
   EventingFunctionStatus,
-} from './eventingfunctionmanager';
-import { DurabilityLevel, ServiceType, StoreSemantics } from './generaltypes';
-import { MutationState } from './mutationstate';
-import { QueryProfileMode, QueryScanConsistency } from './querytypes';
-import { PrefixScan, RangeScan, SamplingScan } from './rangeScan';
-import { HighlightStyle, SearchScanConsistency } from './searchtypes';
-import { TransactionKeyspace } from './transactions';
-import { nsServerStrToDuraLevel } from './utilities';
-import { VectorQueryCombination } from './vectorsearch';
-import { DesignDocumentNamespace, ViewOrdering, ViewScanConsistency } from './viewtypes';
+} from './eventingfunctionmanager.js';
+
+import { DurabilityLevel, ServiceType, StoreSemantics } from './generaltypes.js';
+import { MutationState } from './mutationstate.js';
+import { QueryProfileMode, QueryScanConsistency } from './querytypes.js';
+import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
+import { HighlightStyle, SearchScanConsistency } from './searchtypes.js';
+import { TransactionKeyspace } from './transactions.js';
+import { nsServerStrToDuraLevel } from './utilities.js';
+import { VectorQueryCombination } from './vectorsearch.js';
+import {
+  DesignDocumentNamespace,
+  ViewOrdering,
+  ViewScanConsistency,
+} from './viewtypes.js';
 
 /**
  * @internal

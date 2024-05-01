@@ -16,7 +16,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { SdUtils } from './sdutils';
+import { SdUtils } from './sdutils.js';
 
 describe('sdutils', function () {
   it('should handle base properties', function ({ expect }) {

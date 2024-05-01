@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { isArray } from './isArray';
+import { isArray } from './isArray.js';
 
 describe('isArray', () => {
   it('should narrow the type of unknown to unknown[]', () => {

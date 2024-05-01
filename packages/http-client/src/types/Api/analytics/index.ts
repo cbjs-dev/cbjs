@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './ApiAnalyticsLink';
-export * from './ApiAnalyticsCouchbaseRemoteLink';
+export * from './ApiAnalyticsLink.js';
+export * from './ApiAnalyticsCouchbaseRemoteLink.js';

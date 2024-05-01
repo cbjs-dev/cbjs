@@ -34,7 +34,7 @@ import type {
   MutateInRemovePath,
   MutateInReplacePath,
   MutateInUpsertPath,
-} from './mutationOperations.types';
+} from './mutationOperations.types.js';
 
 describe('mutation operations', function () {
   type TestDoc = TestDocRequiredProperties &

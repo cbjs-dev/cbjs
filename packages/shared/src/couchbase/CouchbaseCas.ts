@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn } from '../misc';
+import { hasOwn } from '../misc/index.js';
 
 /**
  * CAS represents an opaque value which can be used to compare documents to

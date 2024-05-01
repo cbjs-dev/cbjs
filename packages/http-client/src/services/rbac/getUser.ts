@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiUser } from '../../types/Api/rbac/ApiUser';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetUser } from './requests/requestGetUser';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiUser } from '../../types/Api/rbac/ApiUser.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetUser } from './requests/requestGetUser.js';
 
 export async function getUser(
   apiConfig: CouchbaseHttpApiConfig,

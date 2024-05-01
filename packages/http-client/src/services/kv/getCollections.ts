@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiBucketScopes } from '../../types/Api/kv/ApiBucketScopes';
-import { requestGetBucketScopes } from './requests/requestGetBucketScopes';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiBucketScopes } from '../../types/Api/kv/ApiBucketScopes.js';
+import { requestGetBucketScopes } from './requests/requestGetBucketScopes.js';
 
 export async function getCollections(
   params: CouchbaseHttpApiConfig,

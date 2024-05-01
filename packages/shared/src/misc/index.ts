@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './utils';
-export * from './types';
+export * from './utils/index.js';
+export * from './types/index.js';

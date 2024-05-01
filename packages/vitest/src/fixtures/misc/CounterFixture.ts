@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FixtureFunctionValue } from '../FixtureFunctionValue';
-import { UnknownContext } from '../types';
+import { FixtureFunctionValue } from '../FixtureFunctionValue.js';
+import { UnknownContext } from '../types.js';
 
 export class CounterFixture extends FixtureFunctionValue<[], number, UnknownContext> {
   private static i = 0;

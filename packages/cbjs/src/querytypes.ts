@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MutationState } from './mutationstate';
+import { MutationState } from './mutationstate.js';
 
 /**
  * Represents the status of a query.

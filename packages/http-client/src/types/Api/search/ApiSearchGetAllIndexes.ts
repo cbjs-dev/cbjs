@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiSearchIndexDefinition } from './types';
+import { ApiSearchIndexDefinition } from './types.js';
 
 export type ApiSearchGetAllIndexes = {
   status: 'ok' | (string & NonNullable<unknown>);

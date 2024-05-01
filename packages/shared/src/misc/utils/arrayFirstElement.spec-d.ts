@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { arrayFirstElement } from './arrayFirstElement';
+import { arrayFirstElement } from './arrayFirstElement.js';
 
 describe('arrayFirstElement', () => {
   it('should return the type of the first element of a tuple', () => {

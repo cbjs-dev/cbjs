@@ -17,12 +17,12 @@
 import type { NoInfer } from '@cbjsdev/shared';
 import { isArray } from '@cbjsdev/shared';
 
-import type { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types';
-import type { MutateInOptions } from '../../../collection';
-import type { MutateInResult } from '../../../crudoptypes';
-import type { MutateInSpec } from '../../../sdspecs';
-import type { NodeCallback } from '../../../utilities';
-import type { MutateInArgs } from './types';
+import type { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
+import type { MutateInOptions } from '../../../collection.js';
+import type { MutateInResult } from '../../../crudoptypes.js';
+import type { MutateInSpec } from '../../../sdspecs.js';
+import type { NodeCallback } from '../../../utilities.js';
+import type { MutateInArgs } from './types.js';
 
 type ResolvedArgs<SpecDefinitions extends ReadonlyArray<MutateInSpec>> = {
   options: MutateInOptions;

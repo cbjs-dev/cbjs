@@ -17,15 +17,15 @@ import type { TaskContext, Test } from 'vitest';
 
 import type { Class } from '@cbjsdev/shared';
 
-import { registerTestCleanupAction } from '../hook';
-import { getTestLogger } from '../logger';
-import { CreateTestFixtureFunction } from './CreateTestFixtureFunction';
+import { registerTestCleanupAction } from '../hook.js';
+import { getTestLogger } from '../logger.js';
+import { CreateTestFixtureFunction } from './CreateTestFixtureFunction.js';
 import {
   FixtureFunctionValue,
   isFixtureFunctionValueClass,
-} from './FixtureFunctionValue';
-import { FixturePlainValue, isFixturePlainValueClass } from './FixturePlainValue';
-import type { FixtureContext, TestFixtureFn, UnknownContext } from './types';
+} from './FixtureFunctionValue.js';
+import { FixturePlainValue, isFixturePlainValueClass } from './FixturePlainValue.js';
+import type { FixtureContext, TestFixtureFn, UnknownContext } from './types.js';
 
 export function useFixture<
   FixtureClass extends Class<FixtureFunctionValue<Args, UseValue, Context>>,

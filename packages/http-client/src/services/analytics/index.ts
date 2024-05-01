@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './getAnalyticsClusterStatus';
-export * from './getAnalyticsLinks';
-export * from './createAnalyticsLink';
+export * from './getAnalyticsClusterStatus.js';
+export * from './getAnalyticsLinks.js';
+export * from './createAnalyticsLink.js';

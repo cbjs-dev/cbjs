@@ -18,8 +18,8 @@ import { describe, it } from 'vitest';
 
 import { invariant } from '@cbjsdev/shared';
 
-import { PasswordAuthenticator } from './authenticators';
-import { ConnSpec } from './connspec';
+import { PasswordAuthenticator } from './authenticators.js';
+import { ConnSpec } from './connspec.js';
 
 describe.shuffle('ConnSpec', function () {
   describe('stringify', function () {

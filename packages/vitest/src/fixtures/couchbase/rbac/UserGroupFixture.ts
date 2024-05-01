@@ -17,10 +17,10 @@ import { IGroup, Role } from '@cbjsdev/cbjs';
 import { waitForUserGroup } from '@cbjsdev/http-client';
 import { OptionalProps } from '@cbjsdev/shared';
 
-import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
-import { FixtureFunctionValue } from '../../FixtureFunctionValue';
-import { FixtureContext } from '../../types';
-import { UserFixtureParams } from './UserFixture';
+import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
+import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
+import { FixtureContext } from '../../types.js';
+import { UserFixtureParams } from './UserFixture.js';
 
 export type UserGroupFixtureParams = OptionalProps<IGroup, 'name'>;
 

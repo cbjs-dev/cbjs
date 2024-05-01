@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Pretty } from '../utils';
+import { Pretty } from '../utils/index.js';
 
 // Credits https://github.com/Microsoft/TypeScript/issues/14094#issuecomment-373782604
 

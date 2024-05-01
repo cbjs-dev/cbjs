@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { RelaxedUnion } from './RelaxedUnion';
+import { RelaxedUnion } from './RelaxedUnion.js';
 
 describe('RelaxedUnion', () => {
   it('should return the given type when there is no union', () => {

@@ -16,7 +16,7 @@
  */
 import { sleep } from '@cbjsdev/shared';
 
-import { testLogger } from '../setupLogger';
+import { testLogger } from '../setupLogger.js';
 
 type WaitForOptions = {
   timeout?: number;

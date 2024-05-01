@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AnyCollection } from './clusterTypes';
-import type { Collection } from './collection';
-import { CounterResult, MutationResult } from './crudoptypes';
-import { DurabilityLevel } from './generaltypes';
-import type { NodeCallback } from './utilities';
+import type { AnyCollection } from './clusterTypes/index.js';
+import type { Collection } from './collection.js';
+import { CounterResult, MutationResult } from './crudoptypes.js';
+import { DurabilityLevel } from './generaltypes.js';
+import type { NodeCallback } from './utilities.js';
 
 /**
  * @category Key-Value

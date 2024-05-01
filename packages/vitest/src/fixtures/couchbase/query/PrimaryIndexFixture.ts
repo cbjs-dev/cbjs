@@ -15,9 +15,9 @@
  */
 import { CreatePrimaryQueryIndexOptions } from '@cbjsdev/cbjs';
 
-import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
-import { FixtureFunctionValue } from '../../FixtureFunctionValue';
-import { FixtureContext } from '../../types';
+import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
+import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
+import { FixtureContext } from '../../types.js';
 
 export type PrimaryIndexFixtureParams = CreatePrimaryQueryIndexOptions & {
   bucketName: string;

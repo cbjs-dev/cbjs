@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ServerTestContext } from './ServerTestContext';
+import { ServerTestContext } from './ServerTestContext.js';
 
 export const serverTestContexts = [] as ServerTestContext[];
 

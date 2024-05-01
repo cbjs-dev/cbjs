@@ -15,12 +15,12 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getHttpClientLogger } from '../logger';
-import { getPoolNodes } from '../services';
-import { requestGetUser } from '../services/rbac/requests/requestGetUser';
-import { CouchbaseHttpApiConfig } from '../types';
-import { mapNodes } from '../utils/mapNodes';
-import { WaitForOptions } from './types';
+import { getHttpClientLogger } from '../logger.js';
+import { getPoolNodes } from '../services/index.js';
+import { requestGetUser } from '../services/rbac/requests/requestGetUser.js';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { mapNodes } from '../utils/mapNodes.js';
+import { WaitForOptions } from './types.js';
 
 export async function waitForUser(
   apiConfig: CouchbaseHttpApiConfig,

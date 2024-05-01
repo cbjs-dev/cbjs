@@ -15,10 +15,10 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getAnalyticsClusterStatus } from '../services';
-import { CouchbaseHttpApiConfig } from '../types';
-import { waitOptionsModerate } from './options';
-import { WaitForOptions } from './types';
+import { getAnalyticsClusterStatus } from '../services/index.js';
+import { CouchbaseHttpApiConfig } from '../types.js';
+import { waitOptionsModerate } from './options.js';
+import { WaitForOptions } from './types.js';
 
 export async function waitForAnalyticsCluster(
   apiConfig: CouchbaseHttpApiConfig,

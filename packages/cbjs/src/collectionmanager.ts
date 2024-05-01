@@ -19,10 +19,10 @@ import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
 import {
   CppTopologyCollectionsManifestCollection,
   CppTopologyCollectionsManifestScope,
-} from './binding';
-import { errorFromCpp } from './bindingutilities';
-import { Bucket } from './bucket';
-import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities';
+} from './binding.js';
+import { errorFromCpp } from './bindingutilities.js';
+import { Bucket } from './bucket.js';
+import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities.js';
 
 /**
  * Provides options for configuring a collection.

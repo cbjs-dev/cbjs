@@ -17,8 +17,8 @@ import fetch from 'cross-fetch';
 
 import { jsonToUrlSearchParams, ServiceName } from '@cbjsdev/shared';
 
-import { CouchbaseHttpApiConfig } from '../../../types';
-import { MANAGEMENT_PORT } from '../../../utils/ports';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { MANAGEMENT_PORT } from '../../../utils/ports.js';
 
 export type InitClusterParams = {
   username: string;

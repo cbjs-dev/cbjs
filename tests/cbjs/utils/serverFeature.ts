@@ -16,7 +16,7 @@
  */
 import { gte } from 'semver';
 
-import { clusterRelease } from './clusterRelease';
+import { clusterRelease } from './clusterRelease.js';
 
 export const ServerFeatures = {
   KeyValue: 'kv',

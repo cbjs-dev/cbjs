@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiRole } from '../../types/Api/rbac/ApiRole';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetRoles } from './requests/requestGetRoles';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiRole } from '../../types/Api/rbac/ApiRole.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetRoles } from './requests/requestGetRoles.js';
 
 export async function getRoles(apiConfig: CouchbaseHttpApiConfig) {
   const response = await requestGetRoles(apiConfig);

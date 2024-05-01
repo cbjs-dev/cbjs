@@ -23,15 +23,15 @@ import {
 } from '@cbjsdev/http-client';
 import { CouchbaseClusterTypes, getRoleScope, RoleName } from '@cbjsdev/shared';
 
-import { Cluster } from './cluster';
-import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
+import { Cluster } from './cluster.js';
+import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors.js';
+import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor.js';
 import {
   cbQsStringify,
   NodeCallback,
   PromiseHelper,
   VoidNodeCallback,
-} from './utilities';
+} from './utilities.js';
 
 /**
  * Contains information about an origin for a role.

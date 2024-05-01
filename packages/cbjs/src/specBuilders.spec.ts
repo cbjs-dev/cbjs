@@ -16,8 +16,8 @@
  */
 import { describe, it } from 'vitest';
 
-import { LookupInSpec, MutateInSpec } from './sdspecs';
-import { LookupSpecs, MutationSpecs } from './specBuilders';
+import { LookupInSpec, MutateInSpec } from './sdspecs.js';
+import { LookupSpecs, MutationSpecs } from './specBuilders.js';
 
 describe('specBuilders', function () {
   type TestDoc = {

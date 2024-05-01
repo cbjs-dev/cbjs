@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetPoolNodes } from './requests/requestGetPoolNodes';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetPoolNodes } from './requests/requestGetPoolNodes.js';
 
 export async function getPoolNodes(params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>) {
   const response = await requestGetPoolNodes(params);

@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './IndexFixture';
-export * from './PrimaryIndexFixture';
+export * from './IndexFixture.js';
+export * from './PrimaryIndexFixture.js';

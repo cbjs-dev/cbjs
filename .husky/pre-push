@@ -1,5 +1,5 @@
 set -e
 
-npm run lint:check
-npm run build
+pnpm run lint:check
+pnpm run build
 

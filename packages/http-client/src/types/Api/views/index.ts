@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export * from './ApiViewDesignDocument';
+export * from './ApiViewDesignDocument.js';

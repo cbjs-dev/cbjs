@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { And, Extends, If, IsNever, Join, Not, Or, Split } from '../../../misc';
-import type { IsFuzzyDocument } from '../document.types';
-import { GuaranteedIndexes, IsArrayLengthKnown, ResolveNegativeIndex, TupleIndexes } from './array-utils.types';
+import type { And, Extends, If, IsNever, Join, Not, Or, Split } from '../../../misc/index.js';
+import type { IsFuzzyDocument } from '../document.types.js';
+import { GuaranteedIndexes, IsArrayLengthKnown, ResolveNegativeIndex, TupleIndexes } from './array-utils.types.js';
 
-import type { CircularReferences, OptionalKeys, ReferencesItself, ToNumber, WrapEach } from './misc-utils.types';
+import type { CircularReferences, OptionalKeys, ReferencesItself, ToNumber, WrapEach } from './misc-utils.types.js';
 
 /**
  * Key types you can access using {@link DocumentPath}.

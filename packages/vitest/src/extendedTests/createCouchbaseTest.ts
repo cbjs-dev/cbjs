@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import '@vitest/runner';
 import type { TaskContext } from 'vitest';
 
 import type { CouchbaseApiConfig } from '@cbjsdev/shared';
 import { getApiConfig, type PromiseValue } from '@cbjsdev/shared';
 
-import { getDefaultServerTestContext } from '../context';
+import { getDefaultServerTestContext } from '../context.js';
 import {
   AnalyticsIndexFixture,
   AnalyticsLinkConnectionFixture,
   AnalyticsLinkFixture,
   DatasetFixture,
   DataverseFixture,
-} from '../fixtures/couchbase/analytics';
+} from '../fixtures/couchbase/analytics/index.js';
 import {
   BucketFixture,
   CollectionFixture,
   DocumentKeyFixture,
   ScopeFixture,
-} from '../fixtures/couchbase/kv';
-import { IndexFixture, PrimaryIndexFixture } from '../fixtures/couchbase/query';
-import { UserFixture, UserGroupFixture } from '../fixtures/couchbase/rbac';
-import { SearchIndexFixture } from '../fixtures/couchbase/search';
-import { ViewDocumentKeyFixture } from '../fixtures/couchbase/views';
-import { LoggerFixture } from '../fixtures/misc/LoggerFixture';
-import { ServerTestContext } from '../ServerTestContext';
-import { makeCreateTest, TestBodyFixtures } from './makeCreateTest';
+} from '../fixtures/couchbase/kv/index.js';
+import { IndexFixture, PrimaryIndexFixture } from '../fixtures/couchbase/query/index.js';
+import { UserFixture, UserGroupFixture } from '../fixtures/couchbase/rbac/index.js';
+import { SearchIndexFixture } from '../fixtures/couchbase/search/index.js';
+import { ViewDocumentKeyFixture } from '../fixtures/couchbase/views/index.js';
+import { LoggerFixture } from '../fixtures/misc/LoggerFixture.js';
+import { ServerTestContext } from '../ServerTestContext.js';
+import { makeCreateTest, TestBodyFixtures } from './makeCreateTest.js';
 
 const couchbaseTestFixtures = {
   useBucket: BucketFixture,

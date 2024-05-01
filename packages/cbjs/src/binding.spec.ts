@@ -16,7 +16,7 @@
  */
 import { describe, test } from 'vitest';
 
-import binding, { CppBinding } from './binding';
+import binding, { CppBinding } from './binding.js';
 
 describe('binding', () => {
   test('error codes are unique', ({ expect }) => {

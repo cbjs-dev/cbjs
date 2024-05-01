@@ -22,8 +22,8 @@ import {
   pingStateFromCpp,
   serviceTypeFromCpp,
   serviceTypeToCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
 import {
   DiagnosticsEndpoint,
   DiagnosticsOptions,
@@ -31,7 +31,7 @@ import {
   PingEndpoint,
   PingOptions,
   PingResult,
-} from './diagnosticstypes';
+} from './diagnosticstypes.js';
 
 /**
  * @internal

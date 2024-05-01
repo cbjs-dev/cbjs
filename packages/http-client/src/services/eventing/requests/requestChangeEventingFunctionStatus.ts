@@ -15,9 +15,9 @@
  */
 import type { EventingFunctionScope } from '@cbjsdev/shared';
 
-import type { CouchbaseHttpApiConfig } from '../../../types';
-import { apiPOST } from '../../../utils/apiPOST';
-import { EVENTING_PORT } from '../../../utils/ports';
+import type { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiPOST } from '../../../utils/apiPOST.js';
+import { EVENTING_PORT } from '../../../utils/ports.js';
 
 export async function requestChangeEventingFunctionStatus(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,

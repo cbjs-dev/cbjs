@@ -28,7 +28,7 @@ import {
 } from '@cbjsdev/cbjs';
 import { couchbaseFixture, createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.RangeScan))

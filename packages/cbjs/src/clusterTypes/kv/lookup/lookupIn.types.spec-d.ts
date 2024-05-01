@@ -22,19 +22,19 @@ import {
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,
-} from '../../..';
-import { CppProtocolSubdocOpcode } from '../../../binding';
-import { LookupInResult } from '../../../crudoptypes';
-import { LookupInSpec } from '../../../sdspecs';
-import { lookupSpec, LookupSpecs } from '../../../specBuilders';
+} from '../../../index.js';
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import { LookupInResult } from '../../../crudoptypes.js';
+import { LookupInSpec } from '../../../sdspecs.js';
+import { lookupSpec, LookupSpecs } from '../../../specBuilders.js';
 import {
   LookupInInternalPath,
   LookupInResultEntries,
   LookupInSpecOpCode,
   LookupInSpecResult,
   LookupInSpecResults,
-} from './lookupIn.types';
-import { LookupInMacroDocument } from './lookupInMacro.types';
+} from './lookupIn.types.js';
+import { LookupInMacroDocument } from './lookupInMacro.types.js';
 
 describe('LookupInSpecs', () => {
   type TestDoc = {

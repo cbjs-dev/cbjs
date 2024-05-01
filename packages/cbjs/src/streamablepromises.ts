@@ -16,7 +16,7 @@
  */
 import { EventEmitter } from 'events';
 
-import type { EventMap, TypedEmitter } from './utils/TypedEmitter';
+import type { EventMap, TypedEmitter } from './utils/TypedEmitter.js';
 
 /**
  * @internal

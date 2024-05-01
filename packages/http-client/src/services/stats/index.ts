@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './getStatistics';
-export * from './getIndexerStatistics';
+export * from './getStatistics.js';
+export * from './getIndexerStatistics.js';

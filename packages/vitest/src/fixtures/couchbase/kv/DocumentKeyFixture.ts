@@ -16,9 +16,9 @@
 import { AnyCollection } from '@cbjsdev/cbjs';
 import { hasOwn } from '@cbjsdev/shared';
 
-import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest';
-import { FixtureFunctionValue } from '../../FixtureFunctionValue';
-import { FixtureContext } from '../../types';
+import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
+import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
+import { FixtureContext } from '../../types.js';
 
 export type DocumentKeyFixtureParams = {
   docKey?: string;

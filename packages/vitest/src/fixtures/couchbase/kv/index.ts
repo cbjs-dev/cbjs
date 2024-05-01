@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './BucketFixture';
-export * from './ScopeFixture';
-export * from './CollectionFixture';
-export * from './DocumentKeyFixture';
+export * from './BucketFixture.js';
+export * from './ScopeFixture.js';
+export * from './CollectionFixture.js';
+export * from './DocumentKeyFixture.js';

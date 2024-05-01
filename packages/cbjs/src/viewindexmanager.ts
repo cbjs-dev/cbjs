@@ -20,23 +20,23 @@ import { BucketName, CouchbaseClusterTypes } from '@cbjsdev/shared';
 import {
   CppManagementViewsDesignDocument,
   CppManagementViewsDesignDocumentView,
-} from './binding';
+} from './binding.js';
 import {
   designDocumentNamespaceFromCpp,
   designDocumentNamespaceToCpp,
   errorFromCpp,
-} from './bindingutilities';
-import { Bucket } from './bucket';
-import { CouchbaseError, DesignDocumentNotFoundError } from './errors';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor';
+} from './bindingutilities.js';
+import { Bucket } from './bucket.js';
+import { CouchbaseError, DesignDocumentNotFoundError } from './errors.js';
+import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor.js';
 import {
   CompoundTimeout,
   NodeCallback,
   PromiseHelper,
   VoidNodeCallback,
-} from './utilities';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
-import { DesignDocumentNamespace } from './viewtypes';
+} from './utilities.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
+import { DesignDocumentNamespace } from './viewtypes.js';
 
 /**
  * Contains information about a view in a design document.

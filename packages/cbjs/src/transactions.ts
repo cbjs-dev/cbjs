@@ -36,31 +36,31 @@ import binding, {
   CppTransactionGetResult,
   CppTransactionLinks,
   CppTransactions,
-} from './binding';
+} from './binding.js';
 import {
   durabilityToCpp,
   errorFromCpp,
   queryProfileToCpp,
   queryScanConsistencyToCpp,
   transactionKeyspaceToCpp,
-} from './bindingutilities';
-import { Cluster } from './cluster';
-import { AnyCollection, AnyScope } from './clusterTypes';
-import { Collection } from './collection';
+} from './bindingutilities.js';
+import { Cluster } from './cluster.js';
+import { AnyCollection, AnyScope } from './clusterTypes/index.js';
+import { Collection } from './collection.js';
 import {
   DocumentNotFoundError,
   TransactionFailedError,
   TransactionOperationFailedError,
-} from './errors';
-import { DurabilityLevel } from './generaltypes';
-import { QueryExecutor } from './queryexecutor';
+} from './errors.js';
+import { DurabilityLevel } from './generaltypes.js';
+import { QueryExecutor } from './queryexecutor.js';
 import {
   QueryMetaData,
   QueryProfileMode,
   QueryResult,
   QueryScanConsistency,
-} from './querytypes';
-import { NodeCallback, PromiseHelper } from './utilities';
+} from './querytypes.js';
+import { NodeCallback, PromiseHelper } from './utilities.js';
 
 /**
  * Represents the path to a document.

@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './HttpClientQueryIndex';
-export * from './HttpClientSearchIndex';
+export * from './HttpClientQueryIndex.js';
+export * from './HttpClientSearchIndex.js';

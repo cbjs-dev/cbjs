@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiUserGroup } from '../../types/Api/rbac/ApiUserGroup';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetUserGroups } from './requests/requestGetUserGroups';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiUserGroup } from '../../types/Api/rbac/ApiUserGroup.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetUserGroups } from './requests/requestGetUserGroups.js';
 
 export async function getUserGroups(apiConfig: CouchbaseHttpApiConfig) {
   const response = await requestGetUserGroups(apiConfig);

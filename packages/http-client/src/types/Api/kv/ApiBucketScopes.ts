@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiScope } from './ApiScope';
+import { ApiScope } from './ApiScope.js';
 
 export type ApiBucketScopes = {
   uid: string;

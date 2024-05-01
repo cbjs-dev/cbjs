@@ -19,12 +19,12 @@ import { beforeEach, describe, vi } from 'vitest';
 import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature';
+import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
 import {
   getBinaryTestDocument,
   getLargeTestDocument,
   getUtf8TestDocument,
-} from './kv._helpers';
+} from './kv._helpers.js';
 
 describe.shuffle('kv get', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {

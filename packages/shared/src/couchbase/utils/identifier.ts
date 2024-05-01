@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, If, IsNever } from '../../misc';
+import { hasOwn, If, IsNever } from '../../misc/index.js';
 import {
   BucketName,
   CollectionName,
@@ -21,7 +21,7 @@ import {
   DefaultClusterTypes,
   IsKeyspaceWildcard,
   ScopeName,
-} from '../clusterTypes';
+} from '../clusterTypes/index.js';
 
 export function quoteIdentifier(name: string) {
   return '`' + name + '`';

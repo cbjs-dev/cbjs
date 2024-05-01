@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export { ServerTestContext } from './ServerTestContext';
+export { ServerTestContext } from './ServerTestContext.js';
 
 export {
   createCouchbaseTest,
@@ -22,22 +22,22 @@ export {
   couchbaseFixture,
   CouchbaseTestContext,
   CouchbaseFixtures,
-} from './extendedTests/createCouchbaseTest';
+} from './extendedTests/createCouchbaseTest.js';
 
-export { FixtureContext, TestFixtures } from './fixtures/types';
+export { FixtureContext, TestFixtures } from './fixtures/types.js';
 
-export { FixtureFunctionValue } from './fixtures/FixtureFunctionValue';
+export { FixtureFunctionValue } from './fixtures/FixtureFunctionValue.js';
 
-export { getDefaultServerTestContext, createServerTestContext } from './context';
-export { cleanupCouchbaseAfterEach, cleanupCouchbaseAfterAll } from './hook';
-export { setTestLogger, getTestLogger } from './logger';
+export { getDefaultServerTestContext, createServerTestContext } from './context.js';
+export { cleanupCouchbaseAfterEach, cleanupCouchbaseAfterAll } from './hook.js';
+export { setTestLogger, getTestLogger } from './logger.js';
 
-export * from './matchers';
-export * from './utils/getRandomId';
+export * from './matchers/index.js';
+export * from './utils/getRandomId.js';
 
-export * from './fixtures/couchbase/analytics';
-export * from './fixtures/couchbase/kv';
-export * from './fixtures/couchbase/query';
-export * from './fixtures/couchbase/rbac';
-export * from './fixtures/couchbase/search';
-export * from './fixtures/couchbase/views';
+export * from './fixtures/couchbase/analytics/index.js';
+export * from './fixtures/couchbase/kv/index.js';
+export * from './fixtures/couchbase/query/index.js';
+export * from './fixtures/couchbase/rbac/index.js';
+export * from './fixtures/couchbase/search/index.js';
+export * from './fixtures/couchbase/views/index.js';

@@ -15,7 +15,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { CouchbaseCas } from './CouchbaseCas';
+import { CouchbaseCas } from './CouchbaseCas.js';
 
 describe('CouchbaseCas', () => {
   it('should be able to create a CAS 0', ({ expect }) => {

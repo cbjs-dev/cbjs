@@ -22,32 +22,32 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import { AnalyticsExecutor } from './analyticsexecutor';
+import { AnalyticsExecutor } from './analyticsexecutor.js';
 import {
   AnalyticsMetaData,
   AnalyticsQueryOptions,
   AnalyticsResult,
-} from './analyticstypes';
-import { CppConnection } from './binding';
-import { Bucket } from './bucket';
-import { Cluster } from './cluster';
-import { Collection } from './collection';
-import { QueryExecutor } from './queryexecutor';
-import { QueryMetaData, QueryOptions, QueryResult } from './querytypes';
-import { ScopeEventingFunctionManager } from './scopeeventingfunctionmanager';
-import { ScopeSearchIndexManager } from './scopesearchindexmanager';
-import { SearchExecutor } from './searchexecutor';
+} from './analyticstypes.js';
+import { CppConnection } from './binding.js';
+import { Bucket } from './bucket.js';
+import { Cluster } from './cluster.js';
+import { Collection } from './collection.js';
+import { QueryExecutor } from './queryexecutor.js';
+import { QueryMetaData, QueryOptions, QueryResult } from './querytypes.js';
+import { ScopeEventingFunctionManager } from './scopeeventingfunctionmanager.js';
+import { ScopeSearchIndexManager } from './scopesearchindexmanager.js';
+import { SearchExecutor } from './searchexecutor.js';
 import {
   SearchMetaData,
   SearchQueryOptions,
   SearchRequest,
   SearchResult,
   SearchRow,
-} from './searchtypes';
-import { StreamableRowPromise } from './streamablepromises';
-import { Transcoder } from './transcoders';
-import { NodeCallback, PromiseHelper } from './utilities';
-import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback';
+} from './searchtypes.js';
+import { StreamableRowPromise } from './streamablepromises.js';
+import { Transcoder } from './transcoders.js';
+import { NodeCallback, PromiseHelper } from './utilities.js';
+import { resolveOptionsAndCallback } from './utils/resolveOptionsAndCallback.js';
 
 /**
  * Exposes the operations which are available to be performed against a scope.

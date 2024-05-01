@@ -16,10 +16,10 @@
  */
 import { isArray } from '@cbjsdev/shared';
 
-import type { LookupInOptions } from '../../../collection';
-import { LookupInSpec } from '../../../sdspecs';
-import type { NodeCallback } from '../../../utilities';
-import type { LookupInArgs } from './types';
+import type { LookupInOptions } from '../../../collection.js';
+import { LookupInSpec } from '../../../sdspecs.js';
+import type { NodeCallback } from '../../../utilities.js';
+import type { LookupInArgs } from './types.js';
 
 type ResolvedArgs<
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,

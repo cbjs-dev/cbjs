@@ -24,7 +24,7 @@ import {
   StorageBackendName,
 } from '@cbjsdev/shared';
 
-import type { ApiNode } from '../cluster/ApiNode';
+import type { ApiNode } from '../cluster/ApiNode.js';
 
 export type ApiBucket = {
   name: string;

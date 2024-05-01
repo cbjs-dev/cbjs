@@ -18,9 +18,9 @@ import { describe, it } from 'vitest';
 
 import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
-import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes';
-import { MutateInSpec } from '../../../sdspecs';
-import { ChainableMutateIn } from './ChainableMutateIn';
+import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes.js';
+import { MutateInSpec } from '../../../sdspecs.js';
+import { ChainableMutateIn } from './ChainableMutateIn.js';
 
 type BookId = `book::${number}`;
 type Book = {

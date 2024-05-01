@@ -15,7 +15,7 @@
  */
 import { CouchbaseApiConfig } from '@cbjsdev/shared';
 
-import { ApiPoolNodes } from './types/Api';
+import { ApiPoolNodes } from './types/Api/index.js';
 
 export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
   poolNodes?: ApiPoolNodes;

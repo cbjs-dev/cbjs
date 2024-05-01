@@ -16,19 +16,20 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "npm run build -- --watch",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest --run",
-    "prepack": "rm -rf dist && npm run build"
+    "prepack": "rm -rf dist && pnpm run build"
   },
   "files": [
-    "dist/**/*",
+    "dist/**/*.{js,js.map,d.ts}",
     "LICENSE",
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjsdev/shared": "^1.6.1",
+    "@cbjsdev/shared": "workspace:*",
     "cross-fetch": "^4.0.0",
-    "ts-retry-promise": "^0.8.0"
+    "ts-retry-promise": "^0.8.0",
+    "vitest": "1.5.2"
   },
   "devDependencies": {
     "typescript": "5.2.2",

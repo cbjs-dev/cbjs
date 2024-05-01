@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { NodeCallback, VoidNodeCallback } from './utilities';
+import { NodeCallback, VoidNodeCallback } from './utilities.js';
 
 declare function giveMeStringCallback(cb: NodeCallback<string>): void;
 declare function giveMeStringCallback(cb: VoidNodeCallback): void;

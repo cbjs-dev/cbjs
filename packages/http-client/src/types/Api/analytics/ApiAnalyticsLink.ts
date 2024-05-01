@@ -15,10 +15,10 @@
  */
 import { OneOf } from '@cbjsdev/shared';
 
-import { ApiAnalyticsAzureRemoteLink } from './ApiAnalyticsAzureRemoteLink';
-import { ApiAnalyticsCouchbaseRemoteLink } from './ApiAnalyticsCouchbaseRemoteLink';
-import { ApiAnalyticsGoogleStorageRemoteLink } from './ApiAnalyticsGoogleStorageRemoteLink';
-import { ApiAnalyticsS3RemoteLink } from './ApiAnalyticsS3RemoteLink';
+import { ApiAnalyticsAzureRemoteLink } from './ApiAnalyticsAzureRemoteLink.js';
+import { ApiAnalyticsCouchbaseRemoteLink } from './ApiAnalyticsCouchbaseRemoteLink.js';
+import { ApiAnalyticsGoogleStorageRemoteLink } from './ApiAnalyticsGoogleStorageRemoteLink.js';
+import { ApiAnalyticsS3RemoteLink } from './ApiAnalyticsS3RemoteLink.js';
 
 export type ApiAnalyticsLinkSharedProperties = {
   /**

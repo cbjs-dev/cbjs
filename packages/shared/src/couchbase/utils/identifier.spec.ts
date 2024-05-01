@@ -15,8 +15,8 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { ClusterTypes, DocDef } from '../clusterTypes';
-import { isValidBucketName, Keyspace } from './identifier';
+import { ClusterTypes, DocDef } from '../clusterTypes/index.js';
+import { isValidBucketName, Keyspace } from './identifier.js';
 
 describe('isValidBucketName', () => {
   test('should return true with a valid identifier', ({ expect }) => {

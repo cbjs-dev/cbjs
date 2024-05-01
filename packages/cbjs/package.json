@@ -25,11 +25,11 @@
   },
   "scripts": {
     "install": "node ./scripts/install.mjs 4.3.1",
-    "reinstall": "rm src/couchbase-native.node && rm dist/src/couchbase-native.node && npm install",
+    "reinstall": "rm -f src/couchbase-native.node && rm -f dist/src/couchbase-native.node && pnpm install",
     "build": "tsc -p tsconfig.build.json",
-    "dev": "npm run build -- --watch",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest --run",
-    "prepack": "rm -rf dist && npm run build"
+    "prepack": "rm -rf dist && pnpm run build"
   },
   "type": "module",
   "main": "dist/src/index.js",
@@ -37,20 +37,17 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": {
-      "default": "./dist/src/index.js",
-      "types": "./dist/src/index.d.ts"
+      "import": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      }
     },
     "./internal": {
-      "default": "./dist/src/internal.js",
-      "types": "./dist/src/internal.d.ts"
-    },
-    "./cluster-types": {
-      "default": "./dist/src/clusterTypes/index.js",
-      "types": "./dist/src/clusterTypes/index.d.ts"
+      "import": {
+        "types": "./dist/src/internal.d.ts",
+        "default": "./dist/src/internal.js"
+      }
     }
-  },
-  "imports": {
-    "#packageJson": "./package.json"
   },
   "files": [
     "dist/**/*.{js,js.map,d.ts}",
@@ -59,14 +56,16 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@cbjsdev/http-client": "^1.6.1",
-    "@cbjsdev/shared": "^1.6.1",
+    "@cbjsdev/http-client": "workspace:*",
+    "@cbjsdev/shared": "workspace:*",
     "node-addon-api": "^7.0.0"
   },
   "devDependencies": {
+    "@types/node": "^20.12.7",
     "tar": "^6.2.0",
     "typescript": "5.2.2",
-    "zod": "^3.22.4"
+    "unbuild": "^2.0.0",
+    "vitest": "1.5.2"
   },
   "config": {
     "native": false

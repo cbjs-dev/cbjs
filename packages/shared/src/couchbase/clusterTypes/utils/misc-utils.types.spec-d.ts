@@ -15,9 +15,9 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CaptureUntil, Split } from '../../../misc';
-import { Json } from '../document.types';
-import { CircularReferences, ReferencesItself } from './misc-utils.types';
+import { CaptureUntil, Split } from '../../../misc/index.js';
+import { Json } from '../document.types.js';
+import { CircularReferences, ReferencesItself } from './misc-utils.types.js';
 
 describe('Split', function () {
   it('should return a tuple with an empty string if the string is empty', function () {

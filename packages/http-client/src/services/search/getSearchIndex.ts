@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types';
-import { ApiSearchGetIndex } from '../../types/Api';
-import { createHttpError } from '../../utils/createHttpError';
-import { requestGetSearchIndex } from './requests/requestGetSearchIndex';
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiSearchGetIndex } from '../../types/Api/index.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestGetSearchIndex } from './requests/requestGetSearchIndex.js';
 
 export async function getSearchIndex(params: CouchbaseHttpApiConfig, indexName: string) {
   const response = await requestGetSearchIndex(params, indexName);

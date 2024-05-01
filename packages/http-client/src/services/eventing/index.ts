@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-export * from './deployEventingFunction';
-export * from './dropEventingFunction';
-export * from './getEventingFunctions';
-export * from './getEventingFunctionStatus';
-export * from './pauseEventingFunction';
-export * from './resumeEventingFunction';
-export * from './undeployEventingFunction';
+export * from './deployEventingFunction.js';
+export * from './dropEventingFunction.js';
+export * from './getEventingFunctions.js';
+export * from './getEventingFunctionStatus.js';
+export * from './pauseEventingFunction.js';
+export * from './resumeEventingFunction.js';
+export * from './undeployEventingFunction.js';

@@ -23,7 +23,7 @@ import {
   DefaultKeyspaceOptions,
   GetKeyspaceOptions,
   ScopeTypes,
-} from './cluster.types';
+} from './cluster.types.js';
 import {
   DocDef,
   DocDefMatchingBody,
@@ -31,7 +31,7 @@ import {
   KeyspaceDocDef,
   MatchDocDefKeyByDelimiter,
   MatchDocDefKeyFirstMatch,
-} from './document.types';
+} from './document.types.js';
 
 type Doc<T extends string> = { [K in T]: string };
 type UserClusterTypes = ClusterTypes<{

@@ -1,0 +1,20 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "pnpm@7.29.1",
+  "private": true,
+  "scripts": {
+    "clear": "bash clear.sh"
+  },
+  "devDependencies": {
+    "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/http-client": "workspace:*",
+    "@cbjsdev/shared": "workspace:*",
+    "tsx": "^4.7.2",
+    "typescript": "5.2.2"
+  },
+  "dependencies": {
+    "vitest": "1.5.2"
+  }
+}

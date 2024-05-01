@@ -17,9 +17,9 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
-import { Bucket } from '../bucket';
-import { Collection } from '../collection';
-import { Scope } from '../scope';
+import { Bucket } from '../bucket.js';
+import { Collection } from '../collection.js';
+import { Scope } from '../scope.js';
 import {
   ClusterBucket,
   ClusterCollection,
@@ -27,7 +27,7 @@ import {
   CollectionContainingDocBody,
   CollectionContainingDocDef,
   CollectionMatchingDocDef,
-} from './clusterTypes';
+} from './clusterTypes.js';
 
 type Doc<T extends string> = { [K in T]: string };
 

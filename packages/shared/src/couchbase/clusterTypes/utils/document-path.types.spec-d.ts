@@ -27,13 +27,13 @@ import {
   ExtractPathToWritable,
   ExtractPathToWritableArrayIndex,
   ExtractPathToWritableProperty,
-} from './document-path.types';
-import { DocumentPath } from './path-utils.types';
+} from './document-path.types.js';
+import { DocumentPath } from './path-utils.types.js';
 import type {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   TestDocRequiredProperties,
-} from './test-utils.types';
+} from './test-utils.types.js';
 
 describe('ExtractPathToWritable', function () {
   type Doc = {

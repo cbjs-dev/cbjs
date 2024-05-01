@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiCollection } from './ApiCollection';
+import { ApiCollection } from './ApiCollection.js';
 
 export type ApiScope = {
   name: string;

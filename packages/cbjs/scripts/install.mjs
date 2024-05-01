@@ -18,6 +18,7 @@ const platform = process.platform;
 const sslType = 'boringssl';
 
 const binaryPackageName = `couchbase-${platform}-${arch}-napi`;
+
 const binaryPackageVersion = process.env.COUCHBASE_BINARY_VERSION || process.argv[2];
 const binarySourcePath = `package/couchbase-v${binaryPackageVersion}-napi-v6-${platform}-${arch}-${sslType}.node`;
 

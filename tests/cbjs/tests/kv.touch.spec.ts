@@ -19,7 +19,7 @@ import { describe } from 'vitest';
 import { sleep } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { getLargeTestDocument } from './kv._helpers';
+import { getLargeTestDocument } from './kv._helpers.js';
 
 describe.shuffle('kv touch', async () => {
   const test = await createCouchbaseTest(({ useDocumentKey }) => {
