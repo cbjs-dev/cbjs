@@ -1,11 +1,11 @@
 ---
 title: Cbjs
-titleTemplate: Modern Couchbase SDK for Node.js & TypeScript
+titleTemplate: A modern Couchbase SDK for Node.js & TypeScript.
 layout: home
 
 hero:
   name: 'Cbjs'
-  text: 'Modern Couchbase client for JS runtimes'
+  text: 'Couchbase SDK for Node.js & TypeScript.'
   tagline: A drop-in replacement for the official library.
   image:
     light: /cbjs-logo.svg

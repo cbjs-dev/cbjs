@@ -2,7 +2,7 @@
  <img src="./docs/src/public/cbjs-logotype.svg" height="120" />
 </h1>
 <p align="center">
-Modern Couchbase SDK for Node.js & TypeScript.
+A modern Couchbase SDK for Node.js & TypeScript.
 <p>
 
 <p align="center">
