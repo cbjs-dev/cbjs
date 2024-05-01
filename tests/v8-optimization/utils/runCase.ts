@@ -7,8 +7,16 @@ export async function runCase(casePath: string, ...args: string[]) {
   return await new Promise((res, rej) => {
     const resolvedPath = resolve(rootDir, 'tests/cases', casePath);
     const nodeProcess = spawn(
-      'npx',
-      ['tsx', '--allow-natives-syntax', '--no-warnings', resolvedPath, ...args],
+      'pnpm',
+      [
+        '--silent',
+        'dlx',
+        'tsx',
+        '--allow-natives-syntax',
+        '--no-warnings',
+        resolvedPath,
+        ...args,
+      ],
       {
         shell: true,
         timeout: 10_000,
