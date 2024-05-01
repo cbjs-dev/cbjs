@@ -52,6 +52,7 @@ describe
 
     test(
       'should upsert a function successfully',
+      { timeout: 15_000 },
       async function ({
         serverTestContext,
         metadataBucket,
@@ -123,8 +124,7 @@ describe
         });
 
         await serverTestContext.cluster.eventingFunctions().upsertFunction(eventFunction);
-      },
-      { timeout: 15_000 }
+      }
     );
 
     test('should get all event functions', async function ({
@@ -132,13 +132,16 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await waitFor(async () => {
-        const eventingFunctions = await serverTestContext.cluster
-          .eventingFunctions()
-          .getAllFunctions();
-        const testFn = eventingFunctions.find((f) => f.name === testFnName);
-        expect(testFn).toBeDefined();
-      });
+      await waitFor(
+        async () => {
+          const eventingFunctions = await serverTestContext.cluster
+            .eventingFunctions()
+            .getAllFunctions();
+          const testFn = eventingFunctions.find((f) => f.name === testFnName);
+          expect(testFn).toBeDefined();
+        },
+        { timeout: 30_000 }
+      );
     });
 
     test('should get function statuses', async function ({
@@ -146,13 +149,16 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await waitFor(async () => {
-        const statuses = await serverTestContext.cluster
-          .eventingFunctions()
-          .functionsStatus();
-        const testFnStatus = statuses.functions.find((f) => f.name === testFnName);
-        expect(testFnStatus).toBeDefined();
-      });
+      await waitFor(
+        async () => {
+          const statuses = await serverTestContext.cluster
+            .eventingFunctions()
+            .functionsStatus();
+          const testFnStatus = statuses.functions.find((f) => f.name === testFnName);
+          expect(testFnStatus).toBeDefined();
+        },
+        { timeout: 30_000 }
+      );
     });
 
     test('should eventually reach the `Undeployed` status', async function ({

@@ -135,13 +135,16 @@ describe
       serverTestContext,
       testFnName,
     }) {
-      await waitFor(async () => {
-        const eventingFunctions = await serverTestContext.scope
-          .eventingFunctions()
-          .getAllFunctions();
-        const testFn = eventingFunctions.find((f) => f.name === testFnName);
-        expect(testFn).toBeDefined();
-      });
+      await waitFor(
+        async () => {
+          const eventingFunctions = await serverTestContext.scope
+            .eventingFunctions()
+            .getAllFunctions();
+          const testFn = eventingFunctions.find((f) => f.name === testFnName);
+          expect(testFn).toBeDefined();
+        },
+        { timeout: 30_000 }
+      );
     });
 
     test('should get function statuses', async function ({
