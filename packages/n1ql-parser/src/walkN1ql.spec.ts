@@ -15,9 +15,9 @@
  */
 import { describe, it } from 'vitest';
 
-import n1qlListener from './antlr/n1ql/n1qlListener';
-import { Simple_from_termContext } from './antlr/n1ql/n1qlParser';
-import { walkN1ql } from './walkN1ql';
+import n1qlListener from './antlr/n1ql/n1qlListener.js';
+import { Simple_from_termContext } from './antlr/n1ql/n1qlParser.js';
+import { walkN1ql } from './walkN1ql.js';
 
 describe('parseN1QL', () => {
   it('should parse a simple SELECT query', ({ expect }) => {

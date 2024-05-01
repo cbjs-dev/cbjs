@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CbjsContextTracking } from '../asyncContext/getCbjsContextTracking';
+import { CbjsContextTracking } from '../asyncContext/getCbjsContextTracking.js';
 
 declare global {
   var cbjsContextTracking: undefined | CbjsContextTracking;
