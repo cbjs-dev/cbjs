@@ -15,11 +15,9 @@
  */
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 
-import {
-  getCbjsContextTracking,
-  getCurrentTaskAsyncContext,
-  getTaskLogger,
-} from '../asyncContext/index.js';
+import { getCbjsContextTracking } from '../asyncContext/getCbjsContextTracking.js';
+import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext.js';
+import { getTaskLogger } from '../asyncContext/getTaskLogger.js';
 import { flushLogger } from '../logger.js';
 import { proxifyFunction } from '../utils/proxifyFunction.js';
 import { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';

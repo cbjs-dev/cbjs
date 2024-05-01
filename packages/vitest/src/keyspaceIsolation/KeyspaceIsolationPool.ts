@@ -19,24 +19,14 @@ import {
   invariant,
   keyspacePath,
   PartialKeyspace,
+  sleep,
 } from '@cbjsdev/shared';
 
+import { getTaskAsyncContext } from '../asyncContext/getTaskAsyncContext.js';
 import { getTaskLogger } from '../asyncContext/getTaskLogger.js';
-import { getTaskAsyncContext } from '../asyncContext/index.js';
 import { flushLogger } from '../logger.js';
 import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
 import { runWithoutKeyspaceIsolation } from './runWithoutKeyspaceIsolation.js';
-
-/*
-
-a suite starts, it has its isolation config (scope + level)
-
-when a query comes in, we get all the keyspaces to isolate
-assuming a collection-level of isolation,
-
-we take from available scopes and collections, create more if needed and possible, and assign them to the current isolation scope
-
- */
 
 type ProvisionedBucket = {
   name: string;
@@ -114,7 +104,10 @@ export class KeyspaceIsolationPool {
       try {
         await readiness;
       } catch (err) {
-        getTaskLogger()?.error('An error occurred while awaiting for the keyspace.');
+        getTaskLogger()?.error(
+          'An error occurred while awaiting for the keyspace: \n%o',
+          err
+        );
       }
 
       return isolatedKeyspace;
@@ -258,7 +251,7 @@ export class KeyspaceIsolationPool {
           .buckets()
           .createBucket({
             name: bucket,
-            ramQuotaMB: 256,
+            ramQuotaMB: 100,
             storageBackend: 'couchstore',
             numReplicas: 0,
             replicaIndexes: false,

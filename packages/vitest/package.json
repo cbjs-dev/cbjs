@@ -56,7 +56,6 @@
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/antlr4": "4.13.2",
     "@vitest/runner": "1.5.2",
-    "patch-package": "^8.0.0",
     "segfault-handler": "^1.3.0",
     "ts-retry-promise": "^0.8.0",
     "vitest": "1.5.2"

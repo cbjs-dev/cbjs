@@ -15,8 +15,8 @@
  */
 import { Keyspace, parseKeyspacePath, resolveKeyspace } from '@cbjsdev/shared';
 
-import { getCurrentTaskAsyncContext } from '../../asyncContext/index.js';
-import { getQueryKeyspaces } from '../../parser/index.js';
+import { getCurrentTaskAsyncContext } from '../../asyncContext/getCurrentTaskAsyncContext.js';
+import { getQueryKeyspaces } from '../../parser/getQueryKeyspaces.js';
 import { TransformArgsMap } from '../types.js';
 
 export const transformArgs = {

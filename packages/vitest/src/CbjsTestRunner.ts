@@ -24,16 +24,14 @@ import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 
 import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks.js';
+import type { CbjsTaskContextData } from './asyncContext/CbjsTaskContextData.js';
+import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking.js';
 import { getChildrenTower } from './asyncContext/getChildrenTower.js';
-import {
-  CbjsTaskContextData,
-  getCbjsContextTracking,
-  getCurrentTaskAsyncContext,
-  getTaskAsyncContext,
-} from './asyncContext/index.js';
+import { getCurrentTaskAsyncContext } from './asyncContext/getCurrentTaskAsyncContext.js';
+import { getTaskAsyncContext } from './asyncContext/getTaskAsyncContext.js';
 import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy.js';
-import { KeyspaceIsolationRealm } from './keyspaceIsolation/index.js';
 import { isRealmInUse } from './keyspaceIsolation/isRealmInUse.js';
+import { KeyspaceIsolationRealm } from './keyspaceIsolation/KeyspaceIsolationRealm.js';
 import { createSuiteLogger, createTestLogger, getVitestLogger } from './logger.js';
 
 SegfaultHandler.registerHandler('crash.log');

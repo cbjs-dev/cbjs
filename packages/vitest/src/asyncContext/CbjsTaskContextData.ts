@@ -17,8 +17,8 @@ import { Task } from 'vitest';
 
 import { CouchbaseLogger } from '@cbjsdev/shared';
 
-import { KeyspaceIsolationRealm } from '../keyspaceIsolation/index.js';
-import {
+import { KeyspaceIsolationRealm } from '../keyspaceIsolation/KeyspaceIsolationRealm.js';
+import type {
   KeyspaceIsolationLevel,
   KeyspaceIsolationScope,
 } from '../keyspaceIsolation/types.js';

@@ -69,7 +69,7 @@ describe
         name: explicitNamespace ? docId : `dev_${docId}`,
         views: {
           [viewName]: new DesignDocumentView({
-            realm: getMapFunction(testUid),
+            map: getMapFunction(testUid),
           }),
         },
       });

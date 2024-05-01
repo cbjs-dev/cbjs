@@ -15,7 +15,7 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { getCurrentTaskAsyncContext } from '../asyncContext/index.js';
+import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext.js';
 import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
 import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from './types.js';
 
