@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ParserRuleContext } from 'antlr4';
-
+import { ParserRuleContext } from '@cbjsdev/antlr4';
 import {
   C_exprContext,
   Keyspace_nameContext,

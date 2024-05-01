@@ -19,15 +19,15 @@ import {
   getCbjsContextTracking,
   getCurrentTaskAsyncContext,
   getTaskLogger,
-} from '../asyncContext';
-import { flushLogger } from '../logger';
-import { proxifyFunction } from '../utils/proxifyFunction';
-import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
-import { transformArgs as kvTransformArgs } from './proxyFunctions/kv';
-import { passthrough } from './proxyFunctions/passthrough';
-import { transformArgs as queryTransformArgs } from './proxyFunctions/query';
-import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel';
-import { bypassIsolationALS } from './runWithoutKeyspaceIsolation';
+} from '../asyncContext/index.js';
+import { flushLogger } from '../logger.js';
+import { proxifyFunction } from '../utils/proxifyFunction.js';
+import { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';
+import { transformArgs as kvTransformArgs } from './proxyFunctions/kv.js';
+import { passthrough } from './proxyFunctions/passthrough.js';
+import { transformArgs as queryTransformArgs } from './proxyFunctions/query.js';
+import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel.js';
+import { bypassIsolationALS } from './runWithoutKeyspaceIsolation.js';
 
 export const connectionProxySymbol = Symbol('CppConnectionProxy');
 

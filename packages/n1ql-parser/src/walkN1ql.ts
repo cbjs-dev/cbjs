@@ -8,12 +8,12 @@
  * be governed by the Apache License, Version 2.0, included in the file
  * licenses/APL2.txt.
  */
-import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from 'antlr4';
+import { CharStream, CommonTokenStream, ParseTreeWalker, Token } from '@cbjsdev/antlr4';
 
-import n1qlLexer from './antlr/n1ql/n1qlLexer';
-import n1qlParser from './antlr/n1ql/n1qlParser';
-import { n1qlListener } from './index';
-import { N1qlParserErrorListener } from './N1qlParserErrorListener';
+import n1qlLexer from './antlr/n1ql/n1qlLexer.js';
+import n1qlParser from './antlr/n1ql/n1qlParser.js';
+import { n1qlListener } from './index.js';
+import { N1qlParserErrorListener } from './N1qlParserErrorListener.js';
 
 export function walkN1ql(query: string, listener: n1qlListener): void {
   const charStream = new CharStream(query);

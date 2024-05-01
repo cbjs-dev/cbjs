@@ -1,5 +1,3 @@
-import binding from './binding';
-
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
  * Copyright (c) 2013-Present Couchbase Inc.
@@ -16,12 +14,13 @@ import binding from './binding';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import binding from './binding.js';
 
-export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn';
-export { errorFromCpp } from './bindingutilities';
-export { ConnSpec } from './connspec';
-export { generateClientString } from './utilities_internal';
+export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
+export { errorFromCpp } from './bindingutilities.js';
+export { ConnSpec } from './connspec.js';
+export { generateClientString } from './utilities_internal.js';
 
-export * from './binding';
+export * from './binding.js';
 
 export { binding };

@@ -23,7 +23,6 @@ export * from './types.js';
 export * from './waitFor.js';
 export * from './arrayFirstElement.js';
 export * from './arrayLastElement.js';
-export * from './arrayMap.js';
 export * from './isArray.js';
 
 export * from './jsonToUrlSearchParams.js';

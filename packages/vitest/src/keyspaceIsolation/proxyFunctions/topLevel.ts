@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getCurrentTaskAsyncContext } from '../../asyncContext';
-import { TransformArgsMap } from '../types';
+import { getCurrentTaskAsyncContext } from '../../asyncContext/index.js';
+import { TransformArgsMap } from '../types.js';
 
 export const transformArgs = {
   openBucket: async (isolationPool, bucketName, cb) => {

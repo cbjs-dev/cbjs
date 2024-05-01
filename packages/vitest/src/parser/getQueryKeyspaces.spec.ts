@@ -15,7 +15,7 @@
  */
 import { describe, test } from 'vitest';
 
-import { getQueryKeyspaces } from './getQueryKeyspaces';
+import { getQueryKeyspaces } from './getQueryKeyspaces.js';
 
 describe('getQueryKeyspaces', () => {
   test('should trim quoted identifiers', ({ expect }) => {

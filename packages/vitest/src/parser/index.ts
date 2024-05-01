@@ -9,4 +9,4 @@
  * licenses/APL2.txt.
  */
 
-export * from './getQueryKeyspaces';
+export * from './getQueryKeyspaces.js';

@@ -19,8 +19,8 @@ import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { invariant } from '@cbjsdev/shared';
 
-import { CbjsTaskContextData } from './CbjsTaskContextData';
-import { getCurrentTaskAsyncContext } from './getCurrentTaskAsyncContext';
+import { CbjsTaskContextData } from './CbjsTaskContextData.js';
+import { getCurrentTaskAsyncContext } from './getCurrentTaskAsyncContext.js';
 
 function setAsyncContext(ctx: Partial<CbjsTaskContextData & { testValue: number }>) {
   const currentContext = getCurrentTaskAsyncContext();

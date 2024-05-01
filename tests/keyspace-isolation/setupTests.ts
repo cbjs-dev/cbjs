@@ -24,7 +24,7 @@ import {
   setVitestLogger,
 } from '@cbjsdev/vitest';
 
-import { testLogger } from './setupLogger';
+import { testLogger } from './setupLogger.js';
 
 setVitestLogger(
   testLogger,

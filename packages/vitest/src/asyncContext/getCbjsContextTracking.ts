@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { KeyspaceIsolationPool } from '../keyspaceIsolation';
-import { CbjsTaskContextData } from './CbjsTaskContextData';
+import { KeyspaceIsolationPool } from '../keyspaceIsolation/index.js';
+import { CbjsTaskContextData } from './CbjsTaskContextData.js';
 
 export type CbjsContextTracking = {
   trackingEnabled: boolean;

@@ -15,7 +15,7 @@
  */
 import { describe, it } from 'vitest';
 
-import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm';
+import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
 
 describe('KeyspaceIsolationRealm', () => {
   it('should tell if a bucket is isolated or not', ({ expect }) => {

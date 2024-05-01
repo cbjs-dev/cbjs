@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export * from './KeyspaceIsolationRealm';
-export * from './KeyspaceIsolationPool';
-export * from './setKeyspaceIsolation';
-export * from './getKeyspaceIsolation';
-export * from './runWithoutKeyspaceIsolation';
+export * from './KeyspaceIsolationRealm.js';
+export * from './KeyspaceIsolationPool.js';
+export * from './setKeyspaceIsolation.js';
+export * from './getKeyspaceIsolation.js';
+export * from './runWithoutKeyspaceIsolation.js';

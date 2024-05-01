@@ -15,7 +15,7 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { getCbjsContextTracking } from './getCbjsContextTracking.js';
 
 /**
  * Get parent callers up to `stopId` - included.

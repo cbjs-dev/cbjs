@@ -16,30 +16,25 @@
 import { Custom, ExtendedContext, TaskContext } from '@vitest/runner';
 import { executionAsyncId } from 'node:async_hooks';
 import SegfaultHandler from 'segfault-handler';
-import { ResolvedConfig, Suite, Task, Test, vi } from 'vitest';
+import { ResolvedConfig, Suite, Task, Test } from 'vitest';
 import { VitestTestRunner } from 'vitest/runners';
 
 import { Cluster, connect, ConnectOptions } from '@cbjsdev/cbjs';
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 
+import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks.js';
+import { getChildrenTower } from './asyncContext/getChildrenTower.js';
 import {
   CbjsTaskContextData,
   getCbjsContextTracking,
   getCurrentTaskAsyncContext,
   getTaskAsyncContext,
-} from './asyncContext';
-import { cbjsAsyncHooks } from './asyncContext/cbjsAsyncHooks';
-import { getChildrenTower } from './asyncContext/getChildrenTower';
-import { KeyspaceIsolationRealm, runWithoutKeyspaceIsolation } from './keyspaceIsolation';
-import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy';
-import { isRealmInUse } from './keyspaceIsolation/isRealmInUse';
-import {
-  createSuiteLogger,
-  createTestLogger,
-  flushLogger,
-  getVitestLogger,
-} from './logger';
+} from './asyncContext/index.js';
+import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy.js';
+import { KeyspaceIsolationRealm } from './keyspaceIsolation/index.js';
+import { isRealmInUse } from './keyspaceIsolation/isRealmInUse.js';
+import { createSuiteLogger, createTestLogger, getVitestLogger } from './logger.js';
 
 SegfaultHandler.registerHandler('crash.log');
 

@@ -17,11 +17,11 @@ import { Task } from 'vitest';
 
 import { CouchbaseLogger } from '@cbjsdev/shared';
 
-import { KeyspaceIsolationRealm } from '../keyspaceIsolation';
+import { KeyspaceIsolationRealm } from '../keyspaceIsolation/index.js';
 import {
   KeyspaceIsolationLevel,
   KeyspaceIsolationScope,
-} from '../keyspaceIsolation/types';
+} from '../keyspaceIsolation/types.js';
 
 export type CbjsContextKeyspaceIsolation = {
   keyspaceIsolationScope: KeyspaceIsolationScope;

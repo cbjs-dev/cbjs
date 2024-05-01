@@ -46,4 +46,4 @@ export {
   runWithoutKeyspaceIsolation,
   setKeyspaceIsolation,
   getKeyspaceIsolation,
-} from './keyspaceIsolation';
+} from './keyspaceIsolation/index.js';

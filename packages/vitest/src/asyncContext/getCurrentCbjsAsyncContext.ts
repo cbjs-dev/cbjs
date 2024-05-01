@@ -15,8 +15,8 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { CbjsTaskContextData } from './CbjsTaskContextData';
-import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { CbjsTaskContextData } from './CbjsTaskContextData.js';
+import { getCbjsContextTracking } from './getCbjsContextTracking.js';
 
 export function getCurrentCbjsAsyncContext(): CbjsTaskContextData | undefined {
   const { contextMap } = getCbjsContextTracking();

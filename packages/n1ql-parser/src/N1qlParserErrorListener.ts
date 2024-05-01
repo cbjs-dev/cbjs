@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorListener, RecognitionException, Recognizer } from 'antlr4';
+import { ErrorListener, RecognitionException, Recognizer } from '@cbjsdev/antlr4';
 
-import { N1qlParserError } from './N1qlParserError';
+import { N1qlParserError } from './N1qlParserError.js';
 
 export class N1qlParserErrorListener<T> extends ErrorListener<T> {
   constructor() {

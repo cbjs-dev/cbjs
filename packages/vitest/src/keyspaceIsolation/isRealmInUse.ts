@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getCbjsContextTracking } from '../asyncContext';
-import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm';
+import { getCbjsContextTracking } from '../asyncContext/index.js';
+import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
 
 export function isRealmInUse(realm: KeyspaceIsolationRealm) {
   const { contextMap, taskAsyncIdReversedMap } = getCbjsContextTracking();

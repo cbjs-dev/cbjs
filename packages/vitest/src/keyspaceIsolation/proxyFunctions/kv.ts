@@ -16,8 +16,8 @@
 import { DocumentId } from '@cbjsdev/cbjs';
 import { CppConnection, CppDocumentId } from '@cbjsdev/cbjs/internal';
 
-import { getCurrentTaskAsyncContext, getTaskLogger } from '../../asyncContext';
-import { KeyspaceIsolationPool } from '../KeyspaceIsolationPool';
+import { getCurrentTaskAsyncContext, getTaskLogger } from '../../asyncContext/index.js';
+import { KeyspaceIsolationPool } from '../KeyspaceIsolationPool.js';
 
 type CppConnectionScopedFunction =
   keyof CppConnection extends infer CppConnectionMethodName extends keyof CppConnection

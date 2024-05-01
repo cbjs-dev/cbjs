@@ -15,7 +15,7 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { getCbjsContextTracking } from './getCbjsContextTracking.js';
 
 /**
  * Get children called down the line by `eid`.

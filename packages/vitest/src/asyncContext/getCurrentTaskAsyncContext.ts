@@ -15,9 +15,9 @@
  */
 import { executionAsyncId } from 'node:async_hooks';
 
-import { AsyncContextNotFoundError } from './AsyncContextNotFoundError';
-import { CbjsTaskContextData } from './CbjsTaskContextData';
-import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { AsyncContextNotFoundError } from './AsyncContextNotFoundError.js';
+import { CbjsTaskContextData } from './CbjsTaskContextData.js';
+import { getCbjsContextTracking } from './getCbjsContextTracking.js';
 
 export function getCurrentTaskAsyncContext(): CbjsTaskContextData {
   const { parentMap, taskAsyncIdReversedMap, contextMap } = getCbjsContextTracking();

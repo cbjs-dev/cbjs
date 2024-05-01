@@ -15,7 +15,7 @@
  */
 
 export * from './MapEntry.js';
-export * from './RecordEntry';
+export * from './RecordEntry.js';
 export * from './OneOf.js';
 export * from './OptionalMerge.js';
 export * from './RelaxedUnion.js';

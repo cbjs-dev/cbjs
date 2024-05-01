@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext';
+import { getCurrentTaskAsyncContext } from '../asyncContext/index.js';
 
 export function getKeyspaceRealm() {
   const { keyspaceIsolationLevel, keyspaceIsolationScope, keyspaceIsolationRealm } =

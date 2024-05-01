@@ -25,8 +25,7 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "pnpm run build --watch",
     "test": "vitest --run",
-    "prepack": "rm -rf dist && npm run build",
-    "postinstall": "patch-package"
+    "prepack": "rm -rf dist && pnpm run build"
   },
   "type": "module",
   "main": "dist/src/index.js",
@@ -34,13 +33,11 @@
   "types": "dist/src/index.d.ts",
   "files": [
     "dist/**/*",
-    "patches/*",
     "LICENSE"
   ],
   "dependencies": {
     "@cbjsdev/shared": "workspace:*",
-    "antlr4": "4.13.1-patch-1",
-    "patch-package": "^8.0.0"
+    "@cbjsdev/antlr4": "4.13.2"
   },
   "devDependencies": {
     "vitest": "1.5.2"

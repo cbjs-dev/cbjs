@@ -15,8 +15,7 @@
  */
 import { AnyFunction, invariant, KeysByValue, Try } from '@cbjsdev/shared';
 
-import { getTaskLogger } from '../asyncContext';
-import { flushLogger, getVitestLogger } from '../logger';
+import { getTaskLogger } from '../asyncContext/index.js';
 
 /**
  * Returns a function that properly handles the value of `this` within a proxy handler,

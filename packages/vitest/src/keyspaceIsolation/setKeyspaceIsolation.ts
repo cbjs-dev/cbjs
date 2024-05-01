@@ -15,9 +15,9 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext';
-import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm';
-import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from './types';
+import { getCurrentTaskAsyncContext } from '../asyncContext/index.js';
+import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
+import { KeyspaceIsolationLevel, KeyspaceIsolationScope } from './types.js';
 
 export function setKeyspaceIsolation(
   isolationScope: KeyspaceIsolationScope,

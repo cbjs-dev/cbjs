@@ -18,16 +18,15 @@ export {
   KeyspaceIsolationRealm,
   KeyspaceIsolationPool,
   setKeyspaceIsolation,
-} from './keyspaceIsolation';
+} from './keyspaceIsolation/index.js';
 export {
   getCurrentTaskAsyncContext,
   getTaskAsyncContext,
   getCbjsContextTracking,
-} from './asyncContext';
+  getTaskLogger,
+} from './asyncContext/index.js';
 
 export {
   createConnectionProxy,
   connectionProxySymbol,
-} from './keyspaceIsolation/createConnectionProxy';
-
-export { getTaskLogger } from './asyncContext';
+} from './keyspaceIsolation/createConnectionProxy.js';

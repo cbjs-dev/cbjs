@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnyFunction } from './AnyFunction';
-import { KeysByValue } from './KeysByValue';
+import { AnyFunction } from './AnyFunction.js';
+import { KeysByValue } from './KeysByValue.js';
 
 export type ObjectMethods<T> =
   KeysByValue<T, AnyFunction> extends infer FunctionKeys extends keyof T

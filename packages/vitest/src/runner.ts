@@ -13,6 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import CbjsTestRunner from './CbjsTestRunner';
+import CbjsTestRunner from './CbjsTestRunner.js';
 
 export default CbjsTestRunner;

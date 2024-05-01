@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getVitestLogger } from '../logger';
-import { AsyncContextNotFoundError } from './AsyncContextNotFoundError';
-import { getCurrentTaskAsyncContext } from './getCurrentTaskAsyncContext';
+import { getVitestLogger } from '../logger.js';
+import { AsyncContextNotFoundError } from './AsyncContextNotFoundError.js';
+import { getCurrentTaskAsyncContext } from './getCurrentTaskAsyncContext.js';
 
 /**
  * Return the logger associated with the task context.

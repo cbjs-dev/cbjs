@@ -15,7 +15,7 @@
  */
 import { defineProject, mergeConfig } from 'vitest/config';
 
-import sharedProjectConfig from '../../vitest.shared.projects';
+import sharedProjectConfig from '../../vitest.shared.projects.js';
 
 export default mergeConfig(
   sharedProjectConfig,

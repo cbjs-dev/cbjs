@@ -8,14 +8,14 @@
  * be governed by the Apache License, Version 2.0, included in the file
  * licenses/APL2.txt.
  */
-import n1qlLexer from './antlr/n1ql/n1qlLexer';
-import n1qlListener from './antlr/n1ql/n1qlListener';
-import n1qlParser from './antlr/n1ql/n1qlParser';
+import n1qlLexer from './antlr/n1ql/n1qlLexer.js';
+import n1qlListener from './antlr/n1ql/n1qlListener.js';
+import n1qlParser from './antlr/n1ql/n1qlParser.js';
 
 export { n1qlLexer, n1qlListener, n1qlParser };
-export * from './antlr/n1ql/n1qlParser'; // Export all expression classes
+export * from './antlr/n1ql/n1qlParser.js'; // Export all expression classes
 
-export * from './N1qlParserError';
-export * from './N1qlParserErrorListener';
+export * from './N1qlParserError.js';
+export * from './N1qlParserErrorListener.js';
 
-export * from './walkN1ql';
+export * from './walkN1ql.js';

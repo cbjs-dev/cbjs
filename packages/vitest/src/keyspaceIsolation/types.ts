@@ -15,7 +15,7 @@
  */
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 
-import { KeyspaceIsolationPool } from './KeyspaceIsolationPool';
+import { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';
 
 export type KeyspaceIsolationScope = 'local' | 'per-suite' | 'per-test' | false;
 export type KeyspaceIsolationLevel = 'bucket' | 'collection';

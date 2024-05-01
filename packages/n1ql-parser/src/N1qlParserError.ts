@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RecognitionException, Recognizer, Token } from 'antlr4';
+import { RecognitionException, Recognizer, Token } from '@cbjsdev/antlr4';
 
 type N1qlParserErrorContext<T> = {
   recognizer: Recognizer<T>;

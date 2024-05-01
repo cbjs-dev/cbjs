@@ -21,6 +21,7 @@ import {
   CollectionName,
   CouchbaseClusterTypes,
   ScopeName,
+  trimIdentifier,
 } from '@cbjsdev/shared';
 
 import { CppError, CppQueryContext } from './binding.js';

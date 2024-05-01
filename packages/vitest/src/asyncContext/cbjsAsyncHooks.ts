@@ -15,7 +15,7 @@
  */
 import { createHook } from 'node:async_hooks';
 
-import { getCbjsContextTracking } from './getCbjsContextTracking';
+import { getCbjsContextTracking } from './getCbjsContextTracking.js';
 
 export const cbjsAsyncHooks = createHook({
   init(asyncId: number, type: string, triggerAsyncId: number, resource: object) {
