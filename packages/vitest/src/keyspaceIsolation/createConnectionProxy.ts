@@ -89,6 +89,8 @@ export function createConnectionProxy(conn: CppConnection) {
         ...queryTransformArgs,
       };
 
+      // Should be never.
+      // This type is used to be sure we didn't forget any CppConnection methods
       type MissingHandlers = Exclude<
         keyof CppConnection,
         keyof typeof transformArgs | (typeof passthrough)[number]

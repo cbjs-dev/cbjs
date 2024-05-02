@@ -27,7 +27,7 @@ import {
 } from '@cbjsdev/n1ql-parser';
 import { invariant } from '@cbjsdev/shared';
 
-type FoundKeyspace = {
+export type FoundKeyspace = {
   namespace: string | undefined;
   keyspaceParts: [string] | [string, string] | [string, string, string];
   keyspacePosition: [number, number];
@@ -64,7 +64,7 @@ export class N1qlListener extends n1qlListener {
       this.keyspaces.push({
         namespace: undefined,
         keyspaceParts: firstChild.getText().split('.'),
-        keyspacePosition: [firstChild.start.start, firstChild.stop?.stop],
+        keyspacePosition: [firstChild.start.start, firstChild.stop!.stop + 1],
       } as FoundKeyspace);
     }
   };
@@ -74,7 +74,8 @@ export class N1qlListener extends n1qlListener {
 
     let namespace: string | undefined = undefined;
     const keyspaceParts: string[] = [];
-    let keyspacePosition: [number, number] | undefined = undefined;
+    let firstKeyspacePosition: number | undefined = undefined;
+    let lastKeyspacePosition: number | undefined = undefined;
 
     for (const child of ctx.children) {
       if (
@@ -90,14 +91,19 @@ export class N1qlListener extends n1qlListener {
         invariant(child.stop);
 
         keyspaceParts.push(child.getText());
-        keyspacePosition = [child.start.start, child.stop?.stop];
+
+        if (!firstKeyspacePosition) {
+          firstKeyspacePosition = child.start.start;
+        }
+
+        lastKeyspacePosition = child.stop.stop + 1;
       }
     }
 
     return {
       namespace,
       keyspaceParts,
-      keyspacePosition,
+      keyspacePosition: [firstKeyspacePosition, lastKeyspacePosition],
     } as FoundKeyspace;
   };
 

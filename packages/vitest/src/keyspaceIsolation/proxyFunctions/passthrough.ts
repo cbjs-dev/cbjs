@@ -13,5 +13,98 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CppConnection } from '@cbjsdev/cbjs/internal';
 
-export const passthrough = ['connect', 'shutdown', 'httpNoop', 'diagnostics'] as const;
+export const passthrough = [
+  'connect',
+  'shutdown',
+  'httpNoop',
+  'diagnostics',
+  'analytics',
+  'search',
+  'documentView',
+  'managementChangePassword',
+
+  'managementGroupUpsert',
+  'managementGroupGetAll',
+  'managementGroupGet',
+  'managementGroupDrop',
+
+  'managementRoleGetAll',
+
+  'managementUserUpsert',
+  'managementUserGet',
+  'managementUserGetAll',
+  'managementUserDrop',
+
+  'managementClusterDescribe',
+  'managementClusterDeveloperPreviewEnable',
+  'managementViewIndexDrop',
+  'managementViewIndexGet',
+  'managementViewIndexUpsert',
+  'managementViewIndexGetAll',
+  'managementFreeform',
+
+  'managementEventingGetFunction',
+  'managementEventingGetAllFunctions',
+  'managementEventingGetStatus',
+  'managementEventingUpsertFunction',
+  'managementEventingDeployFunction',
+  'managementEventingPauseFunction',
+  'managementEventingResumeFunction',
+  'managementEventingUndeployFunction',
+  'managementEventingDropFunction',
+
+  // Will do, when requested
+  'managementBucketCreate',
+  'managementBucketUpdate',
+  'managementBucketDescribe',
+  'managementBucketGet',
+  'managementBucketFlush',
+  'managementBucketDrop',
+  'managementBucketGetAll',
+
+  'managementScopeCreate',
+  'managementScopeDrop',
+  'managementScopeGetAll',
+
+  'managementQueryIndexBuild',
+  'managementQueryIndexCreate',
+  'managementQueryIndexDrop',
+  'managementQueryIndexBuildDeferred',
+  'managementQueryIndexGetAll',
+  'managementQueryIndexGetAllDeferred',
+
+  'managementSearchGetStats',
+  'managementSearchIndexUpsert',
+  'managementSearchIndexGet',
+  'managementSearchIndexGetAll',
+  'managementSearchIndexDrop',
+  'managementSearchIndexControlIngest',
+  'managementSearchIndexControlPlanFreeze',
+  'managementSearchIndexAnalyzeDocument',
+  'managementSearchIndexGetStats',
+  'managementSearchIndexGetDocumentsCount',
+  'managementSearchIndexControlQuery',
+
+  'managementCollectionCreate',
+  'managementCollectionUpdate',
+  'managementCollectionsManifestGet',
+  'managementCollectionDrop',
+
+  // Maybe one day
+
+  'managementAnalyticsDataverseCreate',
+  'managementAnalyticsDataverseDrop',
+  'managementAnalyticsDatasetCreate',
+  'managementAnalyticsDatasetDrop',
+  'managementAnalyticsDatasetGetAll',
+  'managementAnalyticsGetPendingMutations',
+  'managementAnalyticsIndexCreate',
+  'managementAnalyticsIndexDrop',
+  'managementAnalyticsIndexGetAll',
+  'managementAnalyticsLinkConnect',
+  'managementAnalyticsLinkDisconnect',
+  'managementAnalyticsLinkDrop',
+  'managementAnalyticsLinkGetAll',
+] as const satisfies readonly (keyof CppConnection)[];

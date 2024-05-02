@@ -23,6 +23,7 @@ describe('getQueryKeyspaces', () => {
       {
         namespace: undefined,
         keyspaceParts: ['foo'],
+        keyspacePosition: [18, 23],
       },
     ]);
   });
@@ -33,6 +34,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo'],
+          keyspacePosition: [18, 21],
         },
       ]);
     });
@@ -42,6 +44,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: 'default',
           keyspaceParts: ['foo'],
+          keyspacePosition: [22, 25],
         },
       ]);
     });
@@ -51,6 +54,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: 'system',
           keyspaceParts: ['indexes'],
+          keyspacePosition: [21, 28],
         },
       ]);
     });
@@ -60,15 +64,17 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [18, 29],
         },
       ]);
     });
 
     test('from namespaced collection', ({ expect }) => {
-      expect(getQueryKeyspaces('SELECT * FROM default:foo.bar.baz')).toEqual([
+      expect(getQueryKeyspaces('SELECT title FROM default:foo.bar.baz')).toEqual([
         {
           namespace: 'default',
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [26, 37],
         },
       ]);
     });
@@ -78,6 +84,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [20, 31],
         },
       ]);
     });
@@ -89,6 +96,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [39, 50],
         },
       ]);
     });
@@ -102,6 +110,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [58, 69],
         },
       ]);
     });
@@ -113,6 +122,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [7, 18],
         },
       ]);
     });
@@ -124,6 +134,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: 'default',
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [15, 26],
         },
       ]);
     });
@@ -135,6 +146,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo'],
+          keyspacePosition: [12, 15],
         },
       ]);
     });
@@ -146,6 +158,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [12, 23],
         },
       ]);
     });
@@ -157,23 +170,25 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: 'default',
           keyspaceParts: ['foo', 'bar', 'baz'],
+          keyspacePosition: [20, 31],
         },
       ]);
     });
 
     test('collection from query', ({ expect }) => {
       expect(
-        getQueryKeyspaces(`
-        INSERT INTO a.b.c dest (KEY UUID(), VALUE title) SELECT title FROM d.e.f src;
-        `)
+        // prettier-ignore
+        getQueryKeyspaces(`INSERT INTO a.b.c dest (KEY UUID(), VALUE title) SELECT title FROM d.e.f src;`)
       ).toEqual([
         {
           namespace: undefined,
           keyspaceParts: ['a', 'b', 'c'],
+          keyspacePosition: [12, 17],
         },
         {
           namespace: undefined,
           keyspaceParts: ['d', 'e', 'f'],
+          keyspacePosition: [67, 72],
         },
       ]);
     });
@@ -205,6 +220,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['airport'],
+          keyspacePosition: [18, 25],
         },
       ]);
     });
@@ -234,6 +250,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['a', 'b', 'c'],
+          keyspacePosition: [18, 23],
         },
       ]);
     });
@@ -263,6 +280,7 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: 'default',
           keyspaceParts: ['a', 'b', 'c'],
+          keyspacePosition: [26, 31],
         },
       ]);
     });
@@ -290,10 +308,12 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['route'],
+          keyspacePosition: [20, 25],
         },
         {
           namespace: undefined,
           keyspaceParts: ['airport'],
+          keyspacePosition: [40, 47],
         },
       ]);
     });
@@ -321,10 +341,12 @@ describe('getQueryKeyspaces', () => {
         {
           namespace: undefined,
           keyspaceParts: ['a', 'b', 'c'],
+          keyspacePosition: [20, 25],
         },
         {
           namespace: undefined,
           keyspaceParts: ['d', 'e', 'f'],
+          keyspacePosition: [46, 51],
         },
       ]);
     });

@@ -16,7 +16,7 @@
 import { walkN1ql } from '@cbjsdev/n1ql-parser';
 import { trimIdentifier } from '@cbjsdev/shared';
 
-import { N1qlListener } from './N1qlListener.js';
+import { FoundKeyspace, N1qlListener } from './N1qlListener.js';
 
 export function getQueryKeyspaces(query: string) {
   const listener = new N1qlListener();
@@ -25,5 +25,6 @@ export function getQueryKeyspaces(query: string) {
   return listener.getKeyspaces().map((k) => ({
     namespace: k.namespace,
     keyspaceParts: k.keyspaceParts.map(trimIdentifier),
-  }));
+    keyspacePosition: k.keyspacePosition,
+  })) as FoundKeyspace[];
 }
