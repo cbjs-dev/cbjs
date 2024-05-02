@@ -19,12 +19,11 @@ export {
   KeyspaceIsolationPool,
   setKeyspaceIsolation,
 } from './keyspaceIsolation/index.js';
-export {
-  getCurrentTaskAsyncContext,
-  getTaskAsyncContext,
-  getCbjsContextTracking,
-  getTaskLogger,
-} from './asyncContext/index.js';
+export { getCurrentTaskAsyncContext } from './asyncContext/getCurrentTaskAsyncContext.js';
+
+export { getTaskAsyncContext } from './asyncContext/getTaskAsyncContext.js';
+export { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking.js';
+export { getTaskLogger } from './asyncContext/getTaskLogger.js';
 
 export {
   createConnectionProxy,

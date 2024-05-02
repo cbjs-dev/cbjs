@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     workspace: './vitest.workspace.ts',
     pool: 'threads',
-    fileParallelism: false,
+    // fileParallelism: false,
     minWorkers: 1,
     maxWorkers: 1,
     hookTimeout: 10_000,

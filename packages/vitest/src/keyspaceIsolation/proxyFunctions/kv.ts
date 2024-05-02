@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocumentId } from '@cbjsdev/cbjs';
+import { Cluster, DocumentId } from '@cbjsdev/cbjs';
 import { CppConnection, CppDocumentId } from '@cbjsdev/cbjs/internal';
 
 import { getCurrentTaskAsyncContext } from '../../asyncContext/getCurrentTaskAsyncContext.js';
 import { getTaskLogger } from '../../asyncContext/getTaskLogger.js';
 import { KeyspaceIsolationPool } from '../KeyspaceIsolationPool.js';
+import { runWithoutKeyspaceIsolation } from '../runWithoutKeyspaceIsolation.js';
 
 type CppConnectionScopedFunction =
   keyof CppConnection extends infer CppConnectionMethodName extends keyof CppConnection
@@ -35,7 +36,7 @@ type CppConnectionScopedFunction =
       : never
     : never;
 
-// All those methods receive an object that has the keyspace its targets, as their first argument
+// All those methods receive an object that has the keyspace it targets as their first argument
 const scopedMethods = [
   'prepend',
   'prependWithLegacyDurability',

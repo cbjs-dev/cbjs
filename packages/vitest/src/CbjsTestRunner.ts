@@ -19,7 +19,7 @@ import SegfaultHandler from 'segfault-handler';
 import { ResolvedConfig, Suite, Task, Test } from 'vitest';
 import { VitestTestRunner } from 'vitest/runners';
 
-import { Cluster, connect, ConnectOptions } from '@cbjsdev/cbjs';
+import { Cluster, ConnectOptions } from '@cbjsdev/cbjs';
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 
@@ -203,8 +203,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
       getVitestLogger()?.flush?.();
     } catch (err) {
-      console.error(err);
-      getVitestLogger()?.error?.(err);
+      getVitestLogger()?.error?.('CbjsRunner.afterRunFiles: %o', err);
     }
 
     // eslint-disable-next-line @typescript-eslint/await-thenable

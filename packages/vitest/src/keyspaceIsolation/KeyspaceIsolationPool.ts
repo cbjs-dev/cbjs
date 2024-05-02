@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import { Cluster, connect } from '@cbjsdev/cbjs';
 import {
   getConnectionParams,
   invariant,
   keyspacePath,
   PartialKeyspace,
-  sleep,
 } from '@cbjsdev/shared';
 
 import { getTaskAsyncContext } from '../asyncContext/getTaskAsyncContext.js';
@@ -108,12 +109,14 @@ export class KeyspaceIsolationPool {
           'An error occurred while awaiting for the keyspace: \n%o',
           err
         );
+
+        throw err;
       }
 
       return isolatedKeyspace;
     } catch (err) {
-      invariant(err instanceof Error);
-      throw new Error(`requireKeyspaceIsolation failed with : ${err.message}`);
+      // invariant(err instanceof Error);
+      throw new Error(`requireKeyspaceIsolation failed with : ${err}`);
     }
   }
 
@@ -259,9 +262,13 @@ export class KeyspaceIsolationPool {
             evictionPolicy: 'valueOnly',
             minimumDurabilityLevel: 'none',
           })
+          .then(() => {
+            const openBucket = promisify(cluster.conn.openBucket).bind(cluster.conn);
+            return openBucket(bucket);
+          })
           .catch((err) => {
             invariant(err instanceof Error);
-            getTaskLogger()?.error(err.message);
+            getTaskLogger()?.error('Provision bucket "%s" failed: %s', bucket, err);
             throw err;
           });
       });
@@ -350,17 +357,8 @@ export class KeyspaceIsolationPool {
       getTaskLogger()?.trace(
         'KeyspaceIsolationPool: clusterPromise is missing, creating a connection.'
       );
+
       const params = getConnectionParams();
-
-      /**
-       * Remove the sleep() and the tests crashes.
-       * If you change the value for 200, it also crashes.
-       */
-
-      // this.clusterPromise = sleep(500).then(() =>
-      //   connect(params.connectionString, params.credentials)
-      // );
-
       this.clusterPromise = connect(params.connectionString, params.credentials);
 
       getTaskLogger()?.trace('KeyspaceIsolationPool: connection created.');
@@ -496,14 +494,29 @@ export class KeyspaceIsolationPool {
       return;
     }
 
-    const cluster = await this.getCluster();
-    const bucket = Array.from(this.provisionedKeyspaces.keys()).map((ksp) => ksp.name);
+    const bucketNames = Array.from(this.provisionedKeyspaces.keys()).map(
+      (ksp) => ksp.name
+    );
+    this.provisionedKeyspaces.clear();
 
-    await runWithoutKeyspaceIsolation(() =>
-      Promise.all(bucket.map((b) => cluster.buckets().dropBucket(b)))
+    getTaskLogger()?.trace(
+      'KeyspaceIsolationPool: buckets to be destroyed: %o.',
+      bucketNames
     );
 
-    getTaskLogger()?.trace(`Provisioned buckets dropped : ${bucket.join(', ')}.`);
+    const cluster = await this.getCluster();
+
+    await runWithoutKeyspaceIsolation(async () => {
+      for (const bucketName of bucketNames) {
+        try {
+          await cluster.buckets().dropBucket(bucketName);
+        } catch (err) {
+          getTaskLogger()?.error(`Error while dropping bucket %s : %o`, bucketName, err);
+        }
+      }
+    });
+
+    getTaskLogger()?.trace(`Provisioned buckets dropped : ${bucketNames.join(', ')}.`);
   }
 
   async dispose() {
@@ -522,7 +535,7 @@ export class KeyspaceIsolationPool {
       await this.destroyProvisionedBuckets();
       await cluster.close();
     } catch (err) {
-      getTaskLogger()?.error(err);
+      getTaskLogger()?.error('Error during dispose: %o', err);
     } finally {
       await flushLogger();
     }

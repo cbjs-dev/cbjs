@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 import { getCurrentTaskAsyncContext } from '../../asyncContext/getCurrentTaskAsyncContext.js';
+import { getTaskLogger } from '../../asyncContext/getTaskLogger.js';
 import { TransformArgsMap } from '../types.js';
 
 export const transformArgs = {
   openBucket: async (isolationPool, bucketName, cb) => {
+    getTaskLogger()?.trace('TransformArgs - openBucket - require isolated keyspace.');
     const isolatedKeyspace = await isolationPool.requireKeyspaceIsolation(
       getCurrentTaskAsyncContext().taskId,
       { bucket: bucketName }
+    );
+
+    getTaskLogger()?.trace(
+      'TransformArgs - openBucket - isolated keyspace received: %o',
+      isolatedKeyspace
     );
     return [isolatedKeyspace.bucket, cb];
   },

@@ -66,7 +66,7 @@ export function proxifyFunction<
             return transformedArgs;
           })
           .catch((err) => {
-            getTaskLogger()?.trace(`ProxifyFunction: transformArgs() error: %o`, err);
+            getTaskLogger()?.error(`ProxifyFunction: transformArgs() error: %o`, err);
             throw err;
           })
           .then((transformedArgs) => {
@@ -86,7 +86,7 @@ export function proxifyFunction<
     };
 
     try {
-      return fn.apply(this === receiver ? target : this);
+      fn.apply(this === receiver ? target : this);
     } catch (err) {
       invariant(err instanceof Error);
       getTaskLogger()?.error(`ProxifyFunction: Error during apply: ${err.message}`);

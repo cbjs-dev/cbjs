@@ -15,6 +15,7 @@
  */
 import { KeyspaceIsolationPool } from '../keyspaceIsolation/KeyspaceIsolationPool.js';
 import { CbjsTaskContextData } from './CbjsTaskContextData.js';
+import { getTaskLogger } from './getTaskLogger.js';
 
 export type CbjsContextTracking = {
   trackingEnabled: boolean;

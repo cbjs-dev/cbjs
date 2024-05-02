@@ -436,7 +436,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    */
   bucket<B extends BucketName<T>>(bucketName: B): Bucket<T, B> {
     if (!this._openBuckets.includes(bucketName)) {
-      this._conn.openBucket(bucketName, (err) => {
+      this.conn.openBucket(bucketName, (err) => {
         if (err) {
           // BUG(JSCBC-1011): Move this to log framework once it is implemented.
           // console.error('failed to open bucket: %O', err);
@@ -446,6 +446,16 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     }
 
     return new Bucket(this, bucketName);
+  }
+
+  /**
+   * Check if the bucket opening by the underlying c++ client has been triggered yet or not.
+   *
+   * @internal
+   * @param bucketName
+   */
+  isBucketOpened<B extends BucketName<T>>(bucketName: B) {
+    return this._openBuckets.includes(bucketName);
   }
 
   /**
@@ -733,7 +743,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     }
 
     return await PromiseHelper.wrap((wrapCallback) => {
-      this._conn.shutdown((cppErr) => {
+      this.conn.shutdown((cppErr) => {
         wrapCallback(errorFromCpp(cppErr));
       });
     }, callback);
@@ -807,7 +817,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         }
       }
 
-      this._conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
+      this.conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
         if (cppErr) {
           const err = errorFromCpp(cppErr);
           return reject(err);
