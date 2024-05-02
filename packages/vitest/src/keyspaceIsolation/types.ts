@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CppConnection } from '@cbjsdev/cbjs/internal';
+import type { CppConnection } from '@cbjsdev/cbjs/internal';
 
-import { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';
+import type { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';
 
 export type KeyspaceIsolationScope = 'local' | 'per-suite' | 'per-test' | false;
 export type KeyspaceIsolationLevel = 'bucket' | 'collection';

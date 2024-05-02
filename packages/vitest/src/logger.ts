@@ -47,7 +47,14 @@ export function createSuiteLogger(suite: Suite) {
 
 export async function flushLogger(): Promise<void> {
   return new Promise<void>((res, rej) => {
-    getVitestLogger()?.flush?.((err) => {
+    const logger = getVitestLogger();
+
+    if (!logger) {
+      res();
+      return;
+    }
+
+    logger.flush?.((err) => {
       if (err) {
         rej(err);
         return;

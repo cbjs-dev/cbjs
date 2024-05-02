@@ -16,7 +16,7 @@
 import { hasOwn, invariant, PartialKeyspace } from '@cbjsdev/shared';
 
 import { getRandomId } from '../utils/getRandomId.js';
-import { KeyspaceIsolationLevel } from './types.js';
+import type { KeyspaceIsolationLevel } from './types.js';
 
 /*
 

@@ -15,7 +15,7 @@
  */
 import { invariant } from '@cbjsdev/shared';
 
-import { CbjsTaskContextData } from './CbjsTaskContextData.js';
+import type { CbjsTaskContextData } from './CbjsTaskContextData.js';
 import { getCbjsContextTracking } from './getCbjsContextTracking.js';
 import { TaskContextNotFoundError } from './TaskContextNotFoundError.js';
 

@@ -15,6 +15,7 @@
  */
 import { CppConnection } from '@cbjsdev/cbjs/internal';
 
+import { CbjsTaskContextData } from '../asyncContext/CbjsTaskContextData.js';
 import { getCbjsContextTracking } from '../asyncContext/getCbjsContextTracking.js';
 import { getCurrentTaskAsyncContext } from '../asyncContext/getCurrentTaskAsyncContext.js';
 import { getTaskLogger } from '../asyncContext/getTaskLogger.js';
@@ -60,7 +61,14 @@ export function createConnectionProxy(conn: CppConnection) {
         return proxifyFunction(target, prop, receiver);
       }
 
-      const asyncContext = getCurrentTaskAsyncContext();
+      let asyncContext: CbjsTaskContextData | undefined = undefined;
+
+      try {
+        asyncContext = getCurrentTaskAsyncContext();
+      } catch (err) {
+        // no cbjs async context
+      }
+
       const shouldIsolateKeyspace =
         asyncContext !== undefined && asyncContext.keyspaceIsolationScope !== false;
 

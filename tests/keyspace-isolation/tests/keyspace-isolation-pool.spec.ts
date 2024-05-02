@@ -63,6 +63,6 @@ describe('keyspace isolation pool', () => {
     expect(keyspaceIsolationRealm.isScopeIsolated('b', 's')).toBe(true);
     expect(keyspaceIsolationRealm.isCollectionIsolated('b', 's', 'c')).toBe(true);
 
-    // await pool.dispose();
+    await pool.dispose();
   });
 });

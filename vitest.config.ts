@@ -21,7 +21,8 @@ export default defineConfig({
     },
     reporters: process.env.GITHUB_ACTIONS
       ? ['html', 'github-actions']
-      : ['html', 'default'],
+      : // : ['hanging-process'],
+        ['html', 'default'],
     outputFile: {
       html: './tests-report/index.html',
     },

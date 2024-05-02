@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-export {
-  KeyspaceIsolationRealm,
-  KeyspaceIsolationPool,
-  setKeyspaceIsolation,
-} from './keyspaceIsolation/index.js';
+export { KeyspaceIsolationRealm } from './keyspaceIsolation/KeyspaceIsolationRealm.js';
+export { KeyspaceIsolationPool } from './keyspaceIsolation/KeyspaceIsolationPool.js';
+export { setKeyspaceIsolation } from './keyspaceIsolation/setKeyspaceIsolation.js';
+
 export { getCurrentTaskAsyncContext } from './asyncContext/getCurrentTaskAsyncContext.js';
 
 export { getTaskAsyncContext } from './asyncContext/getTaskAsyncContext.js';

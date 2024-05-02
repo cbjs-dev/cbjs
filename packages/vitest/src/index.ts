@@ -42,8 +42,6 @@ export * from './fixtures/couchbase/rbac/index.js';
 export * from './fixtures/couchbase/search/index.js';
 export * from './fixtures/couchbase/views/index.js';
 
-export {
-  runWithoutKeyspaceIsolation,
-  setKeyspaceIsolation,
-  getKeyspaceIsolation,
-} from './keyspaceIsolation/index.js';
+export { runWithoutKeyspaceIsolation } from './keyspaceIsolation/runWithoutKeyspaceIsolation.js';
+export { setKeyspaceIsolation } from './keyspaceIsolation/setKeyspaceIsolation.js';
+export { getKeyspaceIsolation } from './keyspaceIsolation/getKeyspaceIsolation.js';

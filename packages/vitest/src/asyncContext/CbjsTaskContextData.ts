@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Task } from 'vitest';
+import type { Task } from 'vitest';
 
-import { CouchbaseLogger } from '@cbjsdev/shared';
+import type { CouchbaseLogger } from '@cbjsdev/shared';
 
-import { KeyspaceIsolationRealm } from '../keyspaceIsolation/KeyspaceIsolationRealm.js';
+import type { KeyspaceIsolationRealm } from '../keyspaceIsolation/KeyspaceIsolationRealm.js';
 import type {
   KeyspaceIsolationLevel,
   KeyspaceIsolationScope,

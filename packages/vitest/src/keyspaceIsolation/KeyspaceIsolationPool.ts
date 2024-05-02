@@ -534,6 +534,7 @@ export class KeyspaceIsolationPool {
       const cluster = await this.getCluster();
       await this.destroyProvisionedBuckets();
       await cluster.close();
+      this.clusterPromise = undefined;
     } catch (err) {
       getTaskLogger()?.error('Error during dispose: %o', err);
     } finally {

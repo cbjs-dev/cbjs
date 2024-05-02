@@ -16,6 +16,7 @@
 import { ParserRuleContext } from '@cbjsdev/antlr4';
 import {
   C_exprContext,
+  ExprContext,
   Keyspace_nameContext,
   n1qlListener,
   Namespace_nameContext,
@@ -29,6 +30,7 @@ import { invariant } from '@cbjsdev/shared';
 type FoundKeyspace = {
   namespace: string | undefined;
   keyspaceParts: [string] | [string, string] | [string, string, string];
+  keyspacePosition: [number, number];
 };
 
 export class N1qlListener extends n1qlListener {
@@ -56,9 +58,13 @@ export class N1qlListener extends n1qlListener {
       return;
 
     if (ctx.children && ctx.children.length > 1) {
+      const firstChild = ctx.getChild(0);
+      invariant(firstChild instanceof ExprContext);
+
       this.keyspaces.push({
         namespace: undefined,
-        keyspaceParts: ctx.getChild(0).getText().split('.'),
+        keyspaceParts: firstChild.getText().split('.'),
+        keyspacePosition: [firstChild.start.start, firstChild.stop?.stop],
       } as FoundKeyspace);
     }
   };
@@ -68,6 +74,7 @@ export class N1qlListener extends n1qlListener {
 
     let namespace: string | undefined = undefined;
     const keyspaceParts: string[] = [];
+    let keyspacePosition: [number, number] | undefined = undefined;
 
     for (const child of ctx.children) {
       if (
@@ -80,13 +87,17 @@ export class N1qlListener extends n1qlListener {
       }
 
       if (child instanceof Path_partContext || child instanceof Keyspace_nameContext) {
+        invariant(child.stop);
+
         keyspaceParts.push(child.getText());
+        keyspacePosition = [child.start.start, child.stop?.stop];
       }
     }
 
     return {
       namespace,
       keyspaceParts,
+      keyspacePosition,
     } as FoundKeyspace;
   };
 

@@ -32,7 +32,12 @@ import { getTaskAsyncContext } from './asyncContext/getTaskAsyncContext.js';
 import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy.js';
 import { isRealmInUse } from './keyspaceIsolation/isRealmInUse.js';
 import { KeyspaceIsolationRealm } from './keyspaceIsolation/KeyspaceIsolationRealm.js';
-import { createSuiteLogger, createTestLogger, getVitestLogger } from './logger.js';
+import {
+  createSuiteLogger,
+  createTestLogger,
+  flushLogger,
+  getVitestLogger,
+} from './logger.js';
 
 SegfaultHandler.registerHandler('crash.log');
 
@@ -186,25 +191,26 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
   override async onAfterRunFiles() {
     try {
-      const { keyspaceIsolationPool } = getCbjsContextTracking();
-
-      cbjsAsyncHooks.disable();
-
-      await keyspaceIsolationPool.dispose();
+      getVitestLogger()?.debug?.('CbjsRunner.afterRunFiles');
 
       const taskConnections = Array.from(this.taskConnections.values()).flat();
-
       await Promise.all(taskConnections.map((c) => c.close()));
+
+      const { keyspaceIsolationPool } = getCbjsContextTracking();
+      await keyspaceIsolationPool.dispose();
 
       // Debug statement
       for (const log of logs) {
         console.log(...log);
       }
-
-      getVitestLogger()?.flush?.();
     } catch (err) {
-      getVitestLogger()?.error?.('CbjsRunner.afterRunFiles: %o', err);
+      getVitestLogger()?.error?.('CbjsRunner.afterRunFiles - %s', err);
+      throw err;
+    } finally {
+      await flushLogger();
     }
+
+    cbjsAsyncHooks.disable();
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
     await super.onAfterRunFiles();
