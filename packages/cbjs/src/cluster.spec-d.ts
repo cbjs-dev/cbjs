@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it } from 'vitest';
+import { describe, expectTypeOf, it } from 'vitest';
 
 import { connect } from './index.js';
 
-describe('DefaultClusterTypes', () => {
+describe('DefaultClusterTypes', async () => {
+  const cluster = await connect('couchbase://localhost');
+
   it('Cluster should accept any bucket name', async () => {
-    const cluster = await connect('couchbase://localhost');
     cluster.bucket('foobar');
   });
 
   it('Bucket should accept any scope name', async () => {
-    const cluster = await connect('couchbase://localhost');
     cluster.bucket('foobar').scope('foobar');
   });
 
   it('Scope should accept any collection name', async () => {
-    const cluster = await connect('couchbase://localhost');
     cluster.bucket('foobar').scope('foobar').collection('foobar');
+  });
+
+  it("should return the bucket's default collection", async () => {
+    expectTypeOf(cluster.bucket('foobar').defaultCollection()).not.toBeNever();
   });
 });
