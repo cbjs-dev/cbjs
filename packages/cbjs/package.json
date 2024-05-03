@@ -58,13 +58,12 @@
   "dependencies": {
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
-    "node-addon-api": "^7.0.0"
+    "node-addon-api": "^7.0.0",
+    "tar": "^6.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "tar": "^6.2.0",
     "typescript": "5.2.2",
-    "unbuild": "^2.0.0",
     "vitest": "1.5.2"
   },
   "config": {
