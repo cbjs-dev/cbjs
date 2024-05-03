@@ -12,7 +12,7 @@ A modern Couchbase SDK for Node.js & TypeScript.
 </p>
 
 <p align="center">
- <a href="https://cbjs.dev">Documentation</a> | <a href="https://cbjs.dev/guide/">Getting Started</a> | <a href="https://cbjs.dev/guide/why">Why Cbjs?</a>
+ <a href="https://cbjs.dev">Documentation</a> | <a href="https://cbjs.dev/guide/">Getting Started</a> | <a href="https://cbjs.dev/guide/why.html">Why Cbjs?</a>
 </p>
 
 ## Getting started

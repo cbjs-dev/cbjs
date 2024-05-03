@@ -24,7 +24,7 @@ const repositoryUrl = 'https://github.com/cbjs-dev/cbjs';
 export default defineConfig({
   srcDir: 'src',
   title: 'Cbjs',
-  titleTemplate: 'Cbjs - Couchbbase SDK TypeScript',
+  titleTemplate: 'Cbjs - Couchbase SDK TypeScript',
   description:
     'A modern Couchbase SDK for Node.js clients written in TypeScript, compatible with the official library.',
   lastUpdated: true,
@@ -82,6 +82,7 @@ export default defineConfig({
     },
 
     nav: [
+      { text: 'FAQ', link: '/guide/faq', activeMatch: '^/faq/' },
       { text: 'Guide', link: '/guide/', activeMatch: '^/guide/' },
       {
         text: `v${version}`,
@@ -119,6 +120,10 @@ export default defineConfig({
                 },
               ],
             },
+            {
+              text: 'FAQ',
+              link: '/guide/faq',
+            }
           ],
         },
       ],
