@@ -16,16 +16,18 @@
 import { ParserRuleContext } from '@cbjsdev/antlr4';
 import {
   C_exprContext,
+  Create_indexContext,
   ExprContext,
   Keyspace_nameContext,
   n1qlListener,
   Namespace_nameContext,
   Namespace_termContext,
+  Opt_exprsContext,
   Path_partContext,
   Permitted_identifiersContext,
   Simple_from_termContext,
 } from '@cbjsdev/n1ql-parser';
-import { invariant } from '@cbjsdev/shared';
+import { arrayLastElement, invariant } from '@cbjsdev/shared';
 
 export type FoundKeyspace = {
   namespace: string | undefined;
@@ -33,12 +35,22 @@ export type FoundKeyspace = {
   keyspacePosition: [number, number];
 };
 
+export type FoundIndex = {
+  indexName: string;
+  indexNamePosition: [number, number];
+};
+
 export class N1qlListener extends n1qlListener {
   private readonly consumedContexts = new Set<ParserRuleContext>();
   private readonly keyspaces: FoundKeyspace[] = [];
+  private readonly indexes: FoundIndex[] = [];
 
   getKeyspaces() {
     return this.keyspaces;
+  }
+
+  getIndexes() {
+    return this.indexes;
   }
 
   // This handle the case where an alias has been used
@@ -126,5 +138,12 @@ export class N1qlListener extends n1qlListener {
     this.consumedContexts.add(ctx.parentCtx);
 
     this.keyspaces.push(this.getKeyspaceFromChildren(ctx.parentCtx));
+  };
+
+  override exitCreate_index = (ctx: Create_indexContext) => {
+    this.indexes.push({
+      indexName: ctx.index_name().getText(),
+      indexNamePosition: [ctx.index_name().start.start, ctx.index_name().stop!.stop + 1],
+    });
   };
 }

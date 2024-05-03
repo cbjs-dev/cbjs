@@ -15,7 +15,7 @@
  */
 import { promisify } from 'node:util';
 
-import { Cluster, connect } from '@cbjsdev/cbjs';
+import { Cluster, connect, ICreateBucketSettings } from '@cbjsdev/cbjs';
 import {
   getConnectionParams,
   invariant,
@@ -23,6 +23,10 @@ import {
   PartialKeyspace,
 } from '@cbjsdev/shared';
 
+import {
+  defaultBucketSettingsSymbol,
+  getCbjsContextTracking,
+} from '../asyncContext/getCbjsContextTracking.js';
 import { getTaskAsyncContext } from '../asyncContext/getTaskAsyncContext.js';
 import { getTaskLogger } from '../asyncContext/getTaskLogger.js';
 import { flushLogger } from '../logger.js';
@@ -136,7 +140,15 @@ export class KeyspaceIsolationPool {
         requestedKeyspace.bucket
       );
 
-      this.provisionBucket(newBucketIsolatedName);
+      const { bucketsSettings } = getCbjsContextTracking();
+      const bucketSettings = bucketsSettings.has(requestedKeyspace.bucket)
+        ? bucketsSettings.get(requestedKeyspace.bucket)
+        : bucketsSettings.get(defaultBucketSettingsSymbol);
+
+      this.provisionBucket(
+        newBucketIsolatedName,
+        bucketSettings as ICreateBucketSettings
+      );
       provisionedBucket = this.getProvisionedBucket(newBucketIsolatedName);
     }
 
@@ -247,20 +259,14 @@ export class KeyspaceIsolationPool {
    *
    * @param bucket Isolated bucket name.
    */
-  provisionBucket(bucket: string) {
+  provisionBucket(bucket: string, bucketSettings: Omit<ICreateBucketSettings, 'name'>) {
     const bucketCreation = this.getCluster().then((cluster) => {
       return runWithoutKeyspaceIsolation(() => {
         return cluster
           .buckets()
           .createBucket({
+            ...bucketSettings,
             name: bucket,
-            ramQuotaMB: 100,
-            storageBackend: 'couchstore',
-            numReplicas: 0,
-            replicaIndexes: false,
-            compressionMode: 'off',
-            evictionPolicy: 'valueOnly',
-            minimumDurabilityLevel: 'none',
           })
           .then(() => {
             const openBucket = promisify(cluster.conn.openBucket).bind(cluster.conn);

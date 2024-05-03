@@ -351,4 +351,30 @@ describe('getQueryKeyspaces', () => {
       ]);
     });
   });
+
+  describe('index', () => {
+    test('bucket level primary index', ({ expect }) => {
+      expect(
+        getQueryKeyspaces('CREATE PRIMARY INDEX `#primary` ON `ci`.`_system`.`_query`')
+      ).toEqual([
+        {
+          namespace: undefined,
+          keyspaceParts: ['ci', '_system', '_query'],
+          keyspacePosition: [35, 58],
+        },
+      ]);
+    });
+  });
+
+  test('collection level secondary index', ({ expect }) => {
+    expect(
+      getQueryKeyspaces('CREATE INDEX travel_cxname ON airport(LOWER(name), id);')
+    ).toEqual([
+      {
+        namespace: undefined,
+        keyspaceParts: ['airport'],
+        keyspacePosition: [35, 58],
+      },
+    ]);
+  });
 });

@@ -45,3 +45,7 @@ export * from './fixtures/couchbase/views/index.js';
 export { runWithoutKeyspaceIsolation } from './keyspaceIsolation/runWithoutKeyspaceIsolation.js';
 export { setKeyspaceIsolation } from './keyspaceIsolation/setKeyspaceIsolation.js';
 export { getKeyspaceIsolation } from './keyspaceIsolation/getKeyspaceIsolation.js';
+export {
+  setKeyspaceIsolationBucketsDefaultSettings,
+  setKeyspaceIsolationBucketsSettings,
+} from './keyspaceIsolation/setKeyspaceIsolationBucketsSettings.js';

@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ICreateBucketSettings } from '@cbjsdev/cbjs';
+import { PartialKeyspace } from '@cbjsdev/shared';
+
 import { KeyspaceIsolationPool } from '../keyspaceIsolation/KeyspaceIsolationPool.js';
 import type { CbjsTaskContextData } from './CbjsTaskContextData.js';
+
+export const defaultBucketSettingsSymbol = Symbol();
 
 export type CbjsContextTracking = {
   trackingEnabled: boolean;
@@ -48,6 +53,19 @@ export type CbjsContextTracking = {
    * Keyspace isolation pool.
    */
   keyspaceIsolationPool: KeyspaceIsolationPool;
+
+  /**
+   * Configuration for buckets.
+   */
+  bucketsSettings: Map<
+    string | typeof defaultBucketSettingsSymbol,
+    Omit<ICreateBucketSettings, 'name'>
+  >;
+
+  /**
+   * Index creation statement per keyspace <normalized_keyspace_path, index_creation_statement>
+   */
+  indexesDefinition: Map<string, string>;
 };
 
 export function getCbjsContextTracking(): CbjsContextTracking {
@@ -63,7 +81,19 @@ export function getCbjsContextTracking(): CbjsContextTracking {
     taskAsyncIdReversedMap: new Map<number, string>(),
     contextMap: new Map<number, CbjsTaskContextData>(),
     keyspaceIsolationPool: new KeyspaceIsolationPool(),
+    bucketsSettings: new Map(),
+    indexesDefinition: new Map(),
   } satisfies CbjsContextTracking;
+
+  contextTracking.bucketsSettings.set(defaultBucketSettingsSymbol, {
+    ramQuotaMB: 100,
+    storageBackend: 'couchstore',
+    numReplicas: 0,
+    replicaIndexes: false,
+    compressionMode: 'off',
+    evictionPolicy: 'valueOnly',
+    minimumDurabilityLevel: 'none',
+  });
 
   Object.defineProperty(global, 'cbjsContextTracking', {
     value: contextTracking,
