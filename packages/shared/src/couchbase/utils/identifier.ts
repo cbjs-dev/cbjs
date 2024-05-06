@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { hasOwn, If, invariant, IsNever, OneOf } from '../../misc/index.js';
+import { hasOwn, If, invariant, isArray, IsNever, OneOf } from '../../misc/index.js';
 import {
   BucketName,
   CollectionName,
@@ -193,9 +193,7 @@ export function parseKeyspacePath(keyspacePath: string): string[] {
 }
 
 /**
- *
- * @param keyspaceParts
- * @param queryContext
+ * Return the keyspace, eventually resolved given its query context.
  */
 export function resolveKeyspace<
   T extends CouchbaseClusterTypes,
@@ -203,9 +201,24 @@ export function resolveKeyspace<
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
 >(
-  keyspaceParts: string[],
+  keyspace:
+    | string[]
+    | PartialKeyspace<T, B, S, C>
+    | Pick<PartialKeyspace<T, B, S, C>, 'collection'>,
   queryContext?: QueryContext<T, B, S, C>
 ): PartialKeyspace<T, B, S, C> {
+  const keyspaceParts: string[] = [];
+
+  if (isArray(keyspace)) {
+    keyspaceParts.push(...keyspace);
+  }
+
+  if (!isArray(keyspace)) {
+    if (hasOwn(keyspace, 'bucket')) keyspaceParts.push(keyspace.bucket);
+    if (hasOwn(keyspace, 'scope')) keyspaceParts.push(keyspace.scope);
+    if (hasOwn(keyspace, 'collection')) keyspaceParts.push(keyspace.collection);
+  }
+
   if (queryContext && keyspaceParts.length === 1) {
     return {
       ...queryContext,

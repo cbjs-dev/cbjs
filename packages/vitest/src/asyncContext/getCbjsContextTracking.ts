@@ -63,9 +63,9 @@ export type CbjsContextTracking = {
   >;
 
   /**
-   * Index creation statement per keyspace <normalized_keyspace_path, index_creation_statement>
+   * Index creation statement per keyspace <normalized_keyspace_path, index_creation_statement[]>
    */
-  indexesDefinition: Map<string, string>;
+  indexesDefinition: Map<string, string[]>;
 };
 
 export function getCbjsContextTracking(): CbjsContextTracking {

@@ -13,32 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { invariant, keyspacePath } from '@cbjsdev/shared';
+import { keyspacePath, PartialKeyspace } from '@cbjsdev/shared';
 
 import { getCbjsContextTracking } from '../asyncContext/getCbjsContextTracking.js';
-import { getQueryKeyspaces } from '../parser/index.js';
 
-export function setKeyspaceIsolationIndexes(indexes: string[]) {
+/**
+ * Return the index creation statements for the given keyspace.
+ *
+ * @param keyspace Original keyspace
+ */
+export function getKeyspaceIndexes(keyspace: PartialKeyspace) {
   const { indexesDefinition } = getCbjsContextTracking();
-
-  indexesDefinition.clear();
-
-  for (const index of indexes) {
-    const keyspaces = getQueryKeyspaces(index);
-    invariant(
-      keyspaces.length === 1,
-      'More than one keyspace found in the index creation statement.'
-    );
-
-    const ksPath = keyspacePath(...keyspaces[0].keyspaceParts);
-
-    if (!indexesDefinition.has(ksPath)) {
-      indexesDefinition.set(ksPath, []);
-    }
-
-    const ksIndexes = indexesDefinition.get(ksPath);
-    invariant(ksIndexes);
-
-    ksIndexes.push(index);
-  }
+  return indexesDefinition.get(keyspacePath(keyspace)) ?? [];
 }

@@ -23,6 +23,7 @@ import { flushLogger } from '../logger.js';
 import { proxifyFunction } from '../utils/proxifyFunction.js';
 import { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';
 import { transformArgs as kvTransformArgs } from './proxyFunctions/kv.js';
+import { transformArgs as managementQueryIndexTransformArgs } from './proxyFunctions/managementQueryIndex.js';
 import { transformArgs as queryTransformArgs } from './proxyFunctions/query.js';
 import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel.js';
 import { bypassIsolationALS } from './runWithoutKeyspaceIsolation.js';
@@ -101,5 +102,6 @@ export function getAllArgsTransformFunctions() {
     ...topLevelTransformArgs,
     ...kvTransformArgs,
     ...queryTransformArgs,
+    ...managementQueryIndexTransformArgs,
   };
 }

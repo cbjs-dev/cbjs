@@ -49,3 +49,5 @@ export {
   setKeyspaceIsolationBucketsDefaultSettings,
   setKeyspaceIsolationBucketsSettings,
 } from './keyspaceIsolation/setKeyspaceIsolationBucketsSettings.js';
+
+export { setKeyspaceIsolationIndexes } from './keyspaceIsolation/setKeyspaceIsolationIndexes.js';

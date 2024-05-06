@@ -125,29 +125,77 @@ describe('parseKeyspacePath', () => {
 });
 
 describe('resolveKeyspace', () => {
-  it('should return full keyspace with context untouched', ({ expect }) => {
-    expect(
-      resolveKeyspace(['store', 'library', 'books'], {
-        bucket: 'foo',
-        scope: 'bar',
-      })
-    ).toEqual({ bucket: 'store', scope: 'library', collection: 'books' });
+  describe('keyspace parts', () => {
+    it('should return full keyspace with context untouched', ({ expect }) => {
+      expect(
+        resolveKeyspace(['store', 'library', 'books'], {
+          bucket: 'foo',
+          scope: 'bar',
+        })
+      ).toEqual({ bucket: 'store', scope: 'library', collection: 'books' });
+    });
+
+    it('should return apply the context to keyspace when unscoped', ({ expect }) => {
+      expect(
+        resolveKeyspace(['books'], {
+          bucket: 'foo',
+          scope: 'bar',
+        })
+      ).toEqual({ bucket: 'foo', scope: 'bar', collection: 'books' });
+    });
+
+    it('should return the keyspace as is when no context is provided', ({ expect }) => {
+      expect(resolveKeyspace(['store', 'library', 'books'])).toEqual({
+        bucket: 'store',
+        scope: 'library',
+        collection: 'books',
+      });
+    });
   });
 
-  it('should return apply the context to keyspace when unscoped', ({ expect }) => {
-    expect(
-      resolveKeyspace(['books'], {
-        bucket: 'foo',
-        scope: 'bar',
-      })
-    ).toEqual({ bucket: 'foo', scope: 'bar', collection: 'books' });
-  });
+  describe('keyspace object', () => {
+    it('should return full keyspace with context untouched', ({ expect }) => {
+      expect(
+        resolveKeyspace(
+          {
+            bucket: 'store',
+            scope: 'library',
+            collection: 'books',
+          },
+          {
+            bucket: 'foo',
+            scope: 'bar',
+          }
+        )
+      ).toEqual({ bucket: 'store', scope: 'library', collection: 'books' });
+    });
 
-  it('should return the keyspace as is when no context is provided', ({ expect }) => {
-    expect(resolveKeyspace(['store', 'library', 'books'])).toEqual({
-      bucket: 'store',
-      scope: 'library',
-      collection: 'books',
+    it('should return apply the context to keyspace when unscoped', ({ expect }) => {
+      expect(
+        resolveKeyspace(
+          {
+            collection: 'books',
+          },
+          {
+            bucket: 'foo',
+            scope: 'bar',
+          }
+        )
+      ).toEqual({ bucket: 'foo', scope: 'bar', collection: 'books' });
+    });
+
+    it('should return the keyspace as is when no context is provided', ({ expect }) => {
+      expect(
+        resolveKeyspace({
+          bucket: 'store',
+          scope: 'library',
+          collection: 'books',
+        })
+      ).toEqual({
+        bucket: 'store',
+        scope: 'library',
+        collection: 'books',
+      });
     });
   });
 });

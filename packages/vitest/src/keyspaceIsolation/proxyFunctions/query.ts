@@ -47,10 +47,14 @@ export const transformArgs = {
       resolveKeyspace(k.keyspaceParts, queryContextKeyspace)
     );
 
+    const { taskId } = getCurrentTaskAsyncContext();
+
     const isolatedKeyspaces = await Promise.all(
-      keyspacesToIsolate.map((k) =>
-        isolationPool.requireKeyspaceIsolation(getCurrentTaskAsyncContext().taskId, k)
-      )
+      keyspacesToIsolate.map((k) => isolationPool.requireKeyspaceIsolation(taskId, k))
+    );
+
+    await Promise.all(
+      keyspacesToIsolate.map((k) => isolationPool.requireIndexes(taskId, k))
     );
 
     const nextOptions = {

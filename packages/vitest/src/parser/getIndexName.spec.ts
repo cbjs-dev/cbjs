@@ -20,24 +20,27 @@ import { getQueryKeyspaces } from './getQueryKeyspaces.js';
 
 describe('getIndexName', () => {
   test('primary index', ({ expect }) => {
+    expect(getIndexName('CREATE PRIMARY INDEX ON `ci`.`_system`.`_query`')).toEqual({
+      indexName: null,
+      indexNamePosition: null,
+    });
+  });
+
+  test('named primary index', ({ expect }) => {
     expect(
       getIndexName('CREATE PRIMARY INDEX `#primary` ON `ci`.`_system`.`_query`')
-    ).toEqual([
-      {
-        indexName: '#primary',
-        indexNamePosition: [21, 31],
-      },
-    ]);
+    ).toEqual({
+      indexName: '#primary',
+      indexNamePosition: [21, 31],
+    });
   });
-});
 
-test('secondary index', ({ expect }) => {
-  expect(
-    getQueryKeyspaces('CREATE INDEX travel_cxname ON airport(LOWER(name), id);')
-  ).toEqual([
-    {
+  test('secondary index', ({ expect }) => {
+    expect(
+      getIndexName('CREATE INDEX travel_cxname ON airport(LOWER(name), id);')
+    ).toEqual({
       indexName: 'travel_cxname',
       indexNamePosition: [13, 26],
-    },
-  ]);
+    });
+  });
 });

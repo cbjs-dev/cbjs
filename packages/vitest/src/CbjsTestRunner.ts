@@ -29,6 +29,7 @@ import { getCbjsContextTracking } from './asyncContext/getCbjsContextTracking.js
 import { getChildrenTower } from './asyncContext/getChildrenTower.js';
 import { getCurrentTaskAsyncContext } from './asyncContext/getCurrentTaskAsyncContext.js';
 import { getTaskAsyncContext } from './asyncContext/getTaskAsyncContext.js';
+import { getTaskLogger } from './asyncContext/getTaskLogger.js';
 import { createConnectionProxy } from './keyspaceIsolation/createConnectionProxy.js';
 import { isRealmInUse } from './keyspaceIsolation/isRealmInUse.js';
 import { KeyspaceIsolationRealm } from './keyspaceIsolation/KeyspaceIsolationRealm.js';
@@ -172,7 +173,7 @@ export default class CbjsTestRunner extends VitestTestRunner {
     this.clearTaskContextTracking(test.id);
 
     if (keyspaceIsolationRealm && !isRealmInUse(keyspaceIsolationRealm)) {
-      keyspaceIsolationPool.releaseRealmAllocations(keyspaceIsolationRealm);
+      await keyspaceIsolationPool.releaseRealm(keyspaceIsolationRealm);
     }
   }
 
@@ -184,9 +185,21 @@ export default class CbjsTestRunner extends VitestTestRunner {
 
     this.clearTaskContextTracking(suite.id);
 
-    if (keyspaceIsolationRealm && !isRealmInUse(keyspaceIsolationRealm)) {
-      keyspaceIsolationPool.releaseRealmAllocations(keyspaceIsolationRealm);
+    if (keyspaceIsolationRealm === null) return;
+
+    const realmIsStillUsed = isRealmInUse(keyspaceIsolationRealm);
+
+    if (realmIsStillUsed) {
+      getTaskLogger()?.trace(
+        `Realm.rootTaskId : ${keyspaceIsolationRealm.rootTaskId} is still in use. Keeping.`
+      );
+      return;
     }
+
+    getTaskLogger()?.trace(
+      `Realm.rootTaskId : ${keyspaceIsolationRealm.rootTaskId} is not used anymore. Releasing.`
+    );
+    await keyspaceIsolationPool.releaseRealm(keyspaceIsolationRealm);
   }
 
   override async onAfterRunFiles() {

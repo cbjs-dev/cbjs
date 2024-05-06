@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { getCbjsContextTracking } from '../asyncContext/getCbjsContextTracking.js';
+import { getTaskLogger } from '../asyncContext/getTaskLogger.js';
 import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
 
 export function isRealmInUse(realm: KeyspaceIsolationRealm) {
@@ -22,10 +23,18 @@ export function isRealmInUse(realm: KeyspaceIsolationRealm) {
   const asyncIds = taskAsyncIdReversedMap.keys();
 
   for (const asyncId of asyncIds) {
-    if (contextMap.get(asyncId)?.keyspaceIsolationRealm === realm) {
+    const taskAsyncContext = contextMap.get(asyncId);
+    if (taskAsyncContext?.keyspaceIsolationRealm === realm) {
+      getTaskLogger()?.debug(
+        `[isRealmInUse] Realm of "${taskAsyncContext.task.name}" is still in use.`
+      );
       return true;
     }
   }
+
+  getTaskLogger()?.debug(
+    `[isRealmInUse] Realm.rootTaskId: ${realm.rootTaskId}" is no longer used.`
+  );
 
   return false;
 }

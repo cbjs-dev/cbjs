@@ -36,8 +36,8 @@ export type FoundKeyspace = {
 };
 
 export type FoundIndex = {
-  indexName: string;
-  indexNamePosition: [number, number];
+  indexName: string | null;
+  indexNamePosition: [number, number] | null;
 };
 
 export class N1qlListener extends n1qlListener {
@@ -141,9 +141,20 @@ export class N1qlListener extends n1qlListener {
   };
 
   override exitCreate_index = (ctx: Create_indexContext) => {
+    const indexNameToken = ctx.index_name();
+
+    if (indexNameToken === null) {
+      this.indexes.push({
+        indexName: null,
+        indexNamePosition: null,
+      });
+
+      return;
+    }
+
     this.indexes.push({
-      indexName: ctx.index_name().getText(),
-      indexNamePosition: [ctx.index_name().start.start, ctx.index_name().stop!.stop + 1],
+      indexName: indexNameToken.getText(),
+      indexNamePosition: [indexNameToken.start.start, indexNameToken.stop!.stop + 1],
     });
   };
 }

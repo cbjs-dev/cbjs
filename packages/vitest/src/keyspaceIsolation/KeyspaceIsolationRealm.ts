@@ -16,18 +16,6 @@
 import { hasOwn, invariant, PartialKeyspace } from '@cbjsdev/shared';
 
 import { getRandomId } from '../utils/getRandomId.js';
-import type { KeyspaceIsolationLevel } from './types.js';
-
-/*
-
-a suite starts, it has its isolation config (scope + level)
-
-when a query comes in, we get all the keyspaces to isolate
-assuming a collection-level of isolation,
-
-we take from available scopes and collections, create more if needed and possible, and assign them to the current isolation scope
-
- */
 
 export class KeyspaceIsolationRealm {
   public readonly rootTaskId: string;
@@ -45,37 +33,8 @@ export class KeyspaceIsolationRealm {
     }
   >();
 
-  constructor(rootTaskId: string);
-  constructor(
-    rootTaskId: string,
-    realmToClone: KeyspaceIsolationRealm,
-    level: KeyspaceIsolationLevel
-  );
-  constructor(
-    ...args:
-      | [rootTaskId: string]
-      | [
-          rootTaskId: string,
-          mapToClone: KeyspaceIsolationRealm,
-          level: KeyspaceIsolationLevel,
-        ]
-  ) {
-    const [rootTaskId, mapToClone, level] = args;
-
+  constructor(rootTaskId: string) {
     this.rootTaskId = rootTaskId;
-
-    if (!mapToClone || !level) return;
-
-    if (level === 'bucket') {
-      return;
-    }
-
-    mapToClone.isolatedBuckets.forEach((bucketIsolation, originalBucketName) => {
-      this.isolatedBuckets.set(originalBucketName, {
-        isolatedName: bucketIsolation.isolatedName,
-        isolatedScopes: new Map(),
-      });
-    });
   }
 
   /**

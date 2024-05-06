@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { promisify } from 'node:util';
+import { retry } from 'ts-retry-promise';
 
 import { Cluster, connect, ICreateBucketSettings } from '@cbjsdev/cbjs';
+import { waitForQueryIndex } from '@cbjsdev/http-client';
 import {
   getConnectionParams,
   invariant,
@@ -30,7 +32,11 @@ import {
 import { getTaskAsyncContext } from '../asyncContext/getTaskAsyncContext.js';
 import { getTaskLogger } from '../asyncContext/getTaskLogger.js';
 import { flushLogger } from '../logger.js';
+import { getIndexName } from '../parser/getIndexName.js';
+import { getQueryKeyspaces } from '../parser/index.js';
+import { getKeyspaceIndexes } from './getKeyspaceIndexes.js';
 import { KeyspaceIsolationRealm } from './KeyspaceIsolationRealm.js';
+import { replaceKeyspaces } from './proxyFunctions/query.js';
 import { runWithoutKeyspaceIsolation } from './runWithoutKeyspaceIsolation.js';
 
 type ProvisionedBucket = {
@@ -46,11 +52,19 @@ type ProvisionedKeyspace = {
   readiness: Promise<void>;
 };
 
+/**
+ * name: index name, or null in case of a primary index without name
+ */
+type ProvisionedIndex = {
+  name: string | null;
+  readiness: Promise<void>;
+};
+
 export class KeyspaceIsolationPool {
   protected clusterPromise?: Promise<Cluster>;
 
   /**
-   * Contains names of real/isolated keyspaces.
+   * Contains provisioned keyspaces.
    *
    * <bucket, <scope, collection[]>>
    */
@@ -58,6 +72,11 @@ export class KeyspaceIsolationPool {
     ProvisionedBucket,
     Map<ProvisionedKeyspace, ProvisionedKeyspace[]>
   >();
+
+  /**
+   * Contains indexes created per keyspace path.
+   */
+  public readonly provisionedIndexes = new Map<string, ProvisionedIndex[]>();
 
   async requireKeyspaceIsolation<T extends PartialKeyspace>(
     taskId: string,
@@ -128,7 +147,7 @@ export class KeyspaceIsolationPool {
     realm: KeyspaceIsolationRealm,
     requestedKeyspace: PartialKeyspace,
     exclusiveBucket: boolean
-  ) {
+  ): void {
     if (realm.isBucketIsolated(requestedKeyspace.bucket)) {
       return;
     }
@@ -162,7 +181,7 @@ export class KeyspaceIsolationPool {
   protected requireScopeIsolation(
     realm: KeyspaceIsolationRealm,
     requestedKeyspace: PartialKeyspace
-  ) {
+  ): void {
     invariant(requestedKeyspace.scope);
 
     if (realm.isScopeIsolated(requestedKeyspace.bucket, requestedKeyspace.scope)) {
@@ -172,19 +191,17 @@ export class KeyspaceIsolationPool {
     const isolatedBucketName = realm.getIsolatedBucketName(requestedKeyspace.bucket);
     invariant(isolatedBucketName);
 
-    let provisionedScope = this.getAvailableScope(isolatedBucketName);
+    // let provisionedScope = this.getAvailableScope(isolatedBucketName);
 
-    if (provisionedScope === undefined) {
-      const newScopeIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
-        requestedKeyspace.scope
-      );
+    const newScopeIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
+      requestedKeyspace.scope
+    );
 
-      this.provisionScope(isolatedBucketName, newScopeIsolatedName);
-      provisionedScope = this.getProvisionedScope(
-        isolatedBucketName,
-        newScopeIsolatedName
-      );
-    }
+    this.provisionScope(isolatedBucketName, newScopeIsolatedName);
+    const provisionedScope = this.getProvisionedScope(
+      isolatedBucketName,
+      newScopeIsolatedName
+    );
 
     invariant(provisionedScope);
     provisionedScope.allocatedToRealm = realm;
@@ -199,7 +216,7 @@ export class KeyspaceIsolationPool {
   protected requireCollectionIsolation(
     realm: KeyspaceIsolationRealm,
     requestedKeyspace: PartialKeyspace
-  ) {
+  ): void {
     invariant(requestedKeyspace.collection);
 
     if (
@@ -221,27 +238,21 @@ export class KeyspaceIsolationPool {
     );
     invariant(isolatedScopeName);
 
-    let provisionedCollection = this.getAvailableCollection(
-      isolatedBucketName,
-      isolatedScopeName
+    const newCollectionIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
+      requestedKeyspace.collection
     );
 
-    if (provisionedCollection === undefined) {
-      const newCollectionIsolatedName = KeyspaceIsolationRealm.createIsolatedName(
-        requestedKeyspace.collection
-      );
+    this.provisionCollection(
+      isolatedBucketName,
+      isolatedScopeName,
+      newCollectionIsolatedName
+    );
 
-      this.provisionCollection(
-        isolatedBucketName,
-        isolatedScopeName,
-        newCollectionIsolatedName
-      );
-      provisionedCollection = this.getProvisionedCollection(
-        isolatedBucketName,
-        isolatedScopeName,
-        newCollectionIsolatedName
-      );
-    }
+    const provisionedCollection = this.getProvisionedCollection(
+      isolatedBucketName,
+      isolatedScopeName,
+      newCollectionIsolatedName
+    );
 
     invariant(provisionedCollection);
     provisionedCollection.allocatedToRealm = realm;
@@ -357,8 +368,6 @@ export class KeyspaceIsolationPool {
   }
 
   async getCluster() {
-    getTaskLogger()?.trace('KeyspaceIsolationPool: getCluster().');
-
     if (!this.clusterPromise) {
       getTaskLogger()?.trace(
         'KeyspaceIsolationPool: clusterPromise is missing, creating a connection.'
@@ -456,10 +465,171 @@ export class KeyspaceIsolationPool {
     );
   }
 
-  releaseRealmAllocations(realm: KeyspaceIsolationRealm) {
+  async requireIndexes(taskId: string, keyspace: PartialKeyspace) {
+    const { keyspaceIsolationRealm: realm } = getTaskAsyncContext(taskId);
+    invariant(realm, `No keyspace realm exist for task '${taskId}'.`);
+
+    const isolatedKeyspace = realm.getIsolatedKeyspaceNames(keyspace);
+    invariant(
+      isolatedKeyspace,
+      `Required to create indexes for keyspace "${keyspacePath(keyspace)}" but it is not provisioned.`
+    );
+
+    const ksPath = keyspacePath(isolatedKeyspace);
+
+    if (!this.provisionedIndexes.has(ksPath)) {
+      this.provisionedIndexes.set(ksPath, []);
+    }
+
+    const ksIndexes = this.provisionedIndexes.get(ksPath);
+    invariant(ksIndexes);
+
+    const indexStatements = getKeyspaceIndexes(keyspace);
+
+    if (indexStatements.length === 0) {
+      getTaskLogger()?.trace(`No index to create for keyspace ${ksPath}`);
+      return;
+    }
+
+    getTaskLogger()?.trace(
+      `Found indexes to be created:\n\t${indexStatements.join('\t')}`
+    );
+
+    const indexes = indexStatements.map((statement) => {
+      const indexName = getIndexName(statement).indexName;
+
+      if (this.isIndexProvisioned(isolatedKeyspace, indexName)) {
+        return [
+          indexName,
+          this.getProvisionedIndex(isolatedKeyspace, indexName).readiness,
+        ];
+      }
+
+      this.provisionIndex(isolatedKeyspace, indexName, statement);
+
+      return [indexName, this.getProvisionedIndex(isolatedKeyspace, indexName).readiness];
+    });
+
+    getTaskLogger()?.trace(
+      `Awaiting creation of indexes: ${indexes.map(([indexName]) => indexName).join(', ')}`
+    );
+
+    await Promise.all(indexes.map(([_, readiness]) => readiness));
+  }
+
+  provisionIndex(
+    isolatedKeyspace: PartialKeyspace,
+    indexName: string | null,
+    indexStatement: string
+  ) {
+    const ksPath = keyspacePath(isolatedKeyspace);
+    const indexReadiness = retry(
+      async () => {
+        const cluster = await this.getCluster();
+        try {
+          const foundKeyspaces = getQueryKeyspaces(indexStatement);
+          const patchedStatement = replaceKeyspaces(indexStatement, foundKeyspaces, [
+            isolatedKeyspace,
+          ]);
+          await cluster.query(patchedStatement);
+          const bucketName = isolatedKeyspace.bucket;
+          const indexesToWatch = indexName ? [indexName] : ['#primary'];
+          const options = indexName ? {} : { watchPrimary: true };
+
+          if (isolatedKeyspace.collection) {
+            await cluster
+              .bucket(bucketName)
+              .scope(isolatedKeyspace.scope)
+              .collection(isolatedKeyspace.collection)
+              .queryIndexes()
+              .watchIndexes(indexesToWatch, 10_000, options);
+            return;
+          }
+
+          await cluster
+            .queryIndexes()
+            .watchIndexes(bucketName, indexesToWatch, 10_000, options);
+        } catch (err) {
+          getTaskLogger()?.trace(
+            `Failed to create index ${indexName}, will retry.\n%s`,
+            err
+          );
+          throw err;
+        }
+      },
+      {
+        timeout: 20_000,
+        delay: 250,
+        retries: 'INFINITELY',
+      }
+    );
+
+    if (!this.provisionedIndexes.has(ksPath)) {
+      this.provisionedIndexes.set(ksPath, []);
+    }
+
+    const ksIndexes = this.provisionedIndexes.get(ksPath);
+    invariant(ksIndexes);
+
+    ksIndexes.push({
+      name: indexName,
+      readiness: indexReadiness,
+    });
+  }
+
+  isIndexProvisioned(
+    isolatedKeyspace: PartialKeyspace,
+    indexName: string | null
+  ): boolean {
+    return (
+      this.provisionedIndexes
+        .get(keyspacePath(isolatedKeyspace))
+        ?.some((i) => i.name === indexName) ?? false
+    );
+  }
+
+  getProvisionedIndex(
+    isolatedKeyspace: PartialKeyspace,
+    indexName: string | null
+  ): ProvisionedIndex {
+    const pi = this.provisionedIndexes
+      .get(keyspacePath(isolatedKeyspace))
+      ?.find((i) => i.name === indexName);
+
+    invariant(pi, 'Provisioned index not found');
+    return pi;
+  }
+
+  isKeyspaceProvisioned(keyspace: PartialKeyspace): boolean {
+    if (keyspace.collection) {
+      return (
+        this.getProvisionedCollection(
+          keyspace.bucket,
+          keyspace.scope,
+          keyspace.collection
+        ) !== undefined
+      );
+    }
+
+    if (keyspace.scope) {
+      return this.getProvisionedScope(keyspace.bucket, keyspace.scope) !== undefined;
+    }
+
+    return this.getProvisionedBucket(keyspace.bucket) !== undefined;
+  }
+
+  async releaseRealm(realm: KeyspaceIsolationRealm) {
     getTaskLogger()?.debug(
       `Release allocation check for realm.rootTaskId: ${realm.rootTaskId}`
     );
+
+    /**
+     * [bucket, scope]
+     */
+    const scopesToDelete: [string, string][] = [];
+
+    const keyspacesDeleted: string[] = [];
+
     for (const [provisionedBucket, bucketScopes] of this.provisionedKeyspaces) {
       if (!provisionedBucket.allocatedToRealms.has(realm)) continue;
 
@@ -469,29 +639,50 @@ export class KeyspaceIsolationPool {
       provisionedBucket.allocatedToRealms.delete(realm);
 
       if (provisionedBucket.allocatedToRealms.size === 0 && provisionedBucket.exclusive) {
-        getTaskLogger()?.debug(
-          `Bucket '${provisionedBucket.name}' no longer allocated to any realm, resetting 'exclusive' boolean.`
+        getTaskLogger()?.trace(
+          `Bucket "${provisionedBucket.name}" is no longer allocated to any realm, resetting the "exclusive" flag.`
         );
         provisionedBucket.exclusive = undefined;
       }
 
       for (const [provisionedScope, provisionedCollections] of bucketScopes) {
-        if (provisionedScope.allocatedToRealm !== realm) continue;
+        if (provisionedScope.allocatedToRealm !== realm) {
+          continue;
+        }
 
-        getTaskLogger()?.trace(
-          `Scope '${provisionedScope.name}' is allocated to the realm, removing.`
-        );
         provisionedScope.allocatedToRealm = undefined;
+        scopesToDelete.push([provisionedBucket.name, provisionedScope.name]);
 
-        for (const provisionedCollection of provisionedCollections) {
-          if (provisionedCollection.allocatedToRealm !== realm) continue;
+        for (const pc of provisionedCollections) {
+          if (pc.allocatedToRealm !== realm) {
+            continue;
+          }
 
-          getTaskLogger()?.trace(
-            `Collection '${provisionedCollection.name}' is allocated to the realm, removing.`
+          pc.allocatedToRealm = undefined;
+
+          keyspacesDeleted.push(
+            keyspacePath(provisionedBucket.name, provisionedScope.name, pc.name)
           );
-          provisionedCollection.allocatedToRealm = undefined;
         }
       }
+    }
+
+    keyspacesDeleted.forEach((ks) => {
+      this.provisionedIndexes.delete(ks);
+    });
+
+    if (scopesToDelete.length > 0) {
+      getTaskLogger()?.trace(
+        `Scopes allocated to the realm will be deleted : ${scopesToDelete.map(([b, s]) => `"${keyspacePath(b, s)}"`).join(', ')}.`
+      );
+
+      const cluster = await this.getCluster();
+
+      await Promise.all(
+        scopesToDelete.map(([bucketName, scopeName]) =>
+          cluster.bucket(bucketName).collections().dropScope(scopeName)
+        )
+      );
     }
   }
 
@@ -537,12 +728,16 @@ export class KeyspaceIsolationPool {
         return;
       }
 
-      const cluster = await this.getCluster();
       await this.destroyProvisionedBuckets();
-      await cluster.close();
-      this.clusterPromise = undefined;
+
+      if (this.clusterPromise !== undefined) {
+        const cluster = await this.clusterPromise;
+        await cluster.close();
+        this.clusterPromise = undefined;
+      }
     } catch (err) {
       getTaskLogger()?.error('Error during dispose: %o', err);
+      throw err;
     } finally {
       await flushLogger();
     }

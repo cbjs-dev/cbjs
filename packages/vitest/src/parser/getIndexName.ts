@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { walkN1ql } from '@cbjsdev/n1ql-parser';
-import { trimIdentifier } from '@cbjsdev/shared';
+import { invariant, trimIdentifier } from '@cbjsdev/shared';
 
 import { FoundIndex, N1qlListener } from './N1qlListener.js';
 
@@ -22,8 +22,12 @@ export function getIndexName(query: string) {
   const listener = new N1qlListener();
   walkN1ql(query, listener);
 
-  return listener.getIndexes().map((index) => ({
-    indexName: trimIdentifier(index.indexName),
+  const foundIndexes = listener.getIndexes().map((index) => ({
+    indexName: index.indexName === null ? null : trimIdentifier(index.indexName),
     indexNamePosition: index.indexNamePosition,
   })) as FoundIndex[];
+
+  invariant(foundIndexes.length === 1, 'Expected a single index name.');
+
+  return foundIndexes[0];
 }
