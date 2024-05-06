@@ -29,6 +29,7 @@ pnpm add @cbjsdev/cbjs
 ```bash [bun]
 bun add @cbjsdev/cbjs
 ```
+:::
 
 :::tip
 Cbjs requires Node >=v18.00

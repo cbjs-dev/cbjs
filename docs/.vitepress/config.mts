@@ -116,9 +116,26 @@ export default defineConfig({
               items: [
                 {
                   text: 'KeyValue',
-                  link: '/guide/services/kv.md',
+                  link: '/guide/services/kv',
                 },
               ],
+            },
+            {
+              text: 'HTTP Client',
+              items: [
+                {
+                  text: 'Setup',
+                  link: '/guide/http-client/',
+                },
+                {
+                  text: 'Actions',
+                  link: '/guide/http-client/actions',
+                },
+                {
+                  text: 'Wait For',
+                  link: '/guide/http-client/wait-for',
+                }
+              ]
             },
             {
               text: 'FAQ',
