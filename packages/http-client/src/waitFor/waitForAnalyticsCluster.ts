@@ -20,6 +20,9 @@ import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
+/**
+ * Wait for the analytics cluster to be online.
+ */
 export async function waitForAnalyticsCluster(
   apiConfig: CouchbaseHttpApiConfig,
   options?: WaitForOptions

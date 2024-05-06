@@ -19,3 +19,7 @@ export * from './getPoolNodes.js';
 export * from './initCluster.js';
 export * from './getClusterRelease.js';
 export * from './setIndexerSettings.js';
+export * from './serverFeature.js';
+
+export type { InitClusterParams } from './requests/requestInitCluster.js';
+export type { CouchbaseIndexerSettings } from './requests/requestSetIndexerSettings.js';

@@ -18,10 +18,16 @@ import { hasOwn, invariant, Keyspace } from '@cbjsdev/shared';
 import { CouchbaseHttpApiConfig } from '../../types.js';
 import { ApiQueryResponseBody } from '../../types/Api/query/ApiQueryResponseBody.js';
 import { HttpClientQueryIndex } from '../../types/HttpClient/HttpClientQueryIndex.js';
-import { QueryResultGsiIndex, QueryResultSearchIndex } from '../../types/QueryResult/index.js';
+import {
+  QueryResultGsiIndex,
+  QueryResultSearchIndex,
+} from '../../types/QueryResult/index.js';
 import { createHttpError } from '../../utils/createHttpError.js';
 import { requestGetQueryIndexes } from './requests/requestGetQueryIndexes.js';
 
+/**
+ * Return the list of all indexes within the given scope.
+ */
 export async function getQueryIndexes(
   params: CouchbaseHttpApiConfig,
   options: Partial<Keyspace> = {}

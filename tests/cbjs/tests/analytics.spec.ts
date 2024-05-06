@@ -25,14 +25,15 @@ import {
   IndexExistsError,
   IndexNotFoundError,
 } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
-  .runIf(serverSupportsFeatures(ServerFeatures.Analytics))
+  .runIf(serverSupportsFeatures(ServerFeatures.SubdocReadReplica))
   .shuffle('analytics', { timeout: 10_000 }, async () => {
     const test = await createCouchbaseTest({
       useSampleData,

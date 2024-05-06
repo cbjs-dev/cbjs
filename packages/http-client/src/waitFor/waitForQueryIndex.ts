@@ -15,14 +15,16 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { Keyspace } from '@cbjsdev/shared';
+import { Keyspace, Pretty } from '@cbjsdev/shared';
 
 import { getQueryIndexes, getStatistics } from '../services/index.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
-type WaitForQueryIndexOptions = WaitForOptions & { awaitMutations?: boolean };
+export type WaitForQueryIndexOptions = Pretty<
+  WaitForOptions & { awaitMutations?: boolean }
+>;
 
 /**
  * Wait for the query index to be visible by the query service and wait until no mutations are remaining.

@@ -17,11 +17,12 @@
 import { describe } from 'vitest';
 
 import { QueryMetaData, QueryProfileMode, QueryResult, QueryStatus } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { keyspacePath } from '@cbjsdev/shared';
 import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
   'query request',

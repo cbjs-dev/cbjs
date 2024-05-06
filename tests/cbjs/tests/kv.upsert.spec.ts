@@ -16,9 +16,10 @@
  */
 import { describe, vi } from 'vitest';
 
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 import { waitForFailure } from '../utils/waitForFailure.js';
 import {
   getBinaryTestDocument,

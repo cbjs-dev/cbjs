@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getClusterRelease } from '@cbjsdev/http-client';
+import { getApiConfig } from '@cbjsdev/shared';
 
-export * from './types.js';
-export * from './waitForBucket.js';
-export * from './waitForScope.js';
-export * from './waitForCollection.js';
-export * from './waitForUser.js';
-export * from './waitForUserGroup.js';
-export * from './waitForSearchIndex.js';
-export * from './waitForEventingFunction.js';
-export * from './waitForViewDesignDocument.js';
-export * from './waitForQueryIndexer.js';
-export * from './waitForQueryIndex.js';
-export * from './waitForAnalyticsCluster.js';
+export const clusterRelease = await getClusterRelease(getApiConfig());

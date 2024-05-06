@@ -17,8 +17,8 @@ import { CouchbaseHttpApiConfig } from '../../types.js';
 import { ApiBucket } from '../../types/Api/kv/ApiBucket.js';
 import { requestGetBucket } from './requests/requestGetBucket.js';
 
-export async function getBucket(params: CouchbaseHttpApiConfig, bucketName: string) {
-  const response = await requestGetBucket(params, bucketName);
+export async function getBucket(apiConfig: CouchbaseHttpApiConfig, bucketName: string) {
+  const response = await requestGetBucket(apiConfig, bucketName);
 
   if (response.status !== 200) {
     throw new Error(`API Error (${response.statusText}): ${await response.text()}`);

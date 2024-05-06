@@ -23,6 +23,9 @@ import { mapNodes } from '../utils/mapNodes.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
+/**
+ * Wait for the bucket to be visible on all nodes but also ready to receive KV & query operations.
+ */
 export async function waitForBucket(
   apiConfig: CouchbaseHttpApiConfig,
   bucketName: string,

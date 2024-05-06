@@ -17,10 +17,11 @@
 import { describe } from 'vitest';
 
 import { HttpErrorContext, UserNotFoundError } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { getConnectionParams, invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.UserManagement))

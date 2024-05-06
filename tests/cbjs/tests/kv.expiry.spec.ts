@@ -17,10 +17,11 @@
 import { describe } from 'vitest';
 
 import { InvalidArgumentError, LookupInMacro } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Xattr))('kv expiry', async () => {
   const test = await createCouchbaseTest();

@@ -22,6 +22,9 @@ import { mapNodes } from '../utils/mapNodes.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
+/**
+ * Wait for the scope to be visible on all nodes.
+ */
 export async function waitForScope(
   params: CouchbaseHttpApiConfig,
   bucketName: string,

@@ -24,11 +24,12 @@ import {
   HttpErrorContext,
 } from '@cbjsdev/cbjs';
 import { waitForViewDesignDocument } from '@cbjsdev/http-client';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Views))

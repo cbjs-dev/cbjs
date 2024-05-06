@@ -18,11 +18,11 @@ import { ApiBucketScopes } from '../../types/Api/kv/ApiBucketScopes.js';
 import { requestGetBucketScopes } from './requests/requestGetBucketScopes.js';
 
 export async function getCollections(
-  params: CouchbaseHttpApiConfig,
+  apiConfig: CouchbaseHttpApiConfig,
   bucketName: string,
   scopeName: string
 ) {
-  const response = await requestGetBucketScopes(params, bucketName);
+  const response = await requestGetBucketScopes(apiConfig, bucketName);
 
   if (response.status !== 200) {
     throw new Error(`API Error (${response.statusText}): ${await response.text()}`);

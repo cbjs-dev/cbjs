@@ -23,17 +23,23 @@ import { mapNodes } from '../utils/mapNodes.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
-type ExpectableStatus = Extract<
+export type ExpectableStatus = Extract<
   EventingFunctionStatusName,
   'deployed' | 'undeployed' | 'paused'
 >;
 
+/**
+ * Wait for the eventing function to be visible.
+ */
 export async function waitForEventingFunction(
   params: CouchbaseHttpApiConfig,
   functionName: string,
   options?: WaitForOptions
 ): Promise<void>;
 
+/**
+ * Wait for the eventing function to reach a certain status.
+ */
 export async function waitForEventingFunction(
   params: CouchbaseHttpApiConfig,
   functionName: string,

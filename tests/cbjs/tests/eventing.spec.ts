@@ -21,16 +21,15 @@ import {
   EventingFunctionBucketAccess,
   EventingFunctionBucketBinding,
   EventingFunctionKeyspace,
-  EventingFunctionSettings,
   EventingFunctionUrlAuthBasic,
   EventingFunctionUrlBinding,
   Scope,
 } from '@cbjsdev/cbjs';
-import { waitForEventingFunction } from '@cbjsdev/http-client';
+import { ServerFeatures, waitForEventingFunction } from '@cbjsdev/http-client';
 import { sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Collections, ServerFeatures.Eventing))

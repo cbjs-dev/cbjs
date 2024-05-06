@@ -22,11 +22,15 @@ import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
-type WaitForSearchIndexOptions = WaitForOptions & {
+export type WaitForSearchIndexOptions = WaitForOptions & {
   awaitQueryVisibility?: boolean;
   awaitMutations?: boolean;
 };
 
+/**
+ * Wait for the query index to be visible by the query service and wait until no mutations are remaining.
+ * You can opt-out waiting for mutations by passing `{ awaitMutations: false }`.
+ */
 export async function waitForSearchIndex(
   apiConfig: CouchbaseHttpApiConfig,
   indexName: string,

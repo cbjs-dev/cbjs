@@ -16,10 +16,11 @@
  */
 import { beforeEach, describe, vi } from 'vitest';
 
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 import { getLargeTestDocument } from './kv._helpers.js';
 
 describe

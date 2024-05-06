@@ -28,7 +28,7 @@ export async function getSearchIndexStatistics(
     throw await createHttpError('GET', response);
   }
 
-  return (await response.json()) as ApiSearchGetIndex;
+  return (await response.json()) as SearchIndexStatistics;
 }
 
 export type SearchIndexStatistics = {

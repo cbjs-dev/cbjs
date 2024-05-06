@@ -17,8 +17,8 @@ import { CouchbaseHttpApiConfig } from '../../types.js';
 import { ApiBucketScopes } from '../../types/Api/kv/ApiBucketScopes.js';
 import { requestGetBucketScopes } from './requests/requestGetBucketScopes.js';
 
-export async function getScopes(params: CouchbaseHttpApiConfig, bucketName: string) {
-  const response = await requestGetBucketScopes(params, bucketName);
+export async function getScopes(apiConfig: CouchbaseHttpApiConfig, bucketName: string) {
+  const response = await requestGetBucketScopes(apiConfig, bucketName);
 
   if (response.status !== 200) {
     throw new Error(`API Error (${response.statusText}): ${await response.text()}`);

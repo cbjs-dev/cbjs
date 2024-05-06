@@ -22,12 +22,13 @@ import {
   SearchIndexNotFoundError,
   SearchQuery,
 } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig.js';
 import { useSampleData } from '../fixtures/useSampleData.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Search))

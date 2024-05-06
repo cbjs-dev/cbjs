@@ -17,11 +17,12 @@
 import { describe } from 'vitest';
 
 import { HttpErrorContext, IndexExistsError, IndexNotFoundError } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { invariant, sleep } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query, ServerFeatures.Collections))(
   'query index collection api',

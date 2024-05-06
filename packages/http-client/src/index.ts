@@ -23,3 +23,4 @@ export * from './types/HttpClient/index.js';
 export * from './logger.js';
 
 export { CouchbaseHttpApiConfig } from './types.js';
+export { Keyspace } from '@cbjsdev/shared';

@@ -26,10 +26,11 @@ import {
   StorageBackend,
   TimeoutError,
 } from '@cbjsdev/cbjs';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.shuffle('bucket manager', async () => {
   const test = await createCouchbaseTest();

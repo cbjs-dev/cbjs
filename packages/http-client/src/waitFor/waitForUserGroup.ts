@@ -22,6 +22,9 @@ import { mapNodes } from '../utils/mapNodes.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
+/**
+ * Wait for the user group to be visible.
+ */
 export async function waitForUserGroup(
   apiConfig: CouchbaseHttpApiConfig,
   name: string,

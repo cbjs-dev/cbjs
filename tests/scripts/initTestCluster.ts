@@ -19,9 +19,9 @@ import {
   initCluster,
   setIndexerSettings,
   waitForAnalyticsCluster,
-  waitForIndexer,
+  waitForQueryIndexer,
 } from '@cbjsdev/http-client';
-import { getApiConfig, sleep } from '@cbjsdev/shared';
+import { getApiConfig } from '@cbjsdev/shared';
 
 const apiConfig = getApiConfig();
 
@@ -47,5 +47,5 @@ await setIndexerSettings(apiConfig, {
   storageMode: 'plasma',
 });
 
-await waitForIndexer(apiConfig);
+await waitForQueryIndexer(apiConfig);
 await waitForAnalyticsCluster(apiConfig);

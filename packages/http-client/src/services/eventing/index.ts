@@ -21,3 +21,4 @@ export * from './getEventingFunctionStatus.js';
 export * from './pauseEventingFunction.js';
 export * from './resumeEventingFunction.js';
 export * from './undeployEventingFunction.js';
+export { EventingFunctionScope } from '@cbjsdev/shared';

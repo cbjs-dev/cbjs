@@ -20,11 +20,11 @@ import { createHttpError } from '../../utils/createHttpError.js';
 import { requestDeleteEventingFunction } from './requests/requestDeleteEventingFunction.js';
 
 export async function dropEventingFunction(
-  params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
+  apiConfig: CouchbaseHttpApiConfig,
   name: string,
   scope: EventingFunctionScope = { bucket: '*', scope: '*' }
 ) {
-  const response = await requestDeleteEventingFunction(params, name, scope);
+  const response = await requestDeleteEventingFunction(apiConfig, name, scope);
 
   if (!response.ok) {
     throw await createHttpError('POST', response);

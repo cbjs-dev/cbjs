@@ -24,11 +24,11 @@ import {
   ScopeExistsError,
   ScopeNotFoundError,
 } from '@cbjsdev/cbjs';
-import { getCollections } from '@cbjsdev/http-client';
+import { getCollections, ServerFeatures } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies.js';
 
 describe

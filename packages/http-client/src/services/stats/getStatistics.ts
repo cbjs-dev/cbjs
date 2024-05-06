@@ -21,6 +21,8 @@ import {
   StatisticsResult,
 } from './requests/requestStatistics.js';
 
+export { StatisticDefinition, StatisticsResult };
+
 export async function getStatistics(
   apiConfig: CouchbaseHttpApiConfig,
   stats: [StatisticDefinition, ...StatisticDefinition[]]

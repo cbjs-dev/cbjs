@@ -24,11 +24,12 @@ import {
 } from '@cbjsdev/cbjs';
 import { ChainableLookupIn } from '@cbjsdev/cbjs/internal';
 import { getPool } from '@cbjsdev/http-client';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.shuffle('kv lookupIn', async () => {
   const test = await createCouchbaseTest(async ({ useDocumentKey }) => {

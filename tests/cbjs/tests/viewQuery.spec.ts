@@ -25,12 +25,13 @@ import {
   ViewRow,
 } from '@cbjsdev/cbjs';
 import { waitForViewDesignDocument } from '@cbjsdev/http-client';
+import { ServerFeatures } from '@cbjsdev/http-client';
 import { arrayFirstElement, waitFor } from '@cbjsdev/shared';
 import { arrayLastElement } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
-import { ServerFeatures, serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
   'view query',

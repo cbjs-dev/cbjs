@@ -18,6 +18,12 @@ import { ApiQueryResponseBody } from '../../types/Api/query/ApiQueryResponseBody
 import { createHttpError } from '../../utils/createHttpError.js';
 import { requestExecuteStatement } from './requests/requestExecuteStatement.js';
 
+/**
+ * Execute an arbitrary query.
+ *
+ * @param params
+ * @param statement
+ */
 export async function executeStatement<Result>(
   params: CouchbaseHttpApiConfig,
   statement: string

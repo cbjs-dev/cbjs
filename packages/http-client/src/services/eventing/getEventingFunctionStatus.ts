@@ -18,10 +18,8 @@ import { ApiEventingFunctionStatus } from '../../types/Api/eventing/ApiEventingF
 import { createHttpError } from '../../utils/createHttpError.js';
 import { requestGetEventingFunctionStatus } from './requests/requestGetEventingFunctionStatus.js';
 
-export async function getEventingFunctionStatus(
-  params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
-) {
-  const response = await requestGetEventingFunctionStatus(params);
+export async function getEventingFunctionStatus(apiConfig: CouchbaseHttpApiConfig) {
+  const response = await requestGetEventingFunctionStatus(apiConfig);
 
   if (response.status !== 200) {
     throw await createHttpError('GET', response);

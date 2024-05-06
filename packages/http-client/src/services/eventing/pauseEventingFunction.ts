@@ -20,12 +20,12 @@ import { createHttpError } from '../../utils/createHttpError.js';
 import { requestChangeEventingFunctionStatus } from './requests/requestChangeEventingFunctionStatus.js';
 
 export async function pauseEventingFunction(
-  params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
+  apiConfig: CouchbaseHttpApiConfig,
   name: string,
   scope: EventingFunctionScope = { bucket: '*', scope: '*' }
 ) {
   const response = await requestChangeEventingFunctionStatus(
-    params,
+    apiConfig,
     name,
     scope,
     'pause'

@@ -18,10 +18,8 @@ import { ApiEventingFunction } from '../../types/Api/eventing/ApiEventingFunctio
 import { createHttpError } from '../../utils/createHttpError.js';
 import { requestGetEventingFunctions } from './requests/requestGetEventingFunctions.js';
 
-export async function getEventingFunctions(
-  params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
-) {
-  const response = await requestGetEventingFunctions(params);
+export async function getEventingFunctions(apiConfig: CouchbaseHttpApiConfig) {
+  const response = await requestGetEventingFunctions(apiConfig);
 
   if (response.status !== 200) {
     throw await createHttpError('POST', response);

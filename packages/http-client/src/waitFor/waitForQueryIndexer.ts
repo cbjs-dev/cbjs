@@ -20,7 +20,11 @@ import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
-export async function waitForIndexer(
+/**
+ * Wait for the Couchbase indexer to be online.
+ * This is required for you to set query indexer settings.
+ */
+export async function waitForQueryIndexer(
   apiConfig: CouchbaseHttpApiConfig,
   options?: Omit<WaitForOptions, 'expectMissing'>
 ): Promise<void> {
