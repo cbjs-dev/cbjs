@@ -3,14 +3,9 @@ import { beforeAll, describe, it } from 'vitest';
 import { DocumentExistsError } from '@cbjsdev/cbjs';
 import { setKeyspaceIsolation } from '@cbjsdev/vitest';
 
-// TODO reproduce the segfault and get its stacktrace
-describe('kv', { timeout: 5_000 }, () => {
+describe.sequential('kv per test', { timeout: 5_000 }, () => {
   beforeAll(() => {
     setKeyspaceIsolation('per-test');
-  });
-
-  it('whatev', ({ expect }) => {
-    expect(true).toBe(true);
   });
 
   it('should isolate an insert', async ({ expect, getCluster }) => {
