@@ -60,7 +60,10 @@ export class PrimaryIndexFixture extends FixtureFunctionValue<
 
     const indexName = opts.name ?? '#primary';
 
-    await serverTestContext.c.queryIndexes().createPrimaryIndex(bucketName, opts);
+    await serverTestContext.c.queryIndexes().createPrimaryIndex(bucketName, {
+      numReplicas: 0,
+      ...opts,
+    });
 
     if (timeout > 0) {
       await serverTestContext.c

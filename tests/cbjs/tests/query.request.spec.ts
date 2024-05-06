@@ -26,7 +26,7 @@ import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
   'query request',
-  { timeout: 15_000 },
+  { timeout: 60_000 },
   async () => {
     const test = await createCouchbaseTest({
       useSampleData,
@@ -63,7 +63,9 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
           usePrimaryIndex,
         }) {
           const { testUid, sampleSize } = await useSampleData(dataCollection);
-          await usePrimaryIndex(indexKeyspace);
+          await usePrimaryIndex(indexKeyspace, {
+            waitIndexTimeout: 20_000,
+          });
 
           const result = await serverTestContext.cluster.query(
             `SELECT * FROM ${dataKeyspacePath} WHERE testUid=$1`,
