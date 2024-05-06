@@ -20,5 +20,5 @@ All the tests of the official library have been implemented.
 They have been ported to `vitest` to guarantee their isolation and migrated to TypeScript.  
 Hundreds of tests and thousands of assertions have been added to not only test the runtime behavior but also test the function signatures and overall, the types.  
 
-Cbjs is tested on GitHub Actions against Node.js 18 and Couchbase Server 7.2.4 and 7.6.1.  
+Cbjs is currently tested on GitHub Actions against Node.js 18 and Couchbase Server 7.2.4 and 7.6.1.  
 
