@@ -23,7 +23,6 @@ import { flushLogger } from '../logger.js';
 import { proxifyFunction } from '../utils/proxifyFunction.js';
 import { KeyspaceIsolationPool } from './KeyspaceIsolationPool.js';
 import { transformArgs as kvTransformArgs } from './proxyFunctions/kv.js';
-import { passthrough } from './proxyFunctions/passthrough.js';
 import { transformArgs as queryTransformArgs } from './proxyFunctions/query.js';
 import { transformArgs as topLevelTransformArgs } from './proxyFunctions/topLevel.js';
 import { bypassIsolationALS } from './runWithoutKeyspaceIsolation.js';
@@ -79,22 +78,7 @@ export function createConnectionProxy(conn: CppConnection) {
         return proxifyFunction(target, prop, receiver);
       }
 
-      // TODO split the proxy functions by service
-      // TODO create a type to make sure every method is handled
-      // TODO so yes, create an array of methods to ignore/passthrough to satisfies the type
-
-      const transformArgs = {
-        ...topLevelTransformArgs,
-        ...kvTransformArgs,
-        ...queryTransformArgs,
-      };
-
-      // Should be never.
-      // This type is used to be sure we didn't forget any CppConnection methods
-      type MissingHandlers = Exclude<
-        keyof CppConnection,
-        keyof typeof transformArgs | (typeof passthrough)[number]
-      >;
+      const transformArgs = getAllArgsTransformFunctions();
 
       if (Object.keys(transformArgs).includes(prop)) {
         const targetMethod = prop as keyof typeof transformArgs;
@@ -110,4 +94,12 @@ export function createConnectionProxy(conn: CppConnection) {
       return proxifyFunction(target, prop, receiver);
     },
   });
+}
+
+export function getAllArgsTransformFunctions() {
+  return {
+    ...topLevelTransformArgs,
+    ...kvTransformArgs,
+    ...queryTransformArgs,
+  };
 }
