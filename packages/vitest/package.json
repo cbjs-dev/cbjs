@@ -30,6 +30,20 @@
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      }
+    },
+    "./matchers": {
+      "import": {
+        "types": "./dist/src/matchers.d.ts",
+        "default": "./dist/src/matchers.js"
+      }
+    }
+  },
   "files": [
     "dist/**/*.{js,js.map,d.ts}",
     "LICENSE",
