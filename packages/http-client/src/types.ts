@@ -15,10 +15,15 @@
  */
 import { CouchbaseApiConfig } from '@cbjsdev/shared';
 
-import { ApiPoolNodes } from './types/Api/index.js';
+import { ApiPool } from './types/Api/index.js';
 
 export type CouchbaseHttpApiConfig = CouchbaseApiConfig & {
-  poolNodes?: ApiPoolNodes;
+  /**
+   * This property is used to cache the pool nodes when multiple API calls are chained.
+   *
+   * @internal
+   */
+  poolNodes?: ApiPool;
 
   /**
    * Client timeout in milliseconds.

@@ -16,16 +16,11 @@
  */
 import { describe } from 'vitest';
 
-import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { ServerFeatures } from '@cbjsdev/http-client';
 
-import {
-  releaseSupportsFeatures,
-  ServerFeatures,
-} from '../../../packages/http-client/src/services/cluster/serverFeature.js';
 // import vector from '../data/test_vector.json';
 // import searchDocuments from '../data/test_vector_search_docs.json';
 // import { getVectorSearchIndexConfig } from '../data/vectorSearchIndexConfig';
-import { DataSample } from '../utils/dataSample.js';
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
