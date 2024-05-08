@@ -47,7 +47,7 @@ jobs:
           - 11210:11210
           - 11280:11280
     env:
-      CB_CONNECTION_STRING: couchbase://localhost
+      CB_CONNECTION_STRING: couchbase://127.0.0.1
       CB_USER: Administrator
       CB_PASSWORD: password
     steps:
