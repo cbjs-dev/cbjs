@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import fetch from 'cross-fetch';
+import fetch from 'node-fetch';
 
 import { jsonToUrlSearchParams, ServiceName } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../../types.js';
-import { MANAGEMENT_PORT } from '../../../utils/ports.js';
+import { getPort } from '../../../utils/ports.js';
 
 export type InitClusterParams = {
   username: string;
@@ -67,7 +67,8 @@ export async function requestInitCluster(
   initClusterParams: InitClusterParams
 ) {
   const protocol = secure ? 'https' : 'http';
-  const url = `${protocol}://${hostname}:${MANAGEMENT_PORT}/clusterInit`;
+  const port = getPort('management', secure);
+  const url = `${protocol}://${hostname}:${port}/clusterInit`;
 
   const services = initClusterParams.services.join(',');
 

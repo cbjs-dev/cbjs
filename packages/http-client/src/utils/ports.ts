@@ -14,10 +14,32 @@
  * limitations under the License.
  */
 
-export const MANAGEMENT_PORT = 8091;
-export const VIEWS_PORT = 8092;
-export const QUERY_PORT = 8093;
-export const SEARCH_PORT = 8094;
-export const ANALYTICS_PORT = 8095;
-export const EVENTING_PORT = 8096;
-export const INDEX_STATISTICS = 9102;
+const unsecurePorts = {
+  management: 8091,
+  views: 8092,
+  query: 8093,
+  search: 8094,
+  analytics: 8095,
+  eventing: 8096,
+  indexer: 9102,
+};
+
+const securePorts = {
+  management: 18091,
+  views: 18092,
+  query: 18093,
+  search: 18094,
+  analytics: 18095,
+  eventing: 18096,
+  indexer: 19102,
+};
+
+export type PortService = keyof typeof unsecurePorts;
+
+export function getPort(service: PortService, secure = false): number {
+  if (secure) {
+    return securePorts[service];
+  }
+
+  return unsecurePorts[service];
+}

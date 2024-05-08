@@ -21,6 +21,7 @@ export type ConnectionParams = {
     username: string;
     password: string;
   };
+  certificate?: string;
 };
 
 export function getConnectionParams(): ConnectionParams {
@@ -30,6 +31,7 @@ export function getConnectionParams(): ConnectionParams {
       username: process.env.CB_USER,
       password: process.env.CB_PASSWORD,
     },
+    certificate: process.env.CB_CERTIFICATE,
   };
 
   invariant(env.connectionString, 'Missing env connection string (CB_CONNECTION_STRING)');

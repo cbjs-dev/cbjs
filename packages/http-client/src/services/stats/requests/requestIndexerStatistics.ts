@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
-import { INDEX_STATISTICS } from '../../../utils/ports.js';
 
 export async function requestIndexerStatistics(
   apiConfig: CouchbaseHttpApiConfig,
@@ -25,5 +26,5 @@ export async function requestIndexerStatistics(
     skipEmpty: skipEmpty.toString(),
   });
 
-  return await apiGET(apiConfig, `/api/v1/stats`, INDEX_STATISTICS, payload);
+  return await apiGET(apiConfig, `/api/v1/stats`, 'indexer', payload);
 }

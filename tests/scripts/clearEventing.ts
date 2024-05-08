@@ -20,7 +20,7 @@ import {
 } from '@cbjsdev/http-client';
 import { getApiConfig } from '@cbjsdev/shared';
 
-const apiConfig = getApiConfig();
+const apiConfig = getApiConfig(false);
 
 const result = await getEventingFunctions(apiConfig);
 for (const f of result) {

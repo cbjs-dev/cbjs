@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import fetch from 'cross-fetch';
+import https from 'https';
+import fetch, { RequestInit } from 'node-fetch';
 
+import { CapellaCaCertPem } from '../constants.js';
 import { getHttpClientLogger } from '../logger.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
-import { MANAGEMENT_PORT } from './ports.js';
+import { getPort, PortService } from './ports.js';
 
 /**
  *
  * @param apiConfig CouchbaseHttpApiConfig
  * @param pathname with a leading slash '/'.
- * @param port duh
+ * @param portService
  * @param query ?pretty=1
  */
 export async function apiGET(
-  { hostname, credentials, secure, timeout }: CouchbaseHttpApiConfig,
+  { hostname, credentials, secure, timeout, certificate }: CouchbaseHttpApiConfig,
   pathname: string,
-  port?: number,
+  portService?: PortService,
   query?: Record<string, string> | URLSearchParams
 ) {
   const base64Credentials = Buffer.from(
     `${credentials.username}:${credentials.password}`
   ).toString('base64');
 
-  port ??= MANAGEMENT_PORT;
+  const port = getPort(portService ?? 'management', secure);
   const protocol = secure ? 'https' : 'http';
   const queryString = query ? `?${new URLSearchParams(query).toString()}` : '';
   const url = `${protocol}://${hostname}:${port}${pathname}${queryString}`;
@@ -49,11 +51,19 @@ export async function apiGET(
     setTimeout(() => abortController.abort('Client timeout'), timeout);
   }
 
-  return await fetch(url, {
+  const request: RequestInit = {
     method: 'GET',
     signal: abortController.signal,
     headers: {
       Authorization: `Basic ${base64Credentials}`,
     },
-  });
+  };
+
+  if (protocol === 'https') {
+    request.agent = new https.Agent({
+      ca: certificate ?? CapellaCaCertPem,
+    });
+  }
+
+  return await fetch(url, request);
 }

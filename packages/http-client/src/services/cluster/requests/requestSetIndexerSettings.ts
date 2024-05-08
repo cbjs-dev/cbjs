@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { jsonToUrlSearchParams } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiPOST } from '../../../utils/apiPOST.js';
-import { MANAGEMENT_PORT } from '../../../utils/ports.js';
 
 export type CouchbaseIndexerSettings = Partial<{
   indexerThreads: number;
@@ -48,7 +49,7 @@ export async function requestSetIndexerSettings(
     apiConfig,
     `/settings/indexes`,
     jsonToUrlSearchParams(settings),
-    MANAGEMENT_PORT,
+    'management',
     undefined,
     {
       'Content-Type': 'application/x-www-form-urlencoded',

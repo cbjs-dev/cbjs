@@ -19,7 +19,7 @@ module.exports = {
   env: {
     'browser': false,
     'es2022': false,
-    'shared-node-browser': true,
+    'node': true,
   },
   rules: {
     'no-restricted-imports': [

@@ -17,4 +17,4 @@
 import { getClusterRelease } from '@cbjsdev/http-client';
 import { getApiConfig } from '@cbjsdev/shared';
 
-export const clusterRelease = await getClusterRelease(getApiConfig());
+export const clusterRelease = await getClusterRelease(getApiConfig(false));

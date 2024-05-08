@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// import { Response } from 'cross-fetch';
+import { Response } from 'node-fetch';
 
 export async function createHttpError(
   method: 'GET' | 'POST' | 'DELETE' | 'PATCH',

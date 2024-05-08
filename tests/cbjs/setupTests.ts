@@ -30,7 +30,7 @@ setTestLogger(testLogger);
 setHttpClientLogger(testLogger);
 
 export const connectionParams = getConnectionParams();
-export const apiConfig = getApiConfig();
+export const apiConfig = getApiConfig(false);
 
 beforeAll(async ({ filepath }) => {
   testLogger.info(`Executing test file: ${filepath}`);

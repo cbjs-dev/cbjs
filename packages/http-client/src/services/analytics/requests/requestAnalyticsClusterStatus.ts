@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
-import { ANALYTICS_PORT } from '../../../utils/ports.js';
 
 export async function requestAnalyticsClusterStatus(apiConfig: CouchbaseHttpApiConfig) {
-  return await apiGET(apiConfig, '/analytics/cluster', ANALYTICS_PORT);
+  return await apiGET(apiConfig, '/analytics/cluster', 'analytics');
 }

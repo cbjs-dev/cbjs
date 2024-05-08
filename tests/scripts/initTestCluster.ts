@@ -23,7 +23,7 @@ import {
 } from '@cbjsdev/http-client';
 import { getApiConfig } from '@cbjsdev/shared';
 
-const apiConfig = getApiConfig();
+const apiConfig = getApiConfig(false);
 
 console.info('Initializing Couchbase cluster');
 

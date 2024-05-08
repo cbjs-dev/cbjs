@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import type { EventingFunctionScope } from '@cbjsdev/shared';
 
 import type { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiPOST } from '../../../utils/apiPOST.js';
-import { EVENTING_PORT } from '../../../utils/ports.js';
 
 export async function requestChangeEventingFunctionStatus(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
@@ -34,6 +35,6 @@ export async function requestChangeEventingFunctionStatus(
       bucket: scope.bucket,
       scope: scope.scope,
     }),
-    EVENTING_PORT
+    'eventing'
   );
 }

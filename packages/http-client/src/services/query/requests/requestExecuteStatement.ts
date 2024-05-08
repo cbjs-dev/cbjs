@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiPOST } from '../../../utils/apiPOST.js';
-import { QUERY_PORT } from '../../../utils/ports.js';
 
 export async function requestExecuteStatement(
   params: CouchbaseHttpApiConfig,
@@ -27,6 +28,6 @@ export async function requestExecuteStatement(
     JSON.stringify({
       statement,
     }),
-    QUERY_PORT
+    'query'
   );
 }

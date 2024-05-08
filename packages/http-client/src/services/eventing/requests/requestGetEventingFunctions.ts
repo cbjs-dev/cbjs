@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
 
 export async function requestGetEventingFunctions(
   apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>
 ) {
-  return await apiGET(apiParams, '/api/v1/functions', 8096);
+  return await apiGET(apiParams, '/api/v1/functions', 'eventing');
 }

@@ -22,16 +22,18 @@ export type CouchbaseApiConfig = {
     username: string;
     password: string;
   };
+  certificate?: string;
 };
 
-export function getApiConfig() {
+export function getApiConfig(secure = true) {
   const params = getConnectionParams();
   return {
     hostname: new URL(params.connectionString).hostname.split(',')[0],
-    secure: false,
+    secure,
     credentials: {
       username: params.credentials.username || 'Administrator',
       password: params.credentials.password || 'password',
     },
+    certificate: params.certificate,
   } satisfies CouchbaseApiConfig;
 }

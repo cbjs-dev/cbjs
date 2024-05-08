@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
-import { SEARCH_PORT } from '../../../utils/ports.js';
 
 export async function requestGetSearchIndexes(params: CouchbaseHttpApiConfig) {
-  return apiGET({ ...params }, `/api/index`, SEARCH_PORT);
+  return apiGET({ ...params }, `/api/index`, 'search');
 }

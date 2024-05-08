@@ -16,11 +16,11 @@
 import 'node-fetch';
 
 import { CouchbaseHttpApiConfig } from '../../../types.js';
-import { requestExecuteStatement } from './requestExecuteStatement.js';
+import { apiGET } from '../../../utils/apiGET.js';
 
-export async function requestGetQueryIndexes(params: CouchbaseHttpApiConfig) {
-  return await requestExecuteStatement(
-    params,
-    "SELECT RAW indexes FROM system:indexes WHERE `using` = 'gsi'"
-  );
+export async function requestGetRootCertificates(
+  apiConfig: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
+  poolName = 'default'
+) {
+  return await apiGET(apiConfig, `/pools/${poolName}/trustedCAs`);
 }

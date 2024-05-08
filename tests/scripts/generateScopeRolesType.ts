@@ -1,7 +1,7 @@
 import { getRoles } from '@cbjsdev/http-client';
 import { getApiConfig, hasOwn } from '@cbjsdev/shared';
 
-const apiConfig = getApiConfig();
+const apiConfig = getApiConfig(false);
 
 const roles = await getRoles(apiConfig);
 

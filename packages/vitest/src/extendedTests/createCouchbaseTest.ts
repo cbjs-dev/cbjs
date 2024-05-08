@@ -16,6 +16,8 @@
 import '@vitest/runner';
 import type { TaskContext } from 'vitest';
 
+import { CouchbaseHttpApiConfig } from '@cbjsdev/http-client';
+import { getClusterRootCertificates } from '@cbjsdev/http-client/dist/src/services/cluster/getClusterRootCertificates.js';
 import type { CouchbaseApiConfig } from '@cbjsdev/shared';
 import { getApiConfig, type PromiseValue } from '@cbjsdev/shared';
 
@@ -76,10 +78,9 @@ export type FixtureWithCouchbase<T> = (
 ) => Promise<unknown>;
 
 export const createCouchbaseTest = makeCreateTest(async () => {
-  const apiConfig = getApiConfig();
   const serverTestContext = getDefaultServerTestContext();
-
   await serverTestContext.start();
+  const apiConfig = await serverTestContext.getApiConfig();
 
   return {
     fixtureContext: {

@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
-import { MANAGEMENT_PORT } from '../../../utils/ports.js';
 
 export async function requestGetUser(
   params: CouchbaseHttpApiConfig,
   username: string,
   domain = 'local'
 ) {
-  return apiGET(
-    { ...params },
-    `/settings/rbac/users/${domain}/${username}`,
-    MANAGEMENT_PORT
-  );
+  return apiGET({ ...params }, `/settings/rbac/users/${domain}/${username}`);
 }

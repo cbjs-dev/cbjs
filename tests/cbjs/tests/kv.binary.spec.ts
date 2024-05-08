@@ -22,10 +22,8 @@ import { getPool } from '@cbjsdev/http-client';
 import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
-import { apiConfig } from '../setupTests.js';
-
 describe.shuffle('kv binary', async () => {
-  const test = await createCouchbaseTest(async ({ useDocumentKey }) => {
+  const test = await createCouchbaseTest(async ({ apiConfig, useDocumentKey }) => {
     return {
       testDocKey: useDocumentKey(),
       testDocContent: 14,

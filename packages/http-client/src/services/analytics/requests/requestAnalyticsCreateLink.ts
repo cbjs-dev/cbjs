@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { jsonToUrlSearchParams } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { ApiAnalyticsLink } from '../../../types/Api/index.js';
 import { apiPOST } from '../../../utils/apiPOST.js';
-import { ANALYTICS_PORT } from '../../../utils/ports.js';
 
 export async function requestAnalyticsCreateLink(
   apiConfig: CouchbaseHttpApiConfig,
@@ -43,7 +44,7 @@ export async function requestAnalyticsCreateLink(
     apiConfig,
     `/analytics/link/${encodedScope}/${name}`,
     body,
-    ANALYTICS_PORT,
+    'analytics',
     undefined,
     {
       'Content-Type': 'application/x-www-form-urlencoded',

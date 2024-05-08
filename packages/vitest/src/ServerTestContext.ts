@@ -24,9 +24,14 @@ import {
   DefaultScope,
   Scope,
 } from '@cbjsdev/cbjs';
-import { waitForBucket, waitForCollection } from '@cbjsdev/http-client';
+import {
+  getClusterRootCertificates,
+  waitForBucket,
+  waitForCollection,
+} from '@cbjsdev/http-client';
 import {
   ConnectionParams,
+  type CouchbaseApiConfig,
   CouchbaseLogger,
   DefaultClusterTypes,
   getApiConfig,
@@ -54,6 +59,7 @@ export class ServerTestContext {
   } = {};
 
   private setupPromise?: Promise<this> = undefined;
+  private apiConfig?: CouchbaseApiConfig = undefined;
   private readonly connections: Cluster[] = [];
   public readonly logger: CouchbaseLogger | undefined;
 
@@ -68,6 +74,29 @@ export class ServerTestContext {
 
   newUid() {
     return `${this.contextId}_${this.keyCounter++}`;
+  }
+
+  /**
+   * It differs from @cbjsdev/shared by the fact that it will fetch the certificates
+   * from the Couchbase server.
+   */
+  async getApiConfig() {
+    if (this.apiConfig === undefined) {
+      const defaultApiConfig = getApiConfig();
+
+      const certificates = await getClusterRootCertificates({
+        ...defaultApiConfig,
+        secure: false,
+      });
+
+      this.apiConfig = {
+        ...defaultApiConfig,
+        secure: true,
+        certificate: certificates[0].pem,
+      } satisfies CouchbaseApiConfig;
+    }
+
+    return this.apiConfig;
   }
 
   /**
@@ -108,7 +137,7 @@ export class ServerTestContext {
 
   private async setup() {
     this.logger?.debug(`setup of '${this.contextNamespace}' started`);
-    const apiConfig = getApiConfig();
+    const apiConfig = await this.getApiConfig();
     const cluster = await this.newConnection();
     const bucketName = this.contextNamespace;
     const collectionName = this.newUid();
@@ -161,9 +190,10 @@ export class ServerTestContext {
 
     // We create a new connection to drop the bucket, because the test may have closed it.
     const cleanupConnection = await this.newConnection();
+    const apiConfig = await this.getApiConfig();
 
     await cleanupConnection.buckets().dropBucket(this.bucket.name);
-    await waitForBucket(getApiConfig(), this.bucket.name, { expectMissing: true });
+    await waitForBucket(apiConfig, this.bucket.name, { expectMissing: true });
 
     this.logger?.trace('closing connections');
     await Promise.allSettled(this.connections.map((c) => c.close()));

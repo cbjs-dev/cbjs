@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
-import { ANALYTICS_PORT } from '../../../utils/ports.js';
 import { GetAnalyticsLinksOptions } from '../getAnalyticsLinks.js';
 
 export async function requestAnalyticsGetAllLinks(
@@ -24,5 +25,5 @@ export async function requestAnalyticsGetAllLinks(
 ) {
   const scopePath = scope ? `/${scope}` : '';
 
-  return await apiGET(apiConfig, `/analytics/link${scopePath}`, ANALYTICS_PORT);
+  return await apiGET(apiConfig, `/analytics/link${scopePath}`, 'analytics');
 }

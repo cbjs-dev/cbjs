@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
 import { pathname } from '../../../utils/pathname.js';
-import { MANAGEMENT_PORT } from '../../../utils/ports.js';
 import { getPoolNodes } from '../../cluster/getPoolNodes.js';
 
 export async function requestGetBucketScopes(
@@ -27,7 +28,6 @@ export async function requestGetBucketScopes(
 
   return await apiGET(
     { ...params },
-    `${pathname(poolNodes.buckets.uri)}/${bucketName}/scopes`,
-    MANAGEMENT_PORT
+    `${pathname(poolNodes.buckets.uri)}/${bucketName}/scopes`
   );
 }

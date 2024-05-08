@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "@cbjsdev/shared": "workspace:*",
-    "cross-fetch": "^4.0.0",
+    "node-fetch": "^3.3.2",
     "semver": "^7.6.0",
     "ts-retry-promise": "^0.8.0",
     "vitest": "1.5.2"
