@@ -6,22 +6,6 @@ outline: [2, 3]
 # Wait For
 
 This section is dedicated to functions that waits for a resource to reach a certain status.  
-
-## Introduction
-All the functions of the http client take the api config as the first parameter:
-
-```ts twoslash
-export type CouchbaseHttpApiConfig = {
-  hostname: string;
-  secure: boolean;
-  credentials: {
-    username: string;
-    password: string;
-  };
-  timeout?: number;
-};
-```
-
 The wait functions use `ts-retry-promise` under the hood and accept the same options, as described by the following type :
 
 ```ts twoslash

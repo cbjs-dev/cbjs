@@ -4,28 +4,15 @@ title: Actions - Couchbase HTTP Client
 
 # Actions 
 
-Cbjs HTTP Client offers several functions to perform various retrieval or mutations on different services.  
-
-All the functions of the http client take the api config as the first parameter: 
-
-```ts twoslash
-export type CouchbaseHttpApiConfig = {
-  hostname: string;
-  secure: boolean;
-  credentials: {
-    username: string;
-    password: string;
-  };
-  timeout?: number;
-};
-```
+Cbjs HTTP Client offers several functions to perform various retrieval or mutations on different services.
 
 ## Cluster
 
 ```ts twoslash
-import { CouchbaseHttpApiConfig, ClusterRelease, ApiPool, ApiPoolNodes, InitClusterParams, CouchbaseIndexerSettings, ServerFeature } from '@cbjsdev/http-client';
+import { CouchbaseHttpApiConfig, ClusterRelease, ApiPool, ApiPoolNodes, InitClusterParams, CouchbaseIndexerSettings, ServerFeature, ApiCertificate } from '@cbjsdev/http-client';
 // ---cut-before---
 declare function getClusterRelease(apiConfig: CouchbaseHttpApiConfig): Promise<ClusterRelease>;
+declare function getClusterRootCertificates(apiConfig: CouchbaseHttpApiConfig): Promise<ApiCertificate[]>;
 declare function releaseSupportsFeatures(clusterRelease: ClusterRelease, ...features: ServerFeature[]): boolean;
 declare function versionSupports(version: string, feature: ServerFeature): boolean;
 declare function getPool(params: Omit<CouchbaseHttpApiConfig, 'poolNodes'>, poolName?: string): Promise<ApiPool>;

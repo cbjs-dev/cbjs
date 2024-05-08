@@ -33,6 +33,47 @@ bun add @cbjsdev/http-client
 
 :::
 
+## API Config
+All the functions of the http client take the api config as the first parameter:
+
+```ts twoslash
+export type CouchbaseHttpApiConfig = {
+  /**
+   * Hostname of the node that will receive the request.
+   */
+  hostname: string;
+
+  /**
+   * Use https or not.
+   * 
+   * @default: true
+   */
+  secure: boolean;
+
+  /**
+   * Credentials to authenticate the request.
+   */
+  credentials: {
+    username: string;
+    password: string;
+  };
+
+  /**
+   * Timeout for the HTTP requests.
+   */
+  timeout?: number;
+  
+  /**
+   * The certificate will be used for HTTPS requests.
+   */
+  certificate?: string; 
+};
+```
+
+::: tip
+The SSL certificate of Couchbase Capella is already included in the library, so you don't need to provide it.
+:::
+
 ## Logger
 
 You can integrate the http client by passing your own logger.
