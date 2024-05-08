@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { setHttpClientLogger } from '@cbjsdev/http-client';
-import { getApiConfig, getConnectionParams, hasOwn } from '@cbjsdev/shared';
+import { hasOwn } from '@cbjsdev/shared';
 import {
   cleanupCouchbaseAfterAll,
   cleanupCouchbaseAfterEach,
@@ -12,8 +12,6 @@ import { testLogger } from './setupLogger.js';
 
 setTestLogger(testLogger);
 setHttpClientLogger(testLogger);
-
-export const apiConfig = getApiConfig();
 
 beforeAll(async ({ filepath }) => {
   testLogger.info(`Executing test file: ${filepath}`);
