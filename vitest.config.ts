@@ -3,8 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     workspace: './vitest.workspace.ts',
-    pool: 'forks',
-    fileParallelism: false,
+    pool: 'threads',
     minWorkers: 1,
     maxWorkers: 1,
     sequence: {
