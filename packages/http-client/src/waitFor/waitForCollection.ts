@@ -15,7 +15,7 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getCollections, getPoolNodes } from '../services/index.js';
+import { getCollections, getPool } from '../services/index.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { ApiCollection } from '../types/Api/kv/ApiCollection.js';
 import { mapNodes } from '../utils/mapNodes.js';
@@ -40,7 +40,7 @@ export async function waitForCollection(
   const { expectMissing } = resolvedOptions;
 
   return await retry(async () => {
-    const poolNodes = await getPoolNodes(params);
+    const poolNodes = await getPool(params);
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
       getCollections({ ...params, hostname }, bucketName, scopeName).catch(

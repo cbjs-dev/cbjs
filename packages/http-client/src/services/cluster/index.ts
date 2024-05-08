@@ -15,7 +15,7 @@
  */
 
 export * from './getPool.js';
-export * from './getPoolNodes.js';
+export * from './getPool.js';
 export * from './initCluster.js';
 export * from './getClusterRelease.js';
 export * from './setIndexerSettings.js';

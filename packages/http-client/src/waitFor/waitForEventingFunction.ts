@@ -17,7 +17,7 @@ import { retry } from 'ts-retry-promise';
 
 import { EventingFunctionStatusName } from '@cbjsdev/shared';
 
-import { getEventingFunctionStatus, getPoolNodes } from '../services/index.js';
+import { getEventingFunctionStatus, getPool } from '../services/index.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { mapNodes } from '../utils/mapNodes.js';
 import { waitOptionsModerate } from './options.js';
@@ -79,7 +79,7 @@ export async function waitForEventingFunction(
   const { expectedStatus } = resolvedOptionalArgs;
 
   return await retry(async () => {
-    const poolNodes = await getPoolNodes(params);
+    const poolNodes = await getPool(params);
 
     const requests = mapNodes(poolNodes, 'eventing', ({ hostname }) =>
       getEventingFunctionStatus({ ...params, hostname })

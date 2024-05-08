@@ -16,7 +16,7 @@
 import { ServiceName } from '@cbjsdev/shared';
 
 import { ApiNode } from '../types/Api/cluster/ApiNode.js';
-import { ApiPoolNodes } from '../types/Api/cluster/ApiPoolNodes.js';
+import { ApiPool } from '../types/Api/cluster/ApiPool.js';
 import { extractNodeHostnames } from './extractNodeHostnames.js';
 
 type NodeMapArguments = {
@@ -26,13 +26,13 @@ type NodeMapArguments = {
 type MapNodesCallback<T> = (args: NodeMapArguments) => T;
 
 export function mapNodes<T>(
-  poolNodes: ApiPoolNodes,
+  poolNodes: ApiPool,
   service: ServiceName,
   fn: MapNodesCallback<T>
 ): T[];
-export function mapNodes<T>(poolNodes: ApiPoolNodes, fn: MapNodesCallback<T>): T[];
+export function mapNodes<T>(poolNodes: ApiPool, fn: MapNodesCallback<T>): T[];
 export function mapNodes<T>(
-  poolNodes: ApiPoolNodes,
+  poolNodes: ApiPool,
   ...args: [ServiceName, MapNodesCallback<T>] | [MapNodesCallback<T>]
 ): T[] {
   let nodes: ApiNode[] = poolNodes.nodes;

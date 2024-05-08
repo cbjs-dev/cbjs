@@ -18,13 +18,13 @@ import 'node-fetch';
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
 import { pathname } from '../../../utils/pathname.js';
-import { getPoolNodes } from '../../cluster/index.js';
+import { getPool } from '../../cluster/index.js';
 
 export async function requestGetViewDesignDocuments(
   params: CouchbaseHttpApiConfig,
   bucketName: string
 ) {
-  const poolNodes = params.poolNodes ?? (await getPoolNodes(params));
+  const poolNodes = params.poolNodes ?? (await getPool(params));
 
   return await apiGET(
     { ...params },

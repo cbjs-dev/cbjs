@@ -17,7 +17,11 @@ import { retry } from 'ts-retry-promise';
 
 import { hasOwn, isPartialKeyspace, Keyspace } from '@cbjsdev/shared';
 
-import { getSearchIndex, getStatistics, querySearchIndexes } from '../services/index.js';
+import {
+  getQuerySearchIndexes,
+  getSearchIndex,
+  getStatistics,
+} from '../services/index.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
@@ -60,7 +64,7 @@ export async function waitForSearchIndex(
 
   return await retry(async () => {
     const index = awaitQueryVisibility
-      ? (await querySearchIndexes(apiConfig, { index: indexName }))[0]
+      ? (await getQuerySearchIndexes(apiConfig, { index: indexName }))[0]
       : await getSearchIndex(apiConfig, indexName);
 
     if (!index && !expectMissing) throw new Error('Search index is not visible yet');

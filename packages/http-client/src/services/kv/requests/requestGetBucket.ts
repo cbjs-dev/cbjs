@@ -18,13 +18,13 @@ import 'node-fetch';
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiGET } from '../../../utils/apiGET.js';
 import { pathname } from '../../../utils/pathname.js';
-import { getPoolNodes } from '../../cluster/getPoolNodes.js';
+import { getPool } from '../../cluster/getPool.js';
 
 export async function requestGetBucket(
   params: CouchbaseHttpApiConfig,
   bucketName: string
 ) {
-  const poolNodes = params.poolNodes ?? (await getPoolNodes(params));
+  const poolNodes = params.poolNodes ?? (await getPool(params));
 
   return await apiGET({ ...params }, `${pathname(poolNodes.buckets.uri)}/${bucketName}`);
 }

@@ -15,7 +15,7 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getPoolNodes } from '../services/index.js';
+import { getPool } from '../services/index.js';
 import { getScopes } from '../services/index.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { mapNodes } from '../utils/mapNodes.js';
@@ -39,7 +39,7 @@ export async function waitForScope(
   const { expectMissing } = resolvedOptions;
 
   return await retry(async () => {
-    const poolNodes = await getPoolNodes(params);
+    const poolNodes = await getPool(params);
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
       getScopes({ ...params, hostname }, bucketName)

@@ -16,7 +16,7 @@
 import { retry } from 'ts-retry-promise';
 
 import { getHttpClientLogger } from '../logger.js';
-import { getPoolNodes } from '../services/index.js';
+import { getPool } from '../services/index.js';
 import { requestGetUser } from '../services/rbac/requests/requestGetUser.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { mapNodes } from '../utils/mapNodes.js';
@@ -42,7 +42,7 @@ export async function waitForUser(
   const { expectMissing } = resolvedOptions;
 
   return retry(async () => {
-    const poolNodes = apiConfig.poolNodes ?? (await getPoolNodes(apiConfig));
+    const poolNodes = apiConfig.poolNodes ?? (await getPool(apiConfig));
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
       requestGetUser({ ...apiConfig, hostname, poolNodes }, username, domain)

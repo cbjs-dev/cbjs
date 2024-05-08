@@ -20,6 +20,7 @@ import { jsonToUrlSearchParams, ServiceName } from '@cbjsdev/shared';
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { getPort } from '../../../utils/ports.js';
 
+// #region type
 export type InitClusterParams = {
   username: string;
   password: string;
@@ -61,6 +62,7 @@ export type InitClusterParams = {
    */
   allowedHosts?: string; // =<list-of-naming-conventions>
 };
+// #endregion type
 
 export async function requestInitCluster(
   { hostname, secure }: Pick<CouchbaseHttpApiConfig, 'hostname' | 'secure'>,

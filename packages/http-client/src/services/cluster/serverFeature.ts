@@ -15,8 +15,6 @@
  */
 import { gte } from 'semver';
 
-import { ClusterRelease } from './getClusterRelease.js';
-
 export const ServerFeatures = {
   KeyValue: 'kv',
   Ssl: 'ssl',
@@ -53,11 +51,11 @@ export const ServerFeatures = {
 
 export type ServerFeature = (typeof ServerFeatures)[keyof typeof ServerFeatures];
 
-export function releaseSupportsFeatures(
-  clusterRelease: ClusterRelease,
+export function versionSupportsFeatures(
+  version: string,
   ...features: ServerFeature[]
 ): boolean {
-  return features.every((f) => versionSupports(clusterRelease.version, f));
+  return features.every((f) => versionSupports(version, f));
 }
 
 export function versionSupports(version: string, feature: ServerFeature) {

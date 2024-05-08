@@ -15,7 +15,7 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { getPoolNodes, getQueryBuckets } from '../services/index.js';
+import { getPool, getQueryBuckets } from '../services/index.js';
 import { requestGetBucket } from '../services/kv/requests/requestGetBucket.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { ApiBucket } from '../types/Api/kv/ApiBucket.js';
@@ -39,7 +39,7 @@ export async function waitForBucket(
   const { expectMissing } = resolvedOptions;
 
   return await retry(async () => {
-    const poolNodes = apiConfig.poolNodes ?? (await getPoolNodes(apiConfig));
+    const poolNodes = apiConfig.poolNodes ?? (await getPool(apiConfig));
 
     const requests = mapNodes(poolNodes, ({ hostname }) =>
       requestGetBucket({ ...apiConfig, hostname, poolNodes }, bucketName)

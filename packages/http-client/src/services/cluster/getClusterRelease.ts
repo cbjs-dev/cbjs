@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { CouchbaseHttpApiConfig } from '../../types.js';
-import { ApiPoolNodes } from '../../types/Api/cluster/ApiPoolNodes.js';
-import { getPoolNodes } from './getPoolNodes.js';
+import { ApiPool } from '../../types/Api/index.js';
+import { getPool } from './getPool.js';
 
 export type ClusterReleaseFlavor = 'community' | 'enterprise';
 export type ClusterRelease = {
@@ -30,9 +30,9 @@ export async function getClusterRelease(
   apiConfig: CouchbaseHttpApiConfig
 ): Promise<ClusterRelease> {
   if (clusterInfoPromise === undefined) {
-    const poolNodesPromise: Promise<ApiPoolNodes> = apiConfig.poolNodes
+    const poolNodesPromise: Promise<ApiPool> = apiConfig.poolNodes
       ? Promise.resolve(apiConfig.poolNodes)
-      : getPoolNodes(apiConfig);
+      : getPool(apiConfig);
 
     clusterInfoPromise = poolNodesPromise.then((poolNodes) => {
       const [version, build, flavor] = poolNodes.nodes[0].version.split('-');

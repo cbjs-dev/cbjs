@@ -22,7 +22,7 @@ import { QueryResultSearchIndex } from '../../types/QueryResult/index.js';
 import { createHttpError } from '../../utils/createHttpError.js';
 import { requestQuerySearchIndexes } from './requests/requestQuerySearchIndexes.js';
 
-export async function querySearchIndexes(
+export async function getQuerySearchIndexes(
   params: CouchbaseHttpApiConfig,
   options: Partial<Keyspace> & { index?: string } = {}
 ) {

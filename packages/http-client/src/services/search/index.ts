@@ -16,4 +16,4 @@
 
 export * from './getSearchIndex.js';
 export * from './getSearchIndexes.js';
-export * from './querySearchIndexes.js';
+export * from './getQuerySearchIndexes.js';
