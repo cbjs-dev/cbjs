@@ -31,6 +31,7 @@ import {
 import binding, {
   CppCas,
   CppCasInput,
+  CppConnection,
   CppTransaction,
   CppTransactionGetMetaData,
   CppTransactionGetResult,
@@ -45,7 +46,7 @@ import {
   transactionKeyspaceToCpp,
 } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
-import { AnyCollection, AnyScope } from './clusterTypes/index.js';
+import { AnyCollection, AnyScope, ClusterCollection } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import {
   DocumentNotFoundError,
@@ -526,6 +527,7 @@ function translateGetResult<
  * @category Transactions
  */
 export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
+  private cluster: Cluster<T>;
   private _impl: CppTransaction;
 
   /**
@@ -535,6 +537,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     if (!config) {
       config = {};
     }
+    this.cluster = txns.cluster;
     this._impl = new binding.Transaction(txns.impl, {
       durability_level: durabilityToCpp(config.durabilityLevel),
       timeout: config.timeout,
@@ -850,6 +853,34 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
       });
     });
   }
+
+  bucket<B extends BucketName<T>>(bucketName: B) {
+    return {
+      scope: <S extends ScopeName<T, B>>(scopeName: S) => {
+        return {
+          collection: <C extends CollectionName<T, B, S>>(collectionName: C) => {
+            const collection = this.cluster
+              .bucket(bucketName)
+              .scope(scopeName)
+              .collection(collectionName);
+            return createTransactionCollectionContext(this, collection as never);
+          },
+        };
+      },
+    };
+  }
+}
+
+function createTransactionCollectionContext<T extends CouchbaseClusterTypes>(
+  context: TransactionAttemptContext<T>,
+  collection: ClusterCollection<T>
+) {
+  return {
+    ...context,
+    get: context.get.bind(context, collection),
+    exists: context.exists.bind(context, collection),
+    insert: context.insert.bind(context, collection),
+  };
 }
 
 /**
@@ -895,6 +926,10 @@ export class Transactions<T extends CouchbaseClusterTypes> {
     } catch (err) {
       throw errorFromCpp(err);
     }
+  }
+
+  get cluster(): Cluster<T> {
+    return this._cluster;
   }
 
   /**

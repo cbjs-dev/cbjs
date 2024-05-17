@@ -677,4 +677,29 @@ describe
         { timeout: 5000 }
       );
     });
+
+    test('should be able to use the fluid API', async ({
+      serverTestContext,
+      expect,
+      useDocumentKey,
+    }) => {
+      const testDocKey = useDocumentKey();
+      const testDocValue = { title: 'Hi' };
+
+      await serverTestContext.collection.insert(testDocKey, testDocValue);
+      const ks = serverTestContext.getKeyspace();
+
+      await serverTestContext.cluster.transactions().run(
+        async (ctx) => {
+          const { content } = await ctx
+            .bucket(ks.bucket)
+            .scope(ks.scope)
+            .collection(ks.collection)
+            .get(testDocKey);
+
+          expect(content).toEqual(testDocValue);
+        },
+        { timeout: 5000 }
+      );
+    });
   });

@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import { BucketName, CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
 
 import { AnalyticsExecutor } from './analyticsexecutor.js';
@@ -244,7 +246,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _transcoder: Transcoder;
   private _txnConfig: TransactionsConfig;
   private _transactions?: Transactions<T>;
-  private _openBuckets: BucketName<T>[];
+  private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
   private _dnsConfig: DnsConfig | null;
 
   /**
@@ -409,7 +411,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       this._dnsConfig = null;
     }
 
-    this._openBuckets = [];
+    this._openBuckets = new Map();
     this._conn = new binding.Connection();
   }
 
@@ -435,14 +437,9 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * @param bucketName The name of the bucket to reference.
    */
   bucket<B extends BucketName<T>>(bucketName: B): Bucket<T, B> {
-    if (!this._openBuckets.includes(bucketName)) {
-      this._conn.openBucket(bucketName, (err) => {
-        if (err) {
-          // BUG(JSCBC-1011): Move this to log framework once it is implemented.
-          // console.error('failed to open bucket: %O', err);
-        }
-      });
-      this._openBuckets.push(bucketName);
+    if (!this._openBuckets.has(bucketName)) {
+      const openBucket = promisify(this.conn.openBucket).bind(this.conn);
+      this._openBuckets.set(bucketName, openBucket(bucketName));
     }
 
     return new Bucket(this, bucketName);
@@ -698,9 +695,12 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  ping(callback?: NodeCallback<PingResult>): Promise<PingResult>;
-  ping(options: PingOptions, callback?: NodeCallback<PingResult>): Promise<PingResult>;
-  ping(
+  async ping(callback?: NodeCallback<PingResult>): Promise<PingResult>;
+  async ping(
+    options: PingOptions,
+    callback?: NodeCallback<PingResult>
+  ): Promise<PingResult>;
+  async ping(
     options?: PingOptions | NodeCallback<PingResult>,
     callback?: NodeCallback<PingResult>
   ): Promise<PingResult> {
@@ -715,7 +715,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     const exec = new PingExecutor(this);
 
     const options_ = options;
-    return PromiseHelper.wrapAsync(() => exec.ping(options_), callback);
+    return await PromiseHelper.wrapAsync(() => exec.ping(options_), callback);
   }
 
   /**
@@ -729,11 +729,25 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       this._transactions = undefined;
     }
 
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._conn.shutdown((cppErr) => {
+    return await PromiseHelper.wrap((wrapCallback) => {
+      this.conn.shutdown((cppErr) => {
         wrapCallback(errorFromCpp(cppErr));
       });
     }, callback);
+  }
+
+  /**
+   * Do a best effort to await for pending, internal, operations to settle before closing the cluster.
+   *
+   * Experimental.
+   */
+  async closeGracefully(callback?: VoidNodeCallback) {
+    try {
+      await Promise.allSettled(this._openBuckets.values());
+      await this.close(callback);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   /**
@@ -804,7 +818,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         }
       }
 
-      this._conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
+      this.conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
         if (cppErr) {
           const err = errorFromCpp(cppErr);
           return reject(err);

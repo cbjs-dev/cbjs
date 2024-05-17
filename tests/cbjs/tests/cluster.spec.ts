@@ -44,7 +44,7 @@ describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
       .collection(serverTestContext.collection.name)
       .insert(testDocKey, 'test');
 
-    await cluster.close();
+    await cluster.closeGracefully();
   });
 
   test('should successfully gc connections', async ({ serverTestContext }) => {
@@ -56,7 +56,7 @@ describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
       .collection(serverTestContext.collection.name);
 
     await collection.exists('missingDoc', { timeout: 5000 });
-    await cluster.close();
+    await cluster.closeGracefully();
 
     triggerGC();
   });
@@ -73,7 +73,7 @@ describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
       .bucket(serverTestContext.bucket.name)
       .collection(serverTestContext.collection.name);
 
-    await cluster.close();
+    await cluster.closeGracefully();
 
     await expect(
       collection.insert(testDocKey, 'test', { timeout: 2_000 })
@@ -97,17 +97,17 @@ describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
     testLogger.trace('inserted with active connection');
     await collection.insert(testDocKey, 'test', { timeout: 2_000 });
 
-    await cluster.close();
-    await cluster.close();
-    await cluster.close();
-    await cluster.close();
+    await cluster.closeGracefully();
+    await cluster.closeGracefully();
+    await cluster.closeGracefully();
+    await cluster.closeGracefully();
 
     await expect(
       collection.insert(testDocKey2, 'test', { timeout: 2_000 })
     ).rejects.toThrowError();
 
-    await cluster.close();
-    await cluster.close();
+    await cluster.closeGracefully();
+    await cluster.closeGracefully();
   });
 
   test('lcbVersion property should be available', function ({ expect }) {

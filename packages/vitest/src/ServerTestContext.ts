@@ -196,7 +196,7 @@ export class ServerTestContext {
     await waitForBucket(apiConfig, this.bucket.name, { expectMissing: true });
 
     this.logger?.trace('closing connections');
-    await Promise.allSettled(this.connections.map((c) => c.close()));
+    await Promise.allSettled(this.connections.map((c) => c.closeGracefully()));
 
     this.contextKeyspace.cluster = undefined;
     this.contextKeyspace.bucket = undefined;
