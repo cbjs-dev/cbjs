@@ -62,3 +62,15 @@ afterEach(async () => {
 afterAll(async () => {
   await cleanupCouchbaseAfterAll();
 });
+
+process.addListener('SIGABRT', (e) => {
+  testLogger.error('Signal %s received', e);
+});
+
+process.addListener('uncaughtException', (e) => {
+  testLogger.error('UncaughtException: %s', e);
+});
+
+process.addListener('unhandledRejection', (e) => {
+  testLogger.error('UnhandledRejection: %s', e);
+});
