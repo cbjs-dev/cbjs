@@ -509,18 +509,26 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * Executes a N1QL query against the cluster.
    *
    * @param statement The N1QL statement to execute.
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   query<TRow = any>(
     statement: string,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>;
+
+  /**
+   * Executes a N1QL query against the cluster.
+   *
+   * @param statement The N1QL statement to execute.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   query<TRow = any>(
     statement: string,
     options: QueryOptions,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>;
+
   query<TRow = any>(
     statement: string,
     options?: QueryOptions | NodeCallback<QueryResult<TRow>>,
@@ -544,18 +552,26 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * Executes an analytics query against the cluster.
    *
    * @param statement The analytics statement to execute.
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   analyticsQuery<TRow = any>(
     statement: string,
     callback?: NodeCallback<AnalyticsResult<TRow>>
   ): StreamableRowPromise<AnalyticsResult<TRow>, TRow, AnalyticsMetaData>;
+
+  /**
+   * Executes an analytics query against the cluster.
+   *
+   * @param statement The analytics statement to execute.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   analyticsQuery<TRow = any>(
     statement: string,
     options: AnalyticsQueryOptions,
     callback?: NodeCallback<AnalyticsResult<TRow>>
   ): StreamableRowPromise<AnalyticsResult<TRow>, TRow, AnalyticsMetaData>;
+
   analyticsQuery<TRow = any>(
     statement: string,
     options?: AnalyticsQueryOptions | NodeCallback<AnalyticsResult<TRow>>,
@@ -580,7 +596,6 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    *
    * @param indexName The name of the index to query.
    * @param query The SearchQuery describing the query to execute.
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   searchQuery(
@@ -588,12 +603,22 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     query: SearchQuery,
     callback?: NodeCallback<SearchResult>
   ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData>;
+
+  /**
+   * Executes a search query against the cluster.
+   *
+   * @param indexName The name of the index to query.
+   * @param query The SearchQuery describing the query to execute.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   searchQuery(
     indexName: string,
     query: SearchQuery,
     options: SearchQueryOptions,
     callback?: NodeCallback<SearchResult>
   ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData>;
+
   searchQuery(
     indexName: string,
     query: SearchQuery,
@@ -632,6 +657,13 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     callback?: NodeCallback<SearchResult>
   ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData>;
 
+  /**
+   * Executes a search query against the cluster.
+   *
+   * @param indexName The name of the index to query.
+   * @param request The SearchRequest describing the search to execute.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   search(
     indexName: string,
     request: SearchRequest,
@@ -661,14 +693,23 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * cluster.  Includes information about remote and local addresses, last activity,
    * and other diagnostics information.
    *
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   diagnostics(callback?: NodeCallback<DiagnosticsResult>): Promise<DiagnosticsResult>;
+
+  /**
+   * Returns a diagnostics report about the currently active connections with the
+   * cluster.  Includes information about remote and local addresses, last activity,
+   * and other diagnostics information.
+   *
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   diagnostics(
     options: DiagnosticsOptions,
     callback?: NodeCallback<DiagnosticsResult>
   ): Promise<DiagnosticsResult>;
+
   diagnostics(
     options?: DiagnosticsOptions | NodeCallback<DiagnosticsResult>,
     callback?: NodeCallback<DiagnosticsResult>
@@ -692,14 +733,23 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * are specified (or all services if none are specified).  Returns a report
    * which describes the outcome of the ping operations which were performed.
    *
-   * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async ping(callback?: NodeCallback<PingResult>): Promise<PingResult>;
+
+  /**
+   * Performs a ping operation against the cluster.  Pinging the services which
+   * are specified (or all services if none are specified).  Returns a report
+   * which describes the outcome of the ping operations which were performed.
+   *
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
+   */
   async ping(
     options: PingOptions,
     callback?: NodeCallback<PingResult>
   ): Promise<PingResult>;
+
   async ping(
     options?: PingOptions | NodeCallback<PingResult>,
     callback?: NodeCallback<PingResult>
