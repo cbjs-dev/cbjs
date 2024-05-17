@@ -16,3 +16,5 @@
  */
 
 export { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
+
+export type * from './clusterTypes/kv/mutation/mutationOperations.types.js';

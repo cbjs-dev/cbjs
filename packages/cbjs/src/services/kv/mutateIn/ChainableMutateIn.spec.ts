@@ -19,6 +19,7 @@ import { describe, it } from 'vitest';
 import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes.js';
+import { connect } from '../../../couchbase.js';
 import { MutateInSpec } from '../../../sdspecs.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 
@@ -32,10 +33,24 @@ type Book = {
   };
 };
 
+type UserId = `user::${number}`;
+type User = {
+  name: string;
+  mood?: string;
+  borrowing: Record<
+    string,
+    {
+      borrowedAt: number;
+      expectedReturnAt: number;
+    }
+  >;
+};
+
 type UserClusterTypes = ClusterTypes<{
   store: {
     library: {
       books: [DocDef<BookId, Book>];
+      user: [DocDef<UserId, User>];
     };
   };
 }>;
@@ -57,5 +72,22 @@ describe('ChainableMutateIn', function () {
       MutateInSpec.arrayAppend('authors', 'Jonathan'),
       MutateInSpec.replace('title', 'Hello'),
     ]);
+  });
+
+  it('should offer autocompletion for record path', async () => {
+    const cluster = await connect<UserClusterTypes>('...');
+    await cluster
+      .bucket('store')
+      .scope('library')
+      .collection('user')
+      .mutateIn('user::001')
+      .upsert('borrowing.', {
+        borrowedAt: 0,
+        expectedReturnAt: 100,
+      })
+      .insert('borrowing.book::001', {
+        borrowedAt: 0,
+        expectedReturnAt: 100,
+      });
   });
 });

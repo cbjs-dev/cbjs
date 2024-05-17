@@ -21,12 +21,17 @@ import {
   ExtractPathToArrayIndex,
   ExtractPathToInsertableArrayIndex,
   ExtractPathToObject,
+  ExtractPathToOptionalProperty,
+  ExtractPathToPojo,
   ExtractPathToPrependableArray,
   ExtractPathToRemovableArrayIndex,
   ExtractPathToType,
   ExtractPathToWritable,
   ExtractPathToWritableArrayIndex,
   ExtractPathToWritableProperty,
+  PathToMaybeUndefinedProperty,
+  ValidatePathToOptionalProperty,
+  ValidatePathToProperty,
 } from './document-path.types.js';
 import { DocumentPath } from './path-utils.types.js';
 import type {
@@ -45,6 +50,7 @@ describe('ExtractPathToWritable', function () {
 
     rwPrimitive: string;
     rwObject: { a: { aa: string } };
+    rwRecord: Record<string, { title: string }>;
     rwArrayOfPrimitive: string[];
     rwArrayOfObject: Array<{ prop: string }>;
     rwReadonlyArrayOfPrimitive: ReadonlyArray<string>;
@@ -64,6 +70,9 @@ describe('ExtractPathToWritable', function () {
       | 'rwObject'
       | 'rwObject.a'
       | 'rwObject.a.aa'
+      | `rwRecord`
+      | `rwRecord.${string}`
+      | `rwRecord.${string}.title`
       | 'rwArrayOfPrimitive'
       | `rwArrayOfPrimitive[${number}]`
       | 'rwArrayOfObject'
@@ -402,5 +411,187 @@ describe('ExtractPathToRemovableArrayIndex', function () {
       | `roArr[${number}]`
       | `roArrOpt[${number}]`
     >();
+  });
+});
+
+describe('ValidatePathToOptionalProperty', () => {
+  type VisitorId = `visitor::${string}`;
+
+  type Monument = {
+    openings?: {
+      periods: {
+        default: { openAt: string; closeAt: string };
+        summer?: { openAt: string; closeAt: string };
+        winter?: { openAt: string; closeAt: string };
+      };
+    };
+    visitors: Record<VisitorId, { enteredAt: number; leftAt?: number }>;
+    historicalReferences: {
+      persons?: Array<{
+        name: string;
+        surname?: string;
+      }>;
+    };
+  };
+
+  it('should return never for paths that point to non-object', () => {
+    expectTypeOf<ValidatePathToOptionalProperty<Monument, 'persons[0]'>>().toBeNever();
+  });
+
+  it('should narrow string template', () => {
+    expectTypeOf<
+      ValidatePathToOptionalProperty<Monument, 'visitors.visitor::001'>
+    >().toEqualTypeOf<'visitors.visitor::001'>();
+
+    expectTypeOf<
+      ValidatePathToOptionalProperty<Monument, 'visitors.visitor::001.enteredAt'>
+    >().toBeNever();
+
+    expectTypeOf<
+      ValidatePathToOptionalProperty<Monument, 'visitors.visitor::001.leftAt'>
+    >().toEqualTypeOf<'visitors.visitor::001.leftAt'>();
+
+    expectTypeOf<
+      ValidatePathToOptionalProperty<Monument, 'visitors.visitor::001.doesNotExists'>
+    >().toBeNever();
+  });
+});
+
+describe('ValidatePathToProperty', () => {
+  type VisitorId = `visitor::${string}`;
+
+  type Monument = {
+    openings?: {
+      periods: {
+        default: { openAt: string; closeAt: string };
+        summer?: { openAt: string; closeAt: string };
+        winter?: { openAt: string; closeAt: string };
+      };
+    };
+    visitors: Record<VisitorId, { enteredAt: number; leftAt?: number }>;
+    historicalReferences: {
+      persons?: Array<{
+        name: string;
+        surname?: string;
+      }>;
+    };
+  };
+
+  it('should return never for paths that point to non-object', () => {
+    expectTypeOf<ValidatePathToProperty<Monument, 'persons[0]'>>().toBeNever();
+  });
+
+  it('should narrow string template', () => {
+    expectTypeOf<
+      ValidatePathToProperty<Monument, 'visitors.visitor::001'>
+    >().toEqualTypeOf<'visitors.visitor::001'>();
+
+    expectTypeOf<
+      ValidatePathToProperty<Monument, 'visitors.visitor::001.enteredAt'>
+    >().toEqualTypeOf<'visitors.visitor::001.enteredAt'>();
+
+    expectTypeOf<
+      ValidatePathToProperty<Monument, 'visitors.visitor::001.leftAt'>
+    >().toEqualTypeOf<'visitors.visitor::001.leftAt'>();
+
+    expectTypeOf<
+      ValidatePathToProperty<Monument, 'visitors.visitor::001.doesNotExists'>
+    >().toBeNever();
+  });
+});
+
+describe('ExtractPathToOptionalProperty', function () {
+  type VisitorId = `visitor::${string}`;
+
+  type Monument = {
+    openings?: {
+      periods: {
+        default: { openAt: string; closeAt: string };
+        summer?: { openAt: string; closeAt: string };
+        winter?: { openAt: string; closeAt: string };
+      };
+    };
+    visitors: Record<VisitorId, { enteredAt: number; leftAt?: number }>;
+    historicalReferences: {
+      persons?: Array<{
+        name: string;
+        surname?: string;
+      }>;
+    };
+  };
+
+  it('should extract path to all optional properties', () => {
+    type Result = ExtractPathToOptionalProperty<Monument>;
+
+    expectTypeOf<Result>().toEqualTypeOf<
+      | 'openings'
+      | 'openings.periods.summer'
+      | 'openings.periods.winter'
+      | `visitors.visitor::${string}`
+      | `visitors.visitor::${string}.leftAt`
+      | `historicalReferences.persons`
+      | `historicalReferences.persons[${number}].surname`
+    >();
+  });
+
+  // TODO write more tests
+  // TODO then rewrite MutateInRemovePath
+});
+
+describe('ExtractPathToPojo', () => {
+  it('should exclude path to primitives', () => {
+    expectTypeOf<ExtractPathToPojo<{ foo: string }>>().toBeNever();
+    expectTypeOf<ExtractPathToPojo<{ foo: number }>>().toBeNever();
+    expectTypeOf<ExtractPathToPojo<{ foo: null }>>().toBeNever();
+  });
+
+  it('should exclude path to arrays', () => {
+    expectTypeOf<ExtractPathToPojo<{ foo: string[] }>>().toBeNever();
+    expectTypeOf<ExtractPathToPojo<{ foo: [number] }>>().toBeNever();
+    expectTypeOf<ExtractPathToPojo<{ foo: never[] }>>().toBeNever();
+  });
+
+  it('should extract path to a dictionary', () => {
+    expectTypeOf<ExtractPathToPojo<{ foo: { bar: string } }>>().toEqualTypeOf<'foo'>();
+    expectTypeOf<ExtractPathToPojo<{ foo?: { bar: string } }>>().toEqualTypeOf<'foo'>();
+  });
+
+  it('should extract path to dictionary value that is a pojo', () => {
+    expectTypeOf<ExtractPathToPojo<{ foo: { bar: { name: string } } }>>().toEqualTypeOf<
+      'foo' | 'foo.bar'
+    >();
+    expectTypeOf<
+      ExtractPathToPojo<{ foo?: { bar?: { name?: string } } }>
+    >().toEqualTypeOf<'foo' | 'foo.bar'>();
+  });
+
+  it('should extract path to dictionary value that is a record', () => {
+    expectTypeOf<
+      ExtractPathToPojo<{ foo: { bar: Record<`user::${string}`, number> } }>
+    >().toEqualTypeOf<'foo' | 'foo.bar'>();
+  });
+
+  it('should extract path to a record', () => {
+    expectTypeOf<
+      ExtractPathToPojo<{ foo: Record<`user::${string}`, number> }>
+    >().toEqualTypeOf<'foo'>();
+  });
+
+  it('should extract path to a record value that is a dictionary', () => {
+    expectTypeOf<
+      ExtractPathToPojo<{ foo: Record<`user::${string}`, { name: string }> }>
+    >().toEqualTypeOf<'foo' | `foo.user::${string}`>();
+  });
+
+  it('should extract path to an array index that points to a dictionary', () => {
+    expectTypeOf<
+      ExtractPathToPojo<{ foo: Array<{ name: string }> }>
+    >().toEqualTypeOf<`foo[${number}]`>();
+  });
+
+  it('should extract path to an array index that points to a record', () => {
+    expectTypeOf<
+      ExtractPathToPojo<{ foo: Array<Record<string, number>> }>
+    >().toEqualTypeOf<`foo[${number}]`>();
   });
 });

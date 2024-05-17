@@ -111,21 +111,24 @@ export type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
  * Extract the string up the delimiter.
  * The delimiter can be escaped if surrounded by `LiteralWrapper`.
  */
+// prettier-ignore
 export type CaptureUntil<
   T extends string,
   Delimiter extends string,
   LiteralWrapper extends string,
-> = T extends `${infer Head}${LiteralWrapper}${infer Tail}`
-  ? Head extends `${infer SubstringHead}${Delimiter}${string}`
-    ? SubstringHead
-    : Tail extends `${infer LiteralSubstring}${LiteralWrapper}${infer AfterLiteralSubstring}`
-      ? AfterLiteralSubstring extends `${infer SubstringTail}${Delimiter}${string}`
-        ? `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}${SubstringTail}`
-        : `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}`
-      : never
-  : T extends `${infer Head}${Delimiter}${string}`
-    ? Head
-    : T;
+> =
+  T extends `${infer Head}${LiteralWrapper}${infer Tail}` ?
+    Head extends `${infer SubstringHead}${Delimiter}${string}` ?
+      SubstringHead :
+    Tail extends `${infer LiteralSubstring}${LiteralWrapper}${infer AfterLiteralSubstring}` ?
+      AfterLiteralSubstring extends `${infer SubstringTail}${Delimiter}${string}` ?
+        `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}${SubstringTail}` :
+      `${Head}${LiteralWrapper}${LiteralSubstring}${LiteralWrapper}` :
+    never :
+  T extends `${infer Head}${Delimiter}${string}` ?
+    Head :
+  T
+;
 
 /**
  * Split a string into a tuple using `Delimiter`.

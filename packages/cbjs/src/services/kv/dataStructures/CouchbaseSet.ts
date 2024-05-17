@@ -140,7 +140,7 @@ export class CouchbaseSet<
 
           await this._coll.mutateIn(
             this._key,
-            [MutateInSpec.remove(('[' + itemIdx + ']') as `[${number}]`) as never],
+            [MutateInSpec.remove(('[' + itemIdx + ']') as never) as never],
             {
               cas: res.cas,
             }

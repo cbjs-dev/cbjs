@@ -48,6 +48,10 @@ import {
   MutateInRemoveOptions,
   MutateInReplaceOptions,
   MutateInUpsertOptions,
+  ValidateMutateInInsertPath,
+  ValidateMutateInRemovePath,
+  ValidateMutateInReplacePath,
+  ValidateMutateInUpsertPath,
 } from './clusterTypes/kv/mutation/mutationOperations.types.js';
 
 /**
@@ -454,7 +458,7 @@ export class MutateInSpec<
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
     this: void,
-    path: Path,
+    path: ValidateMutateInInsertPath<Doc, Path>,
     value: Value,
     options?: MutateInInsertOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, boolean, Value> {
@@ -482,7 +486,7 @@ export class MutateInSpec<
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
     this: void,
-    path: Path,
+    path: ValidateMutateInUpsertPath<Doc, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
@@ -554,7 +558,7 @@ export class MutateInSpec<
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
   >(
     this: void,
-    path: Path,
+    path: ValidateMutateInReplacePath<Doc, Path>,
     value: Value,
     options?: MutateInReplaceOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, Path, boolean, Value> {
@@ -577,7 +581,7 @@ export class MutateInSpec<
     Path extends Exclude<AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>, ''>,
   >(
     this: void,
-    path: Path,
+    path: ValidateMutateInRemovePath<Doc, Path>,
     options?: MutateInRemoveOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path, false, never>;
 
@@ -598,7 +602,7 @@ export class MutateInSpec<
     >,
   >(
     this: void,
-    path: Path,
+    path: ValidateMutateInRemovePath<Doc, Path>,
     options?: MutateInRemoveOptions
   ): MutateInSpec<
     Doc,

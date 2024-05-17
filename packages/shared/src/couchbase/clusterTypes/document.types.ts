@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsExactly, IsNever, Or } from '../../misc/index.js';
+import { IsAny, IsExactly, IsNever, Or, Primitive } from '../../misc/index.js';
 import { Keyspace } from '../utils/index.js';
 import {
   ClusterTypesOptions,
@@ -101,7 +101,8 @@ export type CouchbaseDocumentTypes = {
 /**
  * Subset of Json types that extend `object`.
  */
-export type JsonObject = Extract<CouchbaseDocumentTypes['JSON'], object>;
+export type JsonObject = Exclude<Json, Primitive>;
+export type JsonPojo = Exclude<Json, Primitive | ReadonlyArray<unknown>>;
 
 /**
  * Extract definitions of JSON documents.

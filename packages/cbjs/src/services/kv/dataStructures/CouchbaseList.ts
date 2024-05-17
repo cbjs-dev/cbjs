@@ -167,7 +167,7 @@ export class CouchbaseList<
   async removeAt(index: number, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
       await this._coll.mutateIn(this._key, [
-        MutateInSpec.remove('[' + index + ']') as never,
+        MutateInSpec.remove(('[' + index + ']') as never) as never,
       ]);
     }, callback);
   }

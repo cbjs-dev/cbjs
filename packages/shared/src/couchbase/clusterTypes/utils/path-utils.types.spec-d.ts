@@ -20,6 +20,7 @@ import {
   DocumentPath,
   MaybeMissing,
   PathTargetExpression,
+  PathToClosestObject,
   PathToClosestProperty,
   PathToParentAccessor,
   PathToParentProperty,
@@ -267,6 +268,76 @@ describe('PathToClosestProperty', function () {
       PathToClosestProperty<'path.to.array' | 'path.to.array[0].prop'>
     >().toEqualTypeOf<'path.to.array' | 'path.to.array[0].prop'>();
   });
+});
+
+describe('PathToClosestObjectProperty', () => {
+  // prettier-ignore
+  type Doc = {
+    title: string;
+    membership: Record<string, {
+      offers: Record<string, {
+        joinedAt: number;
+        leftAt?: number;
+      }>
+    }>;
+    persons?: Array<{
+      name: string;
+      surname?: string;
+    }>
+  };
+
+  // prettier-ignore
+  type DocOptionalRecordProperty = {
+    title: string;
+    membership: Record<string, {
+      offers?: Record<string, {
+        joinedAt: number;
+        leftAt?: number;
+      }>,
+      credits: string;
+    }>
+  };
+
+  expectTypeOf<PathToClosestObject<Doc, 'missing'>>().toBeNever();
+
+  // `offer` is required
+  expectTypeOf<PathToClosestObject<Doc, 'membership'>>().toEqualTypeOf<'membership'>();
+  expectTypeOf<
+    PathToClosestObject<Doc, 'membership.USER_ID'>
+  >().toEqualTypeOf<'membership.USER_ID'>();
+  expectTypeOf<
+    PathToClosestObject<Doc, 'membership.USER_ID.offers'>
+  >().toEqualTypeOf<'membership.USER_ID.offers'>();
+  expectTypeOf<
+    PathToClosestObject<Doc, 'membership.USER_ID.offers.OFFER_ID'>
+  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
+  expectTypeOf<
+    PathToClosestObject<Doc, 'membership.USER_ID.offers.OFFER_ID.joinedAt'>
+  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
+
+  expectTypeOf<
+    PathToClosestObject<Doc, 'persons[0].surname'>
+  >().toEqualTypeOf<'persons[0]'>();
+
+  // `offer` is optional
+  expectTypeOf<
+    PathToClosestObject<DocOptionalRecordProperty, 'membership'>
+  >().toEqualTypeOf<'membership'>();
+  expectTypeOf<
+    PathToClosestObject<DocOptionalRecordProperty, 'membership.USER_ID'>
+  >().toEqualTypeOf<'membership.USER_ID'>();
+  expectTypeOf<
+    PathToClosestObject<DocOptionalRecordProperty, 'membership.USER_ID.offers'>
+  >().toEqualTypeOf<'membership.USER_ID.offers'>();
+  expectTypeOf<
+    PathToClosestObject<DocOptionalRecordProperty, 'membership.USER_ID.offers.OFFER_ID'>
+  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
+  expectTypeOf<
+    PathToClosestObject<
+      DocOptionalRecordProperty,
+      'membership.USER_ID.offers.OFFER_ID.joinedAt'
+    >
+  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
 });
 
 describe('PathToParentProperty', function () {

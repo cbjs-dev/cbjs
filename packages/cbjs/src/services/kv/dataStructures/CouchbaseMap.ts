@@ -23,8 +23,8 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
-import { AnyCollection } from '../../../clusterTypes/index.js';
 import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
+import { AnyCollection } from '../../../clusterTypes/index.js';
 import { Collection } from '../../../collection.js';
 import { CouchbaseError } from '../../../errors.js';
 import { StoreSemantics } from '../../../generaltypes.js';
@@ -199,7 +199,11 @@ export class CouchbaseMap<
     callback?: VoidNodeCallback
   ): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [MutateInSpec.remove(item) as never]);
+      const specs = [MutateInSpec.remove(item as never)];
+      await this._coll.mutateIn<Key, Record<ItemKey, unknown>, typeof specs>(
+        this._key,
+        specs
+      );
     }, callback);
   }
 

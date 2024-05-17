@@ -16,6 +16,12 @@
  */
 import { describe, it } from 'vitest';
 
+import { ValidatePathToOptionalProperty, ValidatePathToProperty } from '@cbjsdev/shared';
+
+import {
+  ValidateMutateInInsertPath,
+  ValidateMutateInReplacePath,
+} from './clusterTypes/kv/mutation/mutationOperations.types.js';
 import { LookupInSpec, MutateInSpec } from './sdspecs.js';
 import { LookupSpecs, MutationSpecs } from './specBuilders.js';
 

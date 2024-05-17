@@ -25,6 +25,7 @@ import {
   MutateInSpec,
   StoreSemantics,
 } from '@cbjsdev/cbjs';
+import { MutateInInsertPath, ValidateMutateInInsertPath } from '@cbjsdev/cbjs/internal';
 import { getPool } from '@cbjsdev/http-client';
 import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';

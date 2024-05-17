@@ -49,6 +49,10 @@ import {
   MutateInReplaceFunction,
   MutateInUpsertFunction,
   MutateInUpsertOptions,
+  ValidateMutateInInsertPath,
+  ValidateMutateInRemovePath,
+  ValidateMutateInReplacePath,
+  ValidateMutateInUpsertPath,
 } from './clusterTypes/kv/mutation/mutationOperations.types.js';
 import { LookupInSpec, MutateInSpec } from './sdspecs.js';
 
@@ -282,7 +286,7 @@ export class MutationSpecs<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
-    path: Path,
+    path: ValidateMutateInInsertPath<Doc, Path>,
     value: Value,
     options?: MutateInInsertOptions
   ): MutationSpecs<
@@ -348,7 +352,7 @@ export class MutationSpecs<
       Path
     >,
   >(
-    path: Path,
+    path: ValidateMutateInUpsertPath<Doc, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): MutationSpecs<
@@ -383,7 +387,7 @@ export class MutationSpecs<
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
   >(
-    path: Path,
+    path: ValidateMutateInReplacePath<Doc, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): MutationSpecs<
@@ -406,7 +410,7 @@ export class MutationSpecs<
   >;
 
   remove<Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>>(
-    path: Path,
+    path: ValidateMutateInInsertPath<Doc, Path>,
     options?: MutateInRemoveOptions
   ): MutationSpecs<
     Doc,
@@ -428,10 +432,10 @@ export class MutationSpecs<
       CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
     >,
   >(
-    path: Path,
+    path: ValidateMutateInRemovePath<Doc, Path>,
     options?: MutateInRemoveOptions
   ): MutationSpecs<Doc, [...SpecDefinitions, MutateInSpec<Doc>]> {
-    const spec = MutateInSpec.remove(path, options);
+    const spec = MutateInSpec.remove(path as never, options);
     return new MutationSpecs([...this.getSpecs(), spec]);
   }
 

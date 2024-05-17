@@ -13,12 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { And, Extends, If, IsNever, Join, Not, Or, Split } from '../../../misc/index.js';
-import type { IsFuzzyDocument } from '../document.types.js';
-import { GuaranteedIndexes, IsArrayLengthKnown, ResolveNegativeIndex, TupleIndexes } from './array-utils.types.js';
 
-import type { CircularReferences, OptionalKeys, ReferencesItself, ToNumber, WrapEach } from './misc-utils.types.js';
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+import type {
+  And,
+  Extends,
+  If,
+  IsNever,
+  Join,
+  Not,
+  Or,
+  Split,
+} from '../../../misc/index.js';
+import type { IsFuzzyDocument } from '../document.types.js';
+import {
+  GuaranteedIndexes,
+  IsArrayLengthKnown,
+  ResolveNegativeIndex,
+  TupleIndexes,
+} from './array-utils.types.js';
+import type { ExtractPathToType } from './document-path.types.js';
+import type {
+  CircularReferences,
+  OptionalKeys,
+  ReferencesItself,
+  ToNumber,
+  WrapEach,
+} from './misc-utils.types.js';
 
 /**
  * Key types you can access using {@link DocumentPath}.
@@ -237,7 +258,7 @@ export type MaybeMissing<T, K = never> = If<
 /**
  * Return the type at the object key.
  */
-type ObjectSubDocument<
+export type ObjectSubDocument<
   T,
   Segments extends ReadonlyArray<string>,
   OrUndefined extends boolean,
@@ -321,12 +342,14 @@ export type SubDocument<T, P extends string> = T extends unknown
 /**
  * Return the {@link SubDocument} at the parent accessor or the document itself if there is no parent accessor.
  */
-export type ParentDocument<D, P extends string> =
-  PathToParentAccessor<P> extends infer ParentAccessor extends string
-    ? [ParentAccessor] extends [never]
-      ? D
-      : SubDocument<D, ParentAccessor>
-    : never;
+// prettier-ignore
+export type ParentDocument<Doc, DocPath extends string> =
+  PathToParentAccessor<DocPath> extends infer ParentAccessor extends string ?
+    [ParentAccessor] extends [never] ?
+      Doc :
+    SubDocument<Doc, ParentAccessor> :
+  never
+;
 
 /**
  * Return the path to the closest property.
@@ -334,6 +357,22 @@ export type ParentDocument<D, P extends string> =
 export type PathToClosestProperty<T extends string> = T extends unknown
   ? JoinSegments<PopUntilProperty<SplitIntoSegments<T>>>
   : never;
+
+/**
+ * Return the path to the closest property that is required and possibly an object.
+ */
+// prettier-ignore
+export type PathToClosestObject<Doc extends object, UserPath extends string> =
+  IsNever<UserPath> extends true ?
+    never :
+  [Exclude<SubDocument<Doc, UserPath>, undefined>] extends [infer SubDoc] ?
+    IsNever<SubDoc> extends true ?
+      never :
+    SubDoc extends Record<string | number, any> ?
+      UserPath :
+    PathToClosestObject<Doc, PathToParentAccessor<UserPath>> :
+  never
+;
 
 /**
  * Return the closest ancestor property.
@@ -367,10 +406,10 @@ export type PathToParentPropertyOrSelf<T extends string> =
  *
  * @example
  * PathToParentProperty<'path.to.array'> = 'path.to'
- * PathToParentProperty<'path.to.array[-1]'> = 'path.to'
- * PathToParentProperty<`path.to.array[${number}]`> = 'path.to'
- * PathToParentProperty<`path.to.array[42][${number}]`> = 'path.to'
- * PathToParentProperty<'path.to.array[42].prop'> = 'path.to.array'
+ * PathToParentProperty<'path.to.array[-1]'> = 'path.to.array'
+ * PathToParentProperty<`path.to.array[${number}]`> = 'path.to.array'
+ * PathToParentProperty<`path.to.array[42][${number}]`> = 'path.to.array[42]'
+ * PathToParentProperty<'path.to.array[42].prop'> = 'path.to.array[42]'
  */
 export type PathToParentAccessor<T extends string> =
   SplitIntoSegments<T> extends [...infer Rest extends string[], unknown]

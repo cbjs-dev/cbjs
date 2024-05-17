@@ -14,29 +14,36 @@
  * limitations under the License.
  */
 
-import type {
+import {
   ArrayAppendElement,
   ArrayPrependElement,
   DocumentPath,
   ExtractPathToAppendableArray,
   ExtractPathToInsertableArrayIndex,
+  ExtractPathToOptionalProperty,
+  ExtractPathToPojo,
   ExtractPathToPrependableArray,
   ExtractPathToRemovableArrayIndex,
   ExtractPathToType,
-  ExtractPathToWritable, ExtractPathToWritableArrayIndex,
+  ExtractPathToWritable,
+  ExtractPathToWritableArrayIndex,
   ExtractPathToWritableProperty,
   If,
   IsFuzzyDocument,
-  PathToRemovableProperty,
+  IsNever,
   SubDocument,
+  ValidatePathToOptionalProperty, ValidatePathToProperty,
 } from '@cbjsdev/shared';
+import { K } from 'vitest/dist/reporters-xEmem8D4.js';
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { MutateInSpec } from '../../../sdspecs.js';
+import { ExtractCollectionJsonDocBody } from '../../clusterTypes.js';
 
 import type {
   AnyMutateInPath,
   AnyMutateInValue,
   CompatibleMacro,
+  MutateInPath,
   MutateInValue,
 } from './mutateIn.types.js';
 
@@ -68,8 +75,28 @@ type OperationPath<Doc, Path extends string> =
 /**
  * Valid mutation path for an `insert` operation. Non-distributive.
  */
+// prettier-ignore
 export type MutateInInsertPath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToType<Doc, ExtractPathToWritableProperty<Doc, DocumentPath<Doc>>, undefined>>
+  OperationPath<Doc, ExtractPathToOptionalProperty<Doc, DocumentPath<Doc>>>
+;
+
+/**
+ * Refine the path validity.
+ *
+ * @see ValidatePathToOptionalProperty
+ */
+// prettier-ignore
+export type ValidateMutateInInsertPath<
+  Doc extends object,
+  UserPath extends string,
+> =
+  IsFuzzyDocument<Doc> extends true ?
+    UserPath :
+  UserPath extends MutateInInsertPath<Doc> ?
+    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToOptionalProperty<Doc, UserPath> :
+    UserPath :
+  never
 ;
 
 /**
@@ -87,12 +114,12 @@ export type MutateInInsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for an `insert` operation.
  */
-export type MutateInInsertFunction<in Doc extends object> =
+export type MutateInInsertFunction<Doc extends object> =
   <
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
-    path: Path,
+    path: ValidateMutateInInsertPath<Doc, Path>,
     value: Value,
     options?: MutateInInsertOptions
   ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, false, Value>
@@ -103,6 +130,25 @@ export type MutateInInsertFunction<in Doc extends object> =
  */
 export type MutateInUpsertPath<Doc extends object> =
   OperationPath<Doc, ExtractPathToWritableProperty<Doc, DocumentPath<Doc>> | ''>
+;
+
+/**
+ * Refine the path validity.
+ *
+ * @see ValidatePathToOptionalProperty
+ */
+// prettier-ignore
+export type ValidateMutateInUpsertPath<
+  Doc extends object,
+  UserPath extends string,
+> =
+  IsFuzzyDocument<Doc> extends true ?
+    UserPath :
+  UserPath extends MutateInUpsertPath<Doc> ?
+    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToProperty<Doc, UserPath> :
+    UserPath :
+  never
 ;
 
 /**
@@ -133,7 +179,7 @@ export type MutateInUpsertFunction<in Doc extends object> = {
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
-    path: Path,
+    path: ValidateMutateInUpsertPath<Doc, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
@@ -144,6 +190,25 @@ export type MutateInUpsertFunction<in Doc extends object> = {
  */
 export type MutateInReplacePath<Doc extends object> =
   OperationPath<Doc, ExtractPathToWritable<Doc, DocumentPath<Doc>>>
+;
+
+/**
+ * Refine the path validity.
+ *
+ * @see ValidatePathToOptionalProperty
+ */
+// prettier-ignore
+export type ValidateMutateInReplacePath<
+  Doc extends object,
+  UserPath extends string,
+> =
+  IsFuzzyDocument<Doc> extends true ?
+    UserPath :
+  UserPath extends MutateInReplacePath<Doc> ?
+    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToProperty<Doc, UserPath> :
+    UserPath :
+  never
 ;
 
 /**
@@ -166,21 +231,46 @@ export type MutateInReplaceFunction<in Doc extends object> =
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
   >(
-    path: Path,
+    path: ValidateMutateInReplacePath<Doc, Path>,
     value: Value,
     options?: MutateInReplaceOptions
   ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, Path, false, Value>
 ;
 
 /**
- * Valid mutation path for a `remove` operation.
+ * Valid mutation path for an `remove` operation. Non-distributive.
  */
+// It is quite similar to the insert path, except that some array indexes are removable,
+// while insert cannot target array indexes at all.
+// prettier-ignore
 export type MutateInRemovePath<Doc extends object> =
-  OperationPath<Doc,
-    | PathToRemovableProperty<Doc>
-    | ExtractPathToRemovableArrayIndex<Doc, DocumentPath<Doc>>
-    | ''
-  >
+  IsFuzzyDocument<Doc> extends true ?
+    string :
+  DocumentPath<Doc> extends infer DocPath extends string ? (
+      | ''
+      | ExtractPathToRemovableArrayIndex<Doc, DocPath>
+      | ExtractPathToOptionalProperty<Doc, DocPath>
+    ) :
+  never
+;
+
+/**
+ * Refine the path validity.
+ *
+ * @see ValidatePathToOptionalProperty
+ */
+// prettier-ignore
+export type ValidateMutateInRemovePath<
+  Doc extends object,
+  UserPath extends string,
+> =
+  IsFuzzyDocument<Doc> extends true ?
+    UserPath :
+  UserPath extends MutateInRemovePath<Doc> ?
+    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToOptionalProperty<Doc, UserPath> :
+    UserPath :
+  never
 ;
 
 /**
@@ -191,7 +281,7 @@ export type MutateInRemoveOptions = { xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for a `remove` operation.
  */
-export type MutateInRemoveFunction<in Doc extends object> = {
+export type MutateInRemoveFunction<Doc extends object> = {
   (
     path: '',
     options?: MutateInRemoveOptions
@@ -200,7 +290,7 @@ export type MutateInRemoveFunction<in Doc extends object> = {
   <
     Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>
   >(
-    path: Path,
+    path: ValidateMutateInRemovePath<Doc, Path>,
     options?: MutateInRemoveOptions
   ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path, false, never>
 };

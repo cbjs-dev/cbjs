@@ -14,12 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { K } from 'vitest/dist/reporters-xEmem8D4.js';
+
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
-import { AnyCollection } from '../../../clusterTypes/index.js';
 import {
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes.js';
+import { AnyCollection } from '../../../clusterTypes/index.js';
 import {
   AnyMutateInPath,
   AnyMutateInValue,
@@ -36,6 +38,10 @@ import {
   MutateInInsertOptions,
   MutateInRemoveOptions,
   MutateInUpsertOptions,
+  ValidateMutateInInsertPath,
+  ValidateMutateInRemovePath,
+  ValidateMutateInReplacePath,
+  ValidateMutateInUpsertPath,
 } from '../../../clusterTypes/kv/mutation/mutationOperations.types.js';
 import { MutateInOptions } from '../../../collection.js';
 import { MutateInResult } from '../../../crudoptypes.js';
@@ -139,7 +145,7 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   insert<
-    Path extends AnyMutateInPath<
+    const Path extends AnyMutateInPath<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.dict_add
     >,
@@ -149,7 +155,7 @@ export class ChainableMutateIn<
       Path
     >,
   >(
-    path: Path,
+    path: ValidateMutateInInsertPath<ExtractCollectionJsonDocBody<C, Key>, Path>,
     value: Value,
     options?: MutateInInsertOptions
   ): ThisAnd<
@@ -202,7 +208,7 @@ export class ChainableMutateIn<
       Path
     >,
   >(
-    path: Path,
+    path: ValidateMutateInUpsertPath<ExtractCollectionJsonDocBody<C, Key>, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): ThisAnd<
@@ -241,7 +247,7 @@ export class ChainableMutateIn<
       Path
     >,
   >(
-    path: Path,
+    path: ValidateMutateInUpsertPath<ExtractCollectionJsonDocBody<C, Key>, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): ThisAnd<
@@ -286,7 +292,7 @@ export class ChainableMutateIn<
       Path
     >,
   >(
-    path: Path,
+    path: ValidateMutateInReplacePath<ExtractCollectionJsonDocBody<C, Key>, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): ThisAnd<
@@ -294,9 +300,9 @@ export class ChainableMutateIn<
     MutateInSpec<
       ExtractCollectionJsonDocBody<C, Key>,
       CppProtocolSubdocOpcode.replace,
-      any,
+      Path,
       false,
-      any
+      Value
     >
   > {
     const spec = MutateInSpec.replace<ExtractCollectionJsonDocBody<C, Key>, Path, Value>(
@@ -325,7 +331,7 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.remove
     >,
   >(
-    path: Path,
+    path: ValidateMutateInRemovePath<ExtractCollectionJsonDocBody<C, Key>, Path>,
     options?: MutateInRemoveOptions
   ): ThisAnd<
     this,
@@ -354,10 +360,19 @@ export class ChainableMutateIn<
       CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
     >,
   >(
-    path: Path,
+    path: ValidateMutateInRemovePath<ExtractCollectionJsonDocBody<C, Key>, Path>,
     options?: MutateInRemoveOptions
-  ): ThisAnd<this, MutateInSpec<ExtractCollectionJsonDocBody<C, Key>>> {
-    const spec = MutateInSpec.remove(path, options);
+  ): ThisAnd<
+    this,
+    MutateInSpec<
+      ExtractCollectionJsonDocBody<C, Key>,
+      CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc,
+      any,
+      false,
+      never
+    >
+  > {
+    const spec = MutateInSpec.remove(path as never, options);
     return this.push(spec);
   }
 

@@ -41,6 +41,17 @@ type TestDoc2 = {
   };
 };
 
+type TestDoc3 = {
+  membership: Record<
+    string,
+    {
+      joined: number;
+      left?: number;
+      invitedBy: string;
+    }
+  >;
+};
+
 type UserClusterTypes = ClusterTypes<{
   test: {
     _default: {
@@ -48,6 +59,9 @@ type UserClusterTypes = ClusterTypes<{
     };
     testScope: {
       testCollection: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
+    };
+    groups: {
+      group: [DocDef<`group::${string}`, TestDoc3>];
     };
   };
 }>;
@@ -114,20 +128,41 @@ describe('mutateIn', function () {
   describe('User-defined ClusterTypes', function () {
     it("should accept any path of the collection's document and its matching value when given an array of typeless specs", async function () {
       const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-      const collection = cluster.bucket('test').defaultCollection();
 
-      await collection.mutateIn('test__document', [
-        MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
-        MutateInSpec.increment('sales[0]', 3),
-        // @ts-expect-error Invalid path
-        MutateInSpec.increment('sales[0]', 'three'),
-        // @ts-expect-error Invalid path
-        MutateInSpec.insert('metadata.tags[0]', 'whatever'),
-        // @ts-expect-error Invalid path
-        MutateInSpec.insert('metadata.tags', 'whatever'),
-        // @ts-expect-error Path does not exist
-        MutateInSpec.upsert('does_not_exists', 'whatever'),
-      ]);
+      await cluster
+        .bucket('test')
+        .defaultCollection()
+        .mutateIn('test__document', [
+          MutateInSpec.arrayAppend('metadata.tags', 'whatever'),
+          MutateInSpec.increment('sales[0]', 3),
+          // @ts-expect-error Invalid path
+          MutateInSpec.increment('sales[0]', 'three'),
+          // @ts-expect-error Invalid path
+          MutateInSpec.insert('metadata.tags[0]', 'whatever'),
+          // @ts-expect-error Invalid path
+          MutateInSpec.insert('metadata.tags', 'whatever'),
+          // @ts-expect-error Path does not exist
+          MutateInSpec.upsert('does_not_exists', 'whatever'),
+        ]);
+
+      await cluster
+        .bucket('test')
+        .scope('groups')
+        .collection('group')
+        .mutateIn('group::001', [
+          MutateInSpec.insert('membership.aa', {
+            joined: 0,
+            invitedBy: '',
+          }),
+          // @ts-expect-error Invalid path
+          MutateInSpec.increment('sales[0]', 'three'),
+          // @ts-expect-error Invalid path
+          MutateInSpec.insert('metadata.tags[0]', 'whatever'),
+          // @ts-expect-error Invalid path
+          MutateInSpec.insert('metadata.tags', 'whatever'),
+          // @ts-expect-error Path does not exist
+          MutateInSpec.upsert('does_not_exists', 'whatever'),
+        ]);
     });
 
     it('should validate the specs when options are passed', async function () {
