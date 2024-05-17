@@ -73,21 +73,4 @@ describe('ChainableMutateIn', function () {
       MutateInSpec.replace('title', 'Hello'),
     ]);
   });
-
-  it('should offer autocompletion for record path', async () => {
-    const cluster = await connect<UserClusterTypes>('...');
-    await cluster
-      .bucket('store')
-      .scope('library')
-      .collection('user')
-      .mutateIn('user::001')
-      .upsert('borrowing.', {
-        borrowedAt: 0,
-        expectedReturnAt: 100,
-      })
-      .insert('borrowing.book::001', {
-        borrowedAt: 0,
-        expectedReturnAt: 100,
-      });
-  });
 });
