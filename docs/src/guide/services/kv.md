@@ -206,3 +206,33 @@ await collection.mutateIn('book::001').arrayAddUnique('metadata.tags', 'history'
 #### Error handling
 
 The whole `mutateIn` operation will fail if any of the mutations fail. There is no partial mutation.
+
+## Transactions
+
+To perform an ACID transaction with Couchbase, you need to perform the following :
+
+```ts twoslash
+import { connect } from '@cbjsdev/cbjs';
+const cluster = await connect('...');
+// ---cut-before---
+cluster.transactions().run(async ctx => {
+  const collection = cluster.bucket('storey').scope('library').collection('books')
+  const result = await ctx.get(collection, 'book::001');
+});
+```
+
+::: tip
+Cbjs also exposes `ctx.exists`, which is missing in the official library.
+:::
+
+To offer a more consistent experience, Cbjs gives you the following, alternative API :
+
+```ts twoslash
+import { connect } from '@cbjsdev/cbjs';
+const cluster = await connect('...');
+// ---cut-before---
+cluster.transactions().run(async ctx => {
+  const collection = ctx.bucket('storey').scope('library').collection('books')
+  const { content } = await collection.get('book::001');
+});
+```
