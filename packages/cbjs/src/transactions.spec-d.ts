@@ -19,10 +19,27 @@ type Book = {
   };
 };
 
+type Author = {
+  name: string;
+};
+
+type Publisher = {
+  language: string;
+};
+
+type Order = {
+  id: string;
+};
+
 type UserClusterTypes = ClusterTypes<{
   store: {
+    grocery: {
+      orders: [DocDef<`order::${string}`, Order>];
+    };
     library: {
       books: [DocDef<`book::${string}`, Book>];
+      authors: [DocDef<`author::${string}`, Author>];
+      publisher: [DocDef<`publisher::${string}`, Publisher>];
     };
   };
 }>;
@@ -44,11 +61,18 @@ describe('transactions', async () => {
 
     it('should infer the result type based on the cluster types', async () => {
       const tx = cluster.transactions();
+      const collection = cluster.bucket('store').scope('library').collection('authors');
       await tx.run(async (attempt) => {
-        const result = await attempt.get(collection, 'book::001');
+        const result = await attempt.get(collection, 'author::001');
 
         expectTypeOf(result).toEqualTypeOf<
-          TransactionGetResult<UserClusterTypes, 'store', 'library', 'books', 'book::001'>
+          TransactionGetResult<
+            UserClusterTypes,
+            'store',
+            'library',
+            'authors',
+            'author::001'
+          >
         >();
       });
     });
@@ -217,6 +241,28 @@ describe('transactions', async () => {
         const result = await attempt.remove(bookExists);
 
         expectTypeOf(result).toEqualTypeOf<void>();
+      });
+    });
+  });
+
+  describe('cbjs tx api', () => {
+    it('should infer the result type based on the cluster types', async () => {
+      await cluster.transactions().run(async (ctx) => {
+        const result = await ctx
+          .bucket('store')
+          .scope('library')
+          .collection('authors')
+          .get('author::001');
+
+        expectTypeOf(result).toEqualTypeOf<
+          TransactionGetResult<
+            UserClusterTypes,
+            'store',
+            'library',
+            'authors',
+            'author::001'
+          >
+        >();
       });
     });
   });

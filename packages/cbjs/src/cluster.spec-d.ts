@@ -15,24 +15,98 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { connect } from './index.js';
+import { ClusterTypes, connect, DocDef, Scope } from './index.js';
 
-describe('DefaultClusterTypes', async () => {
-  const cluster = await connect('couchbase://localhost');
+describe('cluster', () => {
+  describe('DefaultClusterTypes', async () => {
+    const cluster = await connect('couchbase://localhost');
 
-  it('Cluster should accept any bucket name', async () => {
-    cluster.bucket('foobar');
+    it('Cluster should accept any bucket name', async () => {
+      cluster.bucket('foobar');
+    });
+
+    it('Bucket should accept any scope name', async () => {
+      cluster.bucket('foobar').scope('foobar');
+    });
+
+    it('Scope should accept any collection name', async () => {
+      cluster.bucket('foobar').scope('foobar').collection('foobar');
+    });
+
+    it("should return the bucket's default collection", async () => {
+      expectTypeOf(cluster.bucket('foobar').defaultCollection()).not.toBeNever();
+    });
   });
 
-  it('Bucket should accept any scope name', async () => {
-    cluster.bucket('foobar').scope('foobar');
-  });
+  describe('UserClusterTypes', async () => {
+    type Book = {
+      title: string;
+    };
 
-  it('Scope should accept any collection name', async () => {
-    cluster.bucket('foobar').scope('foobar').collection('foobar');
-  });
+    type User = {
+      name: string;
+    };
 
-  it("should return the bucket's default collection", async () => {
-    expectTypeOf(cluster.bucket('foobar').defaultCollection()).not.toBeNever();
+    type Order = {
+      id: string;
+    };
+
+    type UserClusterTypes = ClusterTypes<{
+      backend: {
+        users: {
+          admins: [DocDef<`user::${string}`, User>];
+        };
+      };
+      store: {
+        grocery: {
+          orders: [DocDef<`order::${string}`, Order>];
+        };
+        library: {
+          books: [DocDef<`book::${string}`, Book>];
+        };
+      };
+    }>;
+
+    const cluster = await connect<UserClusterTypes>('couchbase://localhost');
+
+    it('Cluster should accept any registered bucket name', async () => {
+      const bucket = cluster.bucket('backend');
+    });
+
+    it('Cluster should preserve all registered buckets', async () => {
+      const bucket = cluster.bucket('backend');
+      bucket.cluster.bucket('store');
+    });
+
+    it('Bucket should accept any registered scope name', async () => {
+      const bucket = cluster.bucket('backend').scope('users');
+    });
+
+    it('Bucket should preserve all registered scopes', async () => {
+      const userScope = cluster.bucket('backend').scope('users');
+      const libraryScope = userScope.cluster.bucket('store').scope('library');
+    });
+
+    it('Scope should accept any registered collection name', async () => {
+      const adminsCollection = cluster
+        .bucket('backend')
+        .scope('users')
+        .collection('admins');
+    });
+
+    it('Scope should preserve any registered collection name', async () => {
+      const adminsCollection = cluster
+        .bucket('backend')
+        .scope('users')
+        .collection('admins');
+      const booksCollection = adminsCollection.cluster
+        .bucket('store')
+        .scope('library')
+        .collection('books');
+    });
+
+    it("should return the bucket's default collection", async () => {
+      expectTypeOf(cluster.bucket('backend').defaultCollection()).not.toBeNever();
+    });
   });
 });

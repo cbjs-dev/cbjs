@@ -15,7 +15,12 @@
  */
 import { describe, expectTypeOf, test } from 'vitest';
 
-import { BucketTypes, ClusterTypes, CollectionTypes, ScopeTypes } from './cluster.types.js';
+import {
+  BucketTypes,
+  ClusterTypes,
+  CollectionTypes,
+  ScopeTypes,
+} from './cluster.types.js';
 import { DocDef } from './document.types.js';
 
 describe('full types', () => {
@@ -54,7 +59,8 @@ describe('ClusterTypes', () => {
       ClusterTypes<{
         BucketOne: {
           ScopeOne: {
-            CollectionOne: [DocDef<string, { title: string }>];
+            CollectionTwo: [DocDef<`author::${string}`, { name: string }>];
+            CollectionOne: [DocDef<`book::${string}`, { title: string }>];
           };
         };
       }>
@@ -69,7 +75,11 @@ describe('ClusterTypes', () => {
               definitions: {
                 CollectionOne: {
                   options: never;
-                  definitions: [DocDef<string, { title: string }>];
+                  definitions: [DocDef<`book::${string}`, { title: string }>];
+                };
+                CollectionTwo: {
+                  options: never;
+                  definitions: [DocDef<`author::${string}`, { name: string }>];
                 };
               };
             };
