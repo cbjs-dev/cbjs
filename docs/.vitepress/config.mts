@@ -112,6 +112,10 @@ export default defineConfig({
               link: '/guide/cluster-types',
             },
             {
+              text: 'Utilities',
+              link: '/guide/utilities',
+            },
+            {
               text: 'Services',
               items: [
                 {
