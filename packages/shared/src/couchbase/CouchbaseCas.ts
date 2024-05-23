@@ -63,9 +63,6 @@ export class CouchbaseCas implements Cas {
 
   private static toBuffer(value: CouchbaseCasInput): Buffer {
     if (Buffer.isBuffer(value)) return value;
-    if (CouchbaseCas.isCasObject(value)) {
-      value = value.toString();
-    }
 
     const valuePrimitive = CouchbaseCas.isCasObject(value) ? value.toString() : value;
 
