@@ -35,7 +35,7 @@ export type Cas = {
 
 export type CasInput = Cas | string | Buffer;
 
-type CouchbaseCasInput = Cas | Buffer | string | bigint | number;
+export type CouchbaseCasInput = Cas | Buffer | string | bigint | number;
 
 /**
  * Create, parse and compare CAS objects.
@@ -134,6 +134,10 @@ export class CouchbaseCas implements Cas {
 
   isZeroCas(): boolean {
     return CouchbaseCas.isZeroCas(this);
+  }
+
+  public static toString(cas: CouchbaseCasInput): string {
+    return CouchbaseCas.from(cas).toString();
   }
 
   public static isZeroCas(cas: CouchbaseCasInput): boolean {
