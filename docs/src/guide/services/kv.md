@@ -67,64 +67,6 @@ For this operation, only the `timeout` option is available.
 
 If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted collection, the paths will be type checked and the result will be typed accordingly.
 
-#### Throw on spec error
-
-Each sub-document spec may fail individually. For this reason, the operation may return a result to you but filled with errors. You can see below that `bookTitle` contains a union type, forcing you to check the error for each sub-doc operation.
-
-```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
-
-type MyClusterTypes = ClusterTypes<{
-  store: {
-    library: {
-      books: [
-        DocDef<`book::${string}`, { title: string; authors: string[] }>,
-      ]
-    };
-  };
-}>;
-
-const cluster = await connect<MyClusterTypes>('...');
-const collection = cluster.bucket('store').scope('library').collection('books');
-
-// ---cut-before---
-const { content: [bookTitle, book3rdAuthor] } = 
-  await collection.lookupIn('book::001').get('title').get('authors[2]');
-
-if (bookTitle.error !== null || book3rdAuthor.error !== null) {
-  // handle the errors
-}
-```
-
-Because this is annoying and because you often need all the data in order to proceed, Cbjs provides an additional option when performing the request : `throwOnSpecError`.
-Using that option, the whole operation will fail if any spec led to an error. This frees you from checking each individual result. 
-
-```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
-
-type MyClusterTypes = ClusterTypes<{
-  store: {
-    library: {
-      books: [
-        DocDef<`book::${string}`, { title: string; authors: string[] }>,
-      ]
-    };
-  };
-}>;
-
-const cluster = await connect<MyClusterTypes>('...');
-const collection = cluster.bucket('store').scope('library').collection('books');
-
-// ---cut-before---
-const { content: [bookTitle, book3rdAuthor] } = await collection
-  .lookupIn('book::001', { throwOnSpecError: true })
-  .get('title')
-  .get('authors[2]');
-
-// Look at the type of `bookTitle` and `book3rdAuthor`. No more union.
-// If either `title` or `authors[2]` don't exist at runtime, it will throw an error, so this is type safe.
-```
-
 #### Chainable sub-doc operations
 
 Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
@@ -140,25 +82,116 @@ const { content } = await collection
 ```
 
 ::: info
-When using the classic lookupIn, the request is executed immediately, regardless of it being awaited or not.
-Chained lookup will only trigger the request once awaited or `.then()` is called on it.
+When using the classic `lookupIn`, the request is executed immediately, regardless of it being awaited or not.
+A chained lookup will only perform the request once awaited or `.then()` is called on it.
 :::
 
-#### Error handling
+### Error handling
 
-During a `lookupIn`, the function will not throw if the error is related to a `LookupInSpec`. Instead, the result will include the error, and the value will be `undefined`.
+During a `lookupIn`, the function will not throw if the error is related to a `LookupInSpec`. Instead, the result will include the error, and the value will be `undefined`.  
+In the following example, we assume `authors` contains a single element.
 
-```ts
+```ts twoslash
+import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = ClusterTypes<{
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+}>;
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
 const { content } = await collection
-  .lookupIn('docKey')
-  .get('lastModifiedAt')
-  .get('comments'); // missing property
+  .lookupIn('book::001')
+  .get('title')
+  .get('authors[1]');
 
 const [
-  lastModifiedAt, // { value: number; error: null }
-  comments, // { value: undefined; error: PathNotFoundError }
+  title,
+  secondAuthor,
 ] = content;
+
+if (title.error !== null) {
+  // handle the error
+}
+
+if (secondAuthor.error !== null) {
+  // handle the error
+}
 ```
+
+#### Throw on spec error
+
+Each sub-document spec may fail individually. For this reason, the lookup return may be filled with errors. You can see below that `bookTitle` contains a union type, forcing you to check the error for each sub-doc operation.
+
+```ts twoslash
+import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = ClusterTypes<{
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+}>;
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const { content: [title, secondAuthor] } = await collection
+  .lookupIn('book::001')
+  .get('title')
+  .get('authors[1]');
+
+if (title.error !== null) {
+  // handle the error
+}
+
+if (secondAuthor.error !== null) {
+  // handle the error
+}
+
+```
+
+If you need all the data in order to proceed, Cbjs provides an additional option when performing the request : `throwOnSpecError`.
+Using that option, `lookupIn` will fail if any spec leads to an error.  
+This frees you from checking individual spec for error.
+
+```ts twoslash
+import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = ClusterTypes<{
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+}>;
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const { content: [title, secondAuthor] } = await collection
+  .lookupIn('book::001', { throwOnSpecError: true })
+  .get('title')
+  .get('authors[1]');
+```
+
+Look at the type of `title` and `secondAuthor`. No more union.  
+If either path `title` or `authors[1]` don't exist at runtime, it will throw an error, so this is type safe.
 
 ## Writing a document
 
@@ -203,7 +236,7 @@ Learn more about [optimistic locking](/guide/services/kv-advanced).
 await collection.mutateIn('book::001').arrayAddUnique('metadata.tags', 'history');
 ```
 
-#### Error handling
+### Error handling
 
 The whole `mutateIn` operation will fail if any of the mutations fail. There is no partial mutation.
 
