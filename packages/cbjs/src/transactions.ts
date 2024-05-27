@@ -293,7 +293,7 @@ export class TransactionGetResult<
   /**
    * The CAS of the document.
    */
-  cas: CppCas;
+  cas: Cas;
 
   /**
    * @internal
