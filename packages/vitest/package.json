@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/vitest",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Vitest extended tests and fixtures for your tests with Couchbase",
   "keywords": [
     "couchbase",
