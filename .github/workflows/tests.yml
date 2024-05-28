@@ -77,7 +77,7 @@ jobs:
             vitest-cache-main
 
       - name: Run all tests
-        run: NODE_OPTIONS="--max-old-space-size=8192" ./node_modules/.bin/vitest --run --bail 5
+        run: pnpm vitest --run --bail 5
 
       - name: Upload Tests Report
         if: always()
