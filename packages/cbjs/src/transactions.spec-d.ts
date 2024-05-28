@@ -246,6 +246,13 @@ describe('transactions', async () => {
   });
 
   describe('cbjs tx api', () => {
+    it('should forbid to pass only the key if the collection is not defined', async () => {
+      await cluster.transactions().run(async (ctx) => {
+        // @ts-expect-error Expect collection, key
+        await ctx.get('author::001');
+      });
+    });
+
     it('should infer the result type based on the cluster types', async () => {
       await cluster.transactions().run(async (ctx) => {
         const result = await ctx

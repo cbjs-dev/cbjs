@@ -71,16 +71,18 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
  */
 // prettier-ignore
 export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
-  GetArrayInfo<T> extends {
-    IsFullyStatic: unknown;
-    IsHeadStatic: unknown;
-    IsTailStatic: infer IsTailStatic extends boolean;
-    RestElement: infer RestElement extends unknown;
-    StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
-    } ?
-    IsTailStatic extends true ?
-      StaticSlice[ArrayLastIndex<StaticSlice>] :
-    RestElement :
+  T extends unknown ?
+    GetArrayInfo<T> extends {
+        IsFullyStatic: unknown;
+        IsHeadStatic: unknown;
+        IsTailStatic: infer IsTailStatic extends boolean;
+        RestElement: infer RestElement extends unknown;
+        StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
+      } ?
+      IsTailStatic extends true ?
+        StaticSlice[ArrayLastIndex<StaticSlice>] :
+      RestElement :
+    never :
   never
 ;
 

@@ -22,6 +22,11 @@ describe('arrayLastElement', () => {
     expectTypeOf(arrayLastElement(['a', 1])).toEqualTypeOf<1>();
   });
 
+  it('should return the type of the last element of each tuple of a union', () => {
+    const arr: [bar: string] | [foo: number, bar: string] = ['hi'];
+    expectTypeOf(arrayLastElement(arr)).toEqualTypeOf<string>();
+  });
+
   it('should return the trailing type of an array with unknown length', () => {
     expectTypeOf(arrayLastElement([1, 2, 3] as number[])).toEqualTypeOf<number>();
     expectTypeOf(

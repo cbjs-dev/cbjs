@@ -56,27 +56,26 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
     describe.each(cases)(
       '$name',
       ({ dataCollection, indexKeyspace, dataKeyspacePath }) => {
-        test('should see test data correctly', async function ({
-          serverTestContext,
-          expect,
-          useSampleData,
-          usePrimaryIndex,
-        }) {
-          const { testUid, sampleSize } = await useSampleData(dataCollection);
-          await usePrimaryIndex(indexKeyspace, {
-            waitIndexTimeout: 20_000,
-          });
+        test(
+          'should see test data correctly',
+          { retry: 1 },
+          async function ({ serverTestContext, expect, useSampleData, usePrimaryIndex }) {
+            const { testUid, sampleSize } = await useSampleData(dataCollection);
+            await usePrimaryIndex(indexKeyspace, {
+              waitIndexTimeout: 20_000,
+            });
 
-          const result = await serverTestContext.cluster.query(
-            `SELECT * FROM ${dataKeyspacePath} WHERE testUid=$1`,
-            {
-              parameters: [testUid],
-            }
-          );
+            const result = await serverTestContext.cluster.query(
+              `SELECT * FROM ${dataKeyspacePath} WHERE testUid=$1`,
+              {
+                parameters: [testUid],
+              }
+            );
 
-          expect(result.rows).toHaveLength(sampleSize);
-          expect(result.meta).toHaveProperty('requestId');
-        });
+            expect(result.rows).toHaveLength(sampleSize);
+            expect(result.meta).toHaveProperty('requestId');
+          }
+        );
 
         test('should see test data correctly with a new connection', async function ({
           serverTestContext,

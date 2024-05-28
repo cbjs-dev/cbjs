@@ -66,6 +66,9 @@ export type CollectionDocDef<Instance> =
   never
 ;
 
+/**
+ * Infer the keyspace from a Collection instance type.
+ */
 // prettier-ignore
 export type CollectionKeyspace<Instance> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
@@ -73,7 +76,7 @@ export type CollectionKeyspace<Instance> =
       B extends BucketName<T> ?
         S extends ScopeName<T, B> ?
           C extends CollectionName<T, B, S> ?
-            { T: T; B: B; S: S; C: C; } :
+            { clusterTypes: T; bucket: B; scope: S; collection: C; } :
           never :
         never :
       never :

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import {
+  arrayLastElement,
   BucketName,
   Cas,
   CasInput,
@@ -24,12 +25,12 @@ import {
   DocDefMatchingKey,
   If,
   invariant,
+  IsNever,
   KeyspaceDocDef,
   ScopeName,
 } from '@cbjsdev/shared';
 
 import binding, {
-  CppCas,
   CppTransaction,
   CppTransactionGetMetaData,
   CppTransactionGetResult,
@@ -44,6 +45,7 @@ import {
   transactionKeyspaceToCpp,
 } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
+import { CollectionKeyspace } from './clusterTypes/clusterTypes.js';
 import { AnyCollection, AnyScope } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import {
@@ -524,9 +526,16 @@ function translateGetResult<
  *
  * @category Transactions
  */
-export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
+export class TransactionAttemptContext<
+  T extends CouchbaseClusterTypes,
+  Instance extends Collection<T, B, S, C> = never,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
+  C extends CollectionName<T, B, S> = never,
+> {
   private cluster: Cluster<T>;
   private _impl: CppTransaction;
+  protected collection?: Instance;
 
   /**
    * @internal
@@ -569,37 +578,56 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param key The document key to retrieve.
    */
   async get<
-    B extends BucketName<T>,
-    S extends ScopeName<T, B>,
-    C extends CollectionName<T, B, S>,
+    LInstance extends AnyCollection,
+    CKS extends CollectionKeyspace<LInstance>,
+    const LKey extends KeyspaceDocDef<
+      T,
+      CKS['bucket'],
+      CKS['scope'],
+      CKS['collection']
+    >['Key'],
     const Key extends KeyspaceDocDef<T, B, S, C>['Key'],
   >(
-    collection: Collection<T, B, S, C>,
-    key: Key
-  ): Promise<TransactionGetResult<T, B, S, C, Key>> {
-    return PromiseHelper.wrap(
-      (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
-        const id = collection.getDocId(key);
-        this._impl.get(
-          {
-            id,
-          },
-          (cppErr, cppRes) => {
-            const err = errorFromCpp(cppErr);
-            if (err) {
-              return wrapCallback(err, null);
-            }
+    ...args: If<IsNever<Instance>, [collection: LInstance, key: LKey], [key: Key]>
+  ): Promise<
+    If<
+      IsNever<Instance>,
+      TransactionGetResult<
+        CKS['clusterTypes'],
+        CKS['bucket'],
+        CKS['scope'],
+        CKS['collection'],
+        LKey
+      >,
+      TransactionGetResult<T, B, S, C, Key>
+    >
+  > {
+    const collection = args.length === 2 ? args[0] : this.collection;
+    const key = arrayLastElement(args) as Key;
 
-            invariant(cppRes);
-            wrapCallback(
-              null,
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-              translateGetResult(cppRes) as TransactionGetResult<T, B, S, C, Key>
-            );
+    invariant(collection);
+
+    return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult>) => {
+      const id = collection.getDocId(key);
+      this._impl.get(
+        {
+          id,
+        },
+        (cppErr, cppRes) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err, null);
           }
-        );
-      }
-    );
+
+          invariant(cppRes);
+          wrapCallback(
+            null,
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            translateGetResult(cppRes)
+          );
+        }
+      );
+    }) as never;
   }
 
   /**
@@ -609,31 +637,54 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param key The document key to check.
    */
   async exists<
-    B extends BucketName<T> = BucketName<T>,
-    S extends ScopeName<T, B> = ScopeName<T, B>,
-    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+    LInstance extends AnyCollection,
+    CKS extends CollectionKeyspace<LInstance>,
+    const LKey extends KeyspaceDocDef<
       T,
-      B,
-      S,
-      C
+      CKS['bucket'],
+      CKS['scope'],
+      CKS['collection']
     >['Key'],
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'],
   >(
-    collection: Collection<T, B, S, C>,
-    key: Key
+    ...args: If<IsNever<Instance>, [collection: LInstance, key: LKey], [key: Key]>
   ): Promise<
-    | TransactionExistsResult<true, T, B, S, C, Key>
-    | TransactionExistsResult<false, T, B, S, C, Key>
+    If<
+      IsNever<Instance>,
+      | TransactionExistsResult<
+          true,
+          CKS['clusterTypes'],
+          CKS['bucket'],
+          CKS['scope'],
+          CKS['collection'],
+          LKey
+        >
+      | TransactionExistsResult<
+          false,
+          CKS['clusterTypes'],
+          CKS['bucket'],
+          CKS['scope'],
+          CKS['collection'],
+          LKey
+        >,
+      | TransactionExistsResult<true, T, B, S, C, Key>
+      | TransactionExistsResult<false, T, B, S, C, Key>
+    >
   > {
+    const collection = args.length === 2 ? args[0] : this.collection;
+    const key = arrayLastElement(args) as Key;
+
+    invariant(collection);
+
     try {
-      const { cas, id, _metadata, _links } = await this.get(collection, key);
+      const { cas, id, _metadata, _links } = await this.get(...args);
       return new TransactionExistsResult({
         exists: true,
         cas,
         id,
         _metadata,
         _links,
-      });
+      }) as never;
     } catch (err) {
       if (err instanceof DocumentNotFoundError) {
         return new TransactionExistsResult({
@@ -642,7 +693,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
           cas: undefined,
           _links: undefined,
           _metadata: undefined,
-        });
+        }) as never;
       }
 
       throw err;
@@ -657,20 +708,50 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param content The document content to insert.
    */
   async insert<
-    B extends BucketName<T> = BucketName<T>,
-    S extends ScopeName<T, B> = ScopeName<T, B>,
-    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
+    LInstance extends AnyCollection,
+    CKS extends CollectionKeyspace<LInstance>,
+    const LKey extends KeyspaceDocDef<
       T,
-      B,
-      S,
-      C
+      CKS['bucket'],
+      CKS['scope'],
+      CKS['collection']
     >['Key'],
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'],
   >(
-    collection: Collection<T, B, S, C>,
-    key: Key,
-    content: DocDefMatchingKey<Key, T, B, S, C>['Body']
-  ): Promise<TransactionGetResult<T, B, S, C, Key>> {
+    ...args: If<
+      IsNever<Instance>,
+      [
+        collection: LInstance,
+        key: LKey,
+        content: DocDefMatchingKey<
+          LKey,
+          CKS['clusterTypes'],
+          CKS['bucket'],
+          CKS['scope'],
+          CKS['collection']
+        >['Body'],
+      ],
+      [key: Key, content: DocDefMatchingKey<Key, T, B, S, C>['Body']]
+    >
+  ): Promise<
+    If<
+      IsNever<Instance>,
+      TransactionGetResult<
+        CKS['clusterTypes'],
+        CKS['bucket'],
+        CKS['scope'],
+        CKS['collection'],
+        LKey
+      >,
+      TransactionGetResult<T, B, S, C, Key>
+    >
+  > {
+    const collection = args.length === 3 ? args[0] : this.collection;
+    const key = args.length === 3 ? args[1] : args[0];
+    const content = args.length === 3 ? args[2] : args[1];
+
+    invariant(collection);
+
     return PromiseHelper.wrap(
       (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
         const id = collection.getDocId(key);
@@ -690,7 +771,7 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
           }
         );
       }
-    );
+    ) as never;
   }
 
   /**
@@ -700,21 +781,16 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param content The document content to insert.
    */
   async replace<
-    B extends BucketName<T> = BucketName<T>,
-    S extends ScopeName<T, B> = ScopeName<T, B>,
-    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    LB extends BucketName<T>,
+    LS extends ScopeName<T, LB>,
+    LC extends CollectionName<T, LB, LS>,
+    const Key extends KeyspaceDocDef<T, LB, LS, LC>['Key'],
   >(
-    doc: Exclude<TransactionDocInfo<T, B, S, C, Key>, 'cas'> & { cas: CasInput },
-    content: DocDefMatchingKey<Key, T, B, S, C>['Body']
-  ): Promise<TransactionGetResult<T, B, S, C, Key>> {
+    doc: Exclude<TransactionDocInfo<T, LB, LS, LC, Key>, 'cas'> & { cas: CasInput },
+    content: DocDefMatchingKey<Key, T, LB, LS, LC>['Body']
+  ): Promise<TransactionGetResult<T, LB, LS, LC, Key>> {
     return PromiseHelper.wrap(
-      (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
+      (wrapCallback: NodeCallback<TransactionGetResult<T, LB, LS, LC, Key>>) => {
         this._impl.replace(
           {
             doc: {
@@ -747,17 +823,12 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
    * @param doc The document to remove.
    */
   async remove<
-    B extends BucketName<T> = BucketName<T>,
-    S extends ScopeName<T, B> = ScopeName<T, B>,
-    C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
-    const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<
-      T,
-      B,
-      S,
-      C
-    >['Key'],
+    LB extends BucketName<T>,
+    LS extends ScopeName<T, LB>,
+    LC extends CollectionName<T, LB, LS>,
+    const Key extends KeyspaceDocDef<T, LB, LS, LC>['Key'],
   >(
-    doc: Exclude<TransactionDocInfo<T, B, S, C, Key>, 'cas'> & { cas: CasInput }
+    doc: Exclude<TransactionDocInfo<T, LB, LS, LC, Key>, 'cas'> & { cas: CasInput }
   ): Promise<void> {
     return PromiseHelper.wrap((wrapCallback) => {
       this._impl.remove(
@@ -876,57 +947,32 @@ export class TransactionAttemptContext<T extends CouchbaseClusterTypes> {
     });
   }
 
-  bucket<B extends BucketName<T>>(this: TransactionAttemptContext<T>, bucketName: B) {
+  bucket<LB extends BucketName<T>>(this: TransactionAttemptContext<T>, bucketName: LB) {
     return {
-      scope: <S extends ScopeName<T, B>>(scopeName: S) => {
+      scope: <LS extends ScopeName<T, LB>>(scopeName: LS) => {
         return {
-          collection: <C extends CollectionName<T, B, S>>(collectionName: C) => {
+          collection: <LC extends CollectionName<T, LB, LS>>(collectionName: LC) => {
             const collection = this.cluster
               .bucket(bucketName)
               .scope(scopeName)
               .collection(collectionName);
 
-            // return createTransactionCollectionContext(this, collection);
-            return {
-              ...this,
-              get: <Key extends KeyspaceDocDef<T, B, S, C>['Key']>(key: Key) =>
-                this.get(collection, key),
-              exists: <Key extends KeyspaceDocDef<T, B, S, C>['Key']>(key: Key) =>
-                this.exists(collection, key),
-              insert: <Key extends KeyspaceDocDef<T, B, S, C>['Key']>(
-                key: Key,
-                body: DocDefMatchingKey<Key, T, B, S, C>['Body']
-              ) => this.insert(collection, key, body),
-            } as TransactionCollectionContext<T, B, S, C>;
+            const ctx = this as any as TransactionAttemptContext<
+              T,
+              Collection<T, LB, LS, LC>,
+              LB,
+              LS,
+              LC
+            >;
+
+            ctx.collection = collection;
+            return ctx;
           },
         };
       },
     };
   }
 }
-
-type TransactionCollectionContext<
-  T extends CouchbaseClusterTypes,
-  B extends BucketName<T>,
-  S extends ScopeName<T, B>,
-  C extends CollectionName<T, B, S>,
-> = Omit<TransactionAttemptContext<T>, 'get' | 'exists' | 'insert'> & {
-  get: <const Key extends KeyspaceDocDef<T, B, S, C>['Key']>(
-    key: Key
-  ) => Promise<TransactionGetResult<T, B, S, C, Key>>;
-
-  exists: <const Key extends KeyspaceDocDef<T, B, S, C>['Key']>(
-    key: Key
-  ) => Promise<
-    | TransactionExistsResult<true, T, B, S, C, Key>
-    | TransactionExistsResult<false, T, B, S, C, Key>
-  >;
-
-  insert: <const Key extends KeyspaceDocDef<T, B, S, C>['Key']>(
-    key: Key,
-    content: DocDefMatchingKey<Key, T, B, S, C>['Body']
-  ) => Promise<TransactionGetResult<T, B, S, C, Key>>;
-};
 
 /**
  * Provides an interface to access transactions.
