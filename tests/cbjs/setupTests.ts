@@ -23,6 +23,7 @@ import {
   cleanupCouchbaseAfterEach,
   setTestLogger,
 } from '@cbjsdev/vitest';
+import '@cbjsdev/vitest/matchers';
 
 import { testLogger } from './setupLogger.js';
 
