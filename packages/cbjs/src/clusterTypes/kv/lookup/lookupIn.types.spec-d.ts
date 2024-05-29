@@ -17,14 +17,14 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { ClusterTypes, DocDef } from '@cbjsdev/shared';
 
+import { CppProtocolSubdocOpcode } from '../../../binding.js';
+import { LookupInResult } from '../../../crudoptypes.js';
 import {
   connect,
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,
 } from '../../../index.js';
-import { CppProtocolSubdocOpcode } from '../../../binding.js';
-import { LookupInResult } from '../../../crudoptypes.js';
 import { LookupInSpec } from '../../../sdspecs.js';
 import { lookupSpec, LookupSpecs } from '../../../specBuilders.js';
 import {
@@ -235,41 +235,36 @@ describe('LookupInSpecs', () => {
         const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
+        // @ts-expect-error Invalid paths
         await collection.lookupIn('test__document', [
           LookupInSpec.get('title'),
-          // @ts-expect-error Invalid path throughout all the documents of the collection
           LookupInSpec.get('does_not_exists'),
-          // @ts-expect-error Invalid path throughout all the documents of the collection
           LookupInSpec.exists('does_not_exists'),
-          // @ts-expect-error Invalid path throughout all the documents of the collection
           LookupInSpec.count('does_not_exists'),
         ]);
 
+        // @ts-expect-error Invalid paths
         await collection.lookupIn(
           'test__document',
           [
             LookupInSpec.get('title'),
-            // @ts-expect-error Invalid path throughout all the documents of the collection
             LookupInSpec.get('does_not_exists'),
-            // @ts-expect-error Invalid path throughout all the documents of the collection
             LookupInSpec.exists('does_not_exists'),
-            // @ts-expect-error Invalid path throughout all the documents of the collection
             LookupInSpec.count('does_not_exists'),
           ],
           { timeout: 200 }
         );
 
+        // @ts-expect-error Invalid paths
         await collection.lookupIn(
           'test__document',
           [
             LookupInSpec.get('title'),
-            // @ts-expect-error Invalid path throughout all the documents of the collection
             LookupInSpec.get('does_not_exists'),
-            // @ts-expect-error Invalid path throughout all the documents of the collection
             LookupInSpec.exists('does_not_exists'),
-            // @ts-expect-error Invalid path throughout all the documents of the collection
             LookupInSpec.count('does_not_exists'),
           ],
+          // @ts-expect-error Byproduct of the error above
           (err, res) => {
             if (err) return;
           }

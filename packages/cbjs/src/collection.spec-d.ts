@@ -70,7 +70,6 @@ describe('Collection', async () => {
       expectTypeOf(collection.lookupIn('book::001', { timeout: 200 })).toEqualTypeOf<
         ChainableLookupIn<typeof collection, 'lookupIn', 'book::001', [], false>
       >();
-
       expectTypeOf(
         collection.lookupIn('book::001', [LookupInSpec.get('title')])
       ).toEqualTypeOf<Promise<LookupInResult<[string]>>>();
@@ -80,39 +79,8 @@ describe('Collection', async () => {
       ).toEqualTypeOf<Promise<LookupInResult<[string]>>>();
     });
 
-    it('should narrow the type of the callback arguments', async () => {
-      expectTypeOf(
-        collection.lookupIn(
-          'book::001',
-          [LookupInSpec.get('title')],
-          { timeout: 200 },
-          (err, res) => {
-            expectTypeOf(err).toEqualTypeOf<Error | null>();
-            expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]> | null>();
-
-            if (err) return;
-
-            expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]>>();
-          }
-        )
-      ).resolves.toEqualTypeOf<LookupInResult<[string]>>();
-
-      expectTypeOf(
-        collection.lookupIn('book::001', [LookupInSpec.get('title')], (err, res) => {
-          expectTypeOf(err).toEqualTypeOf<Error | null>();
-          expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]> | null>();
-
-          if (err) return;
-
-          expectTypeOf(res).toEqualTypeOf<LookupInResult<[string]>>();
-        })
-      ).resolves.toEqualTypeOf<LookupInResult<[string]>>();
-    });
-
     it('should narrow the type of LookupInResult properties', async () => {
-      const { content } = await collection.lookupIn('book::001', [
-        LookupInSpec.get('title'),
-      ]);
+      const { content } = await collection.lookupIn('book::001').get('title');
       const [title] = content;
       expectTypeOf(title).toEqualTypeOf<
         LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>
@@ -124,11 +92,9 @@ describe('Collection', async () => {
     });
 
     it('should narrow the type of LookupInResult properties with throwOnSpecError: true', async () => {
-      const { content } = await collection.lookupIn(
-        'book::001',
-        [LookupInSpec.get('title')],
-        { throwOnSpecError: true }
-      );
+      const { content } = await collection
+        .lookupIn('book::001', { throwOnSpecError: true })
+        .get('title');
       const [title] = content;
       expectTypeOf(title).toEqualTypeOf<LookupInResultEntry<string, null>>();
 

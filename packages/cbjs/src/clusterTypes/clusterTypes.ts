@@ -52,17 +52,17 @@ export type CT<Instance> =
 // prettier-ignore
 export type CollectionDocDef<Instance> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
-    B extends BucketName<T> ?
-      S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> ?
-        C extends CollectionName<
-          T,
-          WildcardFallback<B, BucketName<T>>,
-          WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
-        > ?
+    // B extends BucketName<T> ?
+    //   S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> ?
+    //     C extends CollectionName<
+    //       T,
+    //       WildcardFallback<B, BucketName<T>>,
+    //       WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
+    //     > ?
           KeyspaceDocDef<T, B, S, C> :
-        never :
-      never :
-    never :
+    //     never :
+    //   never :
+    // never :
   never
 ;
 
@@ -100,7 +100,9 @@ export type ExtractCollectionJsonDocBody<Instance, Key extends string> =
   never
 ;
 
-export type ExtractCollectionJsonDocKey<C> = CT<C>['ObjectDocument']['Key'];
+export type ExtractCollectionJsonDocKey<Instance> = ObjectDocumentDef<
+  CollectionDocDef<Instance>
+>['Key'];
 
 /**
  * Construct a `CouchbaseClusterTypes` with the given bucket, scope and collection, containing the given documents.

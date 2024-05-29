@@ -27,6 +27,8 @@ import {
 import {
   AnyMutateInPath,
   AnyMutateInValue,
+  MutateInPath,
+  MutateInSpecOpcode,
   MutateInValue,
 } from './clusterTypes/kv/mutation/mutateIn.types.js';
 import {
@@ -406,7 +408,10 @@ export class MutationSpecs<
     options?: MutateInRemoveOptions
   ): MutationSpecs<
     Doc,
-    [...SpecDefinitions, MutateInSpec<Doc, CppProtocolSubdocOpcode.remove_doc, ''>]
+    [
+      ...SpecDefinitions,
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.remove_doc, '', false, never>,
+    ]
   >;
 
   remove<Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>>(
@@ -414,7 +419,10 @@ export class MutationSpecs<
     options?: MutateInRemoveOptions
   ): MutationSpecs<
     Doc,
-    [...SpecDefinitions, MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path>]
+    [
+      ...SpecDefinitions,
+      MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path, false, never>,
+    ]
   >;
 
   /**
@@ -434,9 +442,21 @@ export class MutationSpecs<
   >(
     path: ValidateMutateInRemovePath<Doc, Path>,
     options?: MutateInRemoveOptions
-  ): MutationSpecs<Doc, [...SpecDefinitions, MutateInSpec<Doc>]> {
+  ): MutationSpecs<
+    Doc,
+    [
+      ...SpecDefinitions,
+      MutateInSpec<
+        Doc,
+        CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc,
+        Path,
+        false,
+        never
+      >,
+    ]
+  > {
     const spec = MutateInSpec.remove(path as never, options);
-    return new MutationSpecs([...this.getSpecs(), spec]);
+    return new MutationSpecs([...this.getSpecs(), spec]) as never;
   }
 
   /**

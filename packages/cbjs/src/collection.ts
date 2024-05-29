@@ -124,7 +124,7 @@ import {
 } from './services/kv/dataStructures/index.js';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
 import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs.js';
-import type { LookupInReturnType } from './services/kv/lookupIn/types.js';
+import { LookupInReturnType, LookupResult } from './services/kv/lookupIn/types.js';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn.js';
 import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs.js';
 import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types.js';
@@ -690,14 +690,13 @@ export class Collection<
     }
 
     try {
-      const res = await this.lookupIn<
-        ExtractCollectionJsonDocKey<this>,
-        Doc,
-        typeof specs,
-        false
-      >(key, specs as ValidateLookupInSpecs<Doc, typeof specs>, {
-        ...options,
-      });
+      const res = await this.lookupIn(
+        key,
+        specs as ValidateLookupInSpecs<Doc, typeof specs>,
+        {
+          ...options,
+        }
+      );
 
       let content: any = null;
       let expiry: number | undefined = undefined;
@@ -1867,55 +1866,67 @@ export class Collection<
     return this._doScan(scanType, orchestratorOptions, transcoder, callback);
   }
 
+  // Classic
+  lookupIn<
+    const Key extends ExtractCollectionJsonDocKey<this>,
+    const SpecDefinitions extends ReadonlyArray<LookupInSpec<Doc>>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    ThrowOnSpecError extends boolean = false,
+  >(
+    key: Key,
+    specs: SpecDefinitions,
+    options: LookupInOptions<ThrowOnSpecError>,
+    callback?: NodeCallback<
+      LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+    >
+  ): Promise<LookupResult<'lookupIn', Doc, SpecDefinitions, ThrowOnSpecError>>;
+
+  // Classic
+  lookupIn<
+    const Key extends ExtractCollectionJsonDocKey<this>,
+    const SpecDefinitions extends ReadonlyArray<LookupInSpec<Doc>>,
+    Doc extends ExtractCollectionJsonDocBody<this, Key>,
+    ThrowOnSpecError extends boolean = false,
+  >(
+    key: Key,
+    specs: SpecDefinitions,
+    callback?: NodeCallback<
+      LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+    >
+  ): Promise<LookupResult<'lookupIn', Doc, SpecDefinitions, ThrowOnSpecError>>;
+
+  // Chainable
+  lookupIn<
+    const Key extends ExtractCollectionJsonDocKey<this>,
+    ThrowOnSpecError extends boolean = false,
+  >(
+    key: Key,
+    options?: LookupInOptions<ThrowOnSpecError>
+  ): ChainableLookupIn<
+    this,
+    'lookupIn',
+    Key,
+    [],
+    ThrowOnSpecError,
+    ExtractCollectionJsonDocBody<this, Key>
+  >;
+
   /**
    * Performs a lookup-in operation against a document, fetching individual fields or
    * information about specific fields inside the document value.
    */
-  lookupIn<
-    Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-    ThrowOnSpecError extends boolean = false,
-  >(
-    key: Key,
-    ...args: [
-      specsOrOptions?:
-        | LookupInOptions<ThrowOnSpecError>
-        | NarrowLookupSpecs<Doc, SpecDefinitions>,
-      optionsOrCallback?:
-        | LookupInOptions<ThrowOnSpecError>
-        | NodeCallback<
-            LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
-          >,
-      callback?: NodeCallback<
-        LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
-      >,
-    ]
-  ): LookupInReturnType<this, 'lookupIn', Key, SpecDefinitions, ThrowOnSpecError> {
-    const { specs, options, callback: resolvedCallback } = resolveLookupInArgs(args);
+  lookupIn(key: string, ...args: never[]): any {
+    const {
+      specs,
+      options,
+      callback: resolvedCallback,
+    } = resolveLookupInArgs(args as never);
 
     if (specs === undefined) {
-      return ChainableLookupIn.for(this, 'lookupIn', key, options) as LookupInReturnType<
-        this,
-        'lookupIn',
-        Key,
-        SpecDefinitions,
-        ThrowOnSpecError
-      >;
+      return ChainableLookupIn.for(this, 'lookupIn', key as never, options);
     }
 
-    return this._lookupIn(
-      key,
-      specs as NoInfer<SpecDefinitions>,
-      options,
-      resolvedCallback
-    ) as LookupInReturnType<
-      this,
-      'lookupIn',
-      Key,
-      NoInfer<SpecDefinitions>,
-      ThrowOnSpecError
-    >;
+    return this._lookupIn(key as never, specs, options, resolvedCallback);
   }
 
   private async _lookupIn<

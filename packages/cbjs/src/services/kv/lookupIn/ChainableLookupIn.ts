@@ -90,13 +90,17 @@ type ThisAnd<T, Spec extends LookupInSpec> =
     ? ChainableLookupIn<C, Method, Key, [...SpecDefinitions, Spec], ThrowOnSpecError, Doc>
     : never;
 
+// TODO validate path
 export class ChainableLookupIn<
-  C extends AnyCollection,
-  Method extends LookupMethodName,
-  Key extends ExtractCollectionJsonDocKey<C>,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-  ThrowOnSpecError extends boolean,
-  Doc extends ExtractCollectionJsonDocBody<C, Key> = ExtractCollectionJsonDocBody<C, Key>,
+  out C extends AnyCollection,
+  out Method extends LookupMethodName,
+  out Key extends ExtractCollectionJsonDocKey<C>,
+  out SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  out ThrowOnSpecError extends boolean,
+  out Doc extends ExtractCollectionJsonDocBody<C, Key> = ExtractCollectionJsonDocBody<
+    C,
+    Key
+  >,
 > implements Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>>
 {
   // Promise stuff
