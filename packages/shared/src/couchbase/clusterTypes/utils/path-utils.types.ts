@@ -95,15 +95,18 @@ type Accessor<
  *
  * Note: does not include the root path '' by design.
  */
-export type DocumentPath<T extends object, K = never> = T extends unknown
-  ? IsFuzzyDocument<T> extends false
-    ? If<IsNever<K>, keyof T, K> extends infer Key extends keyof T
-      ? Key extends AccessibleKey
-        ? BuildPath<T, Key, true, never>
-        : never
-      : never
-    : string
-  : never;
+// prettier-ignore
+export type DocumentPath<T, K = never> =
+  T extends object ?
+    IsFuzzyDocument<T> extends false ?
+      If<IsNever<K>, keyof T, K> extends infer Key extends keyof T ?
+        Key extends AccessibleKey ?
+          BuildPath<T, Key, true, never> :
+        never :
+      never :
+    string :
+  never
+;
 
 /**
  * Build the paths in a branch of the document.

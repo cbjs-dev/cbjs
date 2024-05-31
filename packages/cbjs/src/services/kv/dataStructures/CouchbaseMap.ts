@@ -18,6 +18,7 @@ import {
   BucketName,
   CollectionName,
   CouchbaseClusterTypes,
+  DocDefMatchingBody,
   invariant,
   type MapEntry,
   ScopeName,
@@ -47,7 +48,7 @@ export class CouchbaseMap<
   B extends BucketName<T>,
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
-  Key extends ExtractCollectionJsonDocKey<Collection<T, B, S, C>>,
+  Key extends DocDefMatchingBody<Record<string, unknown>, T, B, S, C>['Key'],
   MapDoc extends Record<string, unknown>,
 > {
   private _coll: AnyCollection;

@@ -16,7 +16,11 @@
  */
 import { describe, it } from 'vitest';
 
-import { ValidatePathToOptionalProperty, ValidatePathToProperty } from '@cbjsdev/shared';
+import {
+  DocDef,
+  ValidatePathToOptionalProperty,
+  ValidatePathToProperty,
+} from '@cbjsdev/shared';
 
 import {
   ValidateMutateInInsertPath,
@@ -34,17 +38,19 @@ describe('specBuilders', function () {
     };
   };
 
+  type TestDocDef = DocDef<string, TestDoc>;
+
   describe('LookupSpecs', function () {
     it('should return an array with methods to chain more specs', function ({ expect }) {
-      expect(LookupSpecs.for<TestDoc>()).toHaveProperty('get');
-      expect(LookupSpecs.for<TestDoc>()).toHaveProperty('exists');
-      expect(LookupSpecs.for<TestDoc>()).toHaveProperty('count');
+      expect(LookupSpecs.for<TestDocDef>()).toHaveProperty('get');
+      expect(LookupSpecs.for<TestDocDef>()).toHaveProperty('exists');
+      expect(LookupSpecs.for<TestDocDef>()).toHaveProperty('count');
     });
 
     it('should return all the specs, in order, when the getter is called', function ({
       expect,
     }) {
-      const specs = LookupSpecs.for<TestDoc>()
+      const specs = LookupSpecs.for<TestDocDef>()
         .get('title')
         .count('metadata.tags')
         .exists('title')

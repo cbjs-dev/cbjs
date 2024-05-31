@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isArray } from '@cbjsdev/shared';
+import { DocDef, isArray } from '@cbjsdev/shared';
 
 import type { LookupInOptions } from '../../../collection.js';
 import { LookupInSpec } from '../../../sdspecs.js';
@@ -32,12 +32,12 @@ type ResolvedArgs<
 };
 
 export function resolveLookupInArgs<
-  Doc extends object,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  Def extends DocDef,
+  SpecDefinitions extends ReadonlyArray<LookupInSpec<Def>>,
   OpResult,
   ThrowOnSpecError extends boolean,
 >(
-  args: LookupInArgs<Doc, SpecDefinitions, OpResult, ThrowOnSpecError>
+  args: LookupInArgs<Def, SpecDefinitions, OpResult, ThrowOnSpecError>
 ): ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError> {
   if (!isArray(args[0])) {
     return {

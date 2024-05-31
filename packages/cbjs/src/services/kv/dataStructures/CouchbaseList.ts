@@ -62,7 +62,7 @@ export class CouchbaseList<
   }
 
   private async _get(): Promise<Item[]> {
-    const doc = await this._coll.get(this._key);
+    const doc = await this._coll.get(this._key as never);
     if (!isArray(doc.content)) {
       throw new CouchbaseError('expected document of array type');
     }
@@ -138,7 +138,7 @@ export class CouchbaseList<
    */
   async getAt(index: number, callback?: NodeCallback<Item>): Promise<Item> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [
+      const res = await this._coll.lookupIn(this._key as never, [
         LookupInSpec.get('[' + index + ']') as never,
       ]);
 
@@ -166,7 +166,7 @@ export class CouchbaseList<
    */
   async removeAt(index: number, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
-      await this._coll.mutateIn(this._key, [
+      await this._coll.mutateIn(this._key as never, [
         MutateInSpec.remove(('[' + index + ']') as never) as never,
       ]);
     }, callback);
@@ -199,7 +199,9 @@ export class CouchbaseList<
    */
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('') as never]);
+      const res = await this._coll.lookupIn(this._key as never, [
+        LookupInSpec.count('') as never,
+      ]);
 
       if (res.content[0].error) {
         throw res.content[0].error;
@@ -218,7 +220,7 @@ export class CouchbaseList<
   async push(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
       await this._coll.mutateIn(
-        this._key,
+        this._key as never,
         [MutateInSpec.arrayAppend('', value) as never],
         {
           storeSemantics: StoreSemantics.Upsert,
@@ -236,7 +238,7 @@ export class CouchbaseList<
   async unshift(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
       await this._coll.mutateIn(
-        this._key,
+        this._key as never,
         [MutateInSpec.arrayPrepend('', value) as never],
         {
           storeSemantics: StoreSemantics.Upsert,

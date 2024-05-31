@@ -14,10 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PromiseValue } from '@cbjsdev/shared';
+import {
+  BucketName,
+  CollectionName,
+  CouchbaseClusterTypes,
+  DocDef,
+  DocDefMatchingKey,
+  PromiseValue,
+  ScopeName,
+} from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
-import type {
+import {
+  CollectionDocDefMatchingKey,
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes.js';
@@ -31,7 +40,8 @@ import type {
   LookupInExistsPath,
   LookupInGetPath,
 } from '../../../clusterTypes/kv/lookup/lookupOperations.types.js';
-import type {
+import {
+  Collection,
   LookupInAllReplicasOptions,
   LookupInAnyReplicaOptions,
   LookupInOptions,
@@ -42,8 +52,8 @@ import type { LookupMethodName } from './types.js';
 
 type LookupMethod<
   Method extends LookupMethodName,
-  Doc,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  MatchingDocDef extends DocDef,
   ThrowOnSpecError extends boolean,
 > = {
   lookupIn: (
@@ -51,31 +61,37 @@ type LookupMethod<
     specs: SpecDefinitions,
     options: LookupInOptions<ThrowOnSpecError> | undefined
   ) => Promise<
-    LookupInResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+    LookupInResult<LookupInSpecResults<SpecDefinitions, MatchingDocDef>, ThrowOnSpecError>
   >;
   lookupInAnyReplica: (
     key: string,
     specs: SpecDefinitions,
     options: LookupInAnyReplicaOptions<ThrowOnSpecError> | undefined
   ) => Promise<
-    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
+    LookupInReplicaResult<
+      LookupInSpecResults<SpecDefinitions, MatchingDocDef>,
+      ThrowOnSpecError
+    >
   >;
   lookupInAllReplicas: (
     key: string,
     specs: SpecDefinitions,
     options: LookupInAllReplicasOptions<ThrowOnSpecError> | undefined
   ) => Promise<
-    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>[]
+    LookupInReplicaResult<
+      LookupInSpecResults<SpecDefinitions, MatchingDocDef>,
+      ThrowOnSpecError
+    >[]
   >;
 }[Method];
 
 type LookupResult<
   Method extends LookupMethodName,
-  Doc,
+  MatchingDocDef extends DocDef,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
   ThrowOnSpecError extends boolean,
 > = PromiseValue<
-  ReturnType<LookupMethod<Method, Doc, SpecDefinitions, ThrowOnSpecError>>
+  ReturnType<LookupMethod<Method, SpecDefinitions, MatchingDocDef, ThrowOnSpecError>>
 >;
 
 type ThisAnd<T, Spec extends LookupInSpec> =
@@ -90,30 +106,29 @@ type ThisAnd<T, Spec extends LookupInSpec> =
     ? ChainableLookupIn<C, Method, Key, [...SpecDefinitions, Spec], ThrowOnSpecError, Doc>
     : never;
 
-// TODO validate path
 export class ChainableLookupIn<
-  out C extends AnyCollection,
-  out Method extends LookupMethodName,
-  out Key extends ExtractCollectionJsonDocKey<C>,
-  out SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-  out ThrowOnSpecError extends boolean,
-  out Doc extends ExtractCollectionJsonDocBody<C, Key> = ExtractCollectionJsonDocBody<
+  C extends AnyCollection,
+  Method extends LookupMethodName,
+  Key extends ExtractCollectionJsonDocKey<C>,
+  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+  ThrowOnSpecError extends boolean,
+  DocDef extends CollectionDocDefMatchingKey<C, Key> = CollectionDocDefMatchingKey<
     C,
     Key
   >,
-> implements Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>>
+> implements Promise<LookupResult<Method, DocDef, SpecDefinitions, ThrowOnSpecError>>
 {
   // Promise stuff
 
   [Symbol.toStringTag] = 'ChainableLookupInSpecs';
 
   then<
-    TResult1 = LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>,
+    TResult1 = LookupResult<Method, DocDef, SpecDefinitions, ThrowOnSpecError>,
     TResult2 = never,
   >(
     onFulfilled?:
       | ((
-          value: LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>
+          value: LookupResult<Method, DocDef, SpecDefinitions, ThrowOnSpecError>
         ) => TResult1 | PromiseLike<TResult1>)
       | undefined
       | null,
@@ -127,13 +142,13 @@ export class ChainableLookupIn<
 
   catch<TResult = never>(
     onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null | undefined
-  ): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError> | TResult> {
+  ): Promise<LookupResult<Method, DocDef, SpecDefinitions, ThrowOnSpecError> | TResult> {
     return this.then(undefined, onRejected);
   }
 
   finally(
     onFinally?: (() => void) | null | undefined
-  ): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>> {
+  ): Promise<LookupResult<Method, DocDef, SpecDefinitions, ThrowOnSpecError>> {
     return this.then(
       (value) => {
         onFinally?.();
@@ -175,7 +190,7 @@ export class ChainableLookupIn<
     return this as never as ThisAnd<this, Spec>;
   }
 
-  execute(): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>> {
+  execute(): Promise<LookupResult<Method, DocDef, SpecDefinitions, ThrowOnSpecError>> {
     const lookupMethod = this.collection[this.method as Method & keyof C];
     const lookup = lookupMethod.bind(this.collection) as any;
 
@@ -186,12 +201,12 @@ export class ChainableLookupIn<
   get(
     path: '',
     options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_doc, ''>>;
+  ): ThisAnd<this, MakeLookupInSpec<DocDef, CppProtocolSubdocOpcode.get_doc, ''>>;
 
-  get<Path extends Exclude<LookupInGetPath<Doc>, ''>>(
+  get<Path extends Exclude<LookupInGetPath<DocDef>, ''>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get, Path>>;
+  ): ThisAnd<this, MakeLookupInSpec<DocDef, CppProtocolSubdocOpcode.get, Path>>;
 
   /**
    * Get a property from the document.
@@ -203,7 +218,7 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  get<Path extends LookupInGetPath<Doc>>(
+  get<Path extends LookupInGetPath<DocDef['Body']>>(
     path: Path,
     options?: { xattr?: boolean }
   ): ThisAnd<this, LookupInSpec> {
@@ -221,11 +236,14 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  exists<Path extends LookupInExistsPath<Doc>>(
+  exists<Path extends LookupInExistsPath<DocDef['Body']>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.exists, Path>> {
-    const spec = LookupInSpec.exists<Doc, Path>(path, options);
+  ): ThisAnd<
+    this,
+    MakeLookupInSpec<DocDef['Body'], CppProtocolSubdocOpcode.exists, Path>
+  > {
+    const spec = LookupInSpec.exists<DocDef['Body'], Path>(path, options);
     return this.push(spec);
   }
 
@@ -239,11 +257,14 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  count<Path extends LookupInCountPath<Doc>>(
+  count<Path extends LookupInCountPath<DocDef['Body']>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_count, Path>> {
-    const spec = LookupInSpec.count<Doc, Path>(path, options);
+  ): ThisAnd<
+    this,
+    MakeLookupInSpec<DocDef['Body'], CppProtocolSubdocOpcode.get_count, Path>
+  > {
+    const spec = LookupInSpec.count<DocDef['Body'], Path>(path, options);
     return this.push(spec);
   }
 

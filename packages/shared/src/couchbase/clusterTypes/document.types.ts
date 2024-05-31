@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsExactly, IsNever, Or, Primitive } from '../../misc/index.js';
+import {
+  And,
+  Extends,
+  If,
+  IsAny,
+  IsExactly,
+  IsNever,
+  Or,
+  Primitive,
+} from '../../misc/index.js';
 import { Keyspace } from '../utils/index.js';
 import {
   ClusterTypesOptions,
@@ -24,9 +33,10 @@ import {
 import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
 import { DocumentPath } from './utils/index.js';
 
-export type DocDef<Key extends string = string, Body = unknown> = {
+export type DocDef<Key extends string = string, Body = any> = {
   Key: Key;
   Body: Body;
+  Path: DocumentPath<Body>;
 };
 
 /**
@@ -144,10 +154,10 @@ export type DocDefMatchingKey<
   IsAny<T> extends true ?
     DocDef<string, any> :
   GetKeyspaceOptions<T, B, S, C> extends infer ResolvedOptions extends ClusterTypesOptions ?
-    T['definitions'][B]['definitions'][S]['definitions'][C]['definitions'] extends infer Defs extends ReadonlyArray<DocDef> ?
+    T['definitions'][B]['definitions'][S]['definitions'][C]['definitions'] extends infer Defs extends ReadonlyArray<DocDef<string, any>> ?
       Key extends unknown ?
         ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
-          Defs[number] extends infer Def extends DocDef ?
+          Defs[number] extends infer Def extends DocDef<string, any> ?
             Def extends unknown ?
               Key extends Def['Key'] ?
                 Def :
@@ -167,10 +177,10 @@ export type DocDefMatchingKey<
 // prettier-ignore
 export type MatchDocDefKeyByDelimiter<
   Key extends string,
-  CompareSet extends ReadonlyArray<DocDef>,
+  CompareSet extends ReadonlyArray<DocDef<string, any>>,
   Options extends { keyDelimiter: string }
 > =
-  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+  CompareSet extends [infer A extends DocDef<string, any>, ...infer Rest extends ReadonlyArray<DocDef<string, any>>] ?
     Key extends A['Key'] ?
       // If it matches a longer template, it means it's not the more precise template
       Key extends `${A['Key']}${Options['keyDelimiter']}${string}` ?
@@ -182,7 +192,7 @@ export type MatchDocDefKeyByDelimiter<
 
 // prettier-ignore
 export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet extends ReadonlyArray<DocDef>> =
-  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+  CompareSet extends [infer A extends DocDef<string, any>, ...infer Rest extends ReadonlyArray<DocDef>] ?
     Key extends A['Key'] ?
       A :
     MatchDocDefKeyFirstMatch<Key, Rest> :

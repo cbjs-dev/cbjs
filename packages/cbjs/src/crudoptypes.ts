@@ -85,7 +85,7 @@ export class GetResult<T = any, WithExpiry extends boolean = boolean> {
  *
  * @category Key-Value
  */
-export class ScanResult<Def extends DocDef<any, any> = DocDef<any, any>> {
+export class ScanResult<Def extends DocDef<string, any> = DocDef<string, any>> {
   /**
    * The ID of the document.
    */

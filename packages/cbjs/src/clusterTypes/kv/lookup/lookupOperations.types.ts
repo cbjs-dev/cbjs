@@ -17,7 +17,14 @@
 import type { CppProtocolSubdocOpcode } from '../../../binding.js';
 import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
 import type { MakeLookupInSpec } from './lookupIn.types.js';
-import type { DocumentPath, ExtractPathToArray, ExtractPathToObject, If, IsFuzzyDocument } from '@cbjsdev/shared';
+import type {
+  DocDef,
+  DocumentPath,
+  ExtractPathToArray,
+  ExtractPathToObject,
+  If,
+  IsFuzzyDocument,
+} from '@cbjsdev/shared';
 
 /**
  * Helper to build the path of a lookup operation.
@@ -36,18 +43,18 @@ type OperationPath<Doc extends object, Path> =
  *
  * @see LookupInSpecGetFunction
  */
-export type LookupInGetPath<Doc extends object> =
-  OperationPath<Doc, DocumentPath<Doc> | LookupInMacro | ''>;
+export type LookupInGetPath<Def extends DocDef> =
+  OperationPath<Def['Body'], Def['Path'] | LookupInMacro | ''>;
 
 /**
  * Function that returns a {@link LookupInSpec} instance for a `get` operation.
  */
-export type LookupInSpecGetFunction<Doc extends object> = {
+export type LookupInSpecGetFunction<Def extends DocDef> = {
   (path: '', options?: { xattr?: boolean }):
-    LookupInSpec<Doc, CppProtocolSubdocOpcode.get_doc, ''>;
+    LookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>;
 
-  <Path extends Exclude<LookupInGetPath<Doc>, ''>>(path: Path, options?: { xattr?: boolean }):
-    MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get, Path>;
+  <Path extends Exclude<LookupInGetPath<Def>, ''>>(path: Path, options?: { xattr?: boolean }):
+    MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>;
 }
 
 /**
@@ -55,15 +62,15 @@ export type LookupInSpecGetFunction<Doc extends object> = {
  *
  * @see LookupInSpecExistsFunction
  */
-export type LookupInExistsPath<Doc extends object> =
-  OperationPath<Doc, DocumentPath<Doc> | LookupInMacro>;
+export type LookupInExistsPath<Def extends DocDef> =
+  OperationPath<Def['Body'], Def['Path'] | LookupInMacro>;
 
 /**
  * Function that returns a {@link LookupInSpec} instance for an `exists` operation.
  */
-export type LookupInSpecExistsFunction<Doc extends object> =
-  <Path extends LookupInExistsPath<Doc>>(path: Path, options?: { xattr?: boolean })
-    => MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.exists, Path>
+export type LookupInSpecExistsFunction<Def extends DocDef> =
+  <Path extends LookupInExistsPath<Def>>(path: Path, options?: { xattr?: boolean })
+    => MakeLookupInSpec<Def, CppProtocolSubdocOpcode.exists, Path>
 ;
 
 /**
@@ -71,12 +78,12 @@ export type LookupInSpecExistsFunction<Doc extends object> =
  *
  * @see LookupInSpecCountFunction
  */
-export type LookupInCountPath<Doc extends object> =
+export type LookupInCountPath<Def extends DocDef> =
   If<
-    IsFuzzyDocument<Doc>,
+    IsFuzzyDocument<Def['Body']>,
     string | LookupInMacro<'$document'>,
-    | ExtractPathToObject<Doc, DocumentPath<Doc> | ''>
-    | ExtractPathToArray<Doc, DocumentPath<Doc> | ''>
+    | ExtractPathToObject<Def['Body'], Def['Path'] | ''>
+    | ExtractPathToArray<Def['Body'], Def['Path'] | ''>
     | LookupInMacro<'$document'>
   >
 ;
@@ -84,7 +91,7 @@ export type LookupInCountPath<Doc extends object> =
 /**
  * Function that returns a {@link LookupInSpec} instance for a `count` operation.
  */
-export type LookupInSpecCountFunction<Doc extends object> =
-  <Path extends LookupInCountPath<Doc>>(path: Path, options?: { xattr?: boolean })
-    => MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_count, Path>
+export type LookupInSpecCountFunction<Def extends DocDef> =
+  <Path extends LookupInCountPath<Def>>(path: Path, options?: { xattr?: boolean })
+    => MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_count, Path>
 ;

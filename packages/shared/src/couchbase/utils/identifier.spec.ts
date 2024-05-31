@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { ClusterTypes, DocDef } from '../clusterTypes/index.js';
+import { ClusterTypes, DocDef, IsFuzzyDocument } from '../clusterTypes/index.js';
 import { isValidBucketName, Keyspace, quotePath } from './identifier.js';
 
 describe('isValidBucketName', () => {
@@ -33,6 +33,7 @@ describe('isValidBucketName', () => {
 });
 
 type Doc<T extends string> = { [K in T]: string };
+
 type UserClusterTypes = ClusterTypes<{
   BucketOne: {
     ScopeOne: {

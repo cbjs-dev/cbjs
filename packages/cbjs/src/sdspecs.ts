@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes } from '@cbjsdev/shared';
+import { DocDef } from '@cbjsdev/shared';
 
 import binding, { CppProtocolSubdocOpcode } from './binding.js';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
@@ -180,10 +180,10 @@ export class MutateInMacro<
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class LookupInSpec<
-  Doc extends object = object,
+  Def extends DocDef = DocDef,
   Opcode extends LookupInSpecOpCode = LookupInSpecOpCode,
-  InternalPath extends LookupInInternalPath<Doc, Opcode> = LookupInInternalPath<
-    Doc,
+  InternalPath extends LookupInInternalPath<Def, Opcode> = LookupInInternalPath<
+    Def,
     Opcode
   >,
 > {
@@ -219,14 +219,14 @@ export class LookupInSpec<
   }
 
   private static _create<
-    Doc extends object,
+    Def extends DocDef,
     Opcode extends LookupInSpecOpCode,
-    Path extends LookupInPath<Doc, Opcode>,
+    Path extends LookupInPath<Def, Opcode>,
   >(
     op: Opcode,
     path: Path,
     options?: { xattr?: boolean }
-  ): MakeLookupInSpec<Doc, Opcode, Path> {
+  ): MakeLookupInSpec<Def, Opcode, Path> {
     if (!options) {
       options = {};
     }
@@ -234,7 +234,7 @@ export class LookupInSpec<
     let flags = 0;
     const pathValue = (
       isLookupInMacro(path) ? path._value : path
-    ) as LookupInInternalPath<Doc, Opcode>;
+    ) as LookupInInternalPath<Def, Opcode>;
 
     if (isLookupInMacro(path)) {
       flags |= binding.protocol_lookup_in_request_body_lookup_in_specs_path_flag.xattr;
@@ -244,20 +244,20 @@ export class LookupInSpec<
       flags |= binding.protocol_lookup_in_request_body_lookup_in_specs_path_flag.xattr;
     }
 
-    return new LookupInSpec(op, pathValue, flags) as MakeLookupInSpec<Doc, Opcode, Path>;
+    return new LookupInSpec(op, pathValue, flags) as MakeLookupInSpec<Def, Opcode, Path>;
   }
 
-  static get<Doc extends object>(
+  static get<Def extends DocDef>(
     this: void,
     path: '',
     options?: { xattr?: boolean }
-  ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_doc, ''>;
+  ): MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>;
 
-  static get<Doc extends object, const Path extends Exclude<LookupInGetPath<Doc>, ''>>(
+  static get<Def extends DocDef, const Path extends Exclude<LookupInGetPath<Def>, ''>>(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
-  ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get, Path>;
+  ): MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>;
   /**
    * Creates a LookupInSpec for fetching a field from the document.
    *
@@ -268,8 +268,8 @@ export class LookupInSpec<
    * attributes data for the document.
    */
   static get<
-    Doc extends object,
-    Path extends LookupInGetPath<Doc> = LookupInGetPath<Doc>,
+    Def extends DocDef,
+    Path extends LookupInGetPath<Def> = LookupInGetPath<Def>,
   >(this: void, path: Path, options?: { xattr?: boolean }): LookupInSpec {
     if (path === '') {
       return LookupInSpec._create(binding.protocol_subdoc_opcode.get_doc, '', options);
@@ -286,11 +286,11 @@ export class LookupInSpec<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  static exists<Doc extends object, const Path extends LookupInExistsPath<Doc>>(
+  static exists<Def extends DocDef, const Path extends LookupInExistsPath<Def>>(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
-  ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.exists, Path> {
+  ): MakeLookupInSpec<Def, CppProtocolSubdocOpcode.exists, Path> {
     return LookupInSpec._create(binding.protocol_subdoc_opcode.exists, path, options);
   }
 
@@ -304,16 +304,16 @@ export class LookupInSpec<
    * attributes data for the document.
    */
   static count<
-    Doc extends object,
-    const Path extends LookupInCountPath<Doc> = LookupInCountPath<Doc>,
+    Def extends DocDef,
+    const Path extends LookupInCountPath<Def> = LookupInCountPath<Def>,
   >(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
   ): LookupInSpec<
-    Doc,
+    Def,
     CppProtocolSubdocOpcode.get_count,
-    ToLookupInternalPath<Doc, CppProtocolSubdocOpcode.get_count, Path>
+    ToLookupInternalPath<Def, CppProtocolSubdocOpcode.get_count, Path>
   > {
     return LookupInSpec._create(binding.protocol_subdoc_opcode.get_count, path, options);
   }

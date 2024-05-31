@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { AssertTests, DocumentPath } from '@cbjsdev/shared';
+import { AssertTests, DocDef, DocumentPath } from '@cbjsdev/shared';
 
 import type {
   LookupInCountPath,
@@ -31,17 +31,19 @@ describe('lookup operations', function () {
     };
   };
 
-  type Paths<Doc extends object> = {
-    get: LookupInGetPath<Doc>;
-    exists: LookupInExistsPath<Doc>;
-    count: LookupInCountPath<Doc>;
+  type TestDocDef = DocDef<string, TestDoc>;
+
+  type Paths<Def extends DocDef> = {
+    get: LookupInGetPath<Def>;
+    exists: LookupInExistsPath<Def>;
+    count: LookupInCountPath<Def>;
   };
 
   type TestPaths<
-    F extends keyof Paths<TestDoc>,
+    F extends keyof Paths<TestDocDef>,
     T extends Record<DocumentPath<TestDoc>, boolean>,
   > = {
-    [Path in keyof T]: [T[Path], Path extends Paths<TestDoc>[F] ? true : false];
+    [Path in keyof T]: [T[Path], Path extends Paths<TestDocDef>[F] ? true : false];
   };
 
   describe('get', function () {

@@ -59,17 +59,11 @@ type ScopeTypeDefinition = {
 
 type CollectionTypeDefinition = {
   options?: ClusterTypesOptions;
-  definitions: ReadonlyArray<DocDef>;
+  definitions: ReadonlyArray<DocDef<string, any>>;
 };
 
 // input types //
 type RawClusterTypeDefinitions = { [bucket: string]: InputBucketTypeDefinitions };
-export type InputClusterTypeDefinitions =
-  | RawClusterTypeDefinitions
-  | {
-      options?: ClusterTypesOptions;
-      definitions: RawClusterTypeDefinitions;
-    };
 
 type RawBucketTypeDefinitions = { [scope: string]: InputScopeTypeDefinitions };
 type InputBucketTypeDefinitions =
@@ -87,7 +81,7 @@ type InputScopeTypeDefinitions =
       definitions: RawScopeTypeDefinitions;
     };
 
-type RawCollectionTypeDefinitions = ReadonlyArray<DocDef>;
+type RawCollectionTypeDefinitions = ReadonlyArray<DocDef<string, any>>;
 type InputCollectionTypeDefinitions =
   | RawCollectionTypeDefinitions
   | {
@@ -155,7 +149,7 @@ export type CollectionTypes<
   OptionsOrDef extends ClusterTypesOptions | ReadonlyArray<DocDef>,
   DocDefs extends ReadonlyArray<DocDef> = never
 > =
-  NormalizeTypesTuple<ReadonlyArray<DocDef>, OptionsOrDef, DocDefs> extends [infer Opts, infer Defs] ?
+  NormalizeTypesTuple<ReadonlyArray<DocDef<string, any>>, OptionsOrDef, DocDefs> extends [infer Opts, infer Defs] ?
     { options: Opts, definitions: Defs } :
   never
 ;

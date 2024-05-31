@@ -70,10 +70,7 @@ describe('DocumentPath', function () {
   });
 
   it('should return never if the input type is not an object', function () {
-    // @ts-expect-error DocumentPath should not accept a string as generic argument
     expectTypeOf<DocumentPath<'stringDoc'>>().toBeNever();
-
-    // @ts-expect-error DocumentPath should not accept a number as generic argument
     expectTypeOf<DocumentPath<42>>().toBeNever();
   });
 

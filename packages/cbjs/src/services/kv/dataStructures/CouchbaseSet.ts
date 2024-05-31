@@ -61,7 +61,7 @@ export class CouchbaseSet<
   }
 
   private async _get(): Promise<Item[]> {
-    const doc = await this._coll.get(this._key);
+    const doc = await this._coll.get(this._key as never);
     if (!isArray(doc.content)) {
       throw new CouchbaseError('expected document of array type');
     }
@@ -80,7 +80,7 @@ export class CouchbaseSet<
     return await PromiseHelper.wrapAsync(async () => {
       try {
         await this._coll.mutateIn(
-          this._key,
+          this._key as never,
           [MutateInSpec.arrayAddUnique('', item) as never],
           {
             storeSemantics: StoreSemantics.Upsert,
@@ -128,7 +128,7 @@ export class CouchbaseSet<
 
       for (let i = 0; i < 16; ++i) {
         try {
-          const res = await this._coll.get(this._key);
+          const res = await this._coll.get(this._key as never);
           if (!isArray(res.content)) {
             throw new CouchbaseError('expected document of array type');
           }
@@ -139,7 +139,7 @@ export class CouchbaseSet<
           }
 
           await this._coll.mutateIn(
-            this._key,
+            this._key as never,
             [MutateInSpec.remove(('[' + itemIdx + ']') as never) as never],
             {
               cas: res.cas,
@@ -176,7 +176,9 @@ export class CouchbaseSet<
    */
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('') as never]);
+      const res = await this._coll.lookupIn(this._key as never, [
+        LookupInSpec.count('') as never,
+      ]);
 
       if (res.content[0].error) {
         throw res.content[0].error;

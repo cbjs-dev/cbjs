@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, DocDef } from '@cbjsdev/shared';
+import { ClusterTypes, DocDef, ObjectDocumentDef } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { LookupInResult } from '../../../crudoptypes.js';
@@ -52,13 +52,16 @@ describe('LookupInSpecs', () => {
     };
   };
 
+  type TestDocDef = DocDef<string, TestDoc>;
+  type TestDocDef2 = DocDef<string, TestDoc2>;
+
   type UserClusterTypes = ClusterTypes<{
     test: {
       _default: {
-        _default: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
+        _default: [TestDocDef, TestDocDef2];
       };
       testScope: {
-        testCollection: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
+        testCollection: [TestDocDef, TestDocDef2];
       };
     };
   }>;
@@ -155,7 +158,7 @@ describe('LookupInSpecs', () => {
         const collection = cluster.bucket('test').defaultCollection();
 
         const result = await collection.lookupIn('test__document', [
-          LookupInSpec.get<TestDoc, 'title'>('title'),
+          LookupInSpec.get<TestDocDef, 'title'>('title'),
           LookupInSpec.get('does_not_exists'),
           LookupInSpec.count('metadata.tags'),
           LookupInSpec.exists('metadata.tags[0]'),
@@ -166,7 +169,7 @@ describe('LookupInSpecs', () => {
         >();
 
         const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
-          LookupInSpec.get<TestDoc, 'title'>('title'),
+          LookupInSpec.get<TestDocDef, 'title'>('title'),
           LookupInSpec.get('does_not_exists'),
           LookupInSpec.count('metadata.tags'),
           LookupInSpec.exists('metadata.tags[0]'),
@@ -179,7 +182,7 @@ describe('LookupInSpecs', () => {
         const resultInAllReplica = await collection.lookupInAllReplicas(
           'test__document',
           [
-            LookupInSpec.get<TestDoc, 'title'>('title'),
+            LookupInSpec.get<TestDocDef, 'title'>('title'),
             LookupInSpec.get('does_not_exists'),
             LookupInSpec.count('metadata.tags'),
             LookupInSpec.exists('metadata.tags[0]'),
@@ -196,9 +199,9 @@ describe('LookupInSpecs', () => {
         const collection = cluster.bucket('test').defaultCollection();
 
         const result = await collection.lookupIn('test__document', [
-          lookupSpec<TestDoc>().get('title'),
-          lookupSpec<TestDoc>().count('metadata.tags'),
-          lookupSpec<TestDoc>().exists('metadata.tags[0]'),
+          lookupSpec<TestDocDef>().get('title'),
+          lookupSpec<TestDocDef>().count('metadata.tags'),
+          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
         ]);
 
         expectTypeOf(result).toEqualTypeOf<
@@ -206,9 +209,9 @@ describe('LookupInSpecs', () => {
         >();
 
         const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
-          lookupSpec<TestDoc>().get('title'),
-          lookupSpec<TestDoc>().count('metadata.tags'),
-          lookupSpec<TestDoc>().exists('metadata.tags[0]'),
+          lookupSpec<TestDocDef>().get('title'),
+          lookupSpec<TestDocDef>().count('metadata.tags'),
+          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
         ]);
 
         expectTypeOf(resultInAnyReplica).toEqualTypeOf<
@@ -218,9 +221,9 @@ describe('LookupInSpecs', () => {
         const resultInAllReplica = await collection.lookupInAllReplicas(
           'test__document',
           [
-            lookupSpec<TestDoc>().get('title'),
-            lookupSpec<TestDoc>().count('metadata.tags'),
-            lookupSpec<TestDoc>().exists('metadata.tags[0]'),
+            lookupSpec<TestDocDef>().get('title'),
+            lookupSpec<TestDocDef>().count('metadata.tags'),
+            lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
           ]
         );
 
@@ -283,15 +286,15 @@ describe('LookupInSpecs', () => {
           }
         );
 
+        // @ts-expect-error Invalid paths
         await collection.lookupInAnyReplica('test__document', [
           LookupInSpec.get('title'),
-          // @ts-expect-error Invalid path throughout all the documents of the collection
           LookupInSpec.get('does_not_exists'),
         ]);
 
+        // @ts-expect-error Invalid paths
         await collection.lookupInAllReplicas('test__document', [
           LookupInSpec.get('title'),
-          // @ts-expect-error Invalid path throughout all the documents of the collection
           LookupInSpec.get('does_not_exists'),
         ]);
       });
@@ -362,9 +365,9 @@ describe('LookupInSpecs', () => {
         const collection = cluster.bucket('test').defaultCollection();
 
         const result = await collection.lookupIn('test__document', [
-          lookupSpec<TestDoc>().get('title'),
-          lookupSpec<TestDoc>().count('metadata.tags'),
-          lookupSpec<TestDoc>().exists('metadata.tags[0]'),
+          lookupSpec<TestDocDef>().get('title'),
+          lookupSpec<TestDocDef>().count('metadata.tags'),
+          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
         ]);
 
         expectTypeOf(result).toEqualTypeOf<
@@ -372,9 +375,9 @@ describe('LookupInSpecs', () => {
         >();
 
         const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
-          lookupSpec<TestDoc>().get('title'),
-          lookupSpec<TestDoc>().count('metadata.tags'),
-          lookupSpec<TestDoc>().exists('metadata.tags[0]'),
+          lookupSpec<TestDocDef>().get('title'),
+          lookupSpec<TestDocDef>().count('metadata.tags'),
+          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
         ]);
 
         expectTypeOf(resultInAnyReplica).toEqualTypeOf<
@@ -384,9 +387,9 @@ describe('LookupInSpecs', () => {
         const resultInAllReplica = await collection.lookupInAllReplicas(
           'test__document',
           [
-            lookupSpec<TestDoc>().get('title'),
-            lookupSpec<TestDoc>().count('metadata.tags'),
-            lookupSpec<TestDoc>().exists('metadata.tags[0]'),
+            lookupSpec<TestDocDef>().get('title'),
+            lookupSpec<TestDocDef>().count('metadata.tags'),
+            lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
           ]
         );
 
@@ -399,9 +402,9 @@ describe('LookupInSpecs', () => {
 
   describe('LookupInSpecResult', () => {
     type Test<
-      Path extends LookupInInternalPath<TestDoc, Opcode>,
+      Path extends LookupInInternalPath<TestDocDef, Opcode>,
       Opcode extends LookupInSpecOpCode,
-    > = LookupInSpecResult<LookupInSpec<TestDoc, Opcode, Path>, never>;
+    > = LookupInSpecResult<LookupInSpec<TestDocDef, Opcode, Path>, TestDocDef>;
 
     it('should infer the correct type', () => {
       expectTypeOf<
@@ -436,38 +439,39 @@ describe('LookupInSpecs', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
-            LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<TestDoc, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get_count, 'metadata'>,
-            LookupInSpec<TestDoc, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
           ],
-          TestDoc | TestDoc2
+          TestDocDef
         >
       >().toEqualTypeOf<[string, boolean, number, string | undefined]>();
     });
 
     it('should provide best-effort when using collection documents', () => {
+      // prettier-ignore
       expectTypeOf<
         LookupInSpecResults<
           [
-            LookupInSpec<object, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<object, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
           ],
-          TestDoc | TestDoc2
+          TestDocDef | TestDocDef2
         >
       >().toEqualTypeOf<[string | number, boolean, number]>();
     });
 
-    it('should fallback to `any` when using efault cluster types', () => {
+    it('should fallback to `any` when using default cluster types', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
-            LookupInSpec<object, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<object, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
           ],
-          any
+          DocDef
         >
       >().toEqualTypeOf<[any, boolean, number]>();
     });
@@ -477,13 +481,13 @@ describe('LookupInSpecs', () => {
     describe('LookupInSpec.get', () => {
       it('should return correct type', () => {
         expectTypeOf(LookupInSpec.get('')).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.get_doc, ''>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_doc, ''>
         >();
         expectTypeOf(LookupInSpec.get('title')).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.get, 'title'>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>
         >();
         expectTypeOf(LookupInSpec.get(LookupInMacro.Expiry)).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.get, '$document.exptime'>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, '$document.exptime'>
         >();
       });
     });
@@ -491,15 +495,15 @@ describe('LookupInSpecs', () => {
     describe('LookupInSpec.count', () => {
       it('should return correct type', () => {
         expectTypeOf(LookupInSpec.count('')).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.get_count, ''>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, ''>
         >();
         expectTypeOf(LookupInSpec.count('title')).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.get_count, 'title'>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, 'title'>
         >();
 
         // @ts-expect-error Cannot receive a macro
         expectTypeOf(LookupInSpec.count(LookupInMacro.Expiry)).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.get_count, never>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, never>
         >();
       });
     });
@@ -507,13 +511,13 @@ describe('LookupInSpecs', () => {
     describe('LookupInSpec.exists', () => {
       it('should return correct type', () => {
         expectTypeOf(LookupInSpec.exists('')).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.exists, ''>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, ''>
         >();
         expectTypeOf(LookupInSpec.exists('title')).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.exists, 'title'>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>
         >();
         expectTypeOf(LookupInSpec.exists(LookupInMacro.Expiry)).toEqualTypeOf<
-          LookupInSpec<object, CppProtocolSubdocOpcode.exists, '$document.exptime'>
+          LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, '$document.exptime'>
         >();
       });
     });

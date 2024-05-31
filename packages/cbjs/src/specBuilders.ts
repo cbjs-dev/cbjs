@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocDef } from '@cbjsdev/shared';
+
 import { CppProtocolSubdocOpcode } from './binding.js';
 import { MakeLookupInSpec } from './clusterTypes/kv/lookup/lookupIn.types.js';
 import {
@@ -63,10 +65,10 @@ import { LookupInSpec, MutateInSpec } from './sdspecs.js';
  *
  * @see Collection.lookupIn.
  */
-type LookupInSpecMakers<Doc extends object> = {
-  get: LookupInSpecGetFunction<Doc>;
-  exists: LookupInSpecExistsFunction<Doc>;
-  count: LookupInSpecCountFunction<Doc>;
+type LookupInSpecMakers<Def extends DocDef> = {
+  get: LookupInSpecGetFunction<Def>;
+  exists: LookupInSpecExistsFunction<Def>;
+  count: LookupInSpecCountFunction<Def>;
 };
 
 /**
@@ -74,7 +76,7 @@ type LookupInSpecMakers<Doc extends object> = {
  *
  * @see Collection.lookupIn
  */
-export function lookupSpec<Doc extends object>(): LookupInSpecMakers<Doc> {
+export function lookupSpec<Def extends DocDef>(): LookupInSpecMakers<Def> {
   return {
     get: LookupInSpec.get,
     exists: LookupInSpec.exists,
@@ -90,7 +92,7 @@ export function lookupSpec<Doc extends object>(): LookupInSpecMakers<Doc> {
  * LookupSpecs.for<Doc>().get('title').count('tags').exists('modifiedBy').getSpecs();
  */
 export class LookupSpecs<
-  Doc extends object,
+  Def extends DocDef,
   SpecDefinitions extends ReadonlyArray<LookupInSpec>,
 > {
   protected readonly specs: SpecDefinitions;
@@ -110,13 +112,13 @@ export class LookupSpecs<
    * @example
    * LookupSpecs.for<Doc>().get('title').count('tags').exists('modifiedBy');
    */
-  static for<Doc extends object>(): LookupSpecs<Doc, []> {
+  static for<Def extends DocDef>(): LookupSpecs<Def, []> {
     return new LookupSpecs([]);
   }
 
   push<Spec extends LookupInSpec>(
     spec: Spec
-  ): LookupSpecs<Doc, [...SpecDefinitions, Spec]> {
+  ): LookupSpecs<Def, [...SpecDefinitions, Spec]> {
     return new LookupSpecs([...this.getSpecs(), spec]);
   }
 
@@ -124,16 +126,16 @@ export class LookupSpecs<
     path: '',
     options?: { xattr?: boolean }
   ): LookupSpecs<
-    Doc,
-    [...SpecDefinitions, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_doc, ''>]
+    Def,
+    [...SpecDefinitions, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>]
   >;
 
-  get<Path extends Exclude<LookupInGetPath<Doc>, ''>>(
+  get<Path extends Exclude<LookupInGetPath<Def>, ''>>(
     path: Path,
     options?: { xattr?: boolean }
   ): LookupSpecs<
-    Doc,
-    [...SpecDefinitions, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get, Path>]
+    Def,
+    [...SpecDefinitions, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>]
   >;
 
   /**
@@ -145,10 +147,10 @@ export class LookupSpecs<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  get<Path extends LookupInGetPath<Doc>>(
+  get<Path extends LookupInGetPath<Def>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): LookupSpecs<Doc, [...SpecDefinitions, LookupInSpec]> {
+  ): LookupSpecs<Def, [...SpecDefinitions, LookupInSpec]> {
     const spec = LookupInSpec.get(path, options);
     return this.push(spec);
   }
@@ -162,14 +164,14 @@ export class LookupSpecs<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  exists<Path extends LookupInExistsPath<Doc>>(
+  exists<Path extends LookupInExistsPath<Def>>(
     path: Path,
     options?: { xattr?: boolean }
   ): LookupSpecs<
-    Doc,
-    [...SpecDefinitions, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.exists, Path>]
+    Def,
+    [...SpecDefinitions, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.exists, Path>]
   > {
-    const spec = LookupInSpec.exists<Doc, Path>(path, options);
+    const spec = LookupInSpec.exists<Def, Path>(path, options);
     return this.push(spec);
   }
 
@@ -182,14 +184,14 @@ export class LookupSpecs<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  count<Path extends LookupInCountPath<Doc>>(
+  count<Path extends LookupInCountPath<Def>>(
     path: Path,
     options?: { xattr?: boolean }
   ): LookupSpecs<
-    Doc,
-    [...SpecDefinitions, MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_count, Path>]
+    Def,
+    [...SpecDefinitions, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_count, Path>]
   > {
-    const spec = LookupInSpec.count<Doc, Path>(path, options);
+    const spec = LookupInSpec.count<Def, Path>(path, options);
     return this.push(spec);
   }
 

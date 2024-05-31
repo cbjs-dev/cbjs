@@ -299,13 +299,13 @@ describe('DocDefMatchingKey', () => {
   it('default cluster types with specific collection', () => {
     expectTypeOf<
       DocDefMatchingKey<BookKey, DefaultClusterTypes, 'store', 'library', 'books'>
-    >().toEqualTypeOf<DocDef<string, any>>();
+    >().toEqualTypeOf<DocDef>();
   });
 
   it('default cluster types with any collection', () => {
-    expectTypeOf<DocDefMatchingKey<BookKey, any, any, any, any>>().toEqualTypeOf<
-      DocDef<string, any>
-    >();
+    expectTypeOf<
+      DocDefMatchingKey<BookKey, any, any, any, any>
+    >().toEqualTypeOf<DocDef>();
   });
 
   it('keyMatchingStrategy: firstMatch', () => {
@@ -314,7 +314,13 @@ describe('DocDefMatchingKey', () => {
       {
         store: BucketTypes<{
           library: ScopeTypes<{
-            books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
+            books: [
+              BookReviewsDef,
+              BookDef,
+              BookCommentsDef,
+              BookCommentsLikesDef,
+              DocDef<'yo', string[]>,
+            ];
           }>;
         }>;
       }

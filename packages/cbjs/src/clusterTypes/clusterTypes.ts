@@ -52,17 +52,24 @@ export type CT<Instance> =
 // prettier-ignore
 export type CollectionDocDef<Instance> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
-    // B extends BucketName<T> ?
-    //   S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> ?
-    //     C extends CollectionName<
-    //       T,
-    //       WildcardFallback<B, BucketName<T>>,
-    //       WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
-    //     > ?
+    B extends BucketName<T> ?
+      S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> ?
+        C extends CollectionName<
+          T,
+          WildcardFallback<B, BucketName<T>>,
+          WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
+        > ?
           KeyspaceDocDef<T, B, S, C> :
-    //     never :
-    //   never :
-    // never :
+        never :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
+export type CollectionDocDefMatchingKey<Instance, Key extends string> =
+  Instance extends Collection<infer T, infer B, infer S, infer C> ?
+    DocDefMatchingKey<Key, T, B, S, C> :
   never
 ;
 
@@ -92,6 +99,13 @@ export type ExtractClusterTypes<T> =
       : T extends Collection<infer ClusterTypes>
         ? ClusterTypes
         : never;
+
+// prettier-ignore
+export type ExtractCollectionJsonDocDef<Instance, Key extends string> =
+  Instance extends Collection<infer T, infer B, infer S, infer C> ?
+    ObjectDocumentDef<DocDefMatchingKey<Key, T, B, S, C>> :
+  never
+;
 
 // prettier-ignore
 export type ExtractCollectionJsonDocBody<Instance, Key extends string> =
@@ -232,7 +246,7 @@ export type CollectionContainingDocBody<T extends CouchbaseClusterTypes, Expecte
 
 export type CollectionMatchingDocDef<
   T extends CouchbaseClusterTypes,
-  ExpectedDocDefs extends DocDef,
+  ExpectedDocDefs extends DocDef<string, any>,
 > =
   ClusterCollection<T> extends infer AllCollections extends AnyCollection
     ? AllCollections extends unknown

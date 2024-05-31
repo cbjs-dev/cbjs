@@ -65,7 +65,9 @@ export class CouchbaseQueue<
    */
   async size(callback?: NodeCallback<number>): Promise<number> {
     return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._coll.lookupIn(this._key, [LookupInSpec.count('') as never]);
+      const res = await this._coll.lookupIn(this._key as never, [
+        LookupInSpec.count('') as never,
+      ]);
 
       if (res.content[0].error) {
         throw res.content[0].error;
@@ -84,7 +86,7 @@ export class CouchbaseQueue<
   async push(value: Item, callback?: VoidNodeCallback): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
       await this._coll.mutateIn(
-        this._key,
+        this._key as never,
         [MutateInSpec.arrayPrepend('', value) as never],
         {
           storeSemantics: StoreSemantics.Upsert,
@@ -102,14 +104,14 @@ export class CouchbaseQueue<
     return await PromiseHelper.wrapAsync(async () => {
       for (let i = 0; i < 16; ++i) {
         try {
-          const res = await this._coll.lookupIn(this._key, [
+          const res = await this._coll.lookupIn(this._key as never, [
             LookupInSpec.get('[-1]') as never,
           ]);
 
           const value = res.content[0].value;
           const specs = [MutateInSpec.remove('[-1]' as never)];
 
-          await this._coll.mutateIn<Key, unknown[], typeof specs>(this._key, specs, {
+          await this._coll.mutateIn(this._key as never, specs, {
             cas: res.cas,
           });
 
