@@ -19,9 +19,11 @@ import {
   BucketName,
   Cas,
   CasInput,
+  ClusterTypes,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
+  DocDef,
   DocDefMatchingKey,
   If,
   invariant,
@@ -45,7 +47,7 @@ import {
   transactionKeyspaceToCpp,
 } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
-import { CollectionKeyspace } from './clusterTypes/clusterTypes.js';
+import { ClusterScope, CollectionKeyspace } from './clusterTypes/clusterTypes.js';
 import { AnyCollection, AnyScope } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import {
@@ -61,6 +63,7 @@ import {
   QueryResult,
   QueryScanConsistency,
 } from './querytypes.js';
+import { Scope } from './scope.js';
 import { NodeCallback, PromiseHelper } from './utilities.js';
 
 /**
@@ -480,11 +483,6 @@ export type TransactionQueryOptions = {
    * when executing the query.
    */
   raw?: { [key: string]: any };
-
-  /**
-   * Specifies the scope to run this query in.
-   */
-  scope?: AnyScope;
 };
 
 /**

@@ -192,6 +192,34 @@ describe
       );
     });
 
+    /**
+     * ? Not supported yet
+     */
+    test.fails(
+      'should be able to perform a scoped query',
+      async function ({ expect, serverTestContext, useDocumentKey }) {
+        const testDocKey1 = useDocumentKey();
+        const testDocKey2 = useDocumentKey();
+
+        await serverTestContext.co.insert(testDocKey1, { op: 'testDocKey1.kv.insert' });
+        await serverTestContext.co.insert(testDocKey2, { op: 'testDocKey2.kv.insert' });
+
+        await serverTestContext.c.transactions().run(async (attempt) => {
+          const result = await attempt.query(
+            `SELECT op FROM ${serverTestContext.collection.name} WHERE META().id IN $1`,
+            {
+              parameters: [[testDocKey1, testDocKey2]],
+              scope: serverTestContext.scope,
+            }
+          );
+
+          expect(result.rows).toHaveLength(2);
+          expect(result.rows).toContainEqual({ op: 'testDocKey1.kv.insert' });
+          expect(result.rows).toContainEqual({ op: 'testDocKey2.tx.kv.insert' });
+        });
+      }
+    );
+
     test('should insert in Query mode', async function ({
       expect,
       serverTestContext,
