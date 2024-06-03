@@ -105,45 +105,36 @@ export class PromiseHelper {
  * @internal
  */
 export class CompoundTimeout {
-  private _start: [number, number];
-  private _timeout: number | undefined;
+  protected readonly start: [number, number];
+  protected readonly timeout: number;
 
   /**
    * @internal
    */
-  constructor(timeout: number | undefined) {
-    this._start = process.hrtime();
-    this._timeout = timeout;
+  constructor(timeout: number) {
+    this.start = process.hrtime();
+    this.timeout = timeout;
   }
 
   /**
    * @internal
    */
-  left(): number | undefined {
-    if (this._timeout === undefined) {
-      return undefined;
-    }
-
-    const period = process.hrtime(this._start);
+  left(): number {
+    const period = process.hrtime(this.start);
 
     const periodMs = period[0] * 1e3 + period[1] / 1e6;
-    if (periodMs > this._timeout) {
+    if (periodMs > this.timeout) {
       return 0;
     }
 
-    return this._timeout - periodMs;
+    return this.timeout - periodMs;
   }
 
   /**
    * @internal
    */
   expired(): boolean {
-    const timeLeft = this.left();
-    if (timeLeft === undefined) {
-      return false;
-    }
-
-    return timeLeft <= 0;
+    return this.left() <= 0;
   }
 }
 

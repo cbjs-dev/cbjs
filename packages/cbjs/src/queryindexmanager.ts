@@ -21,6 +21,7 @@ import {
   CollectionName,
   CouchbaseClusterTypes,
   ScopeName,
+  sleep,
 } from '@cbjsdev/shared';
 
 import { CppError, CppQueryContext } from './binding.js';
@@ -564,9 +565,9 @@ class InternalQueryIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
     }
 
     const timer = new CompoundTimeout(timeout);
-
     return PromiseHelper.wrapAsync(async () => {
-      let curInterval = 50;
+      let retryBackoff = 50;
+
       for (;;) {
         // Get all the indexes that are currently registered
         const foundIdxs = await this.getAllIndexes(bucketName, {
@@ -576,13 +577,22 @@ class InternalQueryIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
         const onlineIdxs = foundIdxs.filter((idx) => idx.state === 'online');
         const onlineIdxNames = onlineIdxs.map((idx) => idx.name);
 
-        // Check if all the indexes we want are online
-        let allOnline = true;
+        const missingIndexes: string[] = [];
+
         indexNames.forEach((indexName) => {
           if (!foundIndexNames.includes(indexName)) {
-            throw new IndexNotFoundError(`Cannot find index with name ${indexName}`);
+            missingIndexes.push(indexName);
           }
-          allOnline = allOnline && onlineIdxNames.indexOf(indexName) !== -1;
+        });
+
+        if (missingIndexes.length > 0) {
+          throw new IndexNotFoundError(
+            `Cannot find index with name: ${missingIndexes.join(', ')}`
+          );
+        }
+
+        const allOnline = indexNames.every((indexName) => {
+          return onlineIdxNames.indexOf(indexName) !== -1;
         });
 
         // If all the indexes are online, we've succeeded
@@ -591,22 +601,17 @@ class InternalQueryIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
         }
 
         // Add 500 to our interval to a max of 1000
-        curInterval = Math.min(1000, curInterval + 500);
+        // and make sure we don't go past our user-specified duration
+        retryBackoff = Math.min(1000, retryBackoff + 500, timer.left());
 
-        // Make sure we don't go past our user-specified duration
-        const userTimeLeft = timer.left();
-        if (userTimeLeft !== undefined) {
-          curInterval = Math.min(curInterval, userTimeLeft);
-        }
-
-        if (curInterval <= 0) {
+        if (retryBackoff <= 0) {
           throw new CouchbaseError(
             'Failed to find all indexes online within the allocated time.'
           );
         }
 
         // Wait until curInterval expires
-        await new Promise((resolve) => setTimeout(() => resolve(true), curInterval));
+        await sleep(retryBackoff);
       }
     }, callback);
   }
