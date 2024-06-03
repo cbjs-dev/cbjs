@@ -1,5 +1,5 @@
 <h1 align="center">
- <img src="../../docs/src/public/cbjs-logotype.svg" height="120" />
+ <img src="https://github.com/cbjs-dev/cbjs/raw/main/docs/src/public/cbjs-logotype.svg" height="120" />
 </h1>
 <p align="center">
 A modern Couchbase SDK for Node.js & TypeScript.
