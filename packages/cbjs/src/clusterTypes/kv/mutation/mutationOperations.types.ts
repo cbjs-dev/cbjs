@@ -16,7 +16,7 @@
 
 import {
   ArrayAppendElement,
-  ArrayPrependElement,
+  ArrayPrependElement, DocDef,
   DocumentPath,
   ExtractPathToAppendableArray,
   ExtractPathToInsertableArrayIndex,
@@ -68,16 +68,16 @@ type OperationValue<Doc, Multi extends boolean, Value> =
  * Helper to build the path of a mutation operation.
  * Handles cases where the document is fuzzy.
  */
-type OperationPath<Doc, Path extends string> =
-  If<IsFuzzyDocument<Doc>, string, Path>
+type OperationPath<Def extends DocDef, Path extends string> =
+  If<IsFuzzyDocument<Def['Body']>, string, Path>
 ;
 
 /**
  * Valid mutation path for an `insert` operation. Non-distributive.
  */
 // prettier-ignore
-export type MutateInInsertPath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToOptionalProperty<Doc, DocumentPath<Doc>>>
+export type MutateInInsertPath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToOptionalProperty<Def['Body'], Def['Path']>>
 ;
 
 /**
@@ -87,14 +87,14 @@ export type MutateInInsertPath<Doc extends object> =
  */
 // prettier-ignore
 export type ValidateMutateInInsertPath<
-  Doc extends object,
+  Def extends DocDef,
   UserPath extends string,
 > =
-  IsFuzzyDocument<Doc> extends true ?
+  IsFuzzyDocument<Def['Body']> extends true ?
     UserPath :
-  UserPath extends MutateInInsertPath<Doc> ?
-    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
-      ValidatePathToOptionalProperty<Doc, UserPath> :
+  UserPath extends MutateInInsertPath<Def> ?
+    Extract<SubDocument<Def['Body'], UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToOptionalProperty<Def['Body'], UserPath> :
     UserPath :
   never
 ;
@@ -102,9 +102,11 @@ export type ValidateMutateInInsertPath<
 /**
  * Acceptable value for an `insert` operation at a specific path.
  */
-export type MutateInInsertValue<Doc extends object, Path extends MutateInInsertPath<Doc>> =
-  OperationValue<Doc, false, SubDocument<Doc, Path>>
+export type MutateInInsertValue<Def extends DocDef, Path extends MutateInInsertPath<Def>> =
+  OperationValue<Def, false, SubDocument<Def['Body'], Path>>
 ;
+
+// TODO complete conversion
 
 /**
  * Mutation options for an `insert` operation.
@@ -114,22 +116,22 @@ export type MutateInInsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for an `insert` operation.
  */
-export type MutateInInsertFunction<Doc extends object> =
+export type MutateInInsertFunction<Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_add>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
-    path: ValidateMutateInInsertPath<Doc, Path>,
+    path: ValidateMutateInInsertPath<Def, Path>,
     value: Value,
     options?: MutateInInsertOptions
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, false, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.dict_add, Path, false, Value>
 ;
 
 /**
  * Valid mutation path for an `upsert` operation.
  */
-export type MutateInUpsertPath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToWritableProperty<Doc, DocumentPath<Doc>> | ''>
+export type MutateInUpsertPath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToWritableProperty<Def['Body'], Def['Path']> | ''>
 ;
 
 /**
@@ -139,14 +141,14 @@ export type MutateInUpsertPath<Doc extends object> =
  */
 // prettier-ignore
 export type ValidateMutateInUpsertPath<
-  Doc extends object,
+  Def extends DocDef,
   UserPath extends string,
 > =
-  IsFuzzyDocument<Doc> extends true ?
+  IsFuzzyDocument<Def['Body']> extends true ?
     UserPath :
-  UserPath extends MutateInUpsertPath<Doc> ?
-    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
-      ValidatePathToProperty<Doc, UserPath> :
+  UserPath extends MutateInUpsertPath<Def> ?
+    Extract<SubDocument<Def['Body'], UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToProperty<Def['Body'], UserPath> :
     UserPath :
   never
 ;
@@ -154,8 +156,8 @@ export type ValidateMutateInUpsertPath<
 /**
  * Acceptable value for an `upsert` operation at a specific path.
  */
-export type MutateInUpsertValue<Doc extends object, Path extends MutateInUpsertPath<Doc>> =
-  OperationValue<Doc, false, SubDocument<Doc, Path>>
+export type MutateInUpsertValue<Def extends DocDef, Path extends MutateInUpsertPath<Def>> =
+  OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
 ;
 
 /**
@@ -166,30 +168,30 @@ export type MutateInUpsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for an `upsert` operation.
  */
-export type MutateInUpsertFunction<in Doc extends object> = {
+export type MutateInUpsertFunction<in Def extends DocDef> = {
   <
-    Value extends MutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, ''>,
+    Value extends MutateInValue<Def, CppProtocolSubdocOpcode.set_doc, ''>,
   >(
     path: '',
     value: Value,
     options?: MutateInUpsertOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.set_doc, '', false, Value>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.set_doc, '', false, Value>;
 
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_upsert>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
-    path: ValidateMutateInUpsertPath<Doc, Path>,
+    path: ValidateMutateInUpsertPath<Def, Path>,
     value: Value,
     options?: MutateInUpsertOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
 };
 
 /**
  * Valid mutation path for a `replace` operation.
  */
-export type MutateInReplacePath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToWritable<Doc, DocumentPath<Doc>>>
+export type MutateInReplacePath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToWritable<Def['Body'], Def['Path']>>
 ;
 
 /**
@@ -199,14 +201,14 @@ export type MutateInReplacePath<Doc extends object> =
  */
 // prettier-ignore
 export type ValidateMutateInReplacePath<
-  Doc extends object,
+  Def extends DocDef,
   UserPath extends string,
 > =
-  IsFuzzyDocument<Doc> extends true ?
+  IsFuzzyDocument<Def> extends true ?
     UserPath :
-  UserPath extends MutateInReplacePath<Doc> ?
-    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
-      ValidatePathToProperty<Doc, UserPath> :
+  UserPath extends MutateInReplacePath<Def> ?
+    Extract<SubDocument<Def['Body'], UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToProperty<Def['Body'], UserPath> :
     UserPath :
   never
 ;
@@ -214,8 +216,8 @@ export type ValidateMutateInReplacePath<
 /**
  * Acceptable value for a `replace` operation at a specific path.
  */
-export type MutateInReplaceValue<Doc extends object, Path extends MutateInReplacePath<Doc>> =
-  OperationValue<Doc, false, SubDocument<Doc, Path>>
+export type MutateInReplaceValue<Def extends DocDef, Path extends MutateInReplacePath<Def>> =
+  OperationValue<Def, false, SubDocument<Def['Body'], Path>>
 ;
 
 /**
@@ -226,15 +228,15 @@ export type MutateInReplaceOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for a `replace` operation.
  */
-export type MutateInReplaceFunction<in Doc extends object> =
+export type MutateInReplaceFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.replace>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.replace, Path>,
   >(
-    path: ValidateMutateInReplacePath<Doc, Path>,
+    path: ValidateMutateInReplacePath<Def, Path>,
     value: Value,
     options?: MutateInReplaceOptions
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, Path, false, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.replace, Path, false, Value>
 ;
 
 /**
@@ -243,15 +245,13 @@ export type MutateInReplaceFunction<in Doc extends object> =
 // It is quite similar to the insert path, except that some array indexes are removable,
 // while insert cannot target array indexes at all.
 // prettier-ignore
-export type MutateInRemovePath<Doc extends object> =
-  IsFuzzyDocument<Doc> extends true ?
+export type MutateInRemovePath<Def extends DocDef> =
+  IsFuzzyDocument<Def['Body']> extends true ?
     string :
-  DocumentPath<Doc> extends infer DocPath extends string ? (
-      | ''
-      | ExtractPathToRemovableArrayIndex<Doc, DocPath>
-      | ExtractPathToOptionalProperty<Doc, DocPath>
-    ) :
-  never
+  (
+  | ExtractPathToRemovableArrayIndex<Def['Body'], Def['Path']>
+  | ExtractPathToOptionalProperty<Def['Body'], Def['Path']>
+  )
 ;
 
 /**
@@ -261,14 +261,14 @@ export type MutateInRemovePath<Doc extends object> =
  */
 // prettier-ignore
 export type ValidateMutateInRemovePath<
-  Doc extends object,
+  Def extends DocDef,
   UserPath extends string,
 > =
-  IsFuzzyDocument<Doc> extends true ?
+  IsFuzzyDocument<Def['Body']> extends true ?
     UserPath :
-  UserPath extends MutateInRemovePath<Doc> ?
-    Extract<SubDocument<Doc, UserPath>, Record<PropertyKey, unknown>> extends object ?
-      ValidatePathToOptionalProperty<Doc, UserPath> :
+  UserPath extends MutateInRemovePath<Def> ?
+    Extract<SubDocument<Def['Body'], UserPath>, Record<PropertyKey, unknown>> extends object ?
+      ValidatePathToOptionalProperty<Def['Body'], UserPath> :
     UserPath :
   never
 ;
@@ -281,36 +281,36 @@ export type MutateInRemoveOptions = { xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for a `remove` operation.
  */
-export type MutateInRemoveFunction<Doc extends object> = {
+export type MutateInRemoveFunction<Def extends DocDef> = {
   (
     path: '',
     options?: MutateInRemoveOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove_doc, '', false, never>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.remove_doc, '', false, never>;
 
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.remove>
   >(
-    path: ValidateMutateInRemovePath<Doc, Path>,
+    path: ValidateMutateInRemovePath<Def, Path>,
     options?: MutateInRemoveOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path, false, never>
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.remove, Path, false, never>
 };
 
 /**
  * Valid mutation path for an `arrayAppend` operation.
  */
-export type MutateInArrayAppendPath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToAppendableArray<Doc, DocumentPath<Doc> | ''>>
+export type MutateInArrayAppendPath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToAppendableArray<Def['Body'], Def['Path'] | ''>>
 ;
 
 /**
  * Acceptable value for an `arrayAppend` operation at a specific path.
  */
 export type MutateInArrayAppendValue<
-  Doc extends object,
-  Path extends MutateInArrayAppendPath<Doc>,
+  Def extends DocDef,
+  Path extends MutateInArrayAppendPath<Def>,
   Multi extends boolean,
 > =
-  OperationValue<Doc, Multi, ArrayAppendElement<Extract<SubDocument<Doc, Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Def, Multi, ArrayAppendElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>
 ;
 
 /**
@@ -321,34 +321,34 @@ export type MutateInArrayAppendOptions<Multi extends boolean> = { createPath?: b
 /**
  * Function that returns a {@link MutateInSpec} instance for a `arrayAppend` operation.
  */
-export type MutateInArrayAppendFunction<in Doc extends object> =
+export type MutateInArrayAppendFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_last>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_push_last, Path, Multi>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_push_last>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.array_push_last, Path, Multi>,
     Multi extends boolean,
   >(
     path: Path,
     value: Value,
     options?: MutateInArrayAppendOptions<Multi>
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value>
 ;
 
 /**
  * Valid mutation path for an `arrayPrepend` operation.
  */
-export type MutateInArrayPrependPath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToPrependableArray<Doc, DocumentPath<Doc> | ''>>
+export type MutateInArrayPrependPath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToPrependableArray<Def['Body'], Def['Path'] | ''>>
 ;
 
 /**
  * Acceptable value for an `arrayPrepend` operation at a specific path.
  */
 export type MutateInArrayPrependValue<
-  Doc extends object,
-  Path extends MutateInArrayPrependPath<Doc>,
+  Def extends DocDef,
+  Path extends MutateInArrayPrependPath<Def>,
   Multi extends boolean,
 > =
-  OperationValue<Doc, Multi, ArrayPrependElement<Extract<SubDocument<Doc, Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Def, Multi, ArrayPrependElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>
 ;
 
 /**
@@ -359,34 +359,34 @@ export type MutateInArrayPrependOptions<Multi extends boolean> = { createPath?: 
 /**
  * Function that returns a {@link MutateInSpec} instance for an `arrayPrepend` operation.
  */
-export type MutateInArrayPrependFunction<in Doc extends object> =
+export type MutateInArrayPrependFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_first>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_push_first, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_push_first>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.array_push_first, Path>,
     Multi extends boolean,
   >(
     path: Path,
     value: Value,
     options?: MutateInArrayPrependOptions<Multi>
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value>
 ;
 
 /**
  * Valid mutation path for an `arrayInsert` operation.
  */
-export type MutateInArrayInsertPath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToInsertableArrayIndex<Doc, DocumentPath<Doc> | ''>>
+export type MutateInArrayInsertPath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToInsertableArrayIndex<Def['Body'], Def['Path'] | ''>>
 ;
 
 /**
  * Acceptable value for an `arrayInsert` operation at a specific path.
  */
 export type MutateInArrayInsertValue<
-  Doc extends object,
-  Path extends MutateInArrayInsertPath<Doc>,
+  Def extends DocDef,
+  Path extends MutateInArrayInsertPath<Def>,
   Multi extends boolean,
 > =
-  OperationValue<Doc, Multi, SubDocument<Doc, Path>>
+  OperationValue<Def, Multi, SubDocument<Def['Body'], Path>>
 
 /**
  * Mutation options for an `arrayInsert` operation.
@@ -396,33 +396,33 @@ export type MutateInArrayInsertOptions<Multi extends boolean> = { createPath?: b
 /**
  * Function that returns a {@link MutateInSpec} instance for an `arrayInsert` operation.
  */
-export type MutateInArrayInsertFunction<in Doc extends object> =
+export type MutateInArrayInsertFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_insert>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_insert, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_insert>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.array_insert, Path>,
     Multi extends boolean,
   >(
     path: Path,
     value: Value,
     options?: MutateInArrayInsertOptions<Multi>
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value>
 ;
 
 /**
  * Valid mutation path for an `arrayAddUnique` operation.
  */
-export type MutateInArrayAddUniquePath<Doc extends object> =
-  OperationPath<Doc, ExtractPathToAppendableArray<Doc, DocumentPath<Doc> | ''>>
+export type MutateInArrayAddUniquePath<Def extends DocDef> =
+  OperationPath<Def, ExtractPathToAppendableArray<Def['Body'], Def['Path'] | ''>>
 ;
 
 /**
  * Acceptable value for an `arrayAddUnique` operation at a specific path.
  */
 export type MutateInArrayAddUniqueValue<
-  Doc extends object,
-  Path extends MutateInArrayAddUniquePath<Doc>,
+  Def extends DocDef,
+  Path extends MutateInArrayAddUniquePath<Def>,
 > =
-  OperationValue<Doc, false, ArrayAppendElement<Extract<SubDocument<Doc, Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Def, false, ArrayAppendElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>
 ;
 
 /**
@@ -433,21 +433,22 @@ export type MutateInArrayAddUniqueOptions = { createPath?: boolean; xattr?: bool
 /**
  * Function that returns a {@link MutateInSpec} instance for an `arrayAddUnique` operation.
  */
-export type MutateInArrayAddUniqueFunction<in Doc extends object> =
+export type MutateInArrayAddUniqueFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_add_unique>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.array_add_unique, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_add_unique>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.array_add_unique, Path>,
     Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
     options?: MutateInArrayAddUniqueOptions
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.array_add_unique, Path, Multi, Value>
 ;
 
 /**
  * Valid mutation path for an `increment` or `decrement` operation.
  */
+// TODO continue here
 export type MutateInCounterPath<Doc extends object> =
   OperationPath<Doc,
     | ExtractPathToType<Doc, ExtractPathToWritableProperty<Doc, DocumentPath<Doc>>, number>

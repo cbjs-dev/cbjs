@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IsFuzzyDocument, Try } from '@cbjsdev/shared';
+import type { DocDef, IsFuzzyDocument, Try } from '@cbjsdev/shared';
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { MutateInResultEntry } from '../../../crudoptypes.js';
 import { MutateInMacro, MutateInSpec } from '../../../sdspecs.js';
@@ -84,19 +84,20 @@ export type AnyMutateInPath<Doc extends object, Opcode extends MutateInSpecOpcod
 /**
  * Mutation paths - Non-distributive.
  */
-export type MutateInPath<Doc extends object, Opcode extends MutateInSpecOpcode> =
+export type MutateInPath<Def extends DocDef, Opcode extends MutateInSpecOpcode> =
   Opcode extends CppProtocolSubdocOpcode.set_doc ? '' :
   Opcode extends CppProtocolSubdocOpcode.remove_doc ? '' :
-  IsFuzzyDocument<Doc> extends true ? string :
-  Opcode extends CppProtocolSubdocOpcode.dict_add ? MutateInInsertPath<Doc> :
-  Opcode extends CppProtocolSubdocOpcode.dict_upsert ? Exclude<MutateInUpsertPath<Doc>, ''> :
-  Opcode extends CppProtocolSubdocOpcode.replace ? MutateInReplacePath<Doc> :
-  Opcode extends CppProtocolSubdocOpcode.remove ? Exclude<MutateInRemovePath<Doc>, ''> :
-  Opcode extends CppProtocolSubdocOpcode.array_push_last ? MutateInArrayAppendPath<Doc> :
-  Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependPath<Doc> :
-  Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertPath<Doc> :
-  Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniquePath<Doc> :
-  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterPath<Doc> :
+  IsFuzzyDocument<Def['Body']> extends true ? string :
+    // TODO complete conversion below
+  Opcode extends CppProtocolSubdocOpcode.dict_add ? MutateInInsertPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.dict_upsert ? Exclude<MutateInUpsertPath<Def>, ''> :
+  Opcode extends CppProtocolSubdocOpcode.replace ? MutateInReplacePath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.remove ? Exclude<MutateInRemovePath<Def>, ''> :
+  Opcode extends CppProtocolSubdocOpcode.array_push_last ? MutateInArrayAppendPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniquePath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterPath<Def> :
   never
 ;
 

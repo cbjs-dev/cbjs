@@ -325,12 +325,12 @@ export class LookupInSpec<
  * @category Key-Value
  */
 export class MutateInSpec<
-  Doc extends object = object,
+  Def extends DocDef = DocDef,
   Opcode extends MutateInSpecOpcode = MutateInSpecOpcode,
-  Path extends MutateInPath<Doc, Opcode> = MutateInPath<Doc, Opcode>,
+  Path extends MutateInPath<Def, Opcode> = MutateInPath<Def, Opcode>,
   Multi extends boolean = false,
-  Value extends MutateInValue<Doc, Opcode, Path, Multi> = MutateInValue<
-    Doc,
+  Value extends MutateInValue<Def, Opcode, Path, Multi> = MutateInValue<
+    Def,
     Opcode,
     Path,
     Multi

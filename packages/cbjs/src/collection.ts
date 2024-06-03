@@ -2437,11 +2437,13 @@ export class Collection<
 
   mutateIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    Doc extends ObjectDocument<DocDefMatchingKey<Key, T, B, S, C>['Body']>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>,
   >(
     key: Key,
-    ...args: MutateInArgs<Doc, SpecDefinitions>
+    ...args: MutateInArgs<
+      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
+      SpecDefinitions
+    >
   ): MutateInReturnType<this, Key, NoInfer<SpecDefinitions>> {
     const { specs, options, callback: resolvedCallback } = resolveMutateInArgs(args);
 
