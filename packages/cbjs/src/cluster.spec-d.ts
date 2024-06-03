@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, connect, DocDef, Scope } from './index.js';
+import { ClusterTypes, connect, DocDef, QueryMetrics, Scope } from './index.js';
 
 describe('cluster', () => {
   describe('DefaultClusterTypes', async () => {
@@ -108,5 +108,20 @@ describe('cluster', () => {
     it("should return the bucket's default collection", async () => {
       expectTypeOf(cluster.bucket('backend').defaultCollection()).not.toBeNever();
     });
+  });
+
+  it('should infer the metrics type from the query options', async () => {
+    const cluster = await connect('...');
+
+    // Missing metrics
+    const result = await cluster.query('SELECT * FROM store');
+    expectTypeOf(result.meta.metrics).toEqualTypeOf<undefined>();
+
+    // Metrics present
+    const resultWithMetrics = await cluster.query('SELECT * FROM store', {
+      metrics: true,
+    });
+
+    expectTypeOf(resultWithMetrics.meta.metrics).toEqualTypeOf<QueryMetrics>();
   });
 });

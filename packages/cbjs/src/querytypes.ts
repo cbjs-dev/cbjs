@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { If } from '@cbjsdev/shared';
+
 import { MutationState } from './mutationstate.js';
 
 /**
@@ -78,7 +80,7 @@ export enum QueryStatus {
  *
  * @category Query
  */
-export class QueryResult<TRow = any> {
+export class QueryResult<TRow = any, WithMetrics extends boolean = false> {
   /**
    * The rows which have been returned by the query.
    */
@@ -87,12 +89,12 @@ export class QueryResult<TRow = any> {
   /**
    * The meta-data which has been returned by the query.
    */
-  meta: QueryMetaData;
+  meta: QueryMetaData<WithMetrics>;
 
   /**
    * @internal
    */
-  constructor(data: QueryResult) {
+  constructor(data: QueryResult<TRow, WithMetrics>) {
     this.rows = data.rows;
     this.meta = data.meta;
   }
@@ -103,7 +105,7 @@ export class QueryResult<TRow = any> {
  *
  * @category Query
  */
-export class QueryMetaData {
+export class QueryMetaData<WithMetrics extends boolean = false> {
   /**
    * The request ID which is associated with the executed query.
    */
@@ -132,7 +134,7 @@ export class QueryMetaData {
   /**
    * Various metrics which are made available by the query engine.
    */
-  metrics?: QueryMetrics;
+  metrics: If<WithMetrics, QueryMetrics, undefined>;
 
   /**
    * Various profiling details that were generated during execution of the query.
@@ -142,7 +144,7 @@ export class QueryMetaData {
   /**
    * @internal
    */
-  constructor(data: QueryMetaData) {
+  constructor(data: QueryMetaData<WithMetrics>) {
     this.requestId = data.requestId;
     this.clientContextId = data.clientContextId;
     this.status = data.status;
@@ -289,7 +291,7 @@ export enum QueryScanConsistency {
 /**
  * @category Query
  */
-export interface QueryOptions {
+export interface QueryOptions<WithMetrics extends boolean = false> {
   /**
    * Values to be used for the placeholders within the query.
    */
@@ -298,6 +300,7 @@ export interface QueryOptions {
   /**
    * Specifies the consistency requirements when executing the query.
    *
+   * @default QueryScanConsistency.NotBounded
    * @see QueryScanConsistency
    */
   scanConsistency?: QueryScanConsistency;
@@ -312,18 +315,24 @@ export interface QueryOptions {
   /**
    * Specifies whether this is an ad-hoc query, or if it should be prepared
    * for faster execution in the future.
+   *
+   * @default false
    */
   adhoc?: boolean;
 
   /**
    * Specifies whether flex-indexes should be enabled.  Allowing the use of
    * full-text search from the query service.
+   *
+   * @default false
    */
   flexIndex?: boolean;
 
   /**
    * Specifies that the query should preserve the existing document expiry times
    * when mutating documents.
+   *
+   * @default false
    */
   preserveExpiry?: boolean;
 
@@ -366,12 +375,16 @@ export interface QueryOptions {
   /**
    * Specifies that this query should be executed in read-only mode, disabling
    * the ability for the query to make any changes to the data.
+   *
+   * @default false
    */
   readOnly?: boolean;
 
   /**
    * Specifies whether the query engine should use replica nodes for kv fetches,
    * if the active node is down.
+   *
+   * @default false
    */
   useReplica?: boolean;
 
@@ -383,8 +396,10 @@ export interface QueryOptions {
   /**
    * Specifies whether metrics should be captured as part of the execution of
    * the query.
+   *
+   * @default false
    */
-  metrics?: boolean;
+  metrics?: WithMetrics;
 
   /**
    * Specifies the context within which this query should be executed.  This can be

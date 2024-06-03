@@ -125,15 +125,17 @@ export class Scope<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
+  query<TRow = any, WithMetrics extends boolean = false>(
+    statement: string,
+    options: QueryOptions<WithMetrics>,
+    callback?: NodeCallback<QueryResult<TRow, WithMetrics>>
+  ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData>;
+
   query<TRow = any>(
     statement: string,
-    options: QueryOptions,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>;
-  query<TRow = any>(
-    statement: string,
-    callback?: NodeCallback<QueryResult<TRow>>
-  ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>;
+
   query<TRow = any>(
     statement: string,
     options?: QueryOptions | NodeCallback<QueryResult<TRow>>,
@@ -144,7 +146,7 @@ export class Scope<
       options = undefined;
     }
     if (!options) {
-      options = {};
+      options = {} as QueryOptions;
     }
 
     const bucket = this.bucket;

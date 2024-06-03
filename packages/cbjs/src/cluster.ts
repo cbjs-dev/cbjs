@@ -523,15 +523,15 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  query<TRow = any>(
+  query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options: QueryOptions,
+    options: QueryOptions<WithMetrics>,
     callback?: NodeCallback<QueryResult<TRow>>
-  ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>;
+  ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData>;
 
-  query<TRow = any>(
+  query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options?: QueryOptions | NodeCallback<QueryResult<TRow>>,
+    options?: QueryOptions<WithMetrics> | NodeCallback<QueryResult<TRow>>,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
     if (options instanceof Function) {
@@ -539,13 +539,16 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       options = undefined;
     }
     if (!options) {
-      options = {};
+      options = {} as QueryOptions<WithMetrics>;
     }
 
     const exec = new QueryExecutor(this);
 
     const options_ = options;
-    return PromiseHelper.wrapAsync(() => exec.query<TRow>(statement, options_), callback);
+    return PromiseHelper.wrapAsync(
+      () => exec.query<TRow, WithMetrics>(statement, options_),
+      callback
+    );
   }
 
   /**

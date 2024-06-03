@@ -383,7 +383,7 @@ export class TransactionExistsResult<
  *
  * @category Transactions
  */
-export class TransactionQueryResult<TRow = any> {
+export class TransactionQueryResult<TRow = any, WithMetrics extends boolean = false> {
   /**
    * The rows which have been returned by the query.
    */
@@ -392,12 +392,12 @@ export class TransactionQueryResult<TRow = any> {
   /**
    * The meta-data which has been returned by the query.
    */
-  meta: QueryMetaData;
+  meta: QueryMetaData<WithMetrics>;
 
   /**
    * @internal
    */
-  constructor(data: QueryResult) {
+  constructor(data: QueryResult<TRow, WithMetrics>) {
     this.rows = data.rows;
     this.meta = data.meta;
   }
@@ -406,7 +406,7 @@ export class TransactionQueryResult<TRow = any> {
 /**
  * @category Transactions
  */
-export type TransactionQueryOptions = {
+export type TransactionQueryOptions<WithMetrics extends boolean = false> = {
   /**
    * Values to be used for the placeholders within the query.
    */
@@ -415,6 +415,7 @@ export type TransactionQueryOptions = {
   /**
    * Specifies the consistency requirements when executing the query.
    *
+   * @default QueryScanConsistency.NotBounded
    * @see QueryScanConsistency
    */
   scanConsistency?: QueryScanConsistency;
@@ -422,6 +423,8 @@ export type TransactionQueryOptions = {
   /**
    * Specifies whether this is an ad-hoc query, or if it should be prepared
    * for faster execution in the future.
+   *
+   * @default true
    */
   adhoc?: boolean;
 
@@ -464,6 +467,8 @@ export type TransactionQueryOptions = {
   /**
    * Specifies that this query should be executed in read-only mode, disabling
    * the ability for the query to make any changes to the data.
+   *
+   * @default false
    */
   readOnly?: boolean;
 
@@ -475,8 +480,10 @@ export type TransactionQueryOptions = {
   /**
    * Specifies whether metrics should be captured as part of the execution of
    * the query.
+   *
+   * @default false
    */
-  metrics?: boolean;
+  metrics?: WithMetrics;
 
   /**
    * Specifies any additional parameters which should be passed to the query engine
@@ -853,13 +860,13 @@ export class TransactionAttemptContext<
    * @param statement The statement to execute.
    * @param options Optional parameters for this operation.
    */
-  async query<TRow = any>(
+  async query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options?: TransactionQueryOptions
-  ): Promise<TransactionQueryResult<TRow>> {
+    options?: TransactionQueryOptions<WithMetrics>
+  ): Promise<TransactionQueryResult<TRow, WithMetrics>> {
     // This await statement is explicit here to ensure our query is completely
     // processed before returning the result to the user (no row streaming).
-    const syncQueryRes = await QueryExecutor.execute((callback) => {
+    const syncQueryRes = await QueryExecutor.execute<TRow, WithMetrics>((callback) => {
       if (!options) {
         options = {};
       }
@@ -903,7 +910,7 @@ export class TransactionAttemptContext<
         }
       );
     });
-    return new TransactionQueryResult({
+    return new TransactionQueryResult<TRow, WithMetrics>({
       rows: syncQueryRes.rows,
       meta: syncQueryRes.meta,
     });

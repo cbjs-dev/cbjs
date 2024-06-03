@@ -6,6 +6,7 @@ import { CppTransactionGetMetaData, CppTransactionLinks } from './binding.js';
 import {
   connect,
   DocumentId,
+  QueryMetrics,
   TransactionDocInfo,
   TransactionGetResult,
 } from './index.js';
@@ -245,11 +246,30 @@ describe('transactions', async () => {
     });
   });
 
+  describe('query', () => {
+    it('should infer the metrics type from the query options', async () => {
+      // Missing metrics
+      await cluster.transactions().run(async (ctx) => {
+        const result = await ctx.query('SELECT * FROM store.library.books');
+        expectTypeOf(result.meta.metrics).toEqualTypeOf<undefined>();
+      });
+
+      // Metrics present
+      await cluster.transactions().run(async (ctx) => {
+        const result = await ctx.query('SELECT * FROM store.library.books', {
+          metrics: true,
+        });
+
+        expectTypeOf(result.meta.metrics).toEqualTypeOf<QueryMetrics>();
+      });
+    });
+  });
+
   describe('cbjs tx api', () => {
     it('should forbid to pass only the key if the collection is not defined', async () => {
       await cluster.transactions().run(async (ctx) => {
         // @ts-expect-error Expect collection, key
-        await ctx.get('author::001');
+        await ctx.get('book::001');
       });
     });
 

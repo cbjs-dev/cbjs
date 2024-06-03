@@ -209,6 +209,7 @@ describe
             `SELECT op FROM ${serverTestContext.collection.name} WHERE META().id IN $1`,
             {
               parameters: [[testDocKey1, testDocKey2]],
+              // @ts-expect-error Parameter has been removed by 4ff62b8f because the option is not supported yet
               scope: serverTestContext.scope,
             }
           );

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseClusterTypes, invariant } from '@cbjsdev/shared';
+import { CouchbaseClusterTypes, If, invariant } from '@cbjsdev/shared';
 
 import { CppError, CppQueryResponse } from './binding.js';
 import {
@@ -50,19 +50,21 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
   /**
    * @internal
    */
-  static execute<TRow = any>(
+  static execute<TRow = any, WithMetrics extends boolean = false>(
     exec: (
       callback: (err: CppError | null, resp: CppQueryResponse | undefined) => void
     ) => void
-  ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
-    const emitter = new StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData>(
-      (rows, meta) => {
-        return new QueryResult({
-          rows: rows,
-          meta: meta,
-        });
-      }
-    );
+  ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData> {
+    const emitter = new StreamableRowPromise<
+      QueryResult<TRow, WithMetrics>,
+      TRow,
+      QueryMetaData<WithMetrics>
+    >((rows, meta) => {
+      return new QueryResult<TRow, WithMetrics>({
+        rows: rows,
+        meta: meta,
+      });
+    });
 
     exec((cppErr, resp) => {
       const err = errorFromCpp(cppErr);
@@ -112,13 +114,13 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
           metrics = undefined;
         }
 
-        const meta = new QueryMetaData({
+        const meta = new QueryMetaData<WithMetrics>({
           requestId: metaData.request_id,
           clientContextId: metaData.client_context_id,
           status: metaData.status as QueryStatus,
           signature: metaData.signature ? JSON.parse(metaData.signature) : undefined,
-          warnings: warnings,
-          metrics: metrics,
+          warnings,
+          metrics: metrics as If<WithMetrics, QueryMetrics, undefined>,
           profile: metaData.profile ? JSON.parse(metaData.profile) : undefined,
         });
 
@@ -135,9 +137,9 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
   /**
    * @internal
    */
-  query<TRow = any>(
+  query<TRow = any, WithMetrics extends boolean = false>(
     query: string,
-    options: QueryOptions
+    options: QueryOptions<WithMetrics>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
     const timeout = options.timeout ?? this._cluster.queryTimeout;
 
@@ -146,7 +148,7 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
         {
           statement: query,
           client_context_id: options.clientContextId,
-          adhoc: options.adhoc !== false,
+          adhoc: options.adhoc ?? false,
           metrics: options.metrics ?? false,
           readonly: options.readOnly ?? false,
           flex_index: options.flexIndex ?? false,
