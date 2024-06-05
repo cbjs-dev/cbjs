@@ -2026,7 +2026,7 @@ export class Collection<
     key: Key,
     lookupInAllReplicas: boolean,
     specs: SpecDefinitions,
-    options?: LookupInAllReplicasOptions<ThrowOnSpecError>
+    options: LookupInAllReplicasOptions<ThrowOnSpecError> = {}
   ): StreamableReplicasPromise<
     [
       LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>,
@@ -2037,10 +2037,6 @@ export class Collection<
     ],
     LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, Doc>, ThrowOnSpecError>
   > {
-    if (!options) {
-      options = {};
-    }
-
     type ResultFromReplica = LookupInReplicaResult<
       LookupInSpecResults<SpecDefinitions, Doc>,
       ThrowOnSpecError
@@ -2087,6 +2083,12 @@ export class Collection<
 
           for (const item of response.fields) {
             const { ec, value, opcode, exists } = item;
+
+            if (options.throwOnSpecError && ec) {
+              emitter.emit('error', errorFromCpp(ec));
+              emitter.emit('end');
+              return;
+            }
 
             const error = errorFromCpp(ec);
 

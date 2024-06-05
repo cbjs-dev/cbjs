@@ -236,4 +236,23 @@ describe
         ).rejects.toThrowError(DocumentUnretrievableError);
       }
     );
+
+    test('should throw during lookupInAnyReplica if a spec fails and throwOnSpecError is true', async ({
+      serverTestContext,
+      testDocKey,
+      expect,
+    }) => {
+      await expect(
+        serverTestContext.collection.lookupInAnyReplica(
+          testDocKey,
+          [
+            LookupInSpec.get('str'),
+            LookupInSpec.get('int'),
+            LookupInSpec.get('missingPath'),
+            LookupInSpec.exists('missingPath'),
+          ],
+          { throwOnSpecError: true }
+        )
+      ).rejects.toThrowError(PathNotFoundError);
+    });
   });

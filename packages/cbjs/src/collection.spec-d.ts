@@ -20,7 +20,12 @@ import { ClusterTypes, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { Collection } from './collection.js';
 import { connect } from './couchbase.js';
-import { LookupInResult, LookupInResultEntry, MutateInResult } from './crudoptypes.js';
+import {
+  LookupInReplicaResult,
+  LookupInResult,
+  LookupInResultEntry,
+  MutateInResult,
+} from './crudoptypes.js';
 import { LookupInSpec, MutateInSpec } from './sdspecs.js';
 import { CouchbaseMap, CouchbaseSet } from './services/kv/dataStructures/index.js';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
@@ -130,6 +135,193 @@ describe('Collection', async () => {
       if (title.error) return;
 
       expectTypeOf(title.value).toEqualTypeOf<string>();
+    });
+  });
+
+  describe('lookupInAnyReplica', async () => {
+    it('should have the correct return type', async () => {
+      expectTypeOf(collection.lookupInAnyReplica('book::001')).toEqualTypeOf<
+        ChainableLookupIn<typeof collection, 'lookupInAnyReplica', 'book::001', [], false>
+      >();
+
+      expectTypeOf(
+        collection.lookupInAnyReplica('book::001', { timeout: 200 })
+      ).toEqualTypeOf<
+        ChainableLookupIn<typeof collection, 'lookupInAnyReplica', 'book::001', [], false>
+      >();
+
+      expectTypeOf(
+        collection.lookupInAnyReplica('book::001', [LookupInSpec.get('title')])
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>>();
+
+      expectTypeOf(
+        collection.lookupInAnyReplica('book::001', [LookupInSpec.get('title')], {
+          timeout: 200,
+        })
+      ).toEqualTypeOf<Promise<LookupInReplicaResult<[string]>>>();
+    });
+
+    it('should narrow the type of the callback arguments', async () => {
+      expectTypeOf(
+        collection.lookupInAnyReplica(
+          'book::001',
+          [LookupInSpec.get('title')],
+          { timeout: 200 },
+          (err, res) => {
+            expectTypeOf(err).toEqualTypeOf<Error | null>();
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]> | null>();
+
+            if (err) return;
+
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]>>();
+          }
+        )
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>>();
+
+      expectTypeOf(
+        collection.lookupInAnyReplica(
+          'book::001',
+          [LookupInSpec.get('title')],
+          (err, res) => {
+            expectTypeOf(err).toEqualTypeOf<Error | null>();
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]> | null>();
+
+            if (err) return;
+
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]>>();
+          }
+        )
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>>();
+    });
+
+    it('should narrow the type of LookupInResult properties', async () => {
+      const { content } = await collection.lookupInAnyReplica('book::001', [
+        LookupInSpec.get('title'),
+      ]);
+      const [title] = content;
+      expectTypeOf(title).toEqualTypeOf<
+        LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>
+      >();
+
+      if (title.error) return;
+
+      expectTypeOf(title.value).toEqualTypeOf<string>();
+    });
+
+    it('should narrow the type of LookupInResult properties with throwOnSpecError: true', async () => {
+      const { content } = await collection.lookupInAnyReplica(
+        'book::001',
+        [LookupInSpec.get('title')],
+        { throwOnSpecError: true }
+      );
+      const [title] = content;
+      expectTypeOf(title).toEqualTypeOf<LookupInResultEntry<string, null>>();
+
+      if (title.error) return;
+
+      expectTypeOf(title.value).toEqualTypeOf<string>();
+    });
+  });
+
+  describe('lookupInAllReplicas', async () => {
+    it('should have the correct return type', async () => {
+      expectTypeOf(collection.lookupInAllReplicas('book::001')).toEqualTypeOf<
+        ChainableLookupIn<
+          typeof collection,
+          'lookupInAllReplicas',
+          'book::001',
+          [],
+          false
+        >
+      >();
+
+      expectTypeOf(
+        collection.lookupInAllReplicas('book::001', { timeout: 200 })
+      ).toEqualTypeOf<
+        ChainableLookupIn<
+          typeof collection,
+          'lookupInAllReplicas',
+          'book::001',
+          [],
+          false
+        >
+      >();
+
+      expectTypeOf(
+        collection.lookupInAllReplicas('book::001', [LookupInSpec.get('title')])
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>[]>();
+
+      expectTypeOf(
+        collection.lookupInAllReplicas('book::001', [LookupInSpec.get('title')], {
+          timeout: 200,
+        })
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>[]>();
+    });
+
+    it('should narrow the type of the callback arguments', async () => {
+      expectTypeOf(
+        collection.lookupInAllReplicas(
+          'book::001',
+          [LookupInSpec.get('title')],
+          { timeout: 200 },
+          (err, res) => {
+            expectTypeOf(err).toEqualTypeOf<Error | null>();
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]>[] | null>();
+
+            if (err) return;
+
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]>[]>();
+          }
+        )
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>[]>();
+
+      expectTypeOf(
+        collection.lookupInAllReplicas(
+          'book::001',
+          [LookupInSpec.get('title')],
+          (err, res) => {
+            expectTypeOf(err).toEqualTypeOf<Error | null>();
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]>[] | null>();
+
+            if (err) return;
+
+            expectTypeOf(res).toEqualTypeOf<LookupInReplicaResult<[string]>[]>();
+          }
+        )
+      ).resolves.toEqualTypeOf<LookupInReplicaResult<[string]>[]>();
+    });
+
+    it('should narrow the type of LookupInResult properties', async () => {
+      const result = await collection.lookupInAllReplicas('book::001', [
+        LookupInSpec.get('title'),
+      ]);
+
+      const allContent = result.map((c) => c.content);
+
+      expectTypeOf(allContent).toEqualTypeOf<
+        [LookupInResultEntry<string, null> | LookupInResultEntry<undefined, Error>][]
+      >();
+
+      const replicaTitle = result[0].content[0];
+      if (replicaTitle.error) return;
+
+      expectTypeOf(replicaTitle.value).toEqualTypeOf<string>();
+    });
+
+    it('should narrow the type of LookupInResult properties with throwOnSpecError: true', async () => {
+      const result = await collection.lookupInAllReplicas(
+        'book::001',
+        [LookupInSpec.get('title')],
+        { throwOnSpecError: true }
+      );
+
+      const replicaTitle = result[0].content[0];
+
+      expectTypeOf(replicaTitle).toEqualTypeOf<LookupInResultEntry<string, null>>();
+
+      if (replicaTitle.error) return;
+
+      expectTypeOf(replicaTitle.value).toEqualTypeOf<string>();
     });
   });
 

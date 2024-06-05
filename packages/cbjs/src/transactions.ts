@@ -875,7 +875,7 @@ export class TransactionAttemptContext<
         statement,
         {
           scan_consistency: queryScanConsistencyToCpp(options.scanConsistency),
-          ad_hoc: options.adhoc !== false,
+          ad_hoc: options.adhoc ?? false,
           client_context_id: options.clientContextId,
           pipeline_batch: options.pipelineBatch,
           pipeline_cap: options.pipelineCap,

@@ -240,4 +240,23 @@ describe
         ).rejects.toThrowError(DocumentNotFoundError);
       }
     );
+
+    test('should throw during lookupInAllReplica if a spec fails and throwOnSpecError is true', async ({
+      serverTestContext,
+      testDocKey,
+      expect,
+    }) => {
+      await expect(
+        serverTestContext.collection.lookupInAllReplicas(
+          testDocKey,
+          [
+            LookupInSpec.get('str'),
+            LookupInSpec.get('int'),
+            LookupInSpec.get('missingPath'),
+            LookupInSpec.exists('missingPath'),
+          ],
+          { throwOnSpecError: true }
+        )
+      ).rejects.toThrowError(PathNotFoundError);
+    });
   });
