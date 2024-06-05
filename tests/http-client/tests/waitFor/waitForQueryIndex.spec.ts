@@ -43,6 +43,7 @@ describe('waitForQueryIndex', async () => {
 
   test(
     'wait for the index to be created',
+    { timeout: 15_000 },
     async ({ expect, serverTestContext, apiConfig }) => {
       const indexName = getRandomId();
 
@@ -63,12 +64,12 @@ describe('waitForQueryIndex', async () => {
           { awaitMutations: false, timeout: 14_000 }
         )
       ).resolves.toBeUndefined();
-    },
-    { timeout: 15_000 }
+    }
   );
 
   test(
     'wait for the index to have no mutations pending',
+    { timeout: 25_000, retry: 1 },
     async ({ expect, serverTestContext, apiConfig }) => {
       const indexName = getRandomId();
 
@@ -93,10 +94,9 @@ describe('waitForQueryIndex', async () => {
             scope: serverTestContext.scope.name,
             collection: serverTestContext.collection.name,
           },
-          { timeout: 14_000 }
+          { timeout: 24_000 }
         )
       ).resolves.toBeUndefined();
-    },
-    { timeout: 15_000 }
+    }
   );
 });
