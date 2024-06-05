@@ -731,4 +731,38 @@ describe
         { timeout: 5000 }
       );
     });
+
+    test('should be able to store reference to collection context when using the fluid API', async ({
+      serverTestContext,
+      expect,
+      useDocumentKey,
+    }) => {
+      const testDocKey = useDocumentKey();
+      const testDocValue = { title: 'Hi' };
+
+      await serverTestContext.collection.insert(testDocKey, testDocValue);
+      const ks = serverTestContext.getKeyspace();
+
+      await serverTestContext.cluster.transactions().run(
+        async (ctx) => {
+          // ! The order is very important
+          // ! We want to make sure that calling for a new collection context
+          // ! does not alter the other collection context
+          const collectionContext = ctx
+            .bucket(ks.bucket)
+            .scope(ks.scope)
+            .collection(ks.collection);
+
+          const anotherCollectionContext = ctx
+            .bucket(ks.bucket)
+            .scope(ks.scope)
+            .collection('collection1');
+
+          const { content } = await collectionContext.get(testDocKey);
+
+          expect(content).toEqual(testDocValue);
+        },
+        { timeout: 5000 }
+      );
+    });
   });

@@ -540,7 +540,6 @@ export class TransactionAttemptContext<
 > {
   private cluster: Cluster<T>;
   private _impl: CppTransaction;
-  protected collection?: Instance;
 
   /**
    * @internal
@@ -607,32 +606,33 @@ export class TransactionAttemptContext<
       TransactionGetResult<T, B, S, C, Key>
     >
   > {
-    const collection = args.length === 2 ? args[0] : this.collection;
-    const key = arrayLastElement(args) as Key;
+    const [collection, key] = args as [LInstance, LKey];
 
     invariant(collection);
 
-    return PromiseHelper.wrap((wrapCallback: NodeCallback<TransactionGetResult>) => {
-      const id = collection.getDocId(key);
-      this._impl.get(
-        {
-          id,
-        },
-        (cppErr, cppRes) => {
-          const err = errorFromCpp(cppErr);
-          if (err) {
-            return wrapCallback(err, null);
-          }
+    return (await PromiseHelper.wrap(
+      (wrapCallback: NodeCallback<TransactionGetResult>) => {
+        const id = collection.getDocId(key);
+        this._impl.get(
+          {
+            id,
+          },
+          (cppErr, cppRes) => {
+            const err = errorFromCpp(cppErr);
+            if (err) {
+              return wrapCallback(err, null);
+            }
 
-          invariant(cppRes);
-          wrapCallback(
-            null,
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            translateGetResult(cppRes)
-          );
-        }
-      );
-    }) as never;
+            invariant(cppRes);
+            wrapCallback(
+              null,
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+              translateGetResult(cppRes)
+            );
+          }
+        );
+      }
+    )) as never;
   }
 
   /**
@@ -676,8 +676,7 @@ export class TransactionAttemptContext<
       | TransactionExistsResult<false, T, B, S, C, Key>
     >
   > {
-    const collection = args.length === 2 ? args[0] : this.collection;
-    const key = arrayLastElement(args) as Key;
+    const [collection, key] = args as [LInstance, LKey];
 
     invariant(collection);
 
@@ -751,13 +750,15 @@ export class TransactionAttemptContext<
       TransactionGetResult<T, B, S, C, Key>
     >
   > {
-    const collection = args.length === 3 ? args[0] : this.collection;
-    const key = args.length === 3 ? args[1] : args[0];
-    const content = args.length === 3 ? args[2] : args[1];
+    const [collection, key, content] = args as [
+      LInstance,
+      LKey,
+      DocDefMatchingKey<Key, T, B, S, C>['Body'],
+    ];
 
     invariant(collection);
 
-    return PromiseHelper.wrap(
+    return (await PromiseHelper.wrap(
       (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
         const id = collection.getDocId(key);
         this._impl.insert(
@@ -776,7 +777,7 @@ export class TransactionAttemptContext<
           }
         );
       }
-    ) as never;
+    )) as never;
   }
 
   /**
@@ -970,8 +971,21 @@ export class TransactionAttemptContext<
               LC
             >;
 
-            ctx.collection = collection;
-            return ctx;
+            return new Proxy(ctx, {
+              get: (
+                target,
+                prop: keyof TransactionAttemptContext<any>,
+                receiver: TransactionAttemptContext<any>
+              ) => {
+                if (!['insert', 'exists', 'get'].includes(prop)) {
+                  return target[prop];
+                }
+                const value = target[prop as 'insert' | 'exists' | 'get'] as (
+                  collection: Collection<T, LB, LS, LC>
+                ) => unknown;
+                return value.bind(this === receiver ? target : this, collection);
+              },
+            });
           },
         };
       },
