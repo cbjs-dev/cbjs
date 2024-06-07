@@ -56,9 +56,7 @@ type UserClusterTypes = ClusterTypes<{
 }>;
 
 describe('ChainableMutateIn', function () {
-  it('should return all the specs, in order, when the getter is called', function ({
-    expect,
-  }) {
+  it('should return all the specs, in order, when the getter is called', ({ expect }) => {
     const collection: CollectionContainingDocDef<
       UserClusterTypes,
       DocDef<BookId, Book>
@@ -69,6 +67,28 @@ describe('ChainableMutateIn', function () {
       .getSpecs();
 
     expect(specs).toStrictEqual([
+      MutateInSpec.arrayAppend('authors', 'Jonathan'),
+      MutateInSpec.replace('title', 'Hello'),
+    ]);
+  });
+
+  it('should be able to store the instance in a variable and add add more spec later', ({
+    expect,
+  }) => {
+    const collection: CollectionContainingDocDef<
+      UserClusterTypes,
+      DocDef<BookId, Book>
+    > = true as any;
+
+    const chainableMutate = ChainableMutateIn.for(
+      collection,
+      'book::001',
+      {}
+    ).arrayAppend('authors', 'Jonathan');
+
+    void chainableMutate.replace('title', 'Hello');
+
+    expect(chainableMutate.getSpecs()).toStrictEqual([
       MutateInSpec.arrayAppend('authors', 'Jonathan'),
       MutateInSpec.replace('title', 'Hello'),
     ]);

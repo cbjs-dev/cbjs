@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { K } from 'vitest/dist/reporters-xEmem8D4.js';
-
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import {
   ExtractCollectionJsonDocBody,
@@ -116,12 +114,8 @@ export class ChainableMutateIn<
 
   push<Spec extends MutateInSpec>(spec: Spec): ThisAnd<this, Spec> {
     const newSpecs: [...SpecDefinitions, Spec] = [...this.getSpecs(), spec];
-    return new ChainableMutateIn(
-      this.collection,
-      this.key,
-      this.options,
-      newSpecs
-    ) as ThisAnd<this, Spec>;
+    this.specs = newSpecs as never;
+    return this as never as ThisAnd<this, Spec>;
   }
 
   execute(): Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>> {

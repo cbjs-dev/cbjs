@@ -17,11 +17,11 @@
 import type { PromiseValue } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
-import type { AnyCollection } from '../../../clusterTypes/index.js';
 import type {
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes.js';
+import type { AnyCollection } from '../../../clusterTypes/index.js';
 import type {
   LookupInSpecResults,
   MakeLookupInSpec,
@@ -167,13 +167,8 @@ export class ChainableLookupIn<
 
   push<Spec extends LookupInSpec>(spec: Spec): ThisAnd<this, Spec> {
     const newSpecs: [...SpecDefinitions, Spec] = [...this.getSpecs(), spec];
-    return new ChainableLookupIn(
-      this.collection,
-      this.method,
-      this.key,
-      this.options,
-      newSpecs
-    ) as ThisAnd<this, Spec>;
+    this.specs = newSpecs as never;
+    return this as never as ThisAnd<this, Spec>;
   }
 
   execute(): Promise<LookupResult<Method, Doc, SpecDefinitions, ThrowOnSpecError>> {

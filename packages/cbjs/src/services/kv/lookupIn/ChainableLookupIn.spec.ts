@@ -37,4 +37,21 @@ describe('ChainableLookupIn', function () {
       LookupInSpec.exists('title'),
     ]);
   });
+
+  it('should be able to store the instance in a variable and add add more spec later', function ({
+    expect,
+  }) {
+    const collection: AnyCollection = true as any;
+    const chainableLookup = ChainableLookupIn.for(collection, 'lookupIn', 'book::001', {})
+      .get('title')
+      .count('metadata.tags');
+
+    void chainableLookup.exists('title');
+
+    expect(chainableLookup.getSpecs()).toStrictEqual([
+      LookupInSpec.get('title'),
+      LookupInSpec.count('metadata.tags'),
+      LookupInSpec.exists('title'),
+    ]);
+  });
 });
