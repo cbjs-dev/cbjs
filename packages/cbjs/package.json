@@ -13,15 +13,16 @@
   ],
   "author": "Jonathan Massuchetti <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
-  "engines": {
-    "node": ">=18"
-  },
+  "homepage": "https://cbjs.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/cbjs-dev/cbjs.git"
   },
   "bugs": {
     "url": "https://github.com/cbjs-dev/cbjs/issues"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "install": "node ./scripts/install.mjs 4.3.1",
@@ -75,6 +76,7 @@
     ]
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }

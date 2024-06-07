@@ -10,6 +10,14 @@
   ],
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
+  "homepage": "https://cbjs.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cbjs-dev/cbjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cbjs-dev/cbjs/issues"
+  },
   "type": "module",
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",
@@ -38,6 +46,7 @@
     "zod": "^3.22.4"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }
