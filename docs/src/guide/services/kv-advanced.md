@@ -44,4 +44,28 @@ If the document is fetched while it is locked, the result will include a random 
 
 ## Durability
 
-_Coming soon..._
+For this section, it is assumed that you understand how Couchbase handles a [node failure](../node-failure.md).
+
+### Reads
+When you perform a KV read with `Collection.get`, it will fail if the active node is not available.  
+If you node gets back online before your `get` times out, the operation will succeed.
+
+If the freshness of the data is not of the uttermost importance, you should consider using `Collection.getAnyReplica`, which will
+return the document from either the active node, or any replica node that is available.
+
+Working with consistency issues, you may want to use `Collection.getAllReplicas` to get all the copies of the documents.  
+Note that all the nodes, active and replicas, must be available for the request to succeed.
+
+### Writes
+Performing a `Collection.insert` will only succeeds if the active node is available. If the node is unavailable but is available
+again before the operation times out, the operation will succeed.
+
+A write is considered successful as soon as the active node acknowledges it, before it is written to disk.  
+If you need extra guarantees, you can pass the `durabilityLevel` option.  
+
+**Majority**: the majority of the nodes have the write in memory.
+**MajorityAndPersistOnMaster**: the majority of the node have the write in memory and the active node has persisted the write.
+**PersistToMajority**: the majority of the node have persisted the write.
+
+You should know that durable writes behave as committed writes. Meaning that a client that reads the data from a replica through `getAnyReplica` for example, will not see the new version of the document until the required durability has been reached.  
+Also, any write on the document undergoing a durable write will fail until the write is committed.
