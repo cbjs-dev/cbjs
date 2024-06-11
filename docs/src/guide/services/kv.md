@@ -67,24 +67,27 @@ For this operation, only the `timeout` option is available.
 
 If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted collection, the paths will be type checked and the result will be typed accordingly.
 
-#### Chainable sub-doc operations
+#### Chainable sub-doc lookups
 
 Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
 
 ```ts
 import { LookupInSpec } from '@cbjsdev/cbjs';
 
-const { content } = await collection
+const lookups = collection
   .lookupIn('docKey')
   .get('title')
-  .exists('lastModifiedBy')
-  .count('metadata.tags');
+
+if (withTags) {
+  lookups.get('metadata.tags');
+}
+
+return await lookups;
 ```
 
-::: info
-When using the classic `lookupIn`, the request is executed immediately, regardless of it being awaited or not.
-A chained lookup will only perform the request once awaited or `.then()` is called on it.
-:::
+> [!IMPORTANT]
+> When using the classic `lookupIn` syntax, the request is executed immediately, regardless of it being awaited or not.
+> A chained lookupIn will only perform the request once awaited `await lookups` or `.then()` is called on it.
 
 ### Error handling
 
@@ -213,8 +216,7 @@ await collection.insert(
 
 ::: tip
 When upserting, if any expiry time has been set on the document, it will be removed.  
-If you don't want that, use the `preserveExpiry` option.  
-The expiry time will then be reset, just like when using `Collection.touch`.
+If you don't want that, use the `preserveExpiry` option, the expiry time will then be reset, just like when using `Collection.touch`.
 :::
 
 ### Sub-document mutation
@@ -225,7 +227,7 @@ If you want to modify some parts of the documents, as opposed to the whole docum
 await collection
   .mutateIn('docKey')
   .replace('title', 'New title')
-  .replace('lastUpdatedTime', Date.now());
+  .replace('lastUpdatedAt', Date.now());
 ```
 
 One of the key advantages of sub-document mutation is being able to perform an operation that do not conflict with concurrent ones.  
@@ -235,6 +237,26 @@ Learn more about [optimistic locking](/guide/services/kv-advanced).
 // The mutation will not overwrite any concurrent changes
 await collection.mutateIn('book::001').arrayAddUnique('metadata.tags', 'history');
 ```
+
+#### Chainable sub-doc mutations
+
+Cbjs introduce the ability to chain sub-doc mutations. Using this syntax also enables path autocompletion :
+
+```ts
+const mutations = collection
+  .mutateIn('book::001')
+  .replace('title', 'New title');
+
+if (newTag) {
+  mutations.arrayAppend('metadata.tags', newTag);
+}
+
+return await mutations;
+```
+
+> [!IMPORTANT]
+> When using the classic `mutateIn` syntax, the request is executed immediately, regardless of it being awaited or not.
+> A chained mutateIn will only perform the request once awaited `await mutations` or `.then()` is called on it.
 
 ### Error handling
 
