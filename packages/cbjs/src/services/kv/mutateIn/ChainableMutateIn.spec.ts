@@ -93,4 +93,20 @@ describe('ChainableMutateIn', function () {
       MutateInSpec.replace('title', 'Hello'),
     ]);
   });
+
+  it('should raise a ts error when a non-array value is given with multi=true', ({
+    expect,
+  }) => {
+    const collection: CollectionContainingDocDef<
+      UserClusterTypes,
+      DocDef<BookId, Book>
+    > = true as any;
+    const specs = ChainableMutateIn.for(collection, 'book::001', {})
+      .arrayAppend('authors', ['Jonathan'], { multi: true })
+      .getSpecs();
+
+    expect(specs).toStrictEqual([
+      MutateInSpec.arrayAppend('authors', ['Jonathan'], { multi: true }),
+    ]);
+  });
 });

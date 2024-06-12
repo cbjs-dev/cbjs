@@ -21,6 +21,7 @@ import { describe } from 'vitest';
 import {
   Cas,
   DurabilityImpossibleError,
+  DurabilityLevel,
   InvalidDurabilityPersistToLevel,
   InvalidDurabilityReplicateToLevel,
   MutateInSpec,
@@ -266,7 +267,7 @@ describe.shuffle('kv durability', async () => {
       const res = await operation(serverTestContext, [
         testDocKey,
         operationArg,
-        { durabilityLevel: 1 },
+        { durabilityLevel: DurabilityLevel.Majority },
       ]);
 
       expect(res.cas).toBeNonZeroCAS();

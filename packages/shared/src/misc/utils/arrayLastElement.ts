@@ -16,5 +16,9 @@
 import { ArrayLastElement } from '../../couchbase/index.js';
 
 export function arrayLastElement<const T extends ReadonlyArray<unknown>>(arr: T) {
+  if (arr.length === 0) {
+    throw new Error('Array is empty.');
+  }
+
   return arr[arr.length - 1] as ArrayLastElement<T>;
 }

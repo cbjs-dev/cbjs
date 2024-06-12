@@ -45,7 +45,7 @@ export class BucketFixture extends FixtureFunctionValue<
     const baseBucketConfig = {
       name: this.bucketName,
       storageBackend: params.storageBackend ?? 'couchstore',
-      ramQuotaMB: params.ramQuotaMB ?? (params.storageBackend === 'magma' ? 1024 : 256),
+      ramQuotaMB: params.ramQuotaMB ?? (params.storageBackend === 'magma' ? 1024 : 100),
       numReplicas: 0 as ReplicaNumber,
     } satisfies ICreateBucketSettings;
 

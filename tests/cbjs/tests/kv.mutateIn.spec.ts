@@ -414,4 +414,100 @@ describe.shuffle('kv mutateIn', async () => {
       // expect(err.context).toBeInstanceOf(HttpErrorContext);
     }
   });
+
+  test('should perform the arrayAppendMultiple using ChainableMutateIn', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .arrayAppendMultiple('arr', [4, 5, 6]);
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 14,
+      str: 'hello',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  test('should perform the arrayPrependMultiple using ChainableMutateIn', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .arrayPrependMultiple('arr', [4, 5, 6]);
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 14,
+      str: 'hello',
+      arr: [4, 5, 6, 1, 2, 3],
+    });
+  });
+
+  test('should perform the arrayInsertMultiple using ChainableMutateIn', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .arrayInsertMultiple('arr[1]', [4, 5, 6]);
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 14,
+      str: 'hello',
+      arr: [1, 4, 5, 6, 2, 3],
+    });
+  });
+
+  test('should perform the arrayAddUniqueMultiple using ChainableMutateIn', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+    useLogger,
+  }) => {
+    useLogger().trace(testDocKey);
+
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .arrayAddUniqueMultiple('arr', [4, 5, 6]);
+
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 14,
+      str: 'hello',
+      arr: [1, 2, 3, 4, 5, 6],
+    });
+  });
 });
