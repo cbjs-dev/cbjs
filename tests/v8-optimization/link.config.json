@@ -1,8 +1,0 @@
-{
-  "packages": [
-    "../../packages/shared",
-    "../../packages/cbjs",
-    "../../packages/vitest",
-    "../../packages/http-client"
-  ]
-}

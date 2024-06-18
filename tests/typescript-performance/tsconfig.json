@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitOverride": true,
+    "moduleResolution": "node16",
+    "module": "node16",
+    "declaration": true,
+    "sourceMap": true,
+    "resolveJsonModule": true
+  }
+}

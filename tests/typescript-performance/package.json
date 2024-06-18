@@ -1,0 +1,18 @@
+{
+  "name": "test-project-typescript-performance",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Test project bench typescript performances",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@cbjsdev/cbjs": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "5.2.2"
+  }
+}
