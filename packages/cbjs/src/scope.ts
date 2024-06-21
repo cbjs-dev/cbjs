@@ -129,7 +129,11 @@ export class Scope<
     statement: string,
     options: QueryOptions<WithMetrics>,
     callback?: NodeCallback<QueryResult<TRow, WithMetrics>>
-  ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData>;
+  ): StreamableRowPromise<
+    QueryResult<TRow, WithMetrics>,
+    TRow,
+    QueryMetaData<WithMetrics>
+  >;
 
   query<TRow = any>(
     statement: string,
