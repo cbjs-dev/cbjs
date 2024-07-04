@@ -27,6 +27,24 @@ export type {
 } from './clusterTypes.js';
 
 export type {
+  LookupInCountPath,
+  LookupInGetPath,
+  LookupInExistsPath,
+} from './kv/lookup/lookupOperations.types.js';
+
+export type {
+  MutateInReplacePath,
+  MutateInUpsertPath,
+  MutateInInsertPath,
+  MutateInRemovePath,
+  MutateInArrayAppendPath,
+  MutateInArrayPrependPath,
+  MutateInArrayAddUniquePath,
+  MutateInArrayInsertPath,
+  MutateInCounterPath,
+} from './kv/mutation/mutationOperations.types.js';
+
+export type {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   BucketName,
@@ -38,4 +56,5 @@ export type {
   ScopeTypes,
   CollectionTypes,
   ClusterTypesOptions,
+  DocumentPath,
 } from '@cbjsdev/shared';
