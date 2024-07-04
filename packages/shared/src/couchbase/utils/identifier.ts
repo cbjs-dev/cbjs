@@ -27,6 +27,21 @@ export function quoteIdentifier(name: string) {
   return '`' + name + '`';
 }
 
+export function quotePath(path: string) {
+  if (path.length === 0) return '';
+
+  return path
+    .split('.')
+    .map((segment) => {
+      if (segment.startsWith('`') && segment.endsWith('`')) {
+        return segment;
+      }
+
+      return '`' + segment.replace('`', '\\`') + '`';
+    })
+    .join('.');
+}
+
 /**
  * Represent a keyspace within a cluster.
  *

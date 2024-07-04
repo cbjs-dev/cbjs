@@ -16,7 +16,7 @@
 import { describe, expectTypeOf, it, test } from 'vitest';
 
 import { ClusterTypes, DocDef } from '../clusterTypes/index.js';
-import { isValidBucketName, Keyspace } from './identifier.js';
+import { isValidBucketName, Keyspace, quotePath } from './identifier.js';
 
 describe('isValidBucketName', () => {
   test('should return true with a valid identifier', ({ expect }) => {
@@ -187,5 +187,39 @@ describe('Keyspace', () => {
       | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionOne' }
       | { bucket: 'BucketOne'; scope: 'ScopeTwo'; collection: 'CollectionTwo' }
     >();
+  });
+});
+
+describe('quotePath', () => {
+  describe('quotePath', () => {
+    it('should correctly quote a single segment path', ({ expect }) => {
+      const path = 'a';
+      const result = quotePath(path);
+      expect(result).toBe('`a`');
+    });
+
+    it('should correctly quote a multi-segment path', ({ expect }) => {
+      const path = 'a.b.c';
+      const result = quotePath(path);
+      expect(result).toBe('`a`.`b`.`c`');
+    });
+
+    it('should handle paths with already quoted segments', ({ expect }) => {
+      const path = '`a`.`b`.`c`';
+      const result = quotePath(path);
+      expect(result).toBe('`a`.`b`.`c`');
+    });
+
+    it('should handle empty string input', ({ expect }) => {
+      const path = '';
+      const result = quotePath(path);
+      expect(result).toBe('');
+    });
+
+    it('should handle segments with backstick', ({ expect }) => {
+      const path = 'wei`rd';
+      const result = quotePath(path);
+      expect(result).toBe('`wei\\`rd`');
+    });
   });
 });

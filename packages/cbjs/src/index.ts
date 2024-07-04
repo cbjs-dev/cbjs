@@ -68,4 +68,5 @@ export {
   namespacedKeyspacePath,
   isPartialKeyspace,
   quoteIdentifier,
+  quotePath,
 } from '@cbjsdev/shared';
