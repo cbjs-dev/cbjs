@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
+import { describe, it } from 'vitest';
 
+import { InvalidArgumentError, VectorQuery } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
 
 // import vector from '../data/test_vector.json';
@@ -23,13 +24,28 @@ import { ServerFeatures } from '@cbjsdev/http-client';
 // import { getVectorSearchIndexConfig } from '../data/vectorSearchIndexConfig';
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
-describe
-  .runIf(serverSupportsFeatures(ServerFeatures.VectorSearch))
-  .todo('vector search', async () => {
+describe.runIf(serverSupportsFeatures(ServerFeatures.VectorSearch))(
+  'vector search',
+  async () => {
     // const test = createCouchbaseTest(async ({ serverTestContext }) => {
     //   const dataSample = new DataSample(serverTestContext, searchDocuments);
     //   await dataSample.upsertSample(serverTestContext.defaultCollection);
     //
     //   return {};
     // });
-  });
+
+    it('should throw an InvalidArgumentError when constructing a VectorQuery with an empty field name', ({
+      expect,
+    }) => {
+      const testVector = 1 as never;
+
+      expect(() => new VectorQuery('', testVector)).toThrowError(InvalidArgumentError);
+      // @ts-expect-error invalid argument
+      expect(() => new VectorQuery(null, testVector)).toThrowError(InvalidArgumentError);
+      // @ts-expect-error invalid argument
+      expect(() => new VectorQuery(undefined, testVector)).toThrowError(
+        InvalidArgumentError
+      );
+    });
+  }
+);

@@ -155,6 +155,7 @@ export enum CppImplSubdocOpcode {}
 export enum CppStoreSemantics {}
 export enum CppPersistTo {}
 export enum CppReplicateTo {}
+export enum CppReadPreference {}
 export enum CppVectorQueryCombination {}
 
 export interface CppManagementAnalyticsDataset {
@@ -1216,7 +1217,7 @@ export interface CppManagementCollectionCreateRequest {
   bucket_name: string;
   scope_name: string;
   collection_name: string;
-  max_expiry: number;
+  max_expiry?: number;
   history?: boolean;
   client_context_id?: string;
   timeout?: number;
@@ -1531,6 +1532,25 @@ export interface CppManagementCollectionUpdateRequest {
   client_context_id?: string;
   timeout?: number;
 }
+
+export interface CppManagementServerNodeAddress {
+  hostname: string;
+  kv_plain: number;
+  kv_tls: number;
+}
+export interface CppManagementServerNode {
+  server_group_name: string;
+  server_index: number;
+  default_network: CppManagementServerNodeAddress;
+  external_network: CppManagementServerNodeAddress;
+  active_vbuckets: number[];
+  replica_vbuckets: number[];
+}
+export interface CppManagementServerGroup {
+  name: string;
+  nodes: CppManagementServerNode[];
+}
+
 export interface CppManagementBucketDescribeResponse {
   // ctx
   info: CppManagementBucketDescribeResponseBucketInfo;
@@ -1541,7 +1561,9 @@ export interface CppManagementBucketDescribeResponseBucketInfo {
   number_of_nodes: number;
   number_of_replicas: number;
   bucket_capabilities: string[];
+  server_groups: { [key: string /*string*/]: CppManagementServerGroup };
   storage_backend: CppManagementClusterBucketStorageBackend;
+  config_json: string;
 }
 export interface CppManagementBucketDescribeRequest {
   name: string;
@@ -3114,6 +3136,11 @@ export interface CppBindingAutogen {
     one: CppReplicateTo;
     two: CppReplicateTo;
     three: CppReplicateTo;
+  };
+  read_preference: {
+    no_preference: CppReadPreference;
+    selected_server_group: CppReadPreference;
+    selected_server_group_or_all_available: CppReadPreference;
   };
   vector_query_combination: {
     combination_and: CppVectorQueryCombination;

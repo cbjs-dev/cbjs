@@ -262,13 +262,11 @@ export type SearchQueryOptions = {
   showRequest?: boolean;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
    * Specifies that the search request should appear in the log.
    */
   logRequest?: boolean;
 
   /**
-   * Uncommitted: This API is subject to change in the future.
    * Specifies that the search response should appear in the log.
    */
   logResponse?: boolean;
@@ -316,8 +314,6 @@ export class SearchRequest {
   /**
    * Adds a search query to the request if the request does not already have a search query.
    *
-   * Volatile: This API is subject to change at any time.
-   *
    * @param query A SearchQuery to add to the request.
    */
   withSearchQuery(query: SearchQuery): SearchRequest {
@@ -333,8 +329,6 @@ export class SearchRequest {
 
   /**
    * Adds a vector search to the request if the request does not already have a vector search.
-   *
-   * Volatile: This API is subject to change at any time.
    *
    * @param search A VectorSearch to add to the request.
    */

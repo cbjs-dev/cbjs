@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/cbjs",
-  "version": "1.10.1",
+  "version": "1.11.0",
   "description": "Modern Couchbase client for JS runtimes.",
   "keywords": [
     "couchbase",
@@ -25,7 +25,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "install": "node ./scripts/install.mjs 4.3.1",
+    "install": "node ./scripts/install.mjs 4.4.0",
     "reinstall": "rm -f src/couchbase-native.node && rm -f dist/src/couchbase-native.node && pnpm install",
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
@@ -59,11 +59,11 @@
   "dependencies": {
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
-    "node-addon-api": "^7.0.0",
+    "node-addon-api": "^8.0.0",
     "tar": "^6.2.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
+    "@types/node": "^20.14.5",
     "typescript": "5.2.2",
     "vitest": "1.5.2"
   },
