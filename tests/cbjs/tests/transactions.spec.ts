@@ -272,14 +272,14 @@ describe
           op: 'testDocKey2.tx.kv.insert',
         });
 
-        await expect(
-          attempt.query(
-            `SELECT op FROM ${serverTestContext.getKeyspacePath()} WHERE META().id IN $1`,
-            {
-              parameters: [[testDocKey1, testDocKey2]],
-            }
-          )
-        ).resolves.toEqual(
+        const result = await attempt.query(
+          `SELECT op FROM ${serverTestContext.getKeyspacePath()} WHERE META().id IN $1`,
+          {
+            parameters: [[testDocKey1, testDocKey2]],
+          }
+        );
+
+        expect(result).toEqual(
           expect.objectContaining({
             rows: expect.arrayContaining([
               { op: 'testDocKey1.kv.insert' },

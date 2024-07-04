@@ -127,19 +127,24 @@ type BuildPath<
 /**
  * Return the sub-path for the given type and keys.
  */
+// prettier-ignore
 type PathAhead<
   T extends object,
   Key extends AccessibleKey & keyof T,
   PropBags extends CircularPropBag,
-> = T[ResolveNegativeIndex<T, Key>] extends infer Doc
-  ? Doc extends unknown
-    ? Doc extends readonly unknown[]
-      ? ArrayPath<Doc, PropBags>
-      : Doc extends object
-        ? ObjectPath<Doc, PropBags>
-        : never
-    : never
-  : never;
+> =
+  ResolveNegativeIndex<T, Key> extends infer Index extends keyof T ?
+    T[Index] extends infer Doc ?
+      Doc extends unknown ?
+        Doc extends readonly unknown[] ?
+          ArrayPath<Doc, PropBags> :
+        Doc extends object ?
+          ObjectPath<Doc, PropBags> :
+        never :
+      never :
+    never :
+  never
+;
 
 /**
  * Build the paths to an array's elements.

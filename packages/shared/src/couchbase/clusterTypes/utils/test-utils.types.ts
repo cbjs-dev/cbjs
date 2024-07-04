@@ -95,14 +95,16 @@ export type MakeTestPaths<
 > = K extends AccessibleKey
   ? `${Accessor<T, K, IsRoot>}${
       | ''
-      | (T[ResolveNegativeIndex<T, K>] extends infer Doc
-          ? Doc extends readonly unknown[]
-            ? TargetableArrayIndexes<Doc> extends infer Index extends number
-              ? MakeTestPaths<Doc, false, Index>
-              : never
-            : Doc extends object
-              ? MakeTestPaths<Doc, false>
-              : ''
+      | (ResolveNegativeIndex<T, K> extends infer Index extends keyof T
+          ? T[Index] extends infer Doc
+            ? Doc extends readonly unknown[]
+              ? TargetableArrayIndexes<Doc> extends infer Index extends number
+                ? MakeTestPaths<Doc, false, Index>
+                : never
+              : Doc extends object
+                ? MakeTestPaths<Doc, false>
+                : ''
+            : never
           : never)}`
   : never;
 

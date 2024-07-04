@@ -12,7 +12,7 @@
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
     "tsx": "^4.7.2",
-    "typescript": "5.2.2"
+    "typescript": "5.4.5"
   },
   "dependencies": {
     "vitest": "1.5.2"

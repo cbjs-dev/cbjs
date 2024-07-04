@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "typescript": "5.2.2",
+    "typescript": "5.4.5",
     "unbuild": "^2.0.0",
     "zod": "^3.22.4"
   },

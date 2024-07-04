@@ -70,7 +70,7 @@ describe.shuffle('bucket manager', async () => {
     const expected: IBucketSettings = {
       name: bucket,
       flushEnabled: false,
-      ramQuotaMB: 256,
+      ramQuotaMB: 100,
       numReplicas: 0,
       replicaIndexes: false,
       bucketType: 'membase',

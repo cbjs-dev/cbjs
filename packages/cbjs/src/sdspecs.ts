@@ -251,7 +251,7 @@ export class LookupInSpec<
     options?: { xattr?: boolean }
   ): MakeLookupInSpec<Doc, CppProtocolSubdocOpcode.get_doc, ''>;
 
-  static get<Doc extends object, Path extends Exclude<LookupInGetPath<Doc>, ''>>(
+  static get<Doc extends object, const Path extends Exclude<LookupInGetPath<Doc>, ''>>(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
@@ -284,7 +284,7 @@ export class LookupInSpec<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  static exists<Doc extends object, Path extends LookupInExistsPath<Doc>>(
+  static exists<Doc extends object, const Path extends LookupInExistsPath<Doc>>(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
@@ -303,7 +303,7 @@ export class LookupInSpec<
    */
   static count<
     Doc extends object,
-    Path extends LookupInCountPath<Doc> = LookupInCountPath<Doc>,
+    const Path extends LookupInCountPath<Doc> = LookupInCountPath<Doc>,
   >(
     this: void,
     path: Path,
@@ -454,7 +454,7 @@ export class MutateInSpec<
    */
   static insert<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
     this: void,
@@ -482,7 +482,7 @@ export class MutateInSpec<
 
   static upsert<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
     this: void,
@@ -554,7 +554,7 @@ export class MutateInSpec<
    */
   static replace<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
   >(
     this: void,
@@ -578,7 +578,7 @@ export class MutateInSpec<
 
   static remove<
     Doc extends object,
-    Path extends Exclude<AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>, ''>,
+    const Path extends Exclude<AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>, ''>,
   >(
     this: void,
     path: ValidateMutateInRemovePath<Doc, Path>,
@@ -645,7 +645,7 @@ export class MutateInSpec<
    */
   static arrayAppend<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_last>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_last>,
     Value extends AnyMutateInValue<
       Doc,
       CppProtocolSubdocOpcode.array_push_last,
@@ -685,7 +685,7 @@ export class MutateInSpec<
    */
   static arrayPrepend<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_first>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_first>,
     Value extends AnyMutateInValue<
       Doc,
       CppProtocolSubdocOpcode.array_push_first,
@@ -727,7 +727,7 @@ export class MutateInSpec<
    */
   static arrayInsert<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_insert>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_insert>,
     Value extends AnyMutateInValue<
       Doc,
       CppProtocolSubdocOpcode.array_insert,
@@ -765,7 +765,7 @@ export class MutateInSpec<
    */
   static arrayAddUnique<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_add_unique>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_add_unique>,
     Value extends AnyMutateInValue<
       Doc,
       CppProtocolSubdocOpcode.array_add_unique,
@@ -801,7 +801,7 @@ export class MutateInSpec<
    */
   static increment<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
   >(
     this: void,
@@ -832,7 +832,7 @@ export class MutateInSpec<
    */
   static decrement<
     Doc extends object,
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
+    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
     Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
   >(
     this: void,
