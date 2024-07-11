@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiIndexerStats } from '../Api/indexer/index.js';
 
-export * from './executeStatement.js';
-export * from './getQueryBuckets.js';
-export * from './getQueryIndexes.js';
-export * from './getQueryIndexRemainingMutations.js';
+export type HttpClientIndexerStats = Omit<ApiIndexerStats, 'last_known_scan_time'> & {
+  last_known_scan_time: bigint;
+};

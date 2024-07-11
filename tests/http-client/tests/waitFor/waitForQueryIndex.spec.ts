@@ -68,7 +68,7 @@ describe('waitForQueryIndex', async () => {
   );
 
   test(
-    'wait for the index to have no mutations pending',
+    'wait for the index to have no remaining mutations',
     { timeout: 25_000, retry: 1 },
     async ({ expect, serverTestContext, apiConfig }) => {
       const indexName = getRandomId();
@@ -77,7 +77,7 @@ describe('waitForQueryIndex', async () => {
         Array(100)
           .fill(null)
           .map((_, i) =>
-            serverTestContext.collection.insert(`indexMe_${i}`, {
+            serverTestContext.collection.insert(`indexMe_${getRandomId()}`, {
               name: 'test',
             })
           )

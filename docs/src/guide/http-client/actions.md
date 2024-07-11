@@ -314,6 +314,20 @@ declare function getQueryIndexes(
 ): Promise<HttpClientQueryIndex[]>;
 ```
 
+### getQueryIndexRemainingMutations
+
+Return the number of documents awaiting to be indexed.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, Keyspace, HttpClientQueryIndex } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getQueryIndexRemainingMutations(
+  params: CouchbaseHttpApiConfig, 
+  indexName: sttring,
+  keyspace: Keyspace
+): Promise<number>;
+```
+
 ### getQuerySearchIndexes
 
 Retrieves the search indexes that are visible by the `query` service.

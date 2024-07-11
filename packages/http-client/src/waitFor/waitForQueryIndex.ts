@@ -18,6 +18,7 @@ import { retry } from 'ts-retry-promise';
 import { Keyspace, Pretty } from '@cbjsdev/shared';
 
 import { getQueryIndexes, getStatistics } from '../services/index.js';
+import { getQueryIndexRemainingMutations } from '../services/query/getQueryIndexRemainingMutations.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
@@ -61,31 +62,13 @@ export async function waitForQueryIndex(
       return;
     }
 
-    const stats = await getStatistics(apiConfig, [
-      {
-        metric: [
-          { label: 'name', value: 'index_num_docs_pending' },
-          { label: 'index', value: indexName },
-          ...Object.entries(keyspace).map(([label, value]) => ({
-            label,
-            value,
-          })),
-        ],
-        step: 1,
-        start: -10,
-      },
-    ]);
+    const remainingMutations = await getQueryIndexRemainingMutations(
+      apiConfig,
+      indexName,
+      keyspace
+    );
 
-    if (stats[0].data.length === 0) {
-      // The statistics service may experience delay if no document has been indexed yet.
-      // This means no mutations are remaining.
-      return;
-    }
-
-    const values = stats[0].data[0].values;
-    const remainingMutations = values[values.length - 1][1];
-
-    if (!expectMissing && remainingMutations !== '0') {
+    if (!expectMissing && remainingMutations > 0) {
       throw new Error('Query index has pending mutations');
     }
   }, resolvedOptions);

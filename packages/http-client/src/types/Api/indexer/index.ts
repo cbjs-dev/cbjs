@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-export * from './executeStatement.js';
-export * from './getQueryBuckets.js';
-export * from './getQueryIndexes.js';
-export * from './getQueryIndexRemainingMutations.js';
+export { ApiIndexerStats } from './ApiIndexerStats.js';

@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CouchbaseHttpApiConfig } from '../../types.js';
-import { createHttpError } from '../../utils/createHttpError.js';
-import {
-  requestStatistics,
-  StatisticDefinition,
-  StatisticsResult,
-} from './requests/requestStatistics.js';
+import 'node-fetch';
 
-export { StatisticDefinition, StatisticsResult };
+import { Keyspace, quoteIdentifier } from '@cbjsdev/shared';
 
-export async function getStatistics(
-  apiConfig: CouchbaseHttpApiConfig,
-  stats: [StatisticDefinition, ...StatisticDefinition[]]
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+
+export async function requestGetQueryIndexStats(
+  params: CouchbaseHttpApiConfig,
+  indexName: string,
+  keyspace: Keyspace
 ) {
-  const response = await requestStatistics(apiConfig, stats);
-
-  if (response.status !== 200) {
-    throw await createHttpError('POST', response);
-  }
-
-  return (await response.json()) as [StatisticsResult, ...StatisticsResult[]];
+  // For whatever reason, the scope and collection do not support backticks.
+  return await apiGET(
+    { ...params },
+    `/api/v1/stats/${quoteIdentifier(keyspace.bucket)}.${keyspace.scope}.${keyspace.collection}/${indexName}`,
+    'indexer'
+  );
 }
