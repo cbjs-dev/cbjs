@@ -314,16 +314,31 @@ declare function getQueryIndexes(
 ): Promise<HttpClientQueryIndex[]>;
 ```
 
+### getQueryIndexStats
+
+Return the stats of the index, given by the indexer.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, Keyspace, HttpClientQueryIndexStats } from '@cbjsdev/http-client';
+
+// ---cut-before---
+declare function getQueryIndexStats(
+  params: CouchbaseHttpApiConfig,
+  indexName: string,
+  keyspace: Keyspace
+): Promise<HttpClientQueryIndexStats>;
+```
+
 ### getQueryIndexRemainingMutations
 
 Return the number of documents awaiting to be indexed.
 
 ```ts twoslash
-import { CouchbaseHttpApiConfig, Keyspace, HttpClientQueryIndex } from '@cbjsdev/http-client';
+import { CouchbaseHttpApiConfig, Keyspace } from '@cbjsdev/http-client';
 // ---cut-before---
 declare function getQueryIndexRemainingMutations(
   params: CouchbaseHttpApiConfig, 
-  indexName: sttring,
+  indexName: string,
   keyspace: Keyspace
 ): Promise<number>;
 ```
