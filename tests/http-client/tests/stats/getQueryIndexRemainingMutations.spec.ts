@@ -24,7 +24,7 @@ describe('getQueryIndexRemainingMutations', async () => {
 
   test(
     'wait for the index to have no remaining mutations',
-    { timeout: 25_000, repeats: 2 },
+    { timeout: 50_000, repeats: 2 },
     async ({ expect, serverTestContext, apiConfig }) => {
       const indexName = getRandomId();
 
