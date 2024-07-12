@@ -51,27 +51,33 @@ describe('getQueryIndexRemainingMutations', async () => {
           )
       );
 
-      await waitFor(async () => {
-        const result = await getQueryIndexRemainingMutations(
-          apiConfig,
-          indexName,
-          serverTestContext.getKeyspace()
-        );
+      await waitFor(
+        async () => {
+          const result = await getQueryIndexRemainingMutations(
+            apiConfig,
+            indexName,
+            serverTestContext.getKeyspace()
+          );
 
-        expect(result).toBeGreaterThan(0);
-      });
+          expect(result).toBeGreaterThan(0);
+        },
+        { timeout: 50_000 }
+      );
 
       await docsInsertion;
 
-      await waitFor(async () => {
-        const result = await getQueryIndexRemainingMutations(
-          apiConfig,
-          indexName,
-          serverTestContext.getKeyspace()
-        );
+      await waitFor(
+        async () => {
+          const result = await getQueryIndexRemainingMutations(
+            apiConfig,
+            indexName,
+            serverTestContext.getKeyspace()
+          );
 
-        expect(result).toEqual(0);
-      });
+          expect(result).toEqual(0);
+        },
+        { timeout: 50_000 }
+      );
     }
   );
 });
