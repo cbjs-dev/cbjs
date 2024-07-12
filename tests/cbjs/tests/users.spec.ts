@@ -18,7 +18,7 @@ import { describe } from 'vitest';
 
 import { HttpErrorContext, UserNotFoundError } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
-import { getConnectionParams, invariant } from '@cbjsdev/shared';
+import { getConnectionParams, invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
@@ -89,15 +89,17 @@ describe
         })
       ).resolves.toBeUndefined();
 
-      await expect(
-        serverTestContext.newConnection({
-          ...getConnectionParams(),
-          credentials: {
-            username,
-            password: newPassword,
-          },
-        })
-      ).resolves.toBeDefined();
+      await waitFor(async () => {
+        await expect(
+          serverTestContext.newConnection({
+            ...getConnectionParams(),
+            credentials: {
+              username,
+              password: newPassword,
+            },
+          })
+        ).resolves.toBeDefined();
+      });
 
       await expect(
         serverTestContext.newConnection({
