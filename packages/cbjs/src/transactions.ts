@@ -64,6 +64,7 @@ import {
   QueryScanConsistency,
 } from './querytypes.js';
 import { Scope } from './scope.js';
+import { DefaultTranscoder } from './transcoders.js';
 import { NodeCallback, PromiseHelper } from './utilities.js';
 
 /**
@@ -540,6 +541,7 @@ export class TransactionAttemptContext<
 > {
   private cluster: Cluster<T>;
   private _impl: CppTransaction;
+  private transcoder: DefaultTranscoder;
 
   /**
    * @internal
@@ -554,6 +556,8 @@ export class TransactionAttemptContext<
       timeout: config.timeout,
       query_scan_consistency: queryScanConsistencyToCpp(undefined),
     });
+
+    this.transcoder = new DefaultTranscoder();
   }
 
   /**
@@ -761,13 +765,16 @@ export class TransactionAttemptContext<
     return (await PromiseHelper.wrap(
       (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
         const id = collection.getDocId(key);
+        const [data, flags] = this.transcoder.encode(content);
+
         this._impl.insert(
           {
             id,
-            content: Buffer.from(JSON.stringify(content)),
+            content: { data, flags },
           },
           (cppErr, cppRes) => {
             const err = errorFromCpp(cppErr);
+
             if (err) {
               return wrapCallback(err, null);
             }
@@ -797,6 +804,7 @@ export class TransactionAttemptContext<
   ): Promise<TransactionGetResult<T, LB, LS, LC, Key>> {
     return PromiseHelper.wrap(
       (wrapCallback: NodeCallback<TransactionGetResult<T, LB, LS, LC, Key>>) => {
+        const [data, flags] = this.transcoder.encode(content);
         this._impl.replace(
           {
             doc: {
@@ -806,7 +814,7 @@ export class TransactionAttemptContext<
               links: doc._links,
               metadata: doc._metadata,
             },
-            content: Buffer.from(JSON.stringify(content)),
+            content: { data, flags },
           },
           (cppErr, cppRes) => {
             const err = errorFromCpp(cppErr);

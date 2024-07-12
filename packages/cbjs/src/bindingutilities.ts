@@ -164,7 +164,6 @@ import {
   EventingFunctionProcessingStatus,
   EventingFunctionStatus,
 } from './eventingfunctionmanager.js';
-
 import { DurabilityLevel, ServiceType, StoreSemantics } from './generaltypes.js';
 import { MutationState } from './mutationstate.js';
 import { QueryProfileMode, QueryScanConsistency } from './querytypes.js';

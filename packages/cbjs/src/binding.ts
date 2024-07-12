@@ -75,6 +75,11 @@ export interface CppScanIterator {
   cancel(): boolean;
 }
 
+export interface CppEncodedValue {
+  data: Buffer;
+  flags: number;
+}
+
 export interface CppManagementEventingFunctionUrlBinding {
   alias: string;
   hostname: string;
@@ -884,7 +889,7 @@ export interface CppSearchResponseSearchRow {
   id: string;
   score: number;
   locations: CppSearchResponseSearchLocation[];
-  fragments: { [field: string]: [string, ...string[]] };
+  fragments: { [key: string]: [string, ...string[]] };
   fields: string;
   explanation: string | undefined;
 }
@@ -1127,6 +1132,7 @@ export interface CppMutateInRequest {
   // retries
   preserve_expiry: boolean;
   // parent_span
+  flags?: number;
 }
 export interface CppMutateInWithLegacyDurabilityRequest {
   id: CppDocumentId;
@@ -3419,7 +3425,8 @@ export interface CppTransactionLinks {
   staged_transaction_id: string;
   staged_attempt_id: string;
   staged_operation_id: string;
-  staged_content: string;
+  staged_content_json: string;
+  staged_content_binary?: Buffer;
   cas_pre_txn: string;
   revid_pre_txn: string;
   exptime_pre_txn: number;
@@ -3468,7 +3475,7 @@ export interface CppTransaction {
   insert(
     options: {
       id: CppDocumentId;
-      content: CppJsonString;
+      content: CppEncodedValue;
     },
     callback: (err: CppError | null, result: CppTransactionGetResult | null) => void
   ): void;
@@ -3476,7 +3483,7 @@ export interface CppTransaction {
   replace(
     options: {
       doc: CppTransactionGetResult;
-      content: CppJsonString;
+      content: CppEncodedValue;
     },
     callback: (err: CppError | null, result: CppTransactionGetResult | null) => void
   ): void;
