@@ -59,7 +59,6 @@
   "dependencies": {
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
-    "node-addon-api": "^7.0.0",
     "tar": "^6.2.0"
   },
   "devDependencies": {
