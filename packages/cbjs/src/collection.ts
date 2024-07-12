@@ -1035,10 +1035,7 @@ export class Collection<
       options = {};
     }
 
-    return PromiseHelper.wrapAsync(
-      () => this._getReplica(key, true, options as GetAllReplicasOptions),
-      callback
-    );
+    return PromiseHelper.wrapAsync(() => this._getReplica(key, true, options), callback);
   }
 
   /**
