@@ -114,8 +114,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
       node-addon-api:
-        specifier: ^8.0.0
-        version: 8.0.0
+        specifier: ^7.0.0
+        version: 7.1.0
       tar:
         specifier: ^6.2.0
         version: 6.2.1
@@ -3569,9 +3569,9 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  node-addon-api@8.0.0:
-    resolution: {integrity: sha512-ipO7rsHEBqa9STO5C5T10fj732ml+5kLN1cAG8/jdHd56ldQeGj3Q7+scUS+VHK/qy1zLEwC4wMK5+yM0btPvw==}
-    engines: {node: ^18 || ^20 || >= 21}
+  node-addon-api@7.1.0:
+    resolution: {integrity: sha512-mNcltoe1R8o7STTegSOHdnJNN7s5EUvhoS7ShnTHDyOSd+8H+UdWODq6qSv67PjC8Zc5JRT8+oLAMCr0SIXw7g==}
+    engines: {node: ^16 || ^18 || >= 20}
 
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
@@ -8889,7 +8889,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  node-addon-api@8.0.0: {}
+  node-addon-api@7.1.0: {}
 
   node-domexception@1.0.0: {}
 

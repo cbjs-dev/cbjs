@@ -16,7 +16,7 @@
 
 /**
  * Generate a pseudo-random ID for testing.
- * This is not using genuine crypto randomness. Use this for tests only.
+ * ! This is not using genuine crypto randomness. Use this for tests only.
  */
 export function getRandomId() {
   return Math.random().toString(16).substring(2, 10);

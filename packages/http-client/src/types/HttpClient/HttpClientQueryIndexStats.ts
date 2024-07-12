@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiIndexerStats } from '../Api/indexer/index.js';
+import { Pretty } from '@cbjsdev/shared';
 
-export type HttpClientIndexerStats = Omit<ApiIndexerStats, 'last_known_scan_time'> & {
-  last_known_scan_time: bigint;
-};
+import { ApiQueryIndexStats } from '../Api/indexer/index.js';
+
+export type HttpClientQueryIndexStats = Pretty<
+  Omit<ApiQueryIndexStats, 'last_known_scan_time'> & {
+    last_known_scan_time: bigint;
+  }
+>;

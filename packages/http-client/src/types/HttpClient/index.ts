@@ -16,3 +16,4 @@
 
 export * from './HttpClientQueryIndex.js';
 export * from './HttpClientSearchIndex.js';
+export * from './HttpClientQueryIndexStats.js';

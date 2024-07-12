@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export type ApiIndexerStats = {
+export type ApiQueryIndexStats = {
   avg_array_length: number;
   avg_drain_rate: number;
   avg_item_size: number;

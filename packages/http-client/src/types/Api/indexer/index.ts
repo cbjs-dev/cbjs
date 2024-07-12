@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { ApiIndexerStats } from './ApiIndexerStats.js';
+export { ApiQueryIndexStats } from './ApiQueryIndexStats.js';

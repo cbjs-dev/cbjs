@@ -74,7 +74,7 @@ describe('waitForQueryIndex', async () => {
       const indexName = getRandomId();
 
       await Promise.all(
-        Array(100)
+        Array(300)
           .fill(null)
           .map((_, i) =>
             serverTestContext.collection.insert(`indexMe_${getRandomId()}`, {
