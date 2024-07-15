@@ -65,8 +65,8 @@ export type MutateInSpecResult<Spec> =
 /**
  * Infer an array of MutateInResultEntry from an array of mutation results.
  */
-export type MutateInResultEntries<Results extends ReadonlyArray<number | undefined>> =
-  Results extends readonly [infer Head extends (number | undefined), ...infer Rest extends ReadonlyArray<number | undefined>] ?
+export type MutateInResultEntries<Results> =
+  Results extends readonly [infer Head, ...infer Rest] ?
     [MutateInResultEntry<Head>, ...MutateInResultEntries<Rest>] :
   []
 ;

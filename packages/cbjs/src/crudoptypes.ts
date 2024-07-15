@@ -311,7 +311,7 @@ export class LookupInReplicaResult<
  *
  * @category Key-Value
  */
-export class MutateInResultEntry<Result extends number | undefined = any> {
+export class MutateInResultEntry<Result = number | undefined> {
   /**
    * The resulting value after the completion of the sub-operation.  This namely
    * returned in the case of a counter operation (increment/decrement) and is not
@@ -322,7 +322,7 @@ export class MutateInResultEntry<Result extends number | undefined = any> {
   /**
    * @internal
    */
-  constructor(data: MutateInResultEntry) {
+  constructor(data: MutateInResultEntry<Result>) {
     this.value = data.value;
   }
 }
@@ -332,9 +332,7 @@ export class MutateInResultEntry<Result extends number | undefined = any> {
  *
  * @category Key-Value
  */
-export class MutateInResult<
-  Results extends ReadonlyArray<number | undefined> = Array<any>,
-> {
+export class MutateInResult<Results = Array<number | undefined>> {
   /**
    * A list of result entries for each sub-operation performed.
    */
