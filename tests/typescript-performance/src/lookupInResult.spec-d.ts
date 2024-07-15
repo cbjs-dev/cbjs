@@ -20,6 +20,7 @@ import { AppTypes } from './appTypes.js';
 const cluster = await connect<AppTypes>('');
 const library = cluster.bucket('store').scope('library');
 const books = library.collection('books');
+const authors = library.collection('authors');
 
 const { content: bookData } = await books
   .lookupIn('book::001')
@@ -34,12 +35,7 @@ const { content: bookSalesData } = await books
   .get('perCountry.FR')
   .get('perCountry.EN');
 
-const r = await books.mutateIn('book::001::sales').insert('perCountry.FR', {
-  total: 2300,
-  perYear: {
-    2024: 2300,
-  },
-});
+const r = await authors.mutateIn('author::001').arrayAppend('bookIds', 'book::001');
 
 const r2 = await books.mutateIn('book::001::sales').replace('perCountry.FR', {
   total: 3038,

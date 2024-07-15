@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NoInfer } from '@cbjsdev/shared';
+import type { DocDef, NoInfer } from '@cbjsdev/shared';
 import { isArray } from '@cbjsdev/shared';
 
 import type { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
@@ -33,9 +33,9 @@ type ResolvedArgs<SpecDefinitions extends ReadonlyArray<MutateInSpec>> = {
 };
 
 export function resolveMutateInArgs<
-  Doc extends object,
+  Def extends DocDef,
   SpecDefinitions extends ReadonlyArray<MutateInSpec>,
->(args: MutateInArgs<Doc, SpecDefinitions>): ResolvedArgs<SpecDefinitions> {
+>(args: MutateInArgs<Def, SpecDefinitions>): ResolvedArgs<SpecDefinitions> {
   if (!isArray(args[0])) {
     return {
       options: (args[0] as MutateInOptions) ?? {},

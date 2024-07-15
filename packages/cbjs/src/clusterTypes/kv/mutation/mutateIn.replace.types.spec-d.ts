@@ -35,13 +35,18 @@ describe('mutateIn replace', async () => {
     BuildReadonlyProperties<TestDocRequiredProperties> &
     BuildReadonlyArrayProperties<TestDocRequiredProperties>;
 
-  type TestPaths<Doc extends object, T extends Record<MakeTestPaths<Doc>, boolean>> = {
-    [Path in keyof T]: [T[Path], Path extends MutateInReplacePath<Doc> ? true : false];
+  type TestDocDef = DocDef<string, TestDoc>;
+
+  type TestPaths<
+    Def extends DocDef,
+    T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+  > = {
+    [Path in keyof T]: [T[Path], Path extends MutateInReplacePath<Def> ? true : false];
   };
 
   it('should only accept replaceable paths', () => {
     type Test = TestPaths<
-      TestDoc,
+      TestDocDef,
       {
         '': false;
         'String': true;

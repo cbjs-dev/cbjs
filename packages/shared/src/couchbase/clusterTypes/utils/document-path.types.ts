@@ -138,15 +138,15 @@ export type ExtractPathToPojo<
  * You can filter the type of the indexes by passing `FilterType`.
  */
 export type ExtractPathToWritableArrayIndex<
-  D,
-  P extends string,
+  Doc,
+  Path extends string,
   FilterType = never,
-> = D extends unknown
-  ? P extends unknown
-    ? ExtractPathToArrayIndex<P> extends infer PTAI extends string
-      ? ExtractPathToWritable<D, PTAI> extends infer PathToWritableIndex extends unknown
+> = Doc extends unknown
+  ? Path extends unknown
+    ? ExtractPathToArrayIndex<Path> extends infer PTAI extends string
+      ? ExtractPathToWritable<Doc, PTAI> extends infer PathToWritableIndex extends unknown
         ? PathToWritableIndex extends string
-          ? ParentDocument<D, PathToWritableIndex> extends infer SubDocArray
+          ? ParentDocument<Doc, PathToWritableIndex> extends infer SubDocArray
             ? SubDocArray extends ReadonlyArray<unknown>
               ? IsNever<FilterType> extends true
                 ? PathToWritableIndex

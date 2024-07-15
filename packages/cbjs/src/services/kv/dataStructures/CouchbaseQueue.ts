@@ -111,7 +111,7 @@ export class CouchbaseQueue<
           const value = res.content[0].value;
           const specs = [MutateInSpec.remove('[-1]' as never)];
 
-          await this._coll.mutateIn(this._key as never, specs, {
+          await this._coll.mutateIn(this._key as never, specs as never, {
             cas: res.cas,
           });
 

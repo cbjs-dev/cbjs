@@ -31,6 +31,7 @@ import {
   If,
   invariant,
   IsAny,
+  IsArrayLengthKnown,
   IsFuzzyDocument,
   IsNever,
   JsonObject,
@@ -94,9 +95,10 @@ import type {
 } from './clusterTypes/kv/lookup/lookupIn.types.js';
 import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types.js';
 import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types.js';
-import type {
+import {
   MutateInResultEntries,
   MutateInSpecResults,
+  NarrowMutationSpecs,
 } from './clusterTypes/kv/mutation/mutateIn.types.js';
 import {
   CounterResult,
@@ -2437,15 +2439,21 @@ export class Collection<
 
   mutateIn<
     Key extends ExtractCollectionJsonDocKey<this>,
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>,
   >(
     key: Key,
-    ...args: MutateInArgs<
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
-      SpecDefinitions
-    >
-  ): MutateInReturnType<this, Key, NoInfer<SpecDefinitions>> {
-    const { specs, options, callback: resolvedCallback } = resolveMutateInArgs(args);
+    specsOrOptions?: MutateInOptions | NarrowMutationSpecs<Def, SpecDefinitions>,
+    optionsOrCallback?:
+      | MutateInOptions
+      | NodeCallback<MutateInResult<MutateInSpecResults<NoInfer<SpecDefinitions>>>>,
+    callback?: NodeCallback<MutateInResult<MutateInSpecResults<NoInfer<SpecDefinitions>>>>
+  ): MutateInReturnType<this, Key, SpecDefinitions> {
+    const {
+      specs,
+      options,
+      callback: resolvedCallback,
+    } = resolveMutateInArgs([specsOrOptions, optionsOrCallback, callback]);
 
     if (specs === undefined) {
       return ChainableMutateIn.for(this, key, options) as MutateInReturnType<

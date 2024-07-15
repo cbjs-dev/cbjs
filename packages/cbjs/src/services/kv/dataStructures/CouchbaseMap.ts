@@ -201,10 +201,7 @@ export class CouchbaseMap<
   ): Promise<void> {
     return await PromiseHelper.wrapAsync(async () => {
       const specs = [MutateInSpec.remove(item as never)];
-      await this._coll.mutateIn<Key, Record<ItemKey, unknown>, typeof specs>(
-        this._key,
-        specs
-      );
+      await this._coll.mutateIn(this._key, specs as never);
     }, callback);
   }
 

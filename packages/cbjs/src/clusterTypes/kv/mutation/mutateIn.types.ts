@@ -38,6 +38,7 @@ import type {
   MutateInUpsertPath,
   MutateInUpsertValue,
 } from './mutationOperations.types.js';
+import { Collection } from '../../../collection.js';
 
 /**
  * Results of a {@link Collection.mutateIn} operation.
@@ -55,8 +56,8 @@ export type MutateInSpecResults<Specs> =
 /**
  * Operation unit result type for a {@link MutateInSpec}.
  */
-export type MutateInSpecResult<Spec extends MutateInSpec> =
-  Spec extends MutateInSpec<object, infer OpCode extends MutateInSpecOpcode> ?
+export type MutateInSpecResult<Spec> =
+  Spec extends MutateInSpec<any, infer OpCode, any, boolean, any> ?
     OpCode extends CppProtocolSubdocOpcode.counter ? number : undefined :
   never
 ;
@@ -73,10 +74,10 @@ export type MutateInResultEntries<Results extends ReadonlyArray<number | undefin
 /**
  * All possible mutation paths. Distributive.
  */
-export type AnyMutateInPath<Doc extends object, Opcode extends MutateInSpecOpcode = MutateInSpecOpcode> =
-  Doc extends unknown ?
+export type AnyMutateInPath<Def extends DocDef, Opcode extends MutateInSpecOpcode = MutateInSpecOpcode> =
+  Def extends unknown ?
     Opcode extends unknown ?
-      MutateInPath<Doc, Opcode> :
+      MutateInPath<Def, Opcode> :
     never :
   never
 ;
@@ -88,7 +89,6 @@ export type MutateInPath<Def extends DocDef, Opcode extends MutateInSpecOpcode> 
   Opcode extends CppProtocolSubdocOpcode.set_doc ? '' :
   Opcode extends CppProtocolSubdocOpcode.remove_doc ? '' :
   IsFuzzyDocument<Def['Body']> extends true ? string :
-    // TODO complete conversion below
   Opcode extends CppProtocolSubdocOpcode.dict_add ? MutateInInsertPath<Def> :
   Opcode extends CppProtocolSubdocOpcode.dict_upsert ? Exclude<MutateInUpsertPath<Def>, ''> :
   Opcode extends CppProtocolSubdocOpcode.replace ? MutateInReplacePath<Def> :
@@ -106,13 +106,13 @@ export type MutateInPath<Def extends DocDef, Opcode extends MutateInSpecOpcode> 
  * Distributive over `Doc` only.
  */
 export type AnyMutateInValue<
-  Doc extends object,
+  Def extends DocDef,
   Opcode extends MutateInSpecOpcode,
-  Path extends AnyMutateInPath<Doc, Opcode>,
+  Path extends AnyMutateInPath<Def, Opcode>,
   Multi extends boolean = boolean,
 > =
-  Doc extends unknown ?
-    MutateInValue<Doc, Opcode, Path, Multi> :
+  Def extends unknown ?
+    MutateInValue<Def, Opcode, Path, Multi> :
   never
 ;
 
@@ -120,21 +120,21 @@ export type AnyMutateInValue<
  * Mutation values - Non-distributive.
  */
 export type MutateInValue<
-  Doc extends object,
+  Def extends DocDef,
   Opcode extends MutateInSpecOpcode,
-  Path extends MutateInPath<Doc, Opcode>,
+  Path extends MutateInPath<Def, Opcode>,
   Multi extends boolean = boolean,
 > =
-  IsFuzzyDocument<Doc> extends true ? any :
-  Opcode extends CppProtocolSubdocOpcode.dict_add ? MutateInInsertValue<Doc, Path & MutateInInsertPath<Doc>> :
-  Opcode extends CppProtocolSubdocOpcode.set_doc ? MutateInUpsertValue<Doc, ''> :
-  Opcode extends CppProtocolSubdocOpcode.dict_upsert ? MutateInUpsertValue<Doc, Path & MutateInUpsertPath<Doc>> :
-  Opcode extends CppProtocolSubdocOpcode.replace ? MutateInReplaceValue<Doc, Path & MutateInReplacePath<Doc>> :
-  Opcode extends CppProtocolSubdocOpcode.array_push_last ? MutateInArrayAppendValue<Doc, Path & MutateInArrayAppendPath<Doc>, Multi> :
-  Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependValue<Doc, Path & MutateInArrayPrependPath<Doc>, Multi> :
-  Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertValue<Doc, Path & MutateInArrayInsertPath<Doc>, Multi> :
-  Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniqueValue<Doc, Path & MutateInArrayAddUniquePath<Doc>> :
-  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterValue<Doc> :
+  IsFuzzyDocument<Def['Body']> extends true ? any :
+  Opcode extends CppProtocolSubdocOpcode.dict_add ? MutateInInsertValue<Def, Path & MutateInInsertPath<Def>> :
+  Opcode extends CppProtocolSubdocOpcode.set_doc ? MutateInUpsertValue<Def, ''> :
+  Opcode extends CppProtocolSubdocOpcode.dict_upsert ? MutateInUpsertValue<Def, Path & MutateInUpsertPath<Def>> :
+  Opcode extends CppProtocolSubdocOpcode.replace ? MutateInReplaceValue<Def, Path & MutateInReplacePath<Def>> :
+  Opcode extends CppProtocolSubdocOpcode.array_push_last ? MutateInArrayAppendValue<Def, Path & MutateInArrayAppendPath<Def>, Multi> :
+  Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependValue<Def, Path & MutateInArrayPrependPath<Def>, Multi> :
+  Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertValue<Def, Path & MutateInArrayInsertPath<Def>, Multi> :
+  Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniqueValue<Def, Path & MutateInArrayAddUniquePath<Def>> :
+  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterValue :
   never
 ;
 
@@ -142,12 +142,12 @@ export type MutateInValue<
  * Validate the `MutateInSpec` consistency.
  * Returns an error message if the path or the value is inconsistency, `T` if everything looks good.
  */
-export type ValidateMutateInSpec<Docs extends object, Specs extends MutateInSpec> =
+export type ValidateMutateInSpec<Defs extends DocDef, Specs extends MutateInSpec> =
   Specs extends MutateInSpec<infer Doc, infer Opcode, infer Path, infer Multi, infer Value> ?
-    Path extends AnyMutateInPath<Docs, Opcode> ?
+    Path extends AnyMutateInPath<Defs, Opcode> ?
       Opcode extends CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc ?
         MutateInSpec<Doc, Opcode, Path, false, never> :
-      [Value] extends [AnyMutateInValue<Docs, Opcode, Path, Multi>] ?
+      [Value] extends [AnyMutateInValue<Defs, Opcode, Path, Multi>] ?
         Specs :
       `Invalid value for '${MutateInSpecOperationFriendlyName[Opcode]}' at '${Path}' on any declared document.` :
     `Invalid path: Cannot perform '${MutateInSpecOperationFriendlyName[Opcode]}' at '${Path}' on any declared document.` :
@@ -159,18 +159,18 @@ export type ValidateMutateInSpec<Docs extends object, Specs extends MutateInSpec
  *
  * @see ValidateMutateInSpec
  */
-export type ValidateMutateInSpecs<Docs extends object, Specs> =
-  Specs extends readonly [infer Spec extends MutateInSpec, ...infer Rest extends ReadonlyArray<unknown>] ?
-    readonly [ValidateMutateInSpec<Docs, Spec>, ...ValidateMutateInSpecs<Docs, Rest>] :
-  Specs extends ReadonlyArray<MutateInSpec<Docs>> ?
-    Specs :
+export type ValidateMutateInSpecs<Defs extends DocDef, Specs> =
+  Specs extends readonly [infer Spec extends MutateInSpec, ...infer Rest extends ReadonlyArray<MutateInSpec>] ?
+    readonly [ValidateMutateInSpec<Defs, Spec>, ...ValidateMutateInSpecs<Defs, Rest>] :
+  Specs extends ReadonlyArray<MutateInSpec<Defs>> ?
+    [] :
   readonly []
 ;
 
 /**
  * Validate and narrow down an array of `MutateInSpec`.
  */
-export type NarrowMutationSpecs<Docs extends object, Specs> = Try<Specs, [], ValidateMutateInSpecs<Docs, Specs>>;
+export type NarrowMutationSpecs<Defs extends DocDef, Specs> = Try<Specs, [], ValidateMutateInSpecs<Defs, Specs>>;
 
 /**
  *  Return the MutateInMacro instance type that are compatible with the given type.

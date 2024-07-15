@@ -20,6 +20,7 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
+  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
@@ -32,14 +33,19 @@ describe('mutateIn counter', async () => {
     BuildReadonlyProperties<TestDocRequiredProperties> &
     BuildReadonlyArrayProperties<TestDocRequiredProperties>;
 
-  type TestPaths<Doc extends object, T extends Record<MakeTestPaths<Doc>, boolean>> = {
-    [Path in keyof T]: [T[Path], Path extends MutateInCounterPath<Doc> ? true : false];
+  type TestDocDef = DocDef<string, TestDoc>;
+
+  type TestPaths<
+    Def extends DocDef,
+    T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+  > = {
+    [Path in keyof T]: [T[Path], Path extends MutateInCounterPath<Def> ? true : false];
   };
 
   describe('increment', () => {
     it('should allow to increment a path to a non-readonly target assignable to number', () => {
       type Test = TestPaths<
-        TestDoc,
+        TestDocDef,
         {
           '': false;
           'String': false;
@@ -199,7 +205,7 @@ describe('mutateIn counter', async () => {
   describe('decrement', () => {
     it('should allow to decrement a path to a non-readonly target assignable to number', () => {
       type Test = TestPaths<
-        TestDoc,
+        TestDocDef,
         {
           '': false;
           'String': false;

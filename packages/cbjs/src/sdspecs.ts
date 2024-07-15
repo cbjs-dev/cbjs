@@ -327,14 +327,9 @@ export class LookupInSpec<
 export class MutateInSpec<
   Def extends DocDef = DocDef,
   Opcode extends MutateInSpecOpcode = MutateInSpecOpcode,
-  Path extends MutateInPath<Def, Opcode> = MutateInPath<Def, Opcode>,
+  Path extends string = string,
   Multi extends boolean = false,
-  Value extends MutateInValue<Def, Opcode, Path, Multi> = MutateInValue<
-    Def,
-    Opcode,
-    Path,
-    Multi
-  >,
+  Value = any,
 > {
   /**
    * BUG(JSCBC-756): Previously provided access to the document cas mutate
@@ -390,11 +385,11 @@ export class MutateInSpec<
   }
 
   private static _create<
-    Doc extends object,
+    Def extends DocDef,
     Opcode extends MutateInSpecOpcode,
-    Path extends MutateInPath<Doc, Opcode>,
+    Path extends MutateInPath<Def, Opcode>,
     Multi extends boolean,
-    Value extends MutateInValue<Doc, Opcode, Path, Multi>,
+    Value extends MutateInValue<Def, Opcode, Path, Multi>,
   >(
     op: Opcode,
     path: Path,
@@ -404,7 +399,7 @@ export class MutateInSpec<
       multi?: Multi;
       xattr?: boolean;
     }
-  ): MutateInSpec<Doc, Opcode, Path, Multi, Value> {
+  ): MutateInSpec<Def, Opcode, Path, Multi, Value> {
     if (!options) {
       options = {};
     }
@@ -455,15 +450,15 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static insert<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_add>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_add, Path>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_add>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
     this: void,
-    path: ValidateMutateInInsertPath<Doc, Path>,
+    path: ValidateMutateInInsertPath<Def, Path>,
     value: Value,
     options?: MutateInInsertOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_add, Path, boolean, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.dict_add, Path, boolean, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.dict_add,
       path,
@@ -473,25 +468,25 @@ export class MutateInSpec<
   }
 
   static upsert<
-    Doc extends object,
-    Value extends MutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, ''>,
+    Def extends DocDef,
+    Value extends MutateInValue<Def, CppProtocolSubdocOpcode.set_doc, ''>,
   >(
     this: void,
     path: '',
     value: Value,
     options?: MutateInUpsertOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.set_doc, '', false, Value>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.set_doc, '', false, Value>;
 
   static upsert<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.dict_upsert>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.dict_upsert, Path>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_upsert>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_upsert, Path>,
   >(
     this: void,
-    path: ValidateMutateInUpsertPath<Doc, Path>,
+    path: ValidateMutateInUpsertPath<Def, Path>,
     value: Value,
     options?: MutateInUpsertOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
 
   /**
    * Creates a MutateInSpec for upserting a field on a document.  This updates
@@ -508,19 +503,19 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static upsert<
-    Doc extends object,
+    Def extends DocDef,
     Path extends AnyMutateInPath<
-      Doc,
+      Def,
       CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert
     >,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.set_doc, Path>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.set_doc, Path>,
   >(
     this: void,
     path: Path,
     value: Value,
     options?: MutateInUpsertOptions
   ): MutateInSpec<
-    Doc,
+    Def,
     CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert,
     any,
     boolean,
@@ -555,15 +550,15 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static replace<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.replace>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.replace, Path>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.replace>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.replace, Path>,
   >(
     this: void,
-    path: ValidateMutateInReplacePath<Doc, Path>,
+    path: ValidateMutateInReplacePath<Def, Path>,
     value: Value,
     options?: MutateInReplaceOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.replace, Path, boolean, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.replace, Path, boolean, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.replace,
       path,
@@ -572,20 +567,20 @@ export class MutateInSpec<
     );
   }
 
-  static remove<Doc extends object>(
+  static remove<Def extends DocDef>(
     this: void,
     path: '',
     options?: MutateInRemoveOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove_doc, '', false, never>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.remove_doc, '', false, never>;
 
   static remove<
-    Doc extends object,
-    const Path extends Exclude<AnyMutateInPath<Doc, CppProtocolSubdocOpcode.remove>, ''>,
+    Def extends DocDef,
+    const Path extends Exclude<AnyMutateInPath<Def, CppProtocolSubdocOpcode.remove>, ''>,
   >(
     this: void,
-    path: ValidateMutateInRemovePath<Doc, Path>,
+    path: ValidateMutateInRemovePath<Def, Path>,
     options?: MutateInRemoveOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.remove, Path, false, never>;
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.remove, Path, false, never>;
 
   /**
    * Creates a MutateInSpec for remove a field from a document.
@@ -597,17 +592,17 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static remove<
-    Doc extends object,
+    Def extends DocDef,
     Path extends AnyMutateInPath<
-      Doc,
+      Def,
       CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
     >,
   >(
     this: void,
-    path: ValidateMutateInRemovePath<Doc, Path>,
+    path: ValidateMutateInRemovePath<Def, Path>,
     options?: MutateInRemoveOptions
   ): MutateInSpec<
-    Doc,
+    Def,
     CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc,
     any,
     false,
@@ -646,10 +641,10 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayAppend<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_last>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_push_last>,
     Value extends AnyMutateInValue<
-      Doc,
+      Def,
       CppProtocolSubdocOpcode.array_push_last,
       Path,
       Multi
@@ -660,7 +655,7 @@ export class MutateInSpec<
     path: Path,
     value: Value,
     options?: MutateInArrayAppendOptions<Multi>
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_push_last,
       path,
@@ -686,10 +681,10 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayPrepend<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_push_first>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_push_first>,
     Value extends AnyMutateInValue<
-      Doc,
+      Def,
       CppProtocolSubdocOpcode.array_push_first,
       Path,
       Multi
@@ -700,7 +695,7 @@ export class MutateInSpec<
     path: Path,
     value: Value,
     options?: MutateInArrayPrependOptions<Multi>
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_push_first,
       path,
@@ -728,10 +723,10 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayInsert<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_insert>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_insert>,
     Value extends AnyMutateInValue<
-      Doc,
+      Def,
       CppProtocolSubdocOpcode.array_insert,
       Path,
       Multi
@@ -742,7 +737,7 @@ export class MutateInSpec<
     path: Path,
     value: Value,
     options?: MutateInArrayInsertOptions<Multi>
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_insert,
       path,
@@ -766,10 +761,10 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayAddUnique<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.array_add_unique>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_add_unique>,
     Value extends AnyMutateInValue<
-      Doc,
+      Def,
       CppProtocolSubdocOpcode.array_add_unique,
       Path,
       false
@@ -779,7 +774,7 @@ export class MutateInSpec<
     path: Path,
     value: Value,
     options?: MutateInArrayAddUniqueOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.array_add_unique, Path, false, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.array_add_unique, Path, false, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.array_add_unique,
       path,
@@ -802,15 +797,15 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static increment<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.counter>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.counter, Path>,
   >(
     this: void,
     path: Path,
     incrementBy: Value,
     options?: MutateInCounterOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, boolean, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, boolean, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,
       path,
@@ -833,15 +828,15 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static decrement<
-    Doc extends object,
-    const Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
+    Def extends DocDef,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.counter>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.counter, Path>,
   >(
     this: void,
     path: Path,
     decrementBy: Value,
     options?: MutateInDecrementOptions
-  ): MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value> {
+  ): MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, false, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,
       path,

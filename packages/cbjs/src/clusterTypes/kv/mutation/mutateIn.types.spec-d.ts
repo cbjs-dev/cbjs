@@ -24,6 +24,7 @@ import { MutateInSpec } from '../../../sdspecs.js';
 import { mutationSpec } from '../../../specBuilders.js';
 import { MutateInResultEntries, MutateInSpecResults } from './mutateIn.types.js';
 
+type TestDocDef = DocDef<string, TestDoc>;
 type TestDoc = {
   title: string;
   metadata: {
@@ -33,6 +34,7 @@ type TestDoc = {
   authors: [string, ...string[]];
 };
 
+type TestDocDef2 = DocDef<string, TestDoc2>;
 type TestDoc2 = {
   title: string;
   sales: number[];
@@ -41,6 +43,7 @@ type TestDoc2 = {
   };
 };
 
+type TestDocDef3 = DocDef<`group::${string}`, TestDoc3>;
 type TestDoc3 = {
   membership: Record<
     string,
@@ -55,13 +58,13 @@ type TestDoc3 = {
 type UserClusterTypes = ClusterTypes<{
   test: {
     _default: {
-      _default: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
+      _default: [TestDocDef, TestDocDef2];
     };
     testScope: {
-      testCollection: [DocDef<string, TestDoc>, DocDef<string, TestDoc2>];
+      testCollection: [TestDocDef, TestDocDef2];
     };
     groups: {
-      group: [DocDef<`group::${string}`, TestDoc3>];
+      group: [TestDocDef3];
     };
   };
 }>;
@@ -114,9 +117,9 @@ describe('mutateIn', function () {
       const collection = cluster.bucket('test').defaultCollection();
 
       const result = await collection.mutateIn('test__document', [
-        mutationSpec<TestDoc2>().upsert('title', 'new title'),
-        mutationSpec<TestDoc2>().insert('metadata.modifiedBy', 'me'),
-        mutationSpec<TestDoc2>().increment('sales[0]', 1),
+        mutationSpec<TestDocDef2>().upsert('title', 'new title'),
+        mutationSpec<TestDocDef2>().insert('metadata.modifiedBy', 'me'),
+        mutationSpec<TestDocDef2>().increment('sales[0]', 1),
       ]);
 
       expectTypeOf(result).toEqualTypeOf<
@@ -247,8 +250,8 @@ describe('mutateIn', function () {
       expectTypeOf<
         MutateInSpecResults<
           [
-            MutateInSpec<TestDoc, CppProtocolSubdocOpcode.counter>,
-            MutateInSpec<TestDoc, CppProtocolSubdocOpcode.remove>,
+            MutateInSpec<TestDocDef, CppProtocolSubdocOpcode.counter>,
+            MutateInSpec<TestDocDef, CppProtocolSubdocOpcode.remove>,
           ]
         >
       >().toEqualTypeOf<[number, undefined]>();

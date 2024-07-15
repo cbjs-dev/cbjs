@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsArrayLengthKnown, NoInfer } from '@cbjsdev/shared';
+import { DocDef, If, IsArrayLengthKnown } from '@cbjsdev/shared';
+import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
 
 import { AnyCollection } from '../../../clusterTypes/index.js';
-import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
 import { MutateInSpecResults, NarrowMutationSpecs } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
 import { MutateInOptions } from '../../../collection.js';
 import { MutateInResult } from '../../../crudoptypes.js';
@@ -26,13 +26,13 @@ import { NodeCallback } from '../../../utilities.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 
 export type MutateInArgs<
-  Doc extends object,
-  SpecDefinitions extends ReadonlyArray<MutateInSpec>,
+  Def extends DocDef,
+  SpecDefinitions,
 > =
   readonly [
-    specsOrOptions?: MutateInOptions | NarrowMutationSpecs<Doc, SpecDefinitions>,
-    optionsOrCallback?: MutateInOptions | NodeCallback<MutateInResult<MutateInSpecResults<NoInfer<SpecDefinitions>>>>,
-    callback?: NodeCallback<MutateInResult<MutateInSpecResults<NoInfer<SpecDefinitions>>>>
+    specsOrOptions?: MutateInOptions | NarrowMutationSpecs<Def, SpecDefinitions>,
+    optionsOrCallback?: MutateInOptions | NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>,
+    callback?: NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
   ]
 
 export type MutateInReturnType<

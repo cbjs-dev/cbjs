@@ -249,8 +249,9 @@ export type MutateInRemovePath<Def extends DocDef> =
   IsFuzzyDocument<Def['Body']> extends true ?
     string :
   (
-  | ExtractPathToRemovableArrayIndex<Def['Body'], Def['Path']>
-  | ExtractPathToOptionalProperty<Def['Body'], Def['Path']>
+    | ''
+    | ExtractPathToRemovableArrayIndex<Def['Body'], Def['Path']>
+    | ExtractPathToOptionalProperty<Def['Body'], Def['Path']>
   )
 ;
 
@@ -449,19 +450,17 @@ export type MutateInArrayAddUniqueFunction<in Def extends DocDef> =
  * Valid mutation path for an `increment` or `decrement` operation.
  */
 // TODO continue here
-export type MutateInCounterPath<Doc extends object> =
-  OperationPath<Doc,
-    | ExtractPathToType<Doc, ExtractPathToWritableProperty<Doc, DocumentPath<Doc>>, number>
-    | ExtractPathToWritableArrayIndex<Doc, DocumentPath<Doc> | '', number>
+export type MutateInCounterPath<Def extends DocDef> =
+  OperationPath<Def,
+    | ExtractPathToType<Def['Body'], ExtractPathToWritableProperty<Def['Body'], Def['Path']>, number>
+    | ExtractPathToWritableArrayIndex<Def['Body'], Def['Path'] | '', number>
   >
 ;
 
 /**
  * Valid mutation value for an `increment` or `decrement` operation.
  */
-export type MutateInCounterValue<Doc extends object> =
-  OperationValue<Doc, false, number>
-;
+export type MutateInCounterValue = number;
 
 /**
  * Mutation options for an `increment` operation.
@@ -471,15 +470,15 @@ export type MutateInCounterOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Function that returns a {@link MutateInSpec} instance for an `increment` operation.
  */
-export type MutateInIncrementFunction<in Doc extends object> =
+export type MutateInIncrementFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.counter>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.counter, Path>,
   >(
     path: Path,
     incrementBy: Value,
     options?: MutateInCounterOptions
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, false, Value>
 ;
 
 /**
@@ -490,13 +489,13 @@ export type MutateInDecrementOptions = { createPath?: boolean; xattr?: boolean }
 /**
  * Function that returns a {@link MutateInSpec} instance for a `decrement` operation.
  */
-export type MutateInDecrementFunction<in Doc extends object> =
+export type MutateInDecrementFunction<in Def extends DocDef> =
   <
-    Path extends AnyMutateInPath<Doc, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Doc, CppProtocolSubdocOpcode.counter, Path>,
+    Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.counter>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.counter, Path>,
   >(
     path: Path,
     decrementBy: Value,
     options?: MutateInDecrementOptions
-  ) => MutateInSpec<Doc, CppProtocolSubdocOpcode.counter, Path, false, Value>
+  ) => MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, false, Value>
 ;

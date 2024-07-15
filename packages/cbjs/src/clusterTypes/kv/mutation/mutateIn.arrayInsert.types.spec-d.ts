@@ -20,6 +20,7 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
+  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
@@ -32,16 +33,21 @@ describe('mutateIn arrayInsert', async () => {
     BuildReadonlyProperties<TestDocRequiredProperties> &
     BuildReadonlyArrayProperties<TestDocRequiredProperties>;
 
-  type TestPaths<Doc extends object, T extends Record<MakeTestPaths<Doc>, boolean>> = {
+  type TestDocDef = DocDef<string, TestDoc>;
+
+  type TestPaths<
+    Def extends DocDef,
+    T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+  > = {
     [Path in keyof T]: [
       T[Path],
-      Path extends MutateInArrayInsertPath<Doc> ? true : false,
+      Path extends MutateInArrayInsertPath<Def> ? true : false,
     ];
   };
 
   it('should only accept paths to array to which you may push element at the given index', function () {
     type Test = TestPaths<
-      TestDoc,
+      TestDocDef,
       {
         '': false;
         'String': false;
@@ -197,7 +203,7 @@ describe('mutateIn arrayInsert', async () => {
     expectTypeOf<TestResult>().toEqualTypeOf<true>();
 
     type TestArrDoc = TestPaths<
-      string[],
+      DocDef<string, string[]>,
       {
         '': false;
         '[0]': true;

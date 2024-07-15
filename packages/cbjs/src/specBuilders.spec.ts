@@ -66,22 +66,22 @@ describe('specBuilders', function () {
 
   describe('MutationSpecs', function () {
     it('should return an array with methods to chain more specs', function ({ expect }) {
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('insert');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('upsert');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('replace');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('remove');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('arrayAppend');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('arrayPrepend');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('arrayInsert');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('arrayAddUnique');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('increment');
-      expect(MutationSpecs.for<TestDoc>()).toHaveProperty('decrement');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('insert');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('upsert');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('replace');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('remove');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('arrayAppend');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('arrayPrepend');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('arrayInsert');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('arrayAddUnique');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('increment');
+      expect(MutationSpecs.for<TestDocDef>()).toHaveProperty('decrement');
     });
 
     it('should return all the specs, in order, when the getter is called', function ({
       expect,
     }) {
-      const specs = MutationSpecs.for<TestDoc>()
+      const specs = MutationSpecs.for<TestDocDef>()
         .insert('description', 'no equal')
         .replace('title', 'Couchbase')
         .getSpecs();

@@ -300,6 +300,12 @@ describe('Collection', async () => {
       ChainableMutateIn<typeof collection, 'book::001', []>
     >();
 
+    //    v?
+    const r = collection.mutateIn('book::001', [
+      MutateInSpec.upsert('title', 'Hi'),
+      MutateInSpec.increment('sales', 1),
+    ]);
+
     expectTypeOf(
       collection.mutateIn('book::001', [
         MutateInSpec.upsert('title', 'Hi'),

@@ -35,14 +35,19 @@ describe('mutateIn remove', async () => {
     BuildReadonlyProperties<TestDocRequiredProperties> &
     BuildReadonlyArrayProperties<TestDocRequiredProperties>;
 
-  type TestPaths<Doc extends object, T extends Record<MakeTestPaths<Doc>, boolean>> = {
-    [Path in keyof T]: [T[Path], Path extends MutateInRemovePath<Doc> ? true : false];
+  type TestDocDef = DocDef<string, TestDoc>;
+
+  type TestPaths<
+    Def extends DocDef,
+    T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+  > = {
+    [Path in keyof T]: [T[Path], Path extends MutateInRemovePath<Def> ? true : false];
   };
 
   describe('remove', function () {
     it('should only accept removable paths', function () {
       type Test = TestPaths<
-        TestDoc,
+        TestDocDef,
         {
           '': true;
           'String': false;
@@ -219,10 +224,12 @@ describe('mutateIn remove', async () => {
         };
       };
 
+      type MonumentDef = DocDef<MonumentId, Monument>;
+
       type UserClusterTypes = ClusterTypes<{
         test: {
           _default: {
-            _default: [DocDef<MonumentId, Monument>];
+            _default: [MonumentDef];
           };
         };
       }>;

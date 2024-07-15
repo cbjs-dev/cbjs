@@ -41,13 +41,18 @@ describe('mutateIn insert', async () => {
     BuildReadonlyProperties<TestDocRequiredProperties> &
     BuildReadonlyArrayProperties<TestDocRequiredProperties>;
 
-  type TestPaths<Doc extends object, T extends Record<MakeTestPaths<Doc>, boolean>> = {
-    [Path in keyof T]: [T[Path], Path extends MutateInInsertPath<Doc> ? true : false];
+  type TestDocDef = DocDef<string, TestDoc>;
+
+  type TestPaths<
+    Def extends DocDef,
+    T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+  > = {
+    [Path in keyof T]: [T[Path], Path extends MutateInInsertPath<Def> ? true : false];
   };
 
   it('should only accept insertable paths with the appropriate value', () => {
     type Test = TestPaths<
-      TestDoc,
+      TestDocDef,
       {
         '': false;
         'String': false;
@@ -224,10 +229,12 @@ describe('mutateIn insert', async () => {
       };
     };
 
+    type MonumentDef = DocDef<MonumentId, Monument>;
+
     type UserClusterTypes = ClusterTypes<{
       test: {
         _default: {
-          _default: [DocDef<MonumentId, Monument>];
+          _default: [MonumentDef];
         };
       };
     }>;
