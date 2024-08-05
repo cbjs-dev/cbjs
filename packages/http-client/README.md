@@ -58,6 +58,7 @@ The Couchbase REST API is vast. This package currently support the following :
 * [executeStatement](https://cbjs.dev/guide/http-client/actions.html#executestatement)
 * [getQueryBuckets](https://cbjs.dev/guide/http-client/actions.html#getquerybuckets)
 * [getQueryIndexes](https://cbjs.dev/guide/http-client/actions.html#getqueryindexes)
+* [getQueryIndexRemainingMutations](https://cbjs.dev/guide/http-client/actions.html#getqueryindexremainingmutations)
 * [getQuerySearchIndexes](https://cbjs.dev/guide/http-client/actions.html#getquerysearchindexes)
 
 ### RBAC
@@ -83,17 +84,17 @@ The Couchbase REST API is vast. This package currently support the following :
 
 This section is dedicated to functions that waits for a resource to reach a certain status.
 
-[waitForBucket](https://cbjs.dev/guide/http-client/wait-for.html#waitforbucket)
-[waitForScope](https://cbjs.dev/guide/http-client/wait-for.html#waitforscope)
-[waitForCollection](https://cbjs.dev/guide/http-client/wait-for.html#waitforcollection)
-[waitForEventingFunction](https://cbjs.dev/guide/http-client/wait-for.html#waitforeventingfunction)
-[waitForQueryIndexer](https://cbjs.dev/guide/http-client/wait-for.html#waitforqueryindexer)
-[waitForQueryIndex](https://cbjs.dev/guide/http-client/wait-for.html#waitforqueryindex)
-[waitForSearchIndex](https://cbjs.dev/guide/http-client/wait-for.html#waitforsearchindex)
-[waitForUser](https://cbjs.dev/guide/http-client/wait-for.html#waitforuser)
-[waitForUserGroup](https://cbjs.dev/guide/http-client/wait-for.html#waitforusergroup)
-[waitForViewDesignDocument](https://cbjs.dev/guide/http-client/wait-for.html#waitforviewdesigndocument)
-[waitForAnalyticsCluster](https://cbjs.dev/guide/http-client/wait-for.html#waitforanalyticscluster)
+* [waitForBucket](https://cbjs.dev/guide/http-client/wait-for.html#waitforbucket)
+* [waitForScope](https://cbjs.dev/guide/http-client/wait-for.html#waitforscope)
+* [waitForCollection](https://cbjs.dev/guide/http-client/wait-for.html#waitforcollection)
+* [waitForEventingFunction](https://cbjs.dev/guide/http-client/wait-for.html#waitforeventingfunction)
+* [waitForQueryIndexer](https://cbjs.dev/guide/http-client/wait-for.html#waitforqueryindexer)
+* [waitForQueryIndex](https://cbjs.dev/guide/http-client/wait-for.html#waitforqueryindex)
+* [waitForSearchIndex](https://cbjs.dev/guide/http-client/wait-for.html#waitforsearchindex)
+* [waitForUser](https://cbjs.dev/guide/http-client/wait-for.html#waitforuser)
+* [waitForUserGroup](https://cbjs.dev/guide/http-client/wait-for.html#waitforusergroup)
+* [waitForViewDesignDocument](https://cbjs.dev/guide/http-client/wait-for.html#waitforviewdesigndocument)
+* [waitForAnalyticsCluster](https://cbjs.dev/guide/http-client/wait-for.html#waitforanalyticscluster)
 
 ## License
 

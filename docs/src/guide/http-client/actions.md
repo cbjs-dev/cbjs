@@ -331,7 +331,9 @@ declare function getQueryIndexStats(
 
 ### getQueryIndexRemainingMutations
 
-Return the number of documents awaiting to be indexed.
+Return the number of documents awaiting to be indexed.  
+The value is the sum of the queued (not sent to the indexer) and
+pending mutations (received by the indexer but not processed).
 
 ```ts twoslash
 import { CouchbaseHttpApiConfig, Keyspace } from '@cbjsdev/http-client';
