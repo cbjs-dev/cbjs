@@ -45,7 +45,7 @@ export type FixtureUseValue<T> = T extends (
   ? Ctx extends Record<string, any>
     ? UseValue
     : never
-  : T extends CreateTestFixtureFunction<any, infer UseValue, UnknownContext>
+  : T extends CreateTestFixtureFunction<any, infer UseValue, any>
     ? PromiseValue<UseValue>
     : T;
 

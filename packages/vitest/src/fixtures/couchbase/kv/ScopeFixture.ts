@@ -21,7 +21,7 @@ import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
 
-type ScopeFixtureParams = {
+export type ScopeFixtureParams = {
   scopeName?: string;
   bucketName?: string;
 };

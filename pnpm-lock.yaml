@@ -313,8 +313,8 @@ importers:
         specifier: ^20.14.2
         version: 20.14.9
       typescript:
-        specifier: 5.2.2
-        version: 5.2.2
+        specifier: 5.4.5
+        version: 5.4.5
 
   tests/v8-optimization:
     dependencies:
@@ -4858,11 +4858,6 @@ packages:
 
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
-
-  typescript@5.2.2:
-    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
-    engines: {node: '>=14.17'}
-    hasBin: true
 
   typescript@5.4.5:
     resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
@@ -10281,8 +10276,6 @@ snapshots:
   type-fest@0.8.1: {}
 
   typedarray@0.0.6: {}
-
-  typescript@5.2.2: {}
 
   typescript@5.4.5: {}
 
