@@ -218,10 +218,10 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  get<Path extends LookupInGetPath<DocDef['Body']>>(
+  get<Path extends LookupInGetPath<DocDef>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<this, LookupInSpec> {
+  ): any {
     const spec = LookupInSpec.get(path, options);
     return this.push(spec);
   }
@@ -236,14 +236,11 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  exists<Path extends LookupInExistsPath<DocDef['Body']>>(
+  exists<Path extends LookupInExistsPath<DocDef>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<
-    this,
-    MakeLookupInSpec<DocDef['Body'], CppProtocolSubdocOpcode.exists, Path>
-  > {
-    const spec = LookupInSpec.exists<DocDef['Body'], Path>(path, options);
+  ): ThisAnd<this, MakeLookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, Path>> {
+    const spec = LookupInSpec.exists<DocDef, Path>(path, options);
     return this.push(spec);
   }
 
@@ -257,14 +254,11 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  count<Path extends LookupInCountPath<DocDef['Body']>>(
+  count<Path extends LookupInCountPath<DocDef>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<
-    this,
-    MakeLookupInSpec<DocDef['Body'], CppProtocolSubdocOpcode.get_count, Path>
-  > {
-    const spec = LookupInSpec.count<DocDef['Body'], Path>(path, options);
+  ): ThisAnd<this, MakeLookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, Path>> {
+    const spec = LookupInSpec.count<DocDef, Path>(path, options);
     return this.push(spec);
   }
 

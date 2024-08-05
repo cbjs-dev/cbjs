@@ -213,21 +213,21 @@ export type MatchDocDefKeyByDelimiter<
   CompareSet extends ReadonlyArray<DocDef>,
   Options extends { keyDelimiter: string }
 > =
-  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
-    Key extends A['Key'] ?
+  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+    Key extends HeadDocDef['Key'] ?
       // If it matches a longer template, it means it's not the more precise template
-      Key extends `${A['Key']}${Options['keyDelimiter']}${string}` ?
+      Key extends `${HeadDocDef['Key']}${Options['keyDelimiter']}${string}` ?
         MatchDocDefKeyByDelimiter<Key, Rest, Options> :
-      A | MatchDocDefKeyByDelimiter<Key, Rest, Options> :
+      HeadDocDef | MatchDocDefKeyByDelimiter<Key, Rest, Options> :
     MatchDocDefKeyByDelimiter<Key, Rest, Options> :
   never
 ;
 
 // prettier-ignore
 export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet extends ReadonlyArray<DocDef>> =
-  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
-    Key extends A['Key'] ?
-      A :
+  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+    Key extends HeadDocDef['Key'] ?
+      HeadDocDef :
     MatchDocDefKeyFirstMatch<Key, Rest> :
   never
 ;

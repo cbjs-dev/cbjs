@@ -82,6 +82,7 @@ import type { Cluster } from './cluster.js';
 import {
   AnyCollection,
   CollectionDocDef,
+  CollectionDocDefMatchingKey,
   CollectionMatchingDocDef,
   CT,
   ExtractCollectionJsonDocBody,
@@ -1942,7 +1943,7 @@ export class Collection<
     Key,
     [],
     ThrowOnSpecError,
-    ExtractCollectionJsonDocBody<Collection<T, B, S, C>, Key>
+    CollectionDocDefMatchingKey<this, Key>
   >;
 
   /**
