@@ -51,10 +51,6 @@ export type {
   ScopeName,
   CollectionName,
   DocDef,
-  ClusterTypes,
-  BucketTypes,
-  ScopeTypes,
-  CollectionTypes,
   ClusterTypesOptions,
   DocumentPath,
 } from '@cbjsdev/shared';

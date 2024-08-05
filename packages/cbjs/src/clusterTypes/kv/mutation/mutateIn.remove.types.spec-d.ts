@@ -20,7 +20,6 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  ClusterTypes,
   DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
@@ -226,13 +225,13 @@ describe('mutateIn remove', async () => {
 
       type MonumentDef = DocDef<MonumentId, Monument>;
 
-      type UserClusterTypes = ClusterTypes<{
+      type UserClusterTypes = {
         test: {
           _default: {
             _default: [MonumentDef];
           };
         };
-      }>;
+      };
 
       const cluster = await connect<UserClusterTypes>('...');
       const collection = cluster.bucket('test').defaultCollection();

@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { ClusterTypes, DocDef, IsFuzzyDocument } from '../clusterTypes/index.js';
+import { DocDef, IsFuzzyDocument } from '../clusterTypes/index.js';
 import { isValidBucketName, Keyspace, quotePath } from './identifier.js';
 
 describe('isValidBucketName', () => {
@@ -34,7 +34,7 @@ describe('isValidBucketName', () => {
 
 type Doc<T extends string> = { [K in T]: string };
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   BucketOne: {
     ScopeOne: {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
@@ -52,7 +52,7 @@ type UserClusterTypes = ClusterTypes<{
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
-}>;
+};
 
 describe('Keyspace', () => {
   it('should return a string keyspace when no cluster types are given', () => {

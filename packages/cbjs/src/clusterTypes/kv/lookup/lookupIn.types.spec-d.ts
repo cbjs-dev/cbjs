@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, DocDef, ObjectDocumentDef } from '@cbjsdev/shared';
+import { DocDef } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { LookupInResult } from '../../../crudoptypes.js';
@@ -55,7 +55,7 @@ describe('LookupInSpecs', () => {
   type TestDocDef = DocDef<string, TestDoc>;
   type TestDocDef2 = DocDef<string, TestDoc2>;
 
-  type UserClusterTypes = ClusterTypes<{
+  type UserClusterTypes = {
     test: {
       _default: {
         _default: [TestDocDef, TestDocDef2];
@@ -64,7 +64,7 @@ describe('LookupInSpecs', () => {
         testCollection: [TestDocDef, TestDocDef2];
       };
     };
-  }>;
+  };
 
   describe('lookupIn', () => {
     describe('Default ClusterTypes', () => {

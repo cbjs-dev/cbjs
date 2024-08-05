@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { Cas, ClusterTypes, DocDef } from '@cbjsdev/shared';
+import { Cas, DocDef } from '@cbjsdev/shared';
 
 import { CppTransactionGetMetaData, CppTransactionLinks } from './binding.js';
 import {
@@ -32,7 +32,7 @@ type Order = {
   id: string;
 };
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   store: {
     grocery: {
       orders: [DocDef<`order::${string}`, Order>];
@@ -43,7 +43,7 @@ type UserClusterTypes = ClusterTypes<{
       publisher: [DocDef<`publisher::${string}`, Publisher>];
     };
   };
-}>;
+};
 
 describe('transactions', async () => {
   const cluster = await connect<UserClusterTypes>('');

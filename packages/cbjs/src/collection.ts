@@ -35,6 +35,7 @@ import {
   IsFuzzyDocument,
   IsNever,
   JsonObject,
+  Keyspace,
   keyspacePath,
   NoInfer,
   ObjectDocument,

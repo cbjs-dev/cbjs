@@ -16,10 +16,9 @@
  */
 import { describe, it } from 'vitest';
 
-import { ClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DocDef } from '@cbjsdev/shared';
 
 import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes.js';
-import { connect } from '../../../couchbase.js';
 import { MutateInSpec } from '../../../sdspecs.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 
@@ -46,14 +45,14 @@ type User = {
   >;
 };
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   store: {
     library: {
       books: [DocDef<BookId, Book>];
       user: [DocDef<UserId, User>];
     };
   };
-}>;
+};
 
 describe('ChainableMutateIn', function () {
   it('should return all the specs, in order, when the getter is called', ({ expect }) => {

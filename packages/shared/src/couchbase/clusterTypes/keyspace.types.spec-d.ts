@@ -15,31 +15,37 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, CouchbaseClusterTypes } from './cluster.types.js';
+import { CouchbaseClusterTypes } from './cluster.types.js';
 import { DocDef } from './document.types.js';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
 
 type Doc<T extends string> = { [K in T]: string };
 
-type UserClusterTypes = ClusterTypes<{
-  BucketOne: {
-    ScopeOne: {
-      CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
-      CollectionFour: [DocDef<string, Doc<'b1s1c4d1'>>, DocDef<string, Doc<'b1s1c4d2'>>];
+type UserClusterTypes = {
+  '@options': { keyMatchingStrategy: 'firstMatch' };
+  'BucketOne': {
+    '@options': { keyMatchingStrategy: 'firstMatch' };
+    'ScopeOne': {
+      '@options': { keyMatchingStrategy: 'firstMatch' };
+      'CollectionOne': [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
+      'CollectionFour': [
+        DocDef<string, Doc<'b1s1c4d1'>>,
+        DocDef<string, Doc<'b1s1c4d2'>>,
+      ];
     };
-    ScopeTwo: {
+    'ScopeTwo': {
       CollectionOne: [DocDef<string, Doc<'b1s2c1d1'>>, DocDef<string, Doc<'b1s2c1d2'>>];
       CollectionTwo: [DocDef<string, Doc<'b1s2c2d1'>>, DocDef<string, Doc<'b1s2c2d2'>>];
     };
   };
-  BucketTwo: {
+  'BucketTwo': {
     ScopeOne: {
       CollectionSix: [DocDef<string, Doc<'b2s1c6d1'>>, DocDef<string, Doc<'b2s1c6d2'>>];
     };
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
-}>;
+};
 
 describe('BucketName', () => {
   it('should describe the bucket names', () => {
@@ -72,35 +78,53 @@ describe('ScopeName', () => {
 });
 
 describe('CollectionName', () => {
-  it('should describe the collection names', () => {
-    expectTypeOf<
-      CollectionName<UserClusterTypes, 'BucketOne', 'ScopeOne'>
-    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour'>();
+  it('should give a union of collections name', () => {
+    // Whole cluster
+    expectTypeOf<CollectionName<UserClusterTypes>>().toEqualTypeOf<
+      'CollectionOne' | 'CollectionFour' | 'CollectionTwo' | 'CollectionSix'
+    >();
 
-    expectTypeOf<
-      CollectionName<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
-    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour' | 'CollectionTwo'>();
-
+    // Single bucket
     expectTypeOf<CollectionName<UserClusterTypes, 'BucketOne'>>().toEqualTypeOf<
       'CollectionOne' | 'CollectionFour' | 'CollectionTwo'
     >();
 
+    // Union of buckets
     expectTypeOf<
       CollectionName<UserClusterTypes, 'BucketOne' | 'BucketTwo'>
     >().toEqualTypeOf<
       'CollectionOne' | 'CollectionFour' | 'CollectionTwo' | 'CollectionSix'
     >();
 
-    expectTypeOf<CollectionName<UserClusterTypes>>().toEqualTypeOf<
-      'CollectionOne' | 'CollectionFour' | 'CollectionTwo' | 'CollectionSix'
-    >();
+    // Single bucket & scope
+    expectTypeOf<
+      CollectionName<UserClusterTypes, 'BucketOne', 'ScopeOne'>
+    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour'>();
 
+    // Single bucket, union of scopes
+    expectTypeOf<
+      CollectionName<UserClusterTypes, 'BucketOne', 'ScopeOne' | 'ScopeTwo'>
+    >().toEqualTypeOf<'CollectionOne' | 'CollectionFour' | 'CollectionTwo'>();
+
+    // Union of buckets, single scope
     expectTypeOf<
       CollectionName<UserClusterTypes, 'BucketOne' | 'BucketTwo', 'ScopeOne'>
     >().toEqualTypeOf<'CollectionOne' | 'CollectionFour' | 'CollectionSix'>();
+
+    // Union of buckets, union of scopes
+    expectTypeOf<
+      CollectionName<UserClusterTypes, 'BucketOne' | 'BucketTwo', 'ScopeOne' | 'ScopeTwo'>
+    >().toEqualTypeOf<
+      'CollectionOne' | 'CollectionTwo' | 'CollectionFour' | 'CollectionSix'
+    >();
+
+    // Empty scope
+    expectTypeOf<
+      CollectionName<UserClusterTypes, 'BucketTwo', 'ScopeThree'>
+    >().toEqualTypeOf<never>();
   });
 
-  it('should fallback collection name to string', () => {
+  it('should fallback to string when given the default cluster types', () => {
     expectTypeOf<CollectionName<CouchbaseClusterTypes>>().toEqualTypeOf<string>();
   });
 });

@@ -27,6 +27,7 @@ import {
   IsNever,
   Keyspace,
   KeyspaceDocDef,
+  KeyspaceDocDefArray,
   MissingDefaultCollection,
   MissingDefaultScope,
   ObjectDocumentDef,

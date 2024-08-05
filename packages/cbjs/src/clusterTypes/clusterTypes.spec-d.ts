@@ -15,7 +15,14 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, DocDef } from '@cbjsdev/shared';
+import {
+  CollectionName,
+  DefaultClusterTypes,
+  DefaultKeyspaceOptions,
+  DocDef,
+  GetKeyspaceOptions,
+  IsDefaultClusterTypes,
+} from '@cbjsdev/shared';
 
 import { Bucket } from '../bucket.js';
 import { Collection } from '../collection.js';
@@ -31,7 +38,7 @@ import {
 
 type Doc<T extends string> = { [K in T]: string };
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   BucketOne: {
     ScopeOne: {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
@@ -54,7 +61,31 @@ type UserClusterTypes = ClusterTypes<{
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
     };
   };
-}>;
+};
+
+describe('IsDefaultClusterTypes', () => {
+  it('should return true when the default cluster types are given', () => {
+    expectTypeOf<IsDefaultClusterTypes<DefaultClusterTypes>>().toEqualTypeOf<true>();
+  });
+
+  it('should return true when an empty object is given', () => {
+    expectTypeOf<IsDefaultClusterTypes<NonNullable<unknown>>>().toEqualTypeOf<true>();
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    expectTypeOf<IsDefaultClusterTypes<{}>>().toEqualTypeOf<true>();
+  });
+
+  it('should return true when an object containing only options is given', () => {
+    expectTypeOf<
+      IsDefaultClusterTypes<{
+        '@options': { keyMatchingStrategy: 'firstMatch' };
+      }>
+    >().toEqualTypeOf<true>();
+  });
+
+  it('should return false when at least one bucket is defined', () => {
+    expectTypeOf<IsDefaultClusterTypes<{ BucketOne: never }>>().toEqualTypeOf<false>();
+  });
+});
 
 describe('ClusterBucket', () => {
   it('should be extended by a Bucket that is within the described keyspace', () => {
@@ -68,9 +99,7 @@ describe('ClusterBucket', () => {
     >();
 
     // Negative
-    expectTypeOf<UserBucket>().not.toMatchTypeOf<
-      ClusterBucket<ClusterTypes<NonNullable<unknown>>>
-    >();
+    expectTypeOf<UserBucket>().not.toMatchTypeOf<ClusterBucket<NonNullable<unknown>>>();
     expectTypeOf<UserBucket>().not.toMatchTypeOf<
       ClusterBucket<UserClusterTypes, 'BucketTwo'>
     >();
@@ -106,9 +135,7 @@ describe('ClusterScope', () => {
     >();
 
     // Negative
-    expectTypeOf<UserScope>().not.toMatchTypeOf<
-      ClusterScope<ClusterTypes<NonNullable<unknown>>>
-    >();
+    expectTypeOf<UserScope>().not.toMatchTypeOf<ClusterScope<NonNullable<unknown>>>();
     expectTypeOf<UserScope>().not.toMatchTypeOf<
       ClusterScope<UserClusterTypes, 'BucketTwo'>
     >();
@@ -132,6 +159,9 @@ describe('ClusterScope', () => {
 
 describe('ClusterCollection', () => {
   it('should be extended by a Collection that is within the described keyspace', () => {
+    type T = CollectionName<UserClusterTypes, 'BucketOne'>;
+    //   ^?
+
     type UserCollection = Collection<
       UserClusterTypes,
       'BucketOne',
@@ -154,7 +184,7 @@ describe('ClusterCollection', () => {
 
     // Negative
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
-      ClusterCollection<ClusterTypes<NonNullable<unknown>>>
+      ClusterCollection<NonNullable<unknown>>
     >();
     expectTypeOf<UserCollection>().not.toMatchTypeOf<
       ClusterCollection<UserClusterTypes, 'BucketTwo'>
@@ -223,7 +253,7 @@ describe('CollectionContainingDocDef', () => {
   type VegetableId = `vegetable::${number}`;
   type Vegetable = { name: string; expiry: number };
 
-  type UserClusterTypes = ClusterTypes<{
+  type UserClusterTypes = {
     store: {
       library: {
         books: [DocDef<BookId, Book>];
@@ -231,7 +261,7 @@ describe('CollectionContainingDocDef', () => {
         wtf: [DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>];
       };
     };
-  }>;
+  };
 
   it('should return all collections containing any of the given definitions', () => {
     expectTypeOf<
@@ -261,7 +291,7 @@ describe('CollectionMatchingDocDef', () => {
   type VegetableId = `vegetable::${number}`;
   type Vegetable = { name: string; expiry: number };
 
-  type UserClusterTypes = ClusterTypes<{
+  type UserClusterTypes = {
     store: {
       library: {
         books: [DocDef<BookId, Book>];
@@ -269,7 +299,7 @@ describe('CollectionMatchingDocDef', () => {
         wtf: [DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>];
       };
     };
-  }>;
+  };
 
   it('should return all collections matching any of the given definitions', () => {
     expectTypeOf<
@@ -299,7 +329,7 @@ describe('CollectionContainingDocBody', () => {
   type VegetableId = `vegetable::${number}`;
   type Vegetable = { name: string; expiry: number };
 
-  type UserClusterTypes = ClusterTypes<{
+  type UserClusterTypes = {
     store: {
       library: {
         books: [DocDef<BookId, Book>];
@@ -307,7 +337,7 @@ describe('CollectionContainingDocBody', () => {
         wtf: [DocDef<VegetableId, Vegetable>, DocDef<BookId, Book>];
       };
     };
-  }>;
+  };
 
   it('should return all collections containing any of the given types', () => {
     expectTypeOf<

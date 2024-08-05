@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsAny, IsNever, Or } from '../../misc/index.js';
+import { If, IsAny, IsExactly, IsNever, Or } from '../../misc/index.js';
 import { CouchbaseClusterTypes } from './cluster.types.js';
+import { DocDef } from './document.types.js';
 
 /**
  * Default scope name.
@@ -41,13 +42,28 @@ export type MissingDefaultCollection<B extends string> =
 export type IsKeyspaceWildcard<T> = Or<[IsAny<T>, IsNever<T>]>;
 export type WildcardFallback<T, F> = If<IsKeyspaceWildcard<T>, F, T>;
 
+// type HasOnlyOptions<T>
+
 /**
  * Bucket names existing in the cluster.
  */
-export type BucketName<T extends CouchbaseClusterTypes> = Extract<
-  keyof T['definitions'],
-  string
->;
+// prettier-ignore
+export type BucketName<T extends CouchbaseClusterTypes> =
+  IsNever<Exclude<keyof T, '@options'>> extends true ?
+    string :
+  Exclude<Extract<keyof T, string>, '@options'>
+;
+
+type MT = {
+  '@options': { keyDelimiter: '::'; keyMatchingStrategy: 'delimiter' };
+  'BucketOne': {
+    ScopeOne: {
+      CollectionOne: [DocDef<string, string>];
+    };
+  };
+};
+type TB = BucketName<MT>;
+//    ^?
 
 /**
  * Scope names existing in a bucket. Distributive.
@@ -58,9 +74,11 @@ export type ScopeName<
   B extends BucketName<T> = never
 > =
   If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets ?
-    AllBuckets extends BucketName<T> ?
-      Extract<keyof T['definitions'][AllBuckets]['definitions'], string> :
-    never:
+    AllBuckets extends keyof T ?
+      Extract<keyof T, string> extends '@options' ?
+        string :
+      Exclude<Extract<keyof T[AllBuckets], string>, '@options'> :
+    string :
   never
 ;
 
@@ -76,8 +94,16 @@ export type CollectionName<
   If<IsKeyspaceWildcard<B>, BucketName<T>, B> extends infer AllBuckets ?
     AllBuckets extends BucketName<T> ?
       If<IsKeyspaceWildcard<S>, ScopeName<T, AllBuckets>, S> extends infer AllScopes ?
-        AllScopes extends ScopeName<T, AllBuckets> ?
-          Extract<keyof T['definitions'][AllBuckets]['definitions'][AllScopes]['definitions'], string> :
+        IsNever<Exclude<keyof T, '@options'>> extends true ?
+          string :
+        AllBuckets extends keyof T ?
+          AllScopes extends keyof T[AllBuckets] ?
+            keyof T[AllBuckets][AllScopes] extends infer AllCollections ?
+              AllCollections extends '@options' ?
+                never :
+              If<IsNever<AllCollections>, string, Extract<AllCollections, string>> :
+            never :
+          never :
         never :
       never :
     never :

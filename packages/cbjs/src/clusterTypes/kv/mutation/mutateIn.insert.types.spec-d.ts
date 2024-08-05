@@ -20,20 +20,13 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  ClusterTypes,
   DocDef,
   MakeTestPaths,
-  SubDocument,
   TestDocRequiredProperties,
-  ValidatePathToOptionalProperty,
 } from '@cbjsdev/shared';
 
 import { connect } from '../../../couchbase.js';
-import type {
-  MutateInInsertFunction,
-  MutateInInsertPath,
-  ValidateMutateInInsertPath,
-} from './mutationOperations.types.js';
+import type { MutateInInsertPath } from './mutationOperations.types.js';
 
 describe('mutateIn insert', async () => {
   type TestDoc = TestDocRequiredProperties &
@@ -231,13 +224,13 @@ describe('mutateIn insert', async () => {
 
     type MonumentDef = DocDef<MonumentId, Monument>;
 
-    type UserClusterTypes = ClusterTypes<{
+    type UserClusterTypes = {
       test: {
         _default: {
           _default: [MonumentDef];
         };
       };
-    }>;
+    };
 
     const cluster = await connect<UserClusterTypes>('...');
     const collection = cluster.bucket('test').defaultCollection();

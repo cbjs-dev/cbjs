@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
+import { DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { connect } from '../../../couchbase.js';
@@ -55,7 +55,7 @@ type TestDoc3 = {
   >;
 };
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   test: {
     _default: {
       _default: [TestDocDef, TestDocDef2];
@@ -67,7 +67,7 @@ type UserClusterTypes = ClusterTypes<{
       group: [TestDocDef3];
     };
   };
-}>;
+};
 
 describe('mutateIn', function () {
   describe('Common', () => {

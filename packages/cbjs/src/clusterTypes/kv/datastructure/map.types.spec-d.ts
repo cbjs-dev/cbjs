@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { connect, CouchbaseMap } from '../../../index.js';
 
@@ -65,14 +65,14 @@ describe('CouchbaseMap', function () {
 
   describe('User-defined ClusterTypes', function () {
     type UserMap = Record<'keyOne' | 'keyTwo', string | number>;
-    type UserClusterTypes = ClusterTypes<{
+    type UserClusterTypes = {
       test: {
         _default: {
           collectionOne: [DocDef<string, string>];
           collectionTwo: [DocDef<string, UserMap>];
         };
       };
-    }>;
+    };
 
     it('should allow to manage a map only if the collection contains an array of the given type', async function () {
       const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');

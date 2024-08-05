@@ -16,7 +16,6 @@
 import {
   And,
   Extends,
-  If,
   IsAny,
   IsExactly,
   IsNever,
@@ -29,6 +28,7 @@ import {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   GetKeyspaceOptions,
+  IsDefaultClusterTypes,
 } from './cluster.types.js';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
 import { DocumentPath } from './utils/index.js';
@@ -40,6 +40,37 @@ export type DocDef<Key extends string = string, Body = any> = {
 };
 
 /**
+ * Union of DocDef declarations (arrays) in a collection. Distributive.
+ */
+// prettier-ignore
+export type KeyspaceDocDefArray<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  B extends BucketName<T> = BucketName<T>,
+  S extends ScopeName<T, B> = ScopeName<T, B>,
+  C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
+> =
+  IsDefaultClusterTypes<T> extends true ?
+    [DocDef] :
+  Keyspace<T, B, S, C> extends infer KS extends { bucket: string; scope: string; collection: string } ?
+    KS extends unknown ?
+      KS['bucket'] extends infer KSB extends BucketName<T> ?
+        KSB extends keyof T ?
+          KS['scope'] extends infer KSS extends ScopeName<T, KSB> ?
+            KSS extends keyof T[KSB] ?
+              KS['collection'] extends infer KSC extends CollectionName<T, KSB, KSS> ?
+                KSC extends keyof T[KSB][KSS] ?
+                  Extract<T[KSB][KSS][KSC], ReadonlyArray<DocDef>> :
+                never :
+              never :
+            never :
+          never :
+        never :
+      never :
+    never :
+  never
+;
+
+/**
  * Union of DocDef in a collection. Distributive.
  */
 // prettier-ignore
@@ -49,17 +80,7 @@ export type KeyspaceDocDef<
   S extends ScopeName<T, B> = ScopeName<T, B>,
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
 > =
-  Keyspace<T, B, S, C> extends infer KS extends Keyspace<T, B, S, C> ?
-    KS extends unknown ?
-      KS['bucket'] extends infer KSB extends BucketName<T> ?
-        KS['scope'] extends infer KSS extends ScopeName<T, KSB> ?
-          KS['collection'] extends infer KSC extends CollectionName<T, KSB, KSS> ?
-            T['definitions'][KSB]['definitions'][KSS]['definitions'][KSC]['definitions'][number] :
-          never :
-        never :
-      never :
-    never :
-  never
+  KeyspaceDocDefArray<T, B, S, C>[number]
 ;
 
 /**
@@ -143,6 +164,10 @@ export type ObjectDocumentDef<Def extends DocDef> =
   never
 ;
 
+/**
+ * Return all the DocDef of a keyspace that matches the given key accounting for
+ * the keyMatchingStrategy of the given keyspace
+ */
 // prettier-ignore
 export type DocDefMatchingKey<
   Key extends string,
@@ -152,22 +177,30 @@ export type DocDefMatchingKey<
   C extends CollectionName<T, B, S>,
 > =
   IsAny<T> extends true ?
-    DocDef<string, any> :
+    DocDef :
+  IsNever<Exclude<keyof T, '@options'>> extends true ?
+    DocDef :
   GetKeyspaceOptions<T, B, S, C> extends infer ResolvedOptions extends ClusterTypesOptions ?
-    T['definitions'][B]['definitions'][S]['definitions'][C]['definitions'] extends infer Defs extends ReadonlyArray<DocDef<string, any>> ?
-      Key extends unknown ?
-        ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
-          Defs[number] extends infer Def extends DocDef<string, any> ?
-            Def extends unknown ?
-              Key extends Def['Key'] ?
-                Def :
+    B extends keyof T ?
+      S extends keyof T[B] ?
+        C extends keyof T[B][S] ?
+          T[B][S][C] extends infer Defs extends ReadonlyArray<DocDef> ?
+            Key extends unknown ?
+              ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
+                Defs[number] extends infer Def extends DocDef ?
+                  Def extends unknown ?
+                    Key extends Def['Key'] ?
+                      Def :
+                    never :
+                  never :
+                never :
+              ResolvedOptions extends { keyDelimiter: string; keyMatchingStrategy: 'delimiter' } ?
+                MatchDocDefKeyByDelimiter<Key, Defs, ResolvedOptions> :
+              ResolvedOptions extends { keyMatchingStrategy: 'firstMatch' } ?
+                MatchDocDefKeyFirstMatch<Key, Defs> :
               never :
             never :
           never :
-        ResolvedOptions extends { keyDelimiter: string; keyMatchingStrategy: 'delimiter' } ?
-          MatchDocDefKeyByDelimiter<Key, Defs, ResolvedOptions> :
-        ResolvedOptions extends { keyMatchingStrategy: 'firstMatch' } ?
-          MatchDocDefKeyFirstMatch<Key, Defs> :
         never :
       never :
     never :
@@ -177,10 +210,10 @@ export type DocDefMatchingKey<
 // prettier-ignore
 export type MatchDocDefKeyByDelimiter<
   Key extends string,
-  CompareSet extends ReadonlyArray<DocDef<string, any>>,
+  CompareSet extends ReadonlyArray<DocDef>,
   Options extends { keyDelimiter: string }
 > =
-  CompareSet extends [infer A extends DocDef<string, any>, ...infer Rest extends ReadonlyArray<DocDef<string, any>>] ?
+  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
     Key extends A['Key'] ?
       // If it matches a longer template, it means it's not the more precise template
       Key extends `${A['Key']}${Options['keyDelimiter']}${string}` ?
@@ -192,7 +225,7 @@ export type MatchDocDefKeyByDelimiter<
 
 // prettier-ignore
 export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet extends ReadonlyArray<DocDef>> =
-  CompareSet extends [infer A extends DocDef<string, any>, ...infer Rest extends ReadonlyArray<DocDef>] ?
+  CompareSet extends [infer A extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
     Key extends A['Key'] ?
       A :
     MatchDocDefKeyFirstMatch<Key, Rest> :
@@ -207,7 +240,7 @@ export type DocDefMatchingBody<
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
 > =
-  T['definitions'][B]['definitions'][S]['definitions'][C]['definitions'] extends infer Defs extends ReadonlyArray<DocDef> ?
+  KeyspaceDocDefArray<T, B, S, C> extends infer Defs extends ReadonlyArray<unknown> ?
     Body extends unknown ?
       Defs[number] extends infer Def extends DocDef ?
         Def extends unknown ?

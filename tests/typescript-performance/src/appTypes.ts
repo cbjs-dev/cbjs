@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ClusterTypes, DocDef } from '@cbjsdev/cbjs';
+import { DocDef } from '@cbjsdev/cbjs';
 
 type BookId = `book::${string}`;
 type BookDocument = {
@@ -57,18 +57,16 @@ type EditorDocument = {
   bookPublished?: number;
 };
 
-export type AppTypes = ClusterTypes<
-  {
+export type AppTypes = {
+  '@options': {
     keyMatchingStrategy: 'delimiter';
     keyDelimiter: '::';
-  },
-  {
-    store: {
-      library: {
-        books: [DocDef<BookId, BookDocument>, DocDef<BookSalesId, BookSalesDocument>];
-        authors: [DocDef<AuthorId, AuthorDocument>];
-        editors: [DocDef<EditorId, EditorDocument>];
-      };
+  };
+  'store': {
+    library: {
+      books: [DocDef<BookId, BookDocument>, DocDef<BookSalesId, BookSalesDocument>];
+      authors: [DocDef<AuthorId, AuthorDocument>];
+      editors: [DocDef<EditorId, EditorDocument>];
     };
-  }
->;
+  };
+};

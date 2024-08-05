@@ -16,13 +16,9 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import {
-  BucketTypes,
-  ClusterTypes,
-  CollectionTypes,
   DefaultClusterTypes,
   DefaultKeyspaceOptions,
   GetKeyspaceOptions,
-  ScopeTypes,
 } from './cluster.types.js';
 import {
   DocDef,
@@ -34,7 +30,7 @@ import {
 } from './document.types.js';
 
 type Doc<T extends string> = { [K in T]: string };
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   BucketOne: {
     ScopeOne: {
       CollectionOne: [DocDef<string, Doc<'b1s1c1d1'>>, DocDef<string, Doc<'b1s1c1d2'>>];
@@ -52,7 +48,7 @@ type UserClusterTypes = ClusterTypes<{
     ScopeThree: NonNullable<unknown>;
     ScopeFour: NonNullable<unknown>;
   };
-}>;
+};
 
 describe('PickCollectionDocument', () => {
   it('should describe the collection documents', () => {
@@ -161,11 +157,21 @@ describe('GetKeyspaceOptions', () => {
   });
 
   it('should return the default options when none are defined', () => {
+    //   v?
+    type T = GetKeyspaceOptions<
+      {
+        store: { library: { books: [] } };
+      },
+      'store',
+      'library',
+      'books'
+    >;
+
     expectTypeOf<
       GetKeyspaceOptions<
-        ClusterTypes<{
+        {
           store: { library: { books: [] } };
-        }>,
+        },
         'store',
         'library',
         'books'
@@ -175,12 +181,10 @@ describe('GetKeyspaceOptions', () => {
   it('should return the cluster options when there are no others', () => {
     expectTypeOf<
       GetKeyspaceOptions<
-        ClusterTypes<
-          { keyMatchingStrategy: 'firstMatch' },
-          {
-            store: { library: { books: [] } };
-          }
-        >,
+        {
+          '@options': { keyMatchingStrategy: 'firstMatch' };
+          'store': { library: { books: [] } };
+        },
         'store',
         'library',
         'books'
@@ -191,20 +195,16 @@ describe('GetKeyspaceOptions', () => {
   it('should merge cluster options and bucket options', () => {
     expectTypeOf<
       GetKeyspaceOptions<
-        ClusterTypes<
-          {
+        {
+          '@options': {
             keyMatchingStrategy: 'delimiter';
             keyDelimiter: '::';
-          },
-          {
-            store: BucketTypes<
-              { keyMatchingStrategy: 'firstMatch' },
-              {
-                library: { books: [] };
-              }
-            >;
-          }
-        >,
+          };
+          'store': {
+            '@options': { keyMatchingStrategy: 'firstMatch' };
+            'library': { books: [] };
+          };
+        },
         'store',
         'library',
         'books'
@@ -215,25 +215,19 @@ describe('GetKeyspaceOptions', () => {
   it('should merge cluster, bucket and scope options', () => {
     expectTypeOf<
       GetKeyspaceOptions<
-        ClusterTypes<
-          {
+        {
+          '@options': {
             keyMatchingStrategy: 'delimiter';
             keyDelimiter: '::';
-          },
-          {
-            store: BucketTypes<
-              { keyMatchingStrategy: 'firstMatch' },
-              {
-                library: ScopeTypes<
-                  { keyMatchingStrategy: 'always' },
-                  {
-                    books: [];
-                  }
-                >;
-              }
-            >;
-          }
-        >,
+          };
+          'store': {
+            '@options': { keyMatchingStrategy: 'firstMatch' };
+            'library': {
+              '@options': { keyMatchingStrategy: 'always' };
+              'books': [];
+            };
+          };
+        },
         'store',
         'library',
         'books'
@@ -244,31 +238,24 @@ describe('GetKeyspaceOptions', () => {
   it('should merge cluster, bucket, scope and collection options', () => {
     expectTypeOf<
       GetKeyspaceOptions<
-        ClusterTypes<
-          {
+        {
+          '@options': {
             keyMatchingStrategy: 'delimiter';
             keyDelimiter: '::';
-          },
-          {
-            store: BucketTypes<
-              { keyMatchingStrategy: 'firstMatch' },
-              {
-                library: ScopeTypes<
-                  { keyMatchingStrategy: 'always' },
-                  {
-                    books: CollectionTypes<
-                      {
-                        keyMatchingStrategy: 'delimiter';
-                        keyDelimiter: '__';
-                      },
-                      []
-                    >;
+          };
+          'store': {
+            '@options': { keyMatchingStrategy: 'firstMatch' };
+            'library': {
+              '@options': { keyMatchingStrategy: 'always' };
+              'books':
+                | {
+                    keyMatchingStrategy: 'delimiter';
+                    keyDelimiter: '__';
                   }
-                >;
-              }
-            >;
-          }
-        >,
+                | [];
+            };
+          };
+        },
         'store',
         'library',
         'books'
@@ -288,13 +275,13 @@ describe('DocDefMatchingKey', () => {
   type BookCommentsDef = DocDef<BookCommentsKey, 'comments'>;
   type BookCommentsLikesDef = DocDef<BookCommentsLikesKey, 'comments::likes'>;
 
-  type UserClusterTypes = ClusterTypes<{
-    store: BucketTypes<{
-      library: ScopeTypes<{
+  type UserClusterTypes = {
+    store: {
+      library: {
         books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
-      }>;
-    }>;
-  }>;
+      };
+    };
+  };
 
   it('default cluster types with specific collection', () => {
     expectTypeOf<
@@ -309,22 +296,20 @@ describe('DocDefMatchingKey', () => {
   });
 
   it('keyMatchingStrategy: firstMatch', () => {
-    type CT = ClusterTypes<
-      { keyMatchingStrategy: 'firstMatch' },
-      {
-        store: BucketTypes<{
-          library: ScopeTypes<{
-            books: [
-              BookReviewsDef,
-              BookDef,
-              BookCommentsDef,
-              BookCommentsLikesDef,
-              DocDef<'yo', string[]>,
-            ];
-          }>;
-        }>;
-      }
-    >;
+    type CT = {
+      '@options': { keyMatchingStrategy: 'firstMatch' };
+      'store': {
+        library: {
+          books: [
+            BookReviewsDef,
+            BookDef,
+            BookCommentsDef,
+            BookCommentsLikesDef,
+            DocDef<'yo', string[]>,
+          ];
+        };
+      };
+    };
 
     expectTypeOf<
       DocDefMatchingKey<BookKey, CT, 'store', 'library', 'books'>
@@ -340,16 +325,14 @@ describe('DocDefMatchingKey', () => {
   });
 
   it('keyMatchingStrategy: always', () => {
-    type CT = ClusterTypes<
-      { keyMatchingStrategy: 'always' },
-      {
-        store: BucketTypes<{
-          library: ScopeTypes<{
-            books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
-          }>;
-        }>;
-      }
-    >;
+    type CT = {
+      '@options': { keyMatchingStrategy: 'always' };
+      'store': {
+        library: {
+          books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
+        };
+      };
+    };
 
     expectTypeOf<
       DocDefMatchingKey<BookKey, CT, 'store', 'library', 'books'>
@@ -361,19 +344,17 @@ describe('DocDefMatchingKey', () => {
   });
 
   it('keyMatchingStrategy: delimiter', () => {
-    type CT = ClusterTypes<
-      {
+    type CT = {
+      '@options': {
         keyDelimiter: '::';
         keyMatchingStrategy: 'delimiter';
-      },
-      {
-        store: BucketTypes<{
-          library: ScopeTypes<{
-            books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
-          }>;
-        }>;
-      }
-    >;
+      };
+      'store': {
+        library: {
+          books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
+        };
+      };
+    };
 
     expectTypeOf<
       DocDefMatchingKey<BookKey, CT, 'store', 'library', 'books'>
@@ -486,13 +467,13 @@ describe('DocDefMatchingBody', () => {
     Array<'like' | 'love' | 'excited'>
   >;
 
-  type UserClusterTypes = ClusterTypes<{
-    store: BucketTypes<{
-      library: ScopeTypes<{
+  type UserClusterTypes = {
+    store: {
+      library: {
         books: [BookReviewsDef, BookDef, BookCommentsDef, BookCommentsLikesDef];
-      }>;
-    }>;
-  }>;
+      };
+    };
+  };
 
   it('should return a union of DocDef that match the requested body', () => {
     expectTypeOf<

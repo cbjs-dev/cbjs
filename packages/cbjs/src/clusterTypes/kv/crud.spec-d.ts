@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DocDef } from '@cbjsdev/shared';
 
 import { connect } from '../../couchbase.js';
 import {
@@ -32,7 +32,7 @@ type Book = { title: string };
 type QuarterSales = { sales: number[] };
 type Docs = Book | QuarterSales;
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   test: {
     _default: {
       _default: [
@@ -43,7 +43,7 @@ type UserClusterTypes = ClusterTypes<{
       collectionThree: [DocDef<string, number[]>];
     };
   };
-}>;
+};
 
 describe('Collection.get', function () {
   it('should return any if no cluster types are defined', async function () {

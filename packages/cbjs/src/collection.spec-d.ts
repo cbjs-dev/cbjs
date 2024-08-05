@@ -16,7 +16,7 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { ClusterTypes, DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
 
 import { Collection } from './collection.js';
 import { connect } from './couchbase.js';
@@ -40,7 +40,7 @@ type TestDoc = {
   };
 };
 
-type UserClusterTypes = ClusterTypes<{
+type UserClusterTypes = {
   test: {
     _default: {
       _default: [DocDef<`book::${string}`, TestDoc>];
@@ -49,7 +49,7 @@ type UserClusterTypes = ClusterTypes<{
       collection1: [DocDef<`counter::${string}`, number>];
     };
   };
-}>;
+};
 
 /**
  * Here we test the API types, so essentially the overloads

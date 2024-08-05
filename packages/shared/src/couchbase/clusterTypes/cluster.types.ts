@@ -32,138 +32,31 @@ export type ClusterTypesOptions =
       keyDelimiter: string;
     };
 
+export type OptionsDefinition = {
+  '@options'?: ClusterTypesOptions;
+};
+
 /**
  * Basic structure for cluster types.
  */
 // prettier-ignore
 export type CouchbaseClusterTypes = {
-  options?: ClusterTypesOptions;
-  definitions: {
-    [bucket: string]: BucketTypeDefinition;
-  };
-};
+  [bucket: string]: BucketTypeDefinition;
+} | OptionsDefinition;
 
-type BucketTypeDefinition = {
-  options?: ClusterTypesOptions;
-  definitions: {
-    [scope: string]: ScopeTypeDefinition;
-  };
-};
-
-type ScopeTypeDefinition = {
-  options?: ClusterTypesOptions;
-  definitions: {
-    [collection: string]: CollectionTypeDefinition;
-  };
-};
-
-type CollectionTypeDefinition = {
-  options?: ClusterTypesOptions;
-  definitions: ReadonlyArray<DocDef<string, any>>;
-};
-
-// input types //
-type RawClusterTypeDefinitions = { [bucket: string]: InputBucketTypeDefinitions };
-
-type RawBucketTypeDefinitions = { [scope: string]: InputScopeTypeDefinitions };
-type InputBucketTypeDefinitions =
-  | RawBucketTypeDefinitions
+type BucketTypeDefinition =
   | {
-      options?: ClusterTypesOptions;
-      definitions: RawBucketTypeDefinitions;
-    };
+      [scope: string]: ScopeTypeDefinition;
+    }
+  | OptionsDefinition;
 
-type RawScopeTypeDefinitions = { [collection: string]: InputCollectionTypeDefinitions };
-type InputScopeTypeDefinitions =
-  | RawScopeTypeDefinitions
+type ScopeTypeDefinition =
   | {
-      options?: ClusterTypesOptions;
-      definitions: RawScopeTypeDefinitions;
-    };
+      [collection: string]: CollectionTypeDefinition;
+    }
+  | OptionsDefinition;
 
-type RawCollectionTypeDefinitions = ReadonlyArray<DocDef<string, any>>;
-type InputCollectionTypeDefinitions =
-  | RawCollectionTypeDefinitions
-  | {
-      options?: ClusterTypesOptions;
-      definitions: RawCollectionTypeDefinitions;
-    };
-//////////////
-
-/**
- * This is the public facing type to normalize the cluster types as a whole
- */
-// prettier-ignore
-export type ClusterTypes<
-  OptionsOrDef extends ClusterTypesOptions | RawClusterTypeDefinitions,
-  KeyspaceDef extends RawClusterTypeDefinitions = never
-> =
-  NormalizeTypesTuple<RawClusterTypeDefinitions, OptionsOrDef, KeyspaceDef> extends [infer Opts, infer Defs] ?
-    {
-      options: Opts;
-      definitions: { [bucket in keyof Defs]:
-        Defs[bucket] extends RawBucketTypeDefinitions ?
-          BucketTypes<Defs[bucket]> :
-        Defs[bucket]
-      }
-    } :
-  never
-;
-
-// prettier-ignore
-export type BucketTypes<
-  OptionsOrDef extends ClusterTypesOptions | RawBucketTypeDefinitions,
-  KeyspaceDef extends RawBucketTypeDefinitions = never
-> =
-  NormalizeTypesTuple<RawBucketTypeDefinitions, OptionsOrDef, KeyspaceDef> extends [infer Opts, infer Defs] ?
-    {
-      options: Opts;
-      definitions: { [scope in keyof Defs]:
-        Defs[scope] extends RawScopeTypeDefinitions ?
-          ScopeTypes<Defs[scope]> :
-        Defs[scope]
-      }
-    } :
-  never
-;
-
-// prettier-ignore
-export type ScopeTypes<
-  OptionsOrDef extends ClusterTypesOptions | RawScopeTypeDefinitions,
-  KeyspaceDef extends RawScopeTypeDefinitions = never
-> =
-  NormalizeTypesTuple<InputScopeTypeDefinitions, OptionsOrDef, KeyspaceDef> extends [infer Opts, infer Defs] ?
-    {
-      options: Opts;
-      definitions: { [collection in keyof Defs]:
-        Defs[collection] extends RawCollectionTypeDefinitions ?
-          CollectionTypes<Defs[collection]> :
-        Defs[collection]
-      }
-    } :
-  never
-;
-
-// prettier-ignore
-export type CollectionTypes<
-  OptionsOrDef extends ClusterTypesOptions | ReadonlyArray<DocDef>,
-  DocDefs extends ReadonlyArray<DocDef> = never
-> =
-  NormalizeTypesTuple<ReadonlyArray<DocDef<string, any>>, OptionsOrDef, DocDefs> extends [infer Opts, infer Defs] ?
-    { options: Opts, definitions: Defs } :
-  never
-;
-
-// prettier-ignore
-type NormalizeTypesTuple<T, A extends ClusterTypesOptions | T , B extends T = never> =
-  A extends ClusterTypesOptions ?
-    B extends T ?
-      [A, B] :
-    never :
-  A extends T ?
-    [never, A] :
-  never
-;
+type CollectionTypeDefinition = ClusterTypesOptions | ReadonlyArray<DocDef> | never[];
 
 export type DefaultKeyspaceOptions = {
   keyMatchingStrategy: 'always';
@@ -196,11 +89,17 @@ export type GetKeyspaceOptions<
 > =
   IsAny<T> extends true ?
     DefaultKeyspaceOptions :
-    T['options'] extends infer ClusterOptions ?
-      T['definitions'][B]['options'] extends infer BucketOptions ?
-        T['definitions'][B]['definitions'][S]['options'] extends infer ScopeOptions ?
-          T['definitions'][B]['definitions'][S]['definitions'][C]['options'] extends infer CollectionOptions ?
-          MergeOptions<[DefaultKeyspaceOptions, ClusterOptions, BucketOptions, ScopeOptions, CollectionOptions]> :
+  T['@options'] extends infer ClusterOptions ?
+    B extends keyof T ?
+      Extract<T[B], OptionsDefinition>['@options'] extends infer BucketOptions ?
+        S extends keyof T[B] ?
+          Extract<T[B][S], OptionsDefinition>['@options'] extends infer ScopeOptions ?
+            C extends keyof T[B][S] ?
+              Extract<T[B][S][C], ClusterTypesOptions> extends infer CollectionOptions ?
+                MergeOptions<[DefaultKeyspaceOptions, ClusterOptions, BucketOptions, ScopeOptions, CollectionOptions]> :
+              never :
+            never :
+          never :
         never :
       never :
     never :
@@ -211,25 +110,17 @@ export type GetKeyspaceOptions<
  * Default types used when the end dev don't define their owns.
  */
 // prettier-ignore
-export type DefaultClusterTypes = {
-  options: { keyMatchingStrategy: 'always' };
-  definitions: {
-    [bucket in string]: {
-      definitions: {
-        [scope in
+export type DefaultClusterTypes =
+  | { '@options': DefaultKeyspaceOptions }
+  | {
+      [bucket in string]: {
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+        [scope in DefaultScopeName | NonNullable<string>]: {
           // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-          | DefaultScopeName
-          | NonNullable<string>
-        ]: {
-          definitions: {
-            [collection in
-              // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-              | DefaultCollectionName
-              | NonNullable<string>
-            ]: { definitions: [ DocDef<string, any> ] };
-          }
+          [collection in DefaultCollectionName | NonNullable<string>]: [DocDef];
         };
-      }
+      };
     };
-  }
-};
+
+// prettier-ignore
+export type IsDefaultClusterTypes<T> = IsNever<Exclude<keyof T, '@options'>>;

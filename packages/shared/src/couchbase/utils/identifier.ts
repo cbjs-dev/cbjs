@@ -57,7 +57,6 @@ export function quotePath(path: string) {
  * //       | { bucket: 'b1'; scope: 'b1s2'; collection: 'b1s2c1'; }
  *
  */
-
 export type Keyspace<
   T extends CouchbaseClusterTypes = DefaultClusterTypes,
   B extends BucketName<T> = BucketName<T>,

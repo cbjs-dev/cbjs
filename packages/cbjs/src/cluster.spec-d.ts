@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { ClusterTypes, connect, DocDef, QueryMetrics, Scope } from './index.js';
+import { connect, DocDef, QueryMetrics, Scope } from './index.js';
 
 describe('cluster', () => {
   describe('DefaultClusterTypes', async () => {
@@ -51,7 +51,7 @@ describe('cluster', () => {
       id: string;
     };
 
-    type UserClusterTypes = ClusterTypes<{
+    type UserClusterTypes = {
       backend: {
         users: {
           admins: [DocDef<`user::${string}`, User>];
@@ -65,7 +65,7 @@ describe('cluster', () => {
           books: [DocDef<`book::${string}`, Book>];
         };
       };
-    }>;
+    };
 
     const cluster = await connect<UserClusterTypes>('couchbase://localhost');
 
