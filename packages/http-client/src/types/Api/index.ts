@@ -22,3 +22,4 @@ export * from './query/index.js';
 export * from './rbac/index.js';
 export * from './search/index.js';
 export * from './views/index.js';
+export * from './indexer/index.js';

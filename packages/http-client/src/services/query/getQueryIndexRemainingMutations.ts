@@ -20,11 +20,20 @@ import { CouchbaseHttpApiConfig } from '../../types.js';
 import { HttpClientQueryIndexStats } from '../../types/HttpClient/HttpClientQueryIndexStats.js';
 import { requestGetQueryIndexStats } from './requests/requestGetQueryIndexStats.js';
 
+/**
+ * Return the number of remaining mutations.
+ * The value is the sum of the queued (not sent to the indexer yet) and
+ * pending mutations (currently processed by the indexer).
+ *
+ * @param apiConfig
+ * @param indexName
+ * @param keyspace
+ */
 export async function getQueryIndexRemainingMutations(
   apiConfig: CouchbaseHttpApiConfig,
   indexName: string,
   keyspace: Keyspace
-) {
+): Promise<number> {
   const response = await requestGetQueryIndexStats(apiConfig, indexName, keyspace);
   const responseBody = await response.text();
 

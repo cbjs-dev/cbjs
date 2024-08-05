@@ -15,7 +15,7 @@
  */
 import { Pretty } from '@cbjsdev/shared';
 
-import { ApiQueryIndexStats } from '../Api/indexer/index.js';
+import { ApiQueryIndexStats } from '../Api/index.js';
 
 export type HttpClientQueryIndexStats = Pretty<
   Omit<ApiQueryIndexStats, 'last_known_scan_time'> & {
