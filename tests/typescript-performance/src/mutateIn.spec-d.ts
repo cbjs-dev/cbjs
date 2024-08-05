@@ -22,19 +22,6 @@ const library = cluster.bucket('store').scope('library');
 const books = library.collection('books');
 const authors = library.collection('authors');
 
-const { content: bookData } = await books
-  .lookupIn('book::001')
-  .get('title')
-  .get('tags[0]')
-  .get('authors')
-  .get('editors.editor::001')
-  .get('editors.editor::002');
-
-const { content: bookSalesData } = await books
-  .lookupInAnyReplica('book::001::sales', { throwOnSpecError: true })
-  .get('perCountry.FR')
-  .get('perCountry.EN');
-
 const r = await authors.mutateIn('author::001').arrayAppend('bookIds', 'book::001');
 
 const r2 = await books.mutateIn('book::001::sales').replace('perCountry.FR', {
