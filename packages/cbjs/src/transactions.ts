@@ -19,7 +19,6 @@ import {
   BucketName,
   Cas,
   CasInput,
-  ClusterTypes,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
