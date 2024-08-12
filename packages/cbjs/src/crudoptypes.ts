@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef, If } from '@cbjsdev/shared';
+import { If } from '@cbjsdev/shared';
 
+import { DocDef } from './clusterTypes/index.js';
 import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types.js';
 import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types.js';
 import { MutationToken } from './mutationstate.js';
@@ -85,7 +86,7 @@ export class GetResult<T = any, WithExpiry extends boolean = boolean> {
  *
  * @category Key-Value
  */
-export class ScanResult<Def extends DocDef<string, any> = DocDef<string, any>> {
+export class ScanResult<Def extends DocDef = DocDef> {
   /**
    * The ID of the document.
    */
@@ -278,7 +279,7 @@ export class LookupInResult<
  * @category Key-Value
  */
 export class LookupInReplicaResult<
-  Results extends ReadonlyArray<unknown> = any[],
+  Results = any[],
   ThrowOnSpecError extends boolean = false,
 > {
   /**

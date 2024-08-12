@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-import type { CppProtocolSubdocOpcode } from '../../../binding.js';
-import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
-import type { MakeLookupInSpec } from './lookupIn.types.js';
 import type {
-  DocDef,
-  DocumentPath,
+  DocDefBodyPathShape,
+  DocDefLookupGetPathShape,
   ExtractPathToArray,
   ExtractPathToObject,
   If,
   IsFuzzyDocument,
 } from '@cbjsdev/shared';
+import type { CppProtocolSubdocOpcode } from '../../../binding.js';
+import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
+import { DocDef } from '../../clusterTypes.js';
+import type { MakeLookupInSpec } from './lookupIn.types.js';
 
 /**
  * Helper to build the path of a lookup operation.
  * Handles cases where the document is fuzzy.
  */
-type OperationPath<Doc extends object, Path> =
+export type OperationPath<Doc, Path> =
   If<
     IsFuzzyDocument<Doc>,
     string | LookupInMacro,
@@ -43,8 +44,12 @@ type OperationPath<Doc extends object, Path> =
  *
  * @see LookupInSpecGetFunction
  */
-export type LookupInGetPath<Def extends DocDef> =
-  OperationPath<Def['Body'], Def['Path'] | LookupInMacro | ''>;
+// prettier-ignore
+export type LookupInGetPath<Def> =
+  Def extends DocDefLookupGetPathShape ?
+    Def['LookupPath']['get'] :
+  never
+;
 
 /**
  * Function that returns a {@link LookupInSpec} instance for a `get` operation.
@@ -62,8 +67,11 @@ export type LookupInSpecGetFunction<Def extends DocDef> = {
  *
  * @see LookupInSpecExistsFunction
  */
-export type LookupInExistsPath<Def extends DocDef> =
-  OperationPath<Def['Body'], Def['Path'] | LookupInMacro>;
+export type LookupInExistsPath<Def> =
+  Def extends DocDefBodyPathShape ?
+    OperationPath<Def['Body'], Def['Path'] | LookupInMacro> :
+  never
+;
 
 /**
  * Function that returns a {@link LookupInSpec} instance for an `exists` operation.
@@ -78,14 +86,17 @@ export type LookupInSpecExistsFunction<Def extends DocDef> =
  *
  * @see LookupInSpecCountFunction
  */
-export type LookupInCountPath<Def extends DocDef> =
-  If<
-    IsFuzzyDocument<Def['Body']>,
-    string | LookupInMacro<'$document'>,
-    | ExtractPathToObject<Def['Body'], Def['Path'] | ''>
-    | ExtractPathToArray<Def['Body'], Def['Path'] | ''>
-    | LookupInMacro<'$document'>
-  >
+// prettier-ignore
+export type LookupInCountPath<Def> =
+  Def extends DocDef ?
+    If<
+      IsFuzzyDocument<Def['Body']>,
+      string | LookupInMacro<'$document'>,
+      | ExtractPathToObject<Def['Body'], Def['Path'] | ''>
+      | ExtractPathToArray<Def['Body'], Def['Path'] | ''>
+      | LookupInMacro<'$document'>
+    > :
+  never
 ;
 
 /**

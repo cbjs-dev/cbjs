@@ -15,18 +15,18 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
+import { LookupInMacroDocument } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { LookupInResult } from '../../../crudoptypes.js';
 import {
   connect,
+  DocDef,
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,
 } from '../../../index.js';
 import { LookupInSpec } from '../../../sdspecs.js';
-import { lookupSpec, LookupSpecs } from '../../../specBuilders.js';
 import {
   LookupInInternalPath,
   LookupInResultEntries,
@@ -34,7 +34,6 @@ import {
   LookupInSpecResult,
   LookupInSpecResults,
 } from './lookupIn.types.js';
-import { LookupInMacroDocument } from './lookupInMacro.types.js';
 
 describe('LookupInSpecs', () => {
   type TestDoc = {
@@ -193,44 +192,6 @@ describe('LookupInSpecs', () => {
           Array<LookupInReplicaResult<readonly [string, any, number, boolean]>>
         >();
       });
-
-      it('should infer the result type from an array of specs built with typed makers', async () => {
-        const cluster = await connect('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        const result = await collection.lookupIn('test__document', [
-          lookupSpec<TestDocDef>().get('title'),
-          lookupSpec<TestDocDef>().count('metadata.tags'),
-          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
-        ]);
-
-        expectTypeOf(result).toEqualTypeOf<
-          LookupInResult<readonly [string, number, boolean]>
-        >();
-
-        const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
-          lookupSpec<TestDocDef>().get('title'),
-          lookupSpec<TestDocDef>().count('metadata.tags'),
-          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
-        ]);
-
-        expectTypeOf(resultInAnyReplica).toEqualTypeOf<
-          LookupInReplicaResult<readonly [string, number, boolean]>
-        >();
-
-        const resultInAllReplica = await collection.lookupInAllReplicas(
-          'test__document',
-          [
-            lookupSpec<TestDocDef>().get('title'),
-            lookupSpec<TestDocDef>().count('metadata.tags'),
-            lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
-          ]
-        );
-
-        expectTypeOf(resultInAllReplica).toEqualTypeOf<
-          Array<LookupInReplicaResult<readonly [string, number, boolean]>>
-        >();
-      });
     });
 
     describe('User-defined ClusterTypes', () => {
@@ -334,67 +295,6 @@ describe('LookupInSpecs', () => {
 
         expectTypeOf(resultInAllReplica).toEqualTypeOf<
           Array<LookupInReplicaResult<readonly [string | number, number, boolean]>>
-        >();
-      });
-
-      it('should validate the path of the specs carried by an instance of a typeless Specs', async () => {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        await collection.lookupIn(
-          'test__document',
-          // @ts-expect-error Specs contains an illegal path
-          LookupSpecs.for().get('title').get('does_not_exists')
-        );
-
-        await collection.lookupInAnyReplica(
-          'test__document',
-          // @ts-expect-error Specs contains an illegal path
-          LookupSpecs.for().get('title').get('does_not_exists')
-        );
-
-        await collection.lookupInAllReplicas(
-          'test__document',
-          // @ts-expect-error Specs contains an illegal path
-          LookupSpecs.for().get('title').get('does_not_exists')
-        );
-      });
-
-      it('should infer the result type from an array built with lookupSpec()', async () => {
-        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
-        const collection = cluster.bucket('test').defaultCollection();
-
-        const result = await collection.lookupIn('test__document', [
-          lookupSpec<TestDocDef>().get('title'),
-          lookupSpec<TestDocDef>().count('metadata.tags'),
-          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
-        ]);
-
-        expectTypeOf(result).toEqualTypeOf<
-          LookupInResult<readonly [string, number, boolean]>
-        >();
-
-        const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
-          lookupSpec<TestDocDef>().get('title'),
-          lookupSpec<TestDocDef>().count('metadata.tags'),
-          lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
-        ]);
-
-        expectTypeOf(resultInAnyReplica).toEqualTypeOf<
-          LookupInReplicaResult<readonly [string, number, boolean]>
-        >();
-
-        const resultInAllReplica = await collection.lookupInAllReplicas(
-          'test__document',
-          [
-            lookupSpec<TestDocDef>().get('title'),
-            lookupSpec<TestDocDef>().count('metadata.tags'),
-            lookupSpec<TestDocDef>().exists('metadata.tags[0]'),
-          ]
-        );
-
-        expectTypeOf(resultInAllReplica).toEqualTypeOf<
-          Array<LookupInReplicaResult<readonly [string, number, boolean]>>
         >();
       });
     });

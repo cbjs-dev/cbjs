@@ -16,27 +16,44 @@
  */
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import {
+  DocDef,
   ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes.js';
-import { AnyCollection } from '../../../clusterTypes/index.js';
+import {
+  AnyCollection,
+  MutateInArrayAddUniquePath,
+  type MutateInArrayAppendPath,
+  MutateInArrayPrependPath,
+  MutateInCounterPath,
+  MutateInInsertPath,
+  MutateInRemovePath,
+  MutateInReplacePath,
+  MutateInUpsertPath,
+} from '../../../clusterTypes/index.js';
 import {
   AnyMutateInPath,
   AnyMutateInValue,
   MutateInSpecResults,
-  MutateInValue,
 } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
 import {
   MutateInArrayAddUniqueOptions,
+  MutateInArrayAddUniqueValue,
   MutateInArrayAppendOptions,
+  MutateInArrayAppendValue,
   MutateInArrayInsertOptions,
+  MutateInArrayInsertValue,
   MutateInArrayPrependOptions,
+  MutateInArrayPrependValue,
   MutateInCounterOptions,
+  MutateInCounterValue,
   MutateInDecrementOptions,
   MutateInInsertOptions,
   MutateInRemoveOptions,
+  MutateInReplaceValue,
   MutateInUpsertOptions,
+  MutateInUpsertValue,
   ValidateMutateInInsertPath,
   ValidateMutateInRemovePath,
   ValidateMutateInReplacePath,
@@ -51,30 +68,19 @@ type ThisAnd<T, Spec extends MutateInSpec> =
     ? ChainableMutateIn<C, Key, [...SpecDefinitions, Spec]>
     : never;
 
-type ThisAndMultiple<T, Specs extends ReadonlyArray<MutateInSpec>> =
-  T extends ChainableMutateIn<infer C, infer Key, infer SpecDefinitions>
-    ? ChainableMutateIn<C, Key, [...SpecDefinitions, ...Specs]>
-    : never;
-
 // prettier-ignore
-type ArrayAddUniqueSpecs<C extends AnyCollection, Key extends ExtractCollectionJsonDocKey<C> , Path , Values extends ReadonlyArray<unknown>> =
-    Values extends [infer Value, ...infer Rest] ?
-      Path extends AnyMutateInPath<ExtractCollectionJsonDocBody<C, Key>, CppProtocolSubdocOpcode.array_add_unique> ?
-        Value extends AnyMutateInValue<
-          ExtractCollectionJsonDocBody<C, Key>,
-          CppProtocolSubdocOpcode.array_add_unique,
-          Path
-        > ?
-
-        [MutateInSpec<
-          ExtractCollectionJsonDocBody<C, Key>,
-          CppProtocolSubdocOpcode.array_add_unique,
-          Path,
-          false,
-          Value
-        >, ...ArrayAddUniqueSpecs<C, Key, Path, Rest>] :
-        never :
-    [] :
+type ArrayAddUniqueSpecs<Def extends DocDef , Path extends string, Values extends ReadonlyArray<unknown>> =
+  Values extends [infer Value, ...infer Rest] ?
+    [
+      MutateInSpec<
+        Def,
+        CppProtocolSubdocOpcode.array_add_unique,
+        Path,
+        false,
+        Value
+      >,
+      ...ArrayAddUniqueSpecs<Def, Path, Rest>
+    ] :
   never
 ;
 
@@ -82,6 +88,7 @@ export class ChainableMutateIn<
   C extends AnyCollection,
   Key extends ExtractCollectionJsonDocKey<C>,
   SpecDefinitions extends ReadonlyArray<MutateInSpec>,
+  Def extends ExtractCollectionJsonDocDef<C, Key> = ExtractCollectionJsonDocDef<C, Key>,
 > implements Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
 {
   // Promise stuff
@@ -151,7 +158,7 @@ export class ChainableMutateIn<
   execute() {
     return this.collection.mutateIn(
       this.key,
-      this.getSpecs(),
+      this.getSpecs() as never,
       this.options ?? {}
     ) as Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>>;
   }
@@ -173,17 +180,10 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   insert<
-    const Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.dict_add
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.dict_add,
-      Path
-    >,
+    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_add>,
+    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_add, Path>,
   >(
-    path: ValidateMutateInInsertPath<ExtractCollectionJsonDocDef<C, Key>, Path>,
+    path: ValidateMutateInInsertPath<Def, Path>,
     value: Value,
     options?: MutateInInsertOptions
   ): ChainableMutateIn<
@@ -191,30 +191,14 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.dict_add,
-        Path,
-        false,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.dict_add, Path, false, Value>,
     ]
   > {
-    const spec = MutateInSpec.insert<ExtractCollectionJsonDocDef<C, Key>, Path, Value>(
-      path,
-      value,
-      options
-    );
+    const spec = MutateInSpec.insert<Def, Path, Value>(path, value, options);
     return this.push(spec);
   }
 
-  upsert<
-    Value extends MutateInValue<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.set_doc,
-      ''
-    >,
-  >(
+  upsert<Value extends Def['Body']>(
     path: '',
     value: Value,
     options?: MutateInUpsertOptions
@@ -223,28 +207,16 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.set_doc,
-        '',
-        false,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.set_doc, '', false, Value>,
     ]
   >;
 
+  // TODO remove validation shit - it prevents autocomplete
   upsert<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.dict_upsert
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.dict_upsert,
-      Path
-    >,
+    Path extends MutateInUpsertPath<Def>,
+    Value extends MutateInUpsertValue<Def, Path>,
   >(
-    path: ValidateMutateInUpsertPath<ExtractCollectionJsonDocDef<C, Key>, Path>,
+    path: Path,
     value: Value,
     options?: MutateInUpsertOptions
   ): ChainableMutateIn<
@@ -252,13 +224,7 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.dict_upsert,
-        Path,
-        false,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>,
     ]
   >;
 
@@ -276,39 +242,8 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  upsert<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert,
-      Path
-    >,
-  >(
-    path: ValidateMutateInUpsertPath<ExtractCollectionJsonDocDef<C, Key>, Path>,
-    value: Value,
-    options?: MutateInUpsertOptions
-  ): ChainableMutateIn<
-    C,
-    Key,
-    [
-      ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert,
-        any,
-        false,
-        any
-      >,
-    ]
-  > {
-    const spec = MutateInSpec.upsert<ExtractCollectionJsonDocDef<C, Key>, Path, Value>(
-      path,
-      value,
-      options
-    );
+  upsert(path: string, value: unknown, options?: MutateInUpsertOptions): any {
+    const spec = MutateInSpec.upsert(path, value, options);
     return this.push(spec);
   }
 
@@ -326,17 +261,10 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   replace<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.replace
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.replace,
-      Path
-    >,
+    Path extends MutateInReplacePath<Def>,
+    Value extends MutateInReplaceValue<Def, Path>,
   >(
-    path: ValidateMutateInReplacePath<ExtractCollectionJsonDocDef<C, Key>, Path>,
+    path: ValidateMutateInReplacePath<Def, Path>,
     value: Value,
     options?: MutateInUpsertOptions
   ): ChainableMutateIn<
@@ -344,20 +272,10 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.replace,
-        Path,
-        false,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.replace, Path, false, Value>,
     ]
   > {
-    const spec = MutateInSpec.replace<ExtractCollectionJsonDocDef<C, Key>, Path, Value>(
-      path,
-      value,
-      options
-    );
+    const spec = MutateInSpec.replace<Def, Path, Value>(path, value, options);
     return this.push(spec);
   }
 
@@ -369,36 +287,19 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.remove_doc,
-        '',
-      false,
-      never
-    >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.remove_doc, '', false, never>,
     ]
   >;
 
-  remove<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.remove
-    >,
-  >(
-    path: ValidateMutateInRemovePath<ExtractCollectionJsonDocDef<C, Key>, Path>,
+  remove<Path extends MutateInRemovePath<Def>>(
+    path: ValidateMutateInRemovePath<Def, Path>,
     options?: MutateInRemoveOptions
   ): ChainableMutateIn<
     C,
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.remove,
-        Path,
-      false,
-      never
-    >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.remove, Path, false, never>,
     ]
   >;
 
@@ -414,28 +315,7 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  remove<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocDef<C, Key>,
-      CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
-    >,
-  >(
-    path: ValidateMutateInRemovePath<ExtractCollectionJsonDocDef<C, Key>, Path>,
-    options?: MutateInRemoveOptions
-  ): ChainableMutateIn<
-    C,
-    Key,
-    [
-      ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocDef<C, Key>,
-        CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc,
-        any,
-        false,
-        never
-      >,
-    ]
-  > {
+  remove(path: string, options?: MutateInRemoveOptions): any {
     const spec = MutateInSpec.remove(path as never, options);
     return this.push(spec);
   }
@@ -461,16 +341,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayAppend<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_last
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_last,
-      Path,
-      Multi
-    >,
+    Path extends MutateInArrayAppendPath<Def>,
+    Value extends MutateInArrayAppendValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
     path: Path,
@@ -481,35 +353,16 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocBody<C, Key>,
-        CppProtocolSubdocOpcode.array_push_last,
-        Path,
-        Multi,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.array_push_last, Path, Multi, Value>,
     ]
   > {
-    const spec = MutateInSpec.arrayAppend<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value,
-      Multi
-    >(path, value, options);
+    const spec = MutateInSpec.arrayAppend<Def, Path, Value, Multi>(path, value, options);
     return this.push(spec);
   }
 
   arrayAppendMultiple<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_last
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_last,
-      Path,
-      true
-    >,
+    Path extends MutateInArrayAppendPath<Def>,
+    Value extends MutateInArrayAppendValue<Def, Path, true>,
   >(
     path: Path,
     value: Value,
@@ -528,12 +381,7 @@ export class ChainableMutateIn<
       >,
     ]
   > {
-    const spec = MutateInSpec.arrayAppend<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value,
-      true
-    >(path, value, {
+    const spec = MutateInSpec.arrayAppend<Def, Path, Value, true>(path, value, {
       ...options,
       multi: true,
     });
@@ -561,16 +409,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayPrepend<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_first
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_first,
-      Path,
-      Multi
-    >,
+    Path extends MutateInArrayPrependPath<Def>,
+    Value extends MutateInArrayPrependValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
     path: Path,
@@ -581,35 +421,16 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocBody<C, Key>,
-        CppProtocolSubdocOpcode.array_push_first,
-        Path,
-        Multi,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.array_push_first, Path, Multi, Value>,
     ]
   > {
-    const spec = MutateInSpec.arrayPrepend<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value,
-      Multi
-    >(path, value, options);
+    const spec = MutateInSpec.arrayPrepend<Def, Path, Value, Multi>(path, value, options);
     return this.push(spec);
   }
 
   arrayPrependMultiple<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_first
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_push_first,
-      Path,
-      true
-    >,
+    Path extends MutateInArrayPrependPath<Def>,
+    Value extends MutateInArrayPrependValue<Def, Path, true>,
   >(
     path: Path,
     value: Value,
@@ -628,12 +449,7 @@ export class ChainableMutateIn<
       >,
     ]
   > {
-    const spec = MutateInSpec.arrayPrepend<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value,
-      true
-    >(path, value, {
+    const spec = MutateInSpec.arrayPrepend<Def, Path, Value, true>(path, value, {
       ...options,
       multi: true,
     });
@@ -662,15 +478,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayInsert<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_insert
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_insert,
-      Path
-    >,
+    Path extends MutateInInsertPath<Def>,
+    Value extends MutateInArrayInsertValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
     path: Path,
@@ -681,35 +490,16 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocBody<C, Key>,
-        CppProtocolSubdocOpcode.array_insert,
-        Path,
-        Multi,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.array_insert, Path, Multi, Value>,
     ]
   > {
-    const spec = MutateInSpec.arrayInsert<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value,
-      Multi
-    >(path, value, options);
+    const spec = MutateInSpec.arrayInsert<Def, Path, Value, Multi>(path, value, options);
     return this.push(spec);
   }
 
   arrayInsertMultiple<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_insert
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_insert,
-      Path,
-      true
-    >,
+    Path extends MutateInInsertPath<Def>,
+    Value extends MutateInArrayInsertValue<Def, Path, true>,
   >(
     path: Path,
     value: Value,
@@ -728,12 +518,7 @@ export class ChainableMutateIn<
       >,
     ]
   > {
-    const spec = MutateInSpec.arrayInsert<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value,
-      true
-    >(path, value, {
+    const spec = MutateInSpec.arrayInsert<Def, Path, Value, true>(path, value, {
       ...options,
       multi: true,
     });
@@ -757,15 +542,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayAddUnique<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_add_unique
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_add_unique,
-      Path
-    >,
+    Path extends MutateInArrayAddUniquePath<Def>,
+    Value extends MutateInArrayAddUniqueValue<Def, Path>,
   >(
     path: Path,
     value: Value,
@@ -784,11 +562,7 @@ export class ChainableMutateIn<
       >,
     ]
   > {
-    const spec = MutateInSpec.arrayAddUnique<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value
-    >(path, value, options);
+    const spec = MutateInSpec.arrayAddUnique<Def, Path, Value>(path, value, options);
     return this.push(spec);
   }
 
@@ -801,15 +575,8 @@ export class ChainableMutateIn<
    * @param options
    */
   arrayAddUniqueMultiple<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_add_unique
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.array_add_unique,
-      Path
-    >,
+    Path extends MutateInArrayAddUniquePath<Def>,
+    Value extends MutateInArrayAddUniqueValue<Def, Path>,
     Values extends ReadonlyArray<Value>,
   >(
     path: Path,
@@ -818,17 +585,13 @@ export class ChainableMutateIn<
   ): ChainableMutateIn<
     C,
     Key,
-    [...SpecDefinitions, ...ArrayAddUniqueSpecs<C, Key, Path, Values>]
+    [...SpecDefinitions, ...ArrayAddUniqueSpecs<Def, Path, Values>]
   > {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let instance = this;
 
     for (const value of values) {
-      const spec = MutateInSpec.arrayAddUnique<
-        ExtractCollectionJsonDocBody<C, Key>,
-        Path,
-        Value
-      >(path, value, options);
+      const spec = MutateInSpec.arrayAddUnique<Def, Path, Value>(path, value, options);
 
       instance = instance.push(spec) as never;
     }
@@ -849,17 +612,7 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  increment<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.counter
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.counter,
-      Path
-    >,
-  >(
+  increment<Path extends MutateInCounterPath<Def>, Value extends MutateInCounterValue>(
     path: Path,
     incrementBy: Value,
     options?: MutateInCounterOptions
@@ -868,20 +621,10 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocBody<C, Key>,
-        CppProtocolSubdocOpcode.counter,
-        Path,
-        false,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, false, Value>,
     ]
   > {
-    const spec = MutateInSpec.increment<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value
-    >(path, incrementBy, options);
+    const spec = MutateInSpec.increment<Def, Path, Value>(path, incrementBy, options);
     return this.push(spec);
   }
 
@@ -898,17 +641,7 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  decrement<
-    Path extends AnyMutateInPath<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.counter
-    >,
-    Value extends AnyMutateInValue<
-      ExtractCollectionJsonDocBody<C, Key>,
-      CppProtocolSubdocOpcode.counter,
-      Path
-    >,
-  >(
+  decrement<Path extends MutateInCounterPath<Def>, Value extends MutateInCounterValue>(
     path: Path,
     decrementBy: Value,
     options?: MutateInDecrementOptions
@@ -917,20 +650,10 @@ export class ChainableMutateIn<
     Key,
     [
       ...SpecDefinitions,
-      MutateInSpec<
-        ExtractCollectionJsonDocBody<C, Key>,
-        CppProtocolSubdocOpcode.counter,
-        Path,
-        false,
-        Value
-      >,
+      MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, false, Value>,
     ]
   > {
-    const spec = MutateInSpec.decrement<
-      ExtractCollectionJsonDocBody<C, Key>,
-      Path,
-      Value
-    >(path, decrementBy, options);
+    const spec = MutateInSpec.decrement<Def, Path, Value>(path, decrementBy, options);
     return this.push(spec);
   }
 

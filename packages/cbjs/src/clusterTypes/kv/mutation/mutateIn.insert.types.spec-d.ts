@@ -20,12 +20,12 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
 import { connect } from '../../../couchbase.js';
+import { DocDef } from '../../clusterTypes.js';
 import type { MutateInInsertPath } from './mutationOperations.types.js';
 
 describe('mutateIn insert', async () => {

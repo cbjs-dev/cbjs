@@ -16,8 +16,9 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes } from '@cbjsdev/shared';
 
+import { DocDef } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import { connect } from './couchbase.js';
 import {
@@ -273,7 +274,6 @@ describe('Collection', async () => {
 
       expectTypeOf(replicaTitle.value).toEqualTypeOf<string>();
     });
-
     it('should narrow the type of LookupInResult properties with throwOnSpecError: true', async () => {
       const result = await collection.lookupInAllReplicas(
         'book::001',
@@ -299,12 +299,6 @@ describe('Collection', async () => {
     expectTypeOf(collection.mutateIn('book::001', { timeout: 200 })).toEqualTypeOf<
       ChainableMutateIn<typeof collection, 'book::001', []>
     >();
-
-    //    v?
-    const r = collection.mutateIn('book::001', [
-      MutateInSpec.upsert('title', 'Hi'),
-      MutateInSpec.increment('sales', 1),
-    ]);
 
     expectTypeOf(
       collection.mutateIn('book::001', [

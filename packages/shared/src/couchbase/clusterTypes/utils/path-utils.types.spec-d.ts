@@ -15,8 +15,8 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { Json } from '../document.types.js';
 import {
+  Accessor,
   DocumentPath,
   MaybeMissing,
   PathTargetExpression,
@@ -69,6 +69,10 @@ describe('DocumentPath', function () {
     >();
   });
 
+  it('should return index accessors for an array document', function () {
+    expectTypeOf<DocumentPath<string[]>>().toEqualTypeOf<`[${number}]`>();
+  });
+
   it('should return never if the input type is not an object', function () {
     expectTypeOf<DocumentPath<'stringDoc'>>().toBeNever();
     expectTypeOf<DocumentPath<42>>().toBeNever();
@@ -77,37 +81,6 @@ describe('DocumentPath', function () {
   it('should return `string` if the input type is `any` or `object`', function () {
     expectTypeOf<DocumentPath<any>>().toEqualTypeOf<string>();
     expectTypeOf<DocumentPath<object>>().toEqualTypeOf<string>();
-  });
-
-  it('should perform only one iteration of circular references', function () {
-    type Tree = {
-      nodes: Tree[];
-      leafs: string[];
-    };
-
-    type DeepStringArray = (string | DeepStringArray)[];
-
-    expectTypeOf<DocumentPath<{ metadata: { extra: Json } }>>().toEqualTypeOf<
-      | 'metadata'
-      | 'metadata.extra'
-      | `metadata.extra[${number}]`
-      | `metadata.extra[${number}]${string}`
-      | `metadata.extra.${string}`
-      | `metadata.extra.${string}${string}`
-    >();
-
-    expectTypeOf<DocumentPath<{ relationships: Tree }>>().toEqualTypeOf<
-      | 'relationships'
-      | `relationships.nodes`
-      | `relationships.nodes[${number}]`
-      | `relationships.nodes[${number}]${string}`
-      | `relationships.leafs`
-      | `relationships.leafs[${number}]`
-    >();
-
-    expectTypeOf<DocumentPath<DeepStringArray>>().toEqualTypeOf<
-      `[${number}]` | `[${number}][${number}]` | `[${number}][${number}]${string}`
-    >();
   });
 });
 

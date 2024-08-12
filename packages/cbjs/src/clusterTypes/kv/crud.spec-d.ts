@@ -15,8 +15,6 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
-
 import { connect } from '../../couchbase.js';
 import {
   GetReplicaResult,
@@ -27,6 +25,7 @@ import {
 import { PrefixScan, SamplingScan } from '../../rangeScan.js';
 import { LookupInSpec } from '../../sdspecs.js';
 import { StreamableReplicasPromise } from '../../streamablepromises.js';
+import { DocDef } from '../clusterTypes.js';
 
 type Book = { title: string };
 type QuarterSales = { sales: number[] };
@@ -143,7 +142,7 @@ describe('Collection.scan', function () {
     const cluster = await connect('couchbase://127.0.0.1');
     const collection = cluster.bucket('test').defaultCollection();
     const scanResult = await collection.scan(new SamplingScan(1));
-    expectTypeOf(scanResult).toEqualTypeOf<ScanResult<DocDef<string, any>>[]>();
+    expectTypeOf(scanResult).toEqualTypeOf<ScanResult[]>();
   });
 
   it('should narrow the doc using the key if types are defined', async function () {

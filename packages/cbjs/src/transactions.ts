@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 import {
-  arrayLastElement,
   BucketName,
   Cas,
   CasInput,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
-  DocDef,
   DocDefMatchingKey,
   If,
   invariant,
@@ -46,8 +44,8 @@ import {
   transactionKeyspaceToCpp,
 } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
-import { ClusterScope, CollectionKeyspace } from './clusterTypes/clusterTypes.js';
-import { AnyCollection, AnyScope } from './clusterTypes/index.js';
+import { CollectionKeyspace } from './clusterTypes/clusterTypes.js';
+import { AnyCollection } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import {
   DocumentNotFoundError,
@@ -62,7 +60,6 @@ import {
   QueryResult,
   QueryScanConsistency,
 } from './querytypes.js';
-import { Scope } from './scope.js';
 import { DefaultTranscoder } from './transcoders.js';
 import { NodeCallback, PromiseHelper } from './utilities.js';
 

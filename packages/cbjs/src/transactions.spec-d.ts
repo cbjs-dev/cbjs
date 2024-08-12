@@ -1,10 +1,11 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { Cas, DocDef } from '@cbjsdev/shared';
+import { Cas } from '@cbjsdev/shared';
 
 import { CppTransactionGetMetaData, CppTransactionLinks } from './binding.js';
 import {
   connect,
+  DocDef,
   DocumentId,
   QueryMetrics,
   TransactionDocInfo,

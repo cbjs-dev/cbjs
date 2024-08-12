@@ -18,7 +18,6 @@ import { promisify } from 'node:util';
 
 import {
   ArrayElement,
-  ArrayExclude,
   BucketName,
   CasInput,
   CollectionName,
@@ -31,14 +30,12 @@ import {
   If,
   invariant,
   IsAny,
-  IsArrayLengthKnown,
   IsFuzzyDocument,
   IsNever,
   JsonObject,
-  Keyspace,
   keyspacePath,
+  LookupInMacroResult,
   NoInfer,
-  ObjectDocument,
   ObjectDocumentDef,
   OneOf,
   ScopeName,
@@ -84,18 +81,15 @@ import {
   CollectionDocDef,
   CollectionDocDefMatchingKey,
   CollectionMatchingDocDef,
-  CT,
-  ExtractCollectionJsonDocBody,
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
 } from './clusterTypes/clusterTypes.js';
+import { isLookupInMacro } from './clusterTypes/guards.js';
 import type {
   LookupInResultEntries,
   LookupInSpecResults,
   NarrowLookupSpecs,
-  ValidateLookupInSpecs,
 } from './clusterTypes/kv/lookup/lookupIn.types.js';
-import type { LookupInMacroResult } from './clusterTypes/kv/lookup/lookupInMacro.types.js';
 import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types.js';
 import {
   MutateInResultEntries,
@@ -134,14 +128,19 @@ import { resolveLookupInArgs } from './services/kv/lookupIn/resolveLookupInArgs.
 import { LookupResult } from './services/kv/lookupIn/types.js';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn.js';
 import { resolveMutateInArgs } from './services/kv/mutateIn/resolveMutateInArgs.js';
-import type { MutateInArgs, MutateInReturnType } from './services/kv/mutateIn/types.js';
+import type { MutateInReturnType } from './services/kv/mutateIn/types.js';
 import {
   StreamableReplicasPromise,
   StreamableScanPromise,
 } from './streamablepromises.js';
 import type { Transcoder } from './transcoders.js';
-import { expiryToTimestamp, NodeCallback, VoidNodeCallback } from './utilities.js';
-import { getDocId, PromiseHelper } from './utilities.js';
+import {
+  expiryToTimestamp,
+  getDocId,
+  NodeCallback,
+  PromiseHelper,
+  VoidNodeCallback,
+} from './utilities.js';
 
 /**
  * @category Key-Value
@@ -651,12 +650,12 @@ export class Collection<
   }
 
   private async _projectedGet<
-    DocDef extends DocDefMatchingKey<Key, T, B, S, C>,
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
     Key extends ExtractCollectionJsonDocKey<this>,
     WithExpiry extends boolean = boolean,
   >(
     key: Key,
-    options: GetOptions<DocDef, WithExpiry>,
+    options: GetOptions<Def, WithExpiry>,
     callback?: NodeCallback<GetResult>
   ): Promise<GetResult> {
     let expiryStart = -1;
@@ -675,15 +674,15 @@ export class Collection<
       paths = [''];
       specs.push(LookupInSpec.get(''));
     } else {
-      const projects: ReadonlyArray<LookupInGetPath<DocDef>> = Array.isArray(
-        options.project
-      )
-        ? (options.project as LookupInGetPath<DocDef>[])
-        : ([options.project] as LookupInGetPath<DocDef>[]);
+      const projects: ReadonlyArray<LookupInGetPath<Def>> = Array.isArray(options.project)
+        ? (options.project as LookupInGetPath<Def>[])
+        : ([options.project] as LookupInGetPath<Def>[]);
 
       for (const projection of projects) {
-        const specPath: string =
-          projection instanceof LookupInMacro ? projection._value : projection;
+        const specPath: string = isLookupInMacro(projection)
+          ? projection._value
+          : (projection as string);
+
         paths.push(specPath);
         specs.push(LookupInSpec.get(projection));
       }
@@ -763,7 +762,7 @@ export class Collection<
    * @param key The document key to check for existence.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async exists<Key extends CT<this>['Key']>(
+  async exists<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     callback?: NodeCallback<ExistsResult>
   ): Promise<ExistsResult>;
@@ -774,12 +773,12 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async exists<Key extends CT<this>['Key']>(
+  async exists<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     options: ExistsOptions,
     callback?: NodeCallback<ExistsResult>
   ): Promise<ExistsResult>;
-  async exists<Key extends CT<this>['Key']>(
+  async exists<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     options?: ExistsOptions | NodeCallback<ExistsResult>,
     callback?: NodeCallback<ExistsResult>
@@ -827,46 +826,39 @@ export class Collection<
   /**
    * @internal
    */
-  private _getReplica<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
+  private _getReplica(
+    key: string,
     getAllReplicas: boolean,
     options: { transcoder?: Transcoder; timeout?: number }
   ): StreamableReplicasPromise<
-    [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-    GetReplicaResult<Doc>
+    [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]],
+    GetReplicaResult<unknown>
   >;
-  private _getReplica<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
+  private _getReplica(
+    key: string,
     getAllReplicas: boolean
   ): StreamableReplicasPromise<
-    [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-    GetReplicaResult<Doc>
+    [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]],
+    GetReplicaResult<unknown>
   >;
-  private _getReplica<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
+  private _getReplica(
+    key: string,
     getAllReplicas: boolean,
     options?: { transcoder?: Transcoder; timeout?: number }
   ): StreamableReplicasPromise<
-    [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-    GetReplicaResult<Doc>
+    [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]],
+    GetReplicaResult<unknown>
   > {
     if (!options) {
       options = {};
     }
 
     const emitter = new StreamableReplicasPromise<
-      [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-      GetReplicaResult<Doc>
-    >((replicas: [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]]) => replicas);
+      [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]],
+      GetReplicaResult<unknown>
+    >(
+      (replicas: [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]]) => replicas
+    );
 
     const transcoder = options.transcoder ?? this.transcoder;
     const timeout = options.timeout ?? this.cluster.kvTimeout;
@@ -921,15 +913,17 @@ export class Collection<
    *
    * @overload
    * @param key The document key to retrieve.
-   * @param callbackOrOptions A node-style callback to be invoked after execution.
+   * @param options Optional parameters for this operation.
+   * @param callback A node-style callback to be invoked after execution.
    */
   async getAnyReplica<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    callbackOrOptions?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Doc>>
-  ): Promise<GetReplicaResult<Doc>>;
+    options: GetAnyReplicaOptions,
+    callback?: NodeCallback<GetReplicaResult<Def['Body']>>
+  ): Promise<GetReplicaResult<Def['Body']>>;
 
   /**
    * Retrieves the value of the document from any of the available replicas.  This
@@ -937,33 +931,32 @@ export class Collection<
    *
    * @overload
    * @param key The document key to retrieve.
-   * @param options Optional parameters for this operation.
-   * @param callback A node-style callback to be invoked after execution.
+   * @param callbackOrOptions A node-style callback to be invoked after execution.
    */
+  // TODO check CT<>, it might be a performance issue
   async getAnyReplica<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    options: GetAnyReplicaOptions,
-    callback?: NodeCallback<GetReplicaResult<Doc>>
-  ): Promise<GetReplicaResult<Doc>>;
+    callbackOrOptions?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Def['Body']>>
+  ): Promise<GetReplicaResult<Def['Body']>>;
 
   async getAnyReplica<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    options?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Doc>>,
-    callback?: NodeCallback<GetReplicaResult<Doc>>
-  ): Promise<GetReplicaResult<Doc>> {
+    options?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Def['Body']>>,
+    callback?: NodeCallback<GetReplicaResult<Def['Body']>>
+  ): Promise<GetReplicaResult<Def['Body']>> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
     }
 
     try {
-      const response = await this._getReplica<Doc>(
+      const response = await this._getReplica(
         key,
         false,
         options as GetAnyReplicaOptions
@@ -972,10 +965,10 @@ export class Collection<
       const result = response[0];
 
       if (callback) {
-        callback(null, result);
+        callback(null, result as Def['Body']);
       }
 
-      return result;
+      return result as Def['Body'];
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 
@@ -988,16 +981,16 @@ export class Collection<
   }
 
   getAllReplicas<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     callbackOrOptions?:
       | GetAllReplicasOptions
-      | NodeCallback<[GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]]>
+      | NodeCallback<[GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]]>
   ): StreamableReplicasPromise<
-    [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-    GetReplicaResult<Doc>
+    [GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]],
+    GetReplicaResult<Def['Body']>
   >;
   /**
    * Retrieves the value of the document from all available replicas.  Note that
@@ -1008,28 +1001,32 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   getAllReplicas<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     options: GetAllReplicasOptions,
-    callback?: NodeCallback<[GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]]>
+    callback?: NodeCallback<
+      [GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]]
+    >
   ): StreamableReplicasPromise<
-    [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-    GetReplicaResult<Doc>
+    [GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]],
+    GetReplicaResult<Def['Body']>
   >;
   getAllReplicas<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     options?:
       | GetAllReplicasOptions
-      | NodeCallback<[GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]]>,
-    callback?: NodeCallback<[GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]]>
+      | NodeCallback<[GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]]>,
+    callback?: NodeCallback<
+      [GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]]
+    >
   ): StreamableReplicasPromise<
-    [GetReplicaResult<Doc>, ...GetReplicaResult<Doc>[]],
-    GetReplicaResult<Doc>
+    [GetReplicaResult<Def['Body']>, ...GetReplicaResult<Def['Body']>[]],
+    GetReplicaResult<Def['Body']>
   > {
     if (options instanceof Function) {
       callback = options;
@@ -1039,7 +1036,10 @@ export class Collection<
       options = {};
     }
 
-    return PromiseHelper.wrapAsync(() => this._getReplica(key, true, options), callback);
+    return PromiseHelper.wrapAsync(
+      () => this._getReplica(key, true, options) as Def['Body'],
+      callback
+    );
   }
 
   /**
@@ -1051,28 +1051,25 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async insert<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    value: Doc,
+    value: Def['Body'],
     options: InsertOptions,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async insert<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    value: Doc,
+    value: Def['Body'],
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async insert<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
-    value: Doc,
+  async insert(
+    key: string,
+    value: unknown,
     options?: InsertOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
@@ -1151,28 +1148,25 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async upsert<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    value: Doc,
+    value: Def['Body'],
     options: UpsertOptions,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async upsert<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    value: Doc,
+    value: Def['Body'],
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async upsert<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
-    value: Doc,
+  async upsert(
+    key: string,
+    value: unknown,
     options?: UpsertOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
@@ -1251,28 +1245,25 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async replace<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    value: Doc,
+    value: Def['Body'],
     options: ReplaceOptions,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
   async replace<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    value: Doc,
+    value: Def['Body'],
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async replace<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
-    value: Doc,
+  async replace(
+    key: string,
+    value: unknown,
     options?: ReplaceOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
@@ -1351,17 +1342,17 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async remove<Key extends CT<this>['Key']>(
+  async remove<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     options: RemoveOptions,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async remove<Key extends CT<this>['Key']>(
+  async remove<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult>;
-  async remove<Key extends CT<this>['Key']>(
-    key: Key,
+  async remove(
+    key: string,
     options?: RemoveOptions | NodeCallback<MutationResult>,
     callback?: NodeCallback<MutationResult>
   ): Promise<MutationResult> {
@@ -1435,31 +1426,28 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAndTouch<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     expiry: number,
     options: GetAndTouchOptions,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>>;
+    callback?: NodeCallback<GetResult<Def['Body']>>
+  ): Promise<GetResult<Def['Body']>>;
   async getAndTouch<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     expiry: number,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>>;
-  async getAndTouch<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
+    callback?: NodeCallback<GetResult<Def['Body']>>
+  ): Promise<GetResult<Def['Body']>>;
+  async getAndTouch(
+    key: string,
     expiry: number,
-    options?: GetAndTouchOptions | NodeCallback<GetResult<Doc>>,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>> {
+    options?: GetAndTouchOptions | NodeCallback<GetResult<unknown>>,
+    callback?: NodeCallback<GetResult<unknown>>
+  ): Promise<GetResult<unknown>> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
@@ -1513,19 +1501,19 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async touch<Key extends CT<this>['Key']>(
+  async touch<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     expiry: number,
     options: TouchOptions,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>>;
-  async touch<Key extends CT<this>['Key']>(
+  async touch<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     expiry: number,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>>;
-  async touch<Key extends CT<this>['Key']>(
-    key: Key,
+  async touch(
+    key: string,
     expiry: number,
     options?: TouchOptions | NodeCallback<MutationResult<undefined>>,
     callback?: NodeCallback<MutationResult<undefined>>
@@ -1581,31 +1569,28 @@ export class Collection<
    * @param callback A node-style callback to be invoked after execution.
    */
   async getAndLock<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     lockTime: number,
     options: GetAndLockOptions,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>>;
+    callback?: NodeCallback<GetResult<Def['Body']>>
+  ): Promise<GetResult<Def['Body']>>;
   async getAndLock<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
+    Key extends CollectionDocDef<this>['Key'],
+    Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
     lockTime: number,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>>;
-  async getAndLock<
-    Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    Key extends CT<this>['Key'] = CT<this>['Key'],
-  >(
-    key: Key,
+    callback?: NodeCallback<GetResult<Def['Body']>>
+  ): Promise<GetResult<Def['Body']>>;
+  async getAndLock(
+    key: string,
     lockTime: number,
-    options?: GetAndLockOptions | NodeCallback<GetResult<Doc>>,
-    callback?: NodeCallback<GetResult<Doc>>
-  ): Promise<GetResult<Doc>> {
+    options?: GetAndLockOptions | NodeCallback<GetResult<unknown>>,
+    callback?: NodeCallback<GetResult<unknown>>
+  ): Promise<GetResult<unknown>> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
@@ -1657,19 +1642,19 @@ export class Collection<
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  async unlock<Key extends CT<this>['Key']>(
+  async unlock<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     cas: CasInput,
     options: UnlockOptions,
     callback?: VoidNodeCallback
   ): Promise<void>;
-  async unlock<Key extends CT<this>['Key']>(
+  async unlock<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
     cas: CasInput,
     callback?: VoidNodeCallback
   ): Promise<void>;
-  async unlock<Key extends CT<this>['Key']>(
-    key: Key,
+  async unlock(
+    key: string,
     cas: CasInput,
     options?: UnlockOptions | VoidNodeCallback,
     callback?: VoidNodeCallback
@@ -1714,10 +1699,10 @@ export class Collection<
   /**
    * @internal
    */
-  _continueScan<Def extends CT<this>['Document']>(
+  _continueScan(
     iterator: CppScanIterator,
     transcoder: Transcoder,
-    emitter: StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>>
+    emitter: StreamableScanPromise<ScanResult[], ScanResult>
   ): void {
     iterator.next((cppErr, resp) => {
       const err = errorFromCpp(cppErr);
@@ -1743,7 +1728,7 @@ export class Collection<
           emitter.emit(
             'result',
             new ScanResult({
-              id: key as Def['Key'],
+              id: key,
               content: docBody,
               cas: cas,
               expiryTime: expiry,
@@ -1759,7 +1744,7 @@ export class Collection<
         emitter.emit(
           'result',
           new ScanResult({
-            id: key as Def['Key'],
+            id: key,
           })
         );
       }
@@ -1776,12 +1761,12 @@ export class Collection<
   /**
    * @internal
    */
-  _doScan<Def extends CT<this>['Document']>(
+  _doScan(
     scanType: RangeScan | SamplingScan | PrefixScan,
     options: CppRangeScanOrchestratorOptions,
     transcoder: Transcoder,
-    callback?: NodeCallback<ScanResult<Def>[]>
-  ): StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>> {
+    callback?: NodeCallback<ScanResult[]>
+  ): StreamableScanPromise<ScanResult[], ScanResult> {
     const bucketName = this.scope.bucket.name;
     const scopeName = this.scope.name;
     const collectionName = this.name;
@@ -1801,8 +1786,8 @@ export class Collection<
         throw err;
       }
 
-      const emitter = new StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>>(
-        (results: ScanResult<Def>[]) => results
+      const emitter = new StreamableScanPromise<ScanResult[], ScanResult>(
+        (results: ScanResult[]) => results
       );
 
       this._continueScan(result, transcoder, emitter);
@@ -1822,20 +1807,20 @@ export class Collection<
    * @param options Optional parameters for the scan operation.
    * @param callback A node-style callback to be invoked after execution.
    */
-  scan<Def extends CT<this>['Document']>(
+  scan<Def extends CollectionDocDef<this>>(
     scanType: RangeScan | SamplingScan | PrefixScan,
     options: ScanOptions,
     callback?: NodeCallback<ScanResult<Def>[]>
-  ): StreamableScanPromise<ScanResult<Def>[], ScanResult<DocDef>>;
-  scan<Def extends CT<this>['Document']>(
+  ): StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>>;
+  scan<Def extends CollectionDocDef<this>>(
     scanType: RangeScan | SamplingScan | PrefixScan,
     callback?: NodeCallback<ScanResult<Def>[]>
   ): StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>>;
-  scan<Def extends CT<this>['Document']>(
+  scan(
     scanType: RangeScan | SamplingScan | PrefixScan,
-    options?: ScanOptions | NodeCallback<ScanResult<Def>[]>,
-    callback?: NodeCallback<ScanResult<Def>[]>
-  ): StreamableScanPromise<ScanResult<Def>[], ScanResult<Def>> {
+    options?: ScanOptions | NodeCallback<ScanResult[]>,
+    callback?: NodeCallback<ScanResult[]>
+  ): StreamableScanPromise<ScanResult[], ScanResult> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
@@ -1874,7 +1859,7 @@ export class Collection<
   // Classic
   lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    SpecDefinitions,
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
@@ -1904,7 +1889,7 @@ export class Collection<
   // Classic
   lookupIn<
     Key extends ExtractCollectionJsonDocKey<this>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    SpecDefinitions,
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
@@ -1974,19 +1959,13 @@ export class Collection<
     options: LookupInOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
       LookupInResult<
-        LookupInSpecResults<
-          SpecDefinitions,
-          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-        >,
+        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
         ThrowOnSpecError
       >
     >
   ): Promise<
     LookupInResult<
-      LookupInSpecResults<
-        SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-      >,
+      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
       ThrowOnSpecError
     >
   > {
@@ -2059,10 +2038,13 @@ export class Collection<
         cas: response.cas,
       });
       if (callback) {
-        callback(null, result);
+        callback(null, result as never);
       }
 
-      return result;
+      return result as LookupInResult<
+        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+        ThrowOnSpecError
+      >;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 
@@ -2086,33 +2068,21 @@ export class Collection<
   ): StreamableReplicasPromise<
     [
       LookupInReplicaResult<
-        LookupInSpecResults<
-          SpecDefinitions,
-          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-        >,
+        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
         ThrowOnSpecError
       >,
       ...LookupInReplicaResult<
-        LookupInSpecResults<
-          SpecDefinitions,
-          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-        >,
+        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
         ThrowOnSpecError
       >[],
     ],
     LookupInReplicaResult<
-      LookupInSpecResults<
-        SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-      >,
+      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
       ThrowOnSpecError
     >
   > {
     type ResultFromReplica = LookupInReplicaResult<
-      LookupInSpecResults<
-        SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-      >,
+      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
       ThrowOnSpecError
     >;
 
@@ -2214,20 +2184,17 @@ export class Collection<
   // Classic
   lookupInAnyReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    SpecDefinitions,
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
-      SpecDefinitions
-    >,
+    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
     options: LookupInAnyReplicaOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
       LookupResult<
         'lookupInAnyReplica',
         SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
+        CollectionDocDefMatchingKey<this, Key>,
         ThrowOnSpecError
       >
     >
@@ -2235,7 +2202,7 @@ export class Collection<
     LookupResult<
       'lookupInAnyReplica',
       SpecDefinitions,
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
+      CollectionDocDefMatchingKey<this, Key>,
       ThrowOnSpecError
     >
   >;
@@ -2243,19 +2210,16 @@ export class Collection<
   // Classic
   lookupInAnyReplica<
     Key extends ExtractCollectionJsonDocKey<this>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    SpecDefinitions,
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
-      SpecDefinitions
-    >,
+    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
     callback?: NodeCallback<
       LookupResult<
         'lookupInAnyReplica',
         SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
+        CollectionDocDefMatchingKey<this, Key>,
         ThrowOnSpecError
       >
     >
@@ -2263,7 +2227,7 @@ export class Collection<
     LookupResult<
       'lookupInAnyReplica',
       SpecDefinitions,
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
+      CollectionDocDefMatchingKey<this, Key>,
       ThrowOnSpecError
     >
   >;
@@ -2281,7 +2245,7 @@ export class Collection<
     Key,
     [],
     ThrowOnSpecError,
-    ExtractCollectionJsonDocBody<this, Key>
+    CollectionDocDefMatchingKey<this, Key>
   >;
 
   lookupInAnyReplica(key: string, ...args: never[]): any {
@@ -2310,30 +2274,21 @@ export class Collection<
   // Classic
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    SpecDefinitions,
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
-      SpecDefinitions
-    >,
+    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
     options: LookupInAllReplicasOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
       LookupInReplicaResult<
-        LookupInSpecResults<
-          SpecDefinitions,
-          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-        >,
+        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
         ThrowOnSpecError
       >[]
     >
   ): Promise<
     LookupInReplicaResult<
-      LookupInSpecResults<
-        SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-      >,
+      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
       ThrowOnSpecError
     >[]
   >;
@@ -2341,29 +2296,20 @@ export class Collection<
   // Classic
   lookupInAllReplicas<
     Key extends ExtractCollectionJsonDocKey<this>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
+    SpecDefinitions,
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
-      SpecDefinitions
-    >,
+    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
     callback?: NodeCallback<
       LookupInReplicaResult<
-        LookupInSpecResults<
-          SpecDefinitions,
-          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-        >,
+        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
         ThrowOnSpecError
       >[]
     >
   ): Promise<
     LookupInReplicaResult<
-      LookupInSpecResults<
-        SpecDefinitions,
-        ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-      >,
+      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
       ThrowOnSpecError
     >[]
   >;
@@ -2381,60 +2327,18 @@ export class Collection<
     Key,
     [],
     ThrowOnSpecError,
-    ExtractCollectionJsonDocBody<this, Key>
+    CollectionDocDefMatchingKey<this, Key>
   >;
 
-  lookupInAllReplicas<
-    Key extends ExtractCollectionJsonDocKey<this>,
-    Def extends ExtractCollectionJsonDocDef<this, Key>,
-    SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-    ThrowOnSpecError extends boolean = false,
-  >(
-    key: Key,
-    ...args: [
-      specsOrOptions?:
-        | LookupInAllReplicasOptions<ThrowOnSpecError>
-        | NarrowLookupSpecs<Def, SpecDefinitions>,
-      optionsOrCallback?:
-        | LookupInAllReplicasOptions<ThrowOnSpecError>
-        | NodeCallback<
-            LookupInReplicaResult<
-              LookupInSpecResults<
-                SpecDefinitions,
-                ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-              >,
-              ThrowOnSpecError
-            >[]
-          >,
-      callback?: NodeCallback<
-        LookupInReplicaResult<
-          LookupInSpecResults<
-            SpecDefinitions,
-            ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-          >,
-          ThrowOnSpecError
-        >[]
-      >,
-    ]
-  ):
-    | Promise<
-        LookupInReplicaResult<
-          LookupInSpecResults<
-            SpecDefinitions,
-            ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
-          >,
-          ThrowOnSpecError
-        >[]
-      >
-    | ChainableLookupIn<this, 'lookupInAllReplicas', Key, [], ThrowOnSpecError> {
-    const { specs, options, callback } = resolveLookupInArgs(args);
+  lookupInAllReplicas(key: string, ...args: never[]): any {
+    const { specs, options, callback } = resolveLookupInArgs(args as never);
 
     if (specs === undefined) {
-      return ChainableLookupIn.for(this, 'lookupInAllReplicas', key, options);
+      return ChainableLookupIn.for(this, 'lookupInAllReplicas', key as never, options);
     }
 
     return PromiseHelper.wrapAsync(
-      () => this._lookupInReplica(key, true, specs, options),
+      () => this._lookupInReplica(key as never, true, specs, options),
       callback
     );
   }
@@ -2564,17 +2468,10 @@ export class Collection<
    *
    * @param key The document key the data-structure resides in.
    */
-  list<
-    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
-    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
-    Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
-    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseList<T, B, S, C, Key, Item>
-      : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseList<T, B, S, C, Key, Item>
-        : 'This collection does not contain any list.',
-  >(key: Key): R {
-    return new CouchbaseList(this as never, key) as R;
+  list<Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key']>(
+    key: Key
+  ): CollectionListReturn<T, B, S, C, Key> {
+    return new CouchbaseList(this, key) as CollectionListReturn<T, B, S, C, Key>;
   }
 
   /**
@@ -2582,17 +2479,10 @@ export class Collection<
    *
    * @param key The document key the data-structure resides in.
    */
-  queue<
-    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
-    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
-    Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
-    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseQueue<T, B, S, C, Key, Item>
-      : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseQueue<T, B, S, C, Key, Item>
-        : 'This collection does not contain any queue.',
-  >(key: Key): R {
-    return new CouchbaseQueue(this as never, key) as R;
+  queue<Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key']>(
+    key: Key
+  ): CollectionQueueReturn<T, B, S, C, Key> {
+    return new CouchbaseQueue(this, key) as CollectionQueueReturn<T, B, S, C, Key>;
   }
 
   /**
@@ -2621,17 +2511,10 @@ export class Collection<
    *
    * @param key The document key the data-structure resides in.
    */
-  set<
-    Key extends DocDefMatchingBody<ReadonlyArray<Item>, T, B, S, C>['Key'],
-    Doc extends Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]>,
-    Item extends If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>>,
-    R = IsNever<CollectionMatchingDocDef<T, DocDef<Key, Item[]>>> extends true
-      ? CouchbaseSet<T, B, S, C, Key, Item>
-      : this extends CollectionMatchingDocDef<T, DocDef<Key, Item[]>>
-        ? CouchbaseSet<T, B, S, C, Key, Item>
-        : 'This collection does not contain any set.',
-  >(key: Key): R {
-    return new CouchbaseSet(this as never, key) as R;
+  set<Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key']>(
+    key: Key
+  ): CollectionSetReturn<T, B, S, C, Key> {
+    return new CouchbaseSet(this, key) as CollectionSetReturn<T, B, S, C, Key>;
   }
 
   /**
@@ -2984,3 +2867,54 @@ export class Collection<
     return new CollectionQueryIndexManager(this);
   }
 }
+
+// prettier-ignore
+type CollectionSetReturn<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key'],
+> =
+  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Def ?
+    IsNever<Def> extends true ?
+      'This collection does not contain any set.' :
+    If<IsFuzzyDocument<Def>, any, ArrayElement<Def>> extends infer Item ?
+      CouchbaseSet<T, B, S, C, Key, Item> :
+    never :
+  never
+;
+
+// prettier-ignore
+type CollectionListReturn<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key'],
+> =
+  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Def ?
+    IsNever<Def> extends true ?
+      'This collection does not contain any list.' :
+    If<IsFuzzyDocument<Def>, any, ArrayElement<Def>> extends infer Item ?
+      CouchbaseList<T, B, S, C, Key, Item> :
+    never :
+  never
+;
+
+// prettier-ignore
+type CollectionQueueReturn<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key'],
+> =
+  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Def ?
+    IsNever<Def> extends true ?
+      'This collection does not contain any queue.' :
+    If<IsFuzzyDocument<Def>, any, ArrayElement<Def>> extends infer Item ?
+      CouchbaseQueue<T, B, S, C, Key, Item> :
+    never :
+  never
+;

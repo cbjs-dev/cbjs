@@ -15,9 +15,9 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DefaultClusterTypes, DocDef } from '@cbjsdev/shared';
+import { DefaultClusterTypes } from '@cbjsdev/shared';
 
-import { connect } from '../../../index.js';
+import { connect, DocDef } from '../../../index.js';
 import { CouchbaseQueue } from '../../../services/kv/dataStructures/index.js';
 
 describe('CouchbaseQueue', function () {

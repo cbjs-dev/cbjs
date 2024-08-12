@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { IsAny, IsNever, Pretty } from '../../misc/index.js';
-import { DocDef, KeyspaceDocDef } from './document.types.js';
+import { DocDef } from './document.types.js';
 import {
   BucketName,
   CollectionName,

@@ -20,12 +20,12 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
 import { connect } from '../../../couchbase.js';
+import { DocDef } from '../../clusterTypes.js';
 import type { MutateInRemovePath } from './mutationOperations.types.js';
 
 describe('mutateIn remove', async () => {

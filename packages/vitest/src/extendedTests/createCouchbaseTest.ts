@@ -16,10 +16,8 @@
 import '@vitest/runner';
 import type { TaskContext } from 'vitest';
 
-import { CouchbaseHttpApiConfig } from '@cbjsdev/http-client';
-import { getClusterRootCertificates } from '@cbjsdev/http-client/dist/src/services/cluster/getClusterRootCertificates.js';
 import type { CouchbaseApiConfig } from '@cbjsdev/shared';
-import { getApiConfig, type PromiseValue } from '@cbjsdev/shared';
+import { type PromiseValue } from '@cbjsdev/shared';
 
 import { getDefaultServerTestContext } from '../context.js';
 import {

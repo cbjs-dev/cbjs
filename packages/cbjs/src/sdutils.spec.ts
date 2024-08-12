@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it } from 'vitest';
+import { describe, expectTypeOf, it } from 'vitest';
 
+import { LookupInMacroShape } from '@cbjsdev/shared';
+
+import { LookupInMacro } from './sdspecs.js';
 import { SdUtils } from './sdutils.js';
 
 describe('sdutils', function () {
@@ -37,5 +40,14 @@ describe('sdutils', function () {
     expect(SdUtils.insertByPath(null, 'foo[0]', 'test')).toEqual({
       foo: ['test'],
     });
+  });
+});
+
+describe.skip('LookupInMacro', () => {
+  it('should extend LookupInMacroShape', () => {
+    expectTypeOf<LookupInMacro>().toMatchTypeOf<LookupInMacroShape>();
+    expectTypeOf<LookupInMacro<'$document.exptime'>>().toMatchTypeOf<
+      LookupInMacroShape<'$document.exptime'>
+    >();
   });
 });

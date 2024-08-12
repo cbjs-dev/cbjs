@@ -19,3 +19,4 @@ export * from './cluster.types.js';
 export type * from './document.types.js';
 export type * from './keyspace.types.js';
 export type * from './utils/index.js';
+export type * from './lookupInMacro.types.js';

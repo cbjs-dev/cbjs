@@ -18,9 +18,6 @@ import { describe, expectTypeOf, it } from 'vitest';
 import {
   CollectionName,
   DefaultClusterTypes,
-  DefaultKeyspaceOptions,
-  DocDef,
-  GetKeyspaceOptions,
   IsDefaultClusterTypes,
 } from '@cbjsdev/shared';
 
@@ -34,6 +31,7 @@ import {
   CollectionContainingDocBody,
   CollectionContainingDocDef,
   CollectionMatchingDocDef,
+  DocDef,
 } from './clusterTypes.js';
 
 type Doc<T extends string> = { [K in T]: string };
@@ -62,6 +60,12 @@ type UserClusterTypes = {
     };
   };
 };
+
+describe('DocDef', () => {
+  it('should extends DocDef', () => {
+    expectTypeOf<DocDef<string, { title: string }>>().toMatchTypeOf<DocDef>();
+  });
+});
 
 describe('IsDefaultClusterTypes', () => {
   it('should return true when the default cluster types are given', () => {

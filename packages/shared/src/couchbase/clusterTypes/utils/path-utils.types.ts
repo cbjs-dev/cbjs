@@ -15,16 +15,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type {
-  And,
-  Extends,
-  If,
-  IsNever,
-  Join,
-  Not,
-  Or,
-  Split,
-} from '../../../misc/index.js';
+import type { If, IsNever, Join, Or, Split } from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
   GuaranteedIndexes,
@@ -32,14 +23,7 @@ import {
   ResolveNegativeIndex,
   TupleIndexes,
 } from './array-utils.types.js';
-import type { ExtractPathToType } from './document-path.types.js';
-import type {
-  CircularReferences,
-  OptionalKeys,
-  ReferencesItself,
-  ToNumber,
-  WrapEach,
-} from './misc-utils.types.js';
+import type { OptionalKeys, ToNumber, WrapEach } from './misc-utils.types.js';
 
 /**
  * Key types you can access using {@link DocumentPath}.
@@ -59,14 +43,14 @@ export type TargetableArrayIndexes<T extends ReadonlyArray<unknown>> =
 /**
  * String literal to access an array index.
  */
-type ArrayAccessor<T extends readonly unknown[], K extends AccessibleKey> =
+type ArrayAccessor<T extends readonly unknown[], K> =
   K extends TargetableArrayIndexes<T> ? `[${K}]` : never;
 
 /**
  * String literal to access a property.
  */
-type ObjectAccessor<K extends AccessibleKey, IsRoot extends boolean> = IsRoot extends true
-  ? K
+type ObjectAccessor<K, Depth extends number> = Depth extends 0
+  ? `${Extract<K, string>}`
   : `.${K & string}`;
 
 /**
@@ -84,11 +68,45 @@ export type IsArrayIndexAccessor<T> = [ExtractArrayIndexAccessor<T>] extends [ne
 /**
  * String literal to access the next element.
  */
-type Accessor<
-  T,
-  K extends AccessibleKey,
-  IsRoot extends boolean,
-> = T extends readonly unknown[] ? ArrayAccessor<T, K> : ObjectAccessor<K, IsRoot>;
+export type Accessor<T, K, Depth extends number> = T extends readonly unknown[]
+  ? `${ArrayAccessor<T, K>}`
+  : `${ObjectAccessor<K, Depth>}`;
+
+type NextDepth<N extends number> = [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+][N];
 
 /**
  * Union of all paths to all elements of the object. Distributive.
@@ -99,9 +117,9 @@ type Accessor<
 export type DocumentPath<T, K = never> =
   T extends object ?
     IsFuzzyDocument<T> extends false ?
-      If<IsNever<K>, keyof T, K> extends infer Key extends keyof T ?
-        Key extends AccessibleKey ?
-          BuildPath<T, Key, true, never> :
+      If<IsNever<K>, keyof T, K> extends infer Key ?
+        Key extends keyof T & AccessibleKey ?
+          BuildPath<T, Key> :
         never :
       never :
     string :
@@ -112,20 +130,12 @@ export type DocumentPath<T, K = never> =
  * Build the paths in a branch of the document.
  * Distributed against `T` and `Key`.
  */
-type BuildPath<
-  T extends object,
-  Key extends AccessibleKey & keyof T,
-  // Key,
-  IsRoot extends boolean,
-  PropBags extends CircularPropBag,
-> = Key extends unknown
-  ? CircularProp<T[Key]> extends infer PropBag extends CircularPropBag
-    ? // We hit a recursive prop type
-      And<[Not<IsNever<PropBag>>, Extends<PropBag, PropBags>]> extends true
-      ? `${Accessor<T, Key, IsRoot>}` | `${Accessor<T, Key, IsRoot>}${string}`
-      : `${Accessor<T, Key, IsRoot>}${'' | PathAhead<T, Key, PropBag | PropBags>}`
-    : never
-  : never;
+// prettier-ignore
+type BuildPath<T extends object, Key extends AccessibleKey & keyof T> =
+  Key extends unknown ?
+    PathAhead<T, Key, 1, Accessor<T, Key, 0>, Accessor<T, Key, 0>> :
+  never
+;
 
 /**
  * Return the sub-path for the given type and keys.
@@ -134,16 +144,20 @@ type BuildPath<
 type PathAhead<
   T extends object,
   Key extends AccessibleKey & keyof T,
-  PropBags extends CircularPropBag,
+  Depth extends number,
+  ParentPath extends string,
+  Acc
 > =
-  ResolveNegativeIndex<T, Key> extends infer Index extends keyof T ?
+  Depth extends 32 ?
+    ParentPath :
+  ResolveNegativeIndex<T, Key> extends infer Index extends keyof T & AccessibleKey ?
     T[Index] extends infer Doc ?
       Doc extends unknown ?
         Doc extends readonly unknown[] ?
-          ArrayPath<Doc, PropBags> :
+          ArrayPath<Doc, Depth, ParentPath, Acc> :
         Doc extends object ?
-          ObjectPath<Doc, PropBags> :
-        never :
+          ObjectPath<Doc, Depth, ParentPath, Acc> :
+        Acc | ParentPath :
       never :
     never :
   never
@@ -152,43 +166,48 @@ type PathAhead<
 /**
  * Build the paths to an array's elements.
  */
-type ArrayPath<Doc extends ReadonlyArray<unknown>, PropBags extends CircularPropBag> =
-  TargetableArrayIndexes<Doc> extends infer Index extends keyof Doc & AccessibleKey
-    ? BuildPath<Doc, Index, false, PropBags>
-    : never;
+// prettier-ignore
+type ArrayPath<
+  Doc extends ReadonlyArray<unknown>,
+  Depth extends number,
+  ParentPath extends string,
+  Acc
+> =
+  TargetableArrayIndexes<Doc> extends infer Index ?
+    Index extends keyof Doc & AccessibleKey ?
+      PathAhead<
+        Doc,
+        Index,
+        NextDepth<Depth>,
+        `${ParentPath}${ArrayAccessor<Doc, Index>}`,
+        Acc | ParentPath
+      > :
+    never:
+  never
+;
 
 /**
  * Build the paths to an object's properties.
  */
-type ObjectPath<Doc extends object, PropBags extends CircularPropBag> = BuildPath<
-  Doc,
-  keyof Doc & AccessibleKey,
-  false,
-  PropBags
->;
-
-/**
- * Return a prop and its circular references in a shape of {@link CircularPropBag}.
- */
-type CircularProp<T> =
-  CircularReferences<T> extends infer Refs
-    ? IsNever<Refs> extends false
-      ? ReferencesItself<T> extends true
-        ? {
-            Prop: T;
-            Refs: Refs;
-          }
-        : never
-      : never
-    : never;
-
-/**
- * Shape of the object returned by {@link CircularProp}.
- */
-type CircularPropBag = {
-  Prop: unknown;
-  Refs: [unknown];
-};
+// prettier-ignore
+type ObjectPath<
+  Doc extends object,
+  Depth extends number,
+  ParentPath extends string,
+  Acc
+> =
+  keyof Doc & AccessibleKey extends infer Key ?
+    Key extends keyof Doc & AccessibleKey ?
+      PathAhead<
+        Doc,
+        Key,
+        NextDepth<Depth>,
+        `${ParentPath}${ObjectAccessor<keyof Doc & AccessibleKey, Depth>}`,
+        Acc | ParentPath
+      > :
+    never :
+  never
+;
 
 /**
  * Split a path into segments, if required.
@@ -245,7 +264,7 @@ export type PopUntilProperty<Tuple extends readonly string[]> = Tuple extends [
   : [];
 
 /**
- * Return `true` is `T[K]` may be undefined.
+ * Return `true` if `T[K]` may be undefined.
  */
 export type MaybeMissing<T, K = never> = If<
   IsNever<
@@ -295,7 +314,7 @@ type ArraySubDocument<
   ...infer RestSegments extends string[],
 ]
   ? Segment extends `[${infer Index}]` // Array access
-    ? Extract<T, ReadonlyArray<unknown>> extends infer Arr extends ReadonlyArray<unknown>
+    ? Extract<T, ReadonlyArray<unknown>> extends infer Arr
       ? ResolveNegativeIndex<Arr, ToNumber<Index>> extends infer ResolvedIndex extends
           keyof Arr
         ? 1 extends Partial<RestSegments>['length']

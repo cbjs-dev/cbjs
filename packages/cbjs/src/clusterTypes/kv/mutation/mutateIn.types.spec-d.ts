@@ -15,13 +15,11 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { DocDef, IsFuzzyDocument } from '@cbjsdev/shared';
-
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { connect } from '../../../couchbase.js';
 import { MutateInResult, MutateInResultEntry } from '../../../crudoptypes.js';
 import { MutateInSpec } from '../../../sdspecs.js';
-import { mutationSpec } from '../../../specBuilders.js';
+import { DocDef } from '../../clusterTypes.js';
 import { MutateInResultEntries, MutateInSpecResults } from './mutateIn.types.js';
 
 type TestDocDef = DocDef<string, TestDoc>;
@@ -106,25 +104,10 @@ describe('mutateIn', function () {
 
       const result = await collection.mutateIn('test__document', [
         MutateInSpec.insert('does_not_exists', 'whatever'),
-        MutateInSpec.increment('does_not_exists', 'whatever'),
+        MutateInSpec.increment('does_not_exists', 1),
       ]);
 
       expectTypeOf(result).toEqualTypeOf<MutateInResult<[undefined, number]>>();
-    });
-
-    it('should infer the mutation result when given an array of typed specs', async function () {
-      const cluster = await connect('couchbase://127.0.0.1');
-      const collection = cluster.bucket('test').defaultCollection();
-
-      const result = await collection.mutateIn('test__document', [
-        mutationSpec<TestDocDef2>().upsert('title', 'new title'),
-        mutationSpec<TestDocDef2>().insert('metadata.modifiedBy', 'me'),
-        mutationSpec<TestDocDef2>().increment('sales[0]', 1),
-      ]);
-
-      expectTypeOf(result).toEqualTypeOf<
-        MutateInResult<[undefined, undefined, number]>
-      >();
     });
   });
 
@@ -265,28 +248,6 @@ describe('mutateIn', function () {
       expectTypeOf<MutateInResultEntries<readonly [number, undefined]>>().toEqualTypeOf<
         [MutateInResultEntry<number>, MutateInResultEntry<undefined>]
       >();
-    });
-  });
-
-  describe('FuzzyDocument', function () {
-    it('should detect fuzzy document', function () {
-      type T = keyof NonNullable<unknown>;
-
-      expectTypeOf<IsFuzzyDocument<any>>().toEqualTypeOf<true>();
-      expectTypeOf<IsFuzzyDocument<object>>().toEqualTypeOf<true>();
-      expectTypeOf<IsFuzzyDocument<Record<string, unknown>>>().toEqualTypeOf<true>();
-      expectTypeOf<IsFuzzyDocument<NonNullable<unknown>>>().toEqualTypeOf<true>();
-      expectTypeOf<IsFuzzyDocument<{ [key: string]: string }>>().toEqualTypeOf<true>();
-      expectTypeOf<
-        IsFuzzyDocument<{ [key: string]: string; title: string }>
-      >().toEqualTypeOf<true>();
-    });
-
-    it('should not have false positive', function () {
-      expectTypeOf<IsFuzzyDocument<Record<'test', unknown>>>().toEqualTypeOf<false>();
-      expectTypeOf<IsFuzzyDocument<unknown[]>>().toEqualTypeOf<false>();
-      expectTypeOf<IsFuzzyDocument<string[]>>().toEqualTypeOf<false>();
-      expectTypeOf<IsFuzzyDocument<{ title: string }>>().toEqualTypeOf<false>();
     });
   });
 });

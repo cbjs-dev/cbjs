@@ -39,8 +39,8 @@ export type MutateInReturnType<
   C extends AnyCollection,
   Key extends ExtractCollectionJsonDocKey<C>,
   SpecDefinitions extends ReadonlyArray<MutateInSpec>
-> = If<
-  IsArrayLengthKnown<SpecDefinitions>,
-  Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>>,
+> =
+  IsArrayLengthKnown<SpecDefinitions> extends true ?
+    Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>> :
   ChainableMutateIn<C, Key, []>
->;
+;

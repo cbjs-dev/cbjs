@@ -20,12 +20,12 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
 import { connect } from '../../../couchbase.js';
+import { CollectionDocDefMatchingKey, DocDef } from '../../clusterTypes.js';
 import type { MutateInUpsertPath } from './mutationOperations.types.js';
 
 describe('mutateIn upsert', async () => {
@@ -232,6 +232,12 @@ describe('mutateIn upsert', async () => {
 
     const cluster = await connect<UserClusterTypes>('...');
     const collection = cluster.bucket('test').defaultCollection();
+
+    type T = CollectionDocDefMatchingKey<typeof collection, 'monument::001'>;
+    //   ^?
+
+    const r = void collection.mutateIn('monument::001');
+    //    ^?
 
     void collection
       .mutateIn('monument::001')

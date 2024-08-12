@@ -20,11 +20,11 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
+import { DocDef } from '../../clusterTypes.js';
 import type { MutateInArrayAppendPath } from './mutationOperations.types.js';
 
 describe('mutateIn arrayAppend', async () => {

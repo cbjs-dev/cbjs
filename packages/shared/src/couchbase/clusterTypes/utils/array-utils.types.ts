@@ -23,15 +23,22 @@ export type ArrayElement<T> = T extends ReadonlyArray<infer E> ? E : never;
 /**
  * Return true if `T` is an array of fixed length.
  */
-export type IsArrayLengthFixed<T extends ReadonlyArray<unknown>> = Or<
-  [IsExactly<Readonly<T>, T>, IsArrayLengthKnown<T>]
->;
+// prettier-ignore
+export type IsArrayLengthFixed<T> =
+  T extends ReadonlyArray<unknown> ?
+    Or<[IsExactly<Readonly<T>, T>, IsArrayLengthKnown<T>]> :
+  never
+;
 
 /**
  * Return true if `T` the length of the array is known.
  */
-export type IsArrayLengthKnown<T extends ReadonlyArray<unknown>> =
-  number extends T['length'] ? false : true;
+// prettier-ignore
+export type IsArrayLengthKnown<T> =
+  T extends ReadonlyArray<unknown> ?
+   number extends T['length'] ? false : true :
+  never
+;
 
 /**
  * Extract all keys in a fixed-length array.

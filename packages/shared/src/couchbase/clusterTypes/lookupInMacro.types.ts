@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StringDigits, StringHex, TimestampSeconds } from './utils/index.js';
 
-import { StringDigits, StringHex, TimestampSeconds } from '@cbjsdev/shared';
-import type { LookupInMacro } from "../../../sdspecs.js";
+// prettier-ignore
+export type LookupInMacroShape<Value extends keyof LookupInMacroReturnType = keyof LookupInMacroReturnType> = {
+  _value: Value
+}
 
 /**
- * Return the result type of the given {@link LookupInMacro}.
+ * Return the result type of the given {@link LookupInMacroShape}.
  */
-export type LookupInMacroResult<Macro extends LookupInMacro> =
-  Macro extends LookupInMacro<infer Type> ?
+// prettier-ignore
+export type LookupInMacroResult<Macro extends LookupInMacroShape> =
+  Macro extends LookupInMacroShape<infer Type> ?
     Type extends keyof LookupInMacroReturnType ?
       LookupInMacroReturnType[Type] :
     never :
@@ -31,6 +35,7 @@ export type LookupInMacroResult<Macro extends LookupInMacro> =
 /**
  * An object type with the macro string as key and the return type as parameter.
  */
+// prettier-ignore
 export type LookupInMacroReturnType = {
   '$document': LookupInMacroDocument,
   '$document.exptime': number;
@@ -42,9 +47,7 @@ export type LookupInMacroReturnType = {
   '$document.revid': StringDigits;
 }
 
-/**
- * The result of {@link LookupInMacro.Document}.
- */
+// prettier-ignore
 export type LookupInMacroDocument = {
   exptime: number;
   CAS: StringHex;

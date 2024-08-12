@@ -3,6 +3,8 @@
     "lib": ["es2022"],
     "target": "es2022",
     "strict": true,
+    "noEmit": true,
+    "noEmitOnError": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -12,5 +14,6 @@
     "declaration": true,
     "sourceMap": true,
     "resolveJsonModule": true
-  }
+  },
+  "files": ["src/lab2.ts"]
 }

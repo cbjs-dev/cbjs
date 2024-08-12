@@ -20,11 +20,11 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  DocDef,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
+import { DocDef } from '../../clusterTypes.js';
 import type { MutateInCounterPath } from './mutationOperations.types.js';
 
 describe('mutateIn counter', async () => {

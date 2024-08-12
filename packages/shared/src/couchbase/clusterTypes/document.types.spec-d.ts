@@ -24,6 +24,7 @@ import {
   DocDef,
   DocDefMatchingBody,
   DocDefMatchingKey,
+  IsFuzzyDocument,
   KeyspaceDocDef,
   MatchDocDefKeyByDelimiter,
   MatchDocDefKeyFirstMatch,
@@ -49,6 +50,28 @@ type UserClusterTypes = {
     ScopeFour: NonNullable<unknown>;
   };
 };
+
+describe('IsFuzzyDocument', function () {
+  it('should detect fuzzy document', function () {
+    expectTypeOf<IsFuzzyDocument<any>>().toEqualTypeOf<true>();
+    expectTypeOf<IsFuzzyDocument<object>>().toEqualTypeOf<true>();
+    expectTypeOf<IsFuzzyDocument<Record<string, unknown>>>().toEqualTypeOf<true>();
+    expectTypeOf<IsFuzzyDocument<Record<number, unknown>>>().toEqualTypeOf<true>();
+    expectTypeOf<IsFuzzyDocument<Record<symbol, unknown>>>().toEqualTypeOf<true>();
+    expectTypeOf<IsFuzzyDocument<NonNullable<unknown>>>().toEqualTypeOf<true>();
+    expectTypeOf<IsFuzzyDocument<{ [key: string]: string }>>().toEqualTypeOf<true>();
+    expectTypeOf<
+      IsFuzzyDocument<{ [key: string]: string; title: string }>
+    >().toEqualTypeOf<true>();
+  });
+
+  it('should not have false positive', function () {
+    expectTypeOf<IsFuzzyDocument<Record<'test', unknown>>>().toEqualTypeOf<false>();
+    expectTypeOf<IsFuzzyDocument<unknown[]>>().toEqualTypeOf<false>();
+    expectTypeOf<IsFuzzyDocument<string[]>>().toEqualTypeOf<false>();
+    expectTypeOf<IsFuzzyDocument<{ title: string }>>().toEqualTypeOf<false>();
+  });
+});
 
 describe('PickCollectionDocument', () => {
   it('should describe the collection documents', () => {

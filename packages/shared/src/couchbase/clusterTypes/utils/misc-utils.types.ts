@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { If, IsExactly, IsNever, Join, Primitive, TrySafe, UnionToTuple } from '../../../misc/index.js';
+import type {
+  If,
+  IsExactly,
+  IsNever,
+  Join,
+  Primitive,
+  TrySafe,
+  UnionToTuple,
+} from '../../../misc/index.js';
 import { ArrayEntries, TupleFilter } from './array-utils.types.js';
 
 /**
@@ -64,9 +72,16 @@ export type WrapEach<
   Tuple extends ReadonlyArray<string>,
   Left extends string = '',
   Right extends string = '',
+> = WrapEachTRE<Tuple, Left, Right, []>;
+
+export type WrapEachTRE<
+  Tuple extends ReadonlyArray<string>,
+  Left extends string = '',
+  Right extends string = '',
+  Acc extends ReadonlyArray<unknown> = [],
 > = Tuple extends [infer Head extends string, ...infer Rest extends ReadonlyArray<string>]
-  ? [`${Left}${Head}${Right}`, ...WrapEach<Rest, Left, Right>]
-  : [];
+  ? WrapEachTRE<Rest, Left, Right, [...Acc, `${Left}${Head}${Right}`]>
+  : Acc;
 
 /**
  * Return a union of the required keys of the type argument.
@@ -91,70 +106,3 @@ export type WritableKeys<T extends object> = {
     ? K
     : never;
 }[keyof T];
-
-/**
- * Find an exact match within the visited parents.
- */
-type FindMatchingParent<Value, RefTower extends ReadonlyArray<unknown>> =
-  // We exclude the last element because it is the type itself
-  RefTower extends [...infer Parents, unknown]
-    ? Parents[number] extends infer WrappedParent
-      ? WrappedParent extends unknown
-        ? WrappedParent extends [infer Parent]
-          ? IsExactly<Value, Parent> extends true
-            ? Parent
-            : never
-          : never
-        : never
-      : never
-    : never;
-
-/**
- * Identify the values of an object that reference themselves.
- * Returns a union of circular references wrapped into a tuple (to prevent unions to merge).
- */
-export type CircularReferences<
-  T,
-  Parents extends ReadonlyArray<unknown> = [],
-> = Parents['length'] extends 100
-  ? 'Safety Net: the document definition is too deep'
-  : [FindMatchingParent<T, Parents>] extends [infer MatchingParent]
-    ? IsNever<MatchingParent> extends true
-      ? T extends unknown
-        ? T extends { [key: keyof any]: unknown }
-          ? keyof T extends infer ObjectKey extends keyof T
-            ? ObjectKey extends unknown
-              ? CircularReferences<T[ObjectKey], [...Parents, [T[ObjectKey]]]>
-              : never
-            : never
-          : T extends ReadonlyArray<unknown>
-            ? ArrayEntries<T> extends infer Entry extends [number, unknown]
-              ? Entry extends [number, infer EntryValue]
-                ? CircularReferences<EntryValue, [...Parents, [EntryValue]]>
-                : never
-              : never
-            : never
-        : never
-      : [MatchingParent] extends [ReadonlyArray<infer E>]
-        ? E extends unknown
-          ? IsExactly<ReadonlyArray<E>, Readonly<MatchingParent>> extends true
-            ? [E]
-            : never
-          : never
-        : [Exclude<MatchingParent, Primitive>]
-    : never;
-
-/**
- * Returns `true` if the type references itself.
- */
-export type ReferencesItself<T> = TrySafe<
-  CircularReferences<T> extends infer WrappedReferences
-    ? WrappedReferences extends [infer Reference]
-      ? Reference extends T
-        ? true
-        : never
-      : never
-    : never,
-  true,
-  false
->;

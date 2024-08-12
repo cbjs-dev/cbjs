@@ -17,7 +17,6 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { CaptureUntil, Split } from '../../../misc/index.js';
 import { Json } from '../document.types.js';
-import { CircularReferences, ReferencesItself } from './misc-utils.types.js';
 
 describe('Split', function () {
   it('should return a tuple with an empty string if the string is empty', function () {
@@ -57,69 +56,5 @@ describe('CaptureUntil', function () {
     expectTypeOf<CaptureUntil<'yo`foo`.bar', '.', '`'>>().toEqualTypeOf<'yo`foo`'>();
     expectTypeOf<CaptureUntil<'`foo`lo.bar', '.', '`'>>().toEqualTypeOf<'`foo`lo'>();
     expectTypeOf<CaptureUntil<'yo`foo`lo.bar', '.', '`'>>().toEqualTypeOf<'yo`foo`lo'>();
-  });
-});
-
-describe('CircularReferences', function () {
-  type Tree = {
-    nodes: Tree[];
-    leafs: string[];
-  };
-
-  type DeepStringArray = (string | DeepStringArray)[];
-
-  it('should return never when no circular references is found', function () {
-    expectTypeOf<
-      CircularReferences<{ title: string; metadata: { tags: string[] } }>
-    >().toBeNever();
-  });
-
-  it('should return a union of references wrapped into a tuple of a single element', function () {
-    expectTypeOf<CircularReferences<Json>>().toEqualTypeOf<
-      [ReadonlyArray<Json> | { [key: string]: Json }]
-    >();
-    expectTypeOf<CircularReferences<Tree>>().toEqualTypeOf<[Tree]>();
-    expectTypeOf<CircularReferences<DeepStringArray>>().toEqualTypeOf<
-      [DeepStringArray]
-    >();
-
-    expectTypeOf<CircularReferences<{ metadata: { extra: Tree } }>>().toEqualTypeOf<
-      [Tree]
-    >();
-    expectTypeOf<
-      CircularReferences<{ title: string; metadata: { tags: Json[] } }>
-    >().toEqualTypeOf<[ReadonlyArray<Json> | { [key: string]: Json }]>();
-  });
-});
-
-describe('ReferencesItself', function () {
-  type Tree = {
-    nodes: Tree[];
-    leafs: string[];
-  };
-
-  it('should return `true` or `false` if the type references itself or not', function () {
-    expectTypeOf<ReferencesItself<Tree>>().toEqualTypeOf<true>();
-    expectTypeOf<ReferencesItself<Json>>().toEqualTypeOf<true>();
-    expectTypeOf<ReferencesItself<Json | undefined>>().toEqualTypeOf<true>();
-
-    expectTypeOf<ReferencesItself<Json[]>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<Tree[]>>().toEqualTypeOf<false>();
-
-    expectTypeOf<
-      ReferencesItself<{ metadata: { extra: Tree } }>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<{ metadata: Json }>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<Record<string, object>>>().toEqualTypeOf<false>();
-    expectTypeOf<
-      ReferencesItself<{ metadata: { metadata: Record<string, string> } }>
-    >().toEqualTypeOf<false>();
-
-    expectTypeOf<ReferencesItself<null>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<boolean>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<never>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<number>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<string>>().toEqualTypeOf<false>();
-    expectTypeOf<ReferencesItself<number>>().toEqualTypeOf<false>();
   });
 });

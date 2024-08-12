@@ -15,8 +15,9 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { AssertTests, DocDef, DocumentPath } from '@cbjsdev/shared';
+import { AssertTests, DocumentPath } from '@cbjsdev/shared';
 
+import { DocDef } from '../../clusterTypes.js';
 import type {
   LookupInCountPath,
   LookupInExistsPath,

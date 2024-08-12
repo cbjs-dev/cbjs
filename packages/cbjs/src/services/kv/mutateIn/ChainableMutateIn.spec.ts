@@ -16,9 +16,10 @@
  */
 import { describe, it } from 'vitest';
 
-import { DocDef } from '@cbjsdev/shared';
-
-import { CollectionContainingDocDef } from '../../../clusterTypes/clusterTypes.js';
+import {
+  CollectionContainingDocDef,
+  DocDef,
+} from '../../../clusterTypes/clusterTypes.js';
 import { MutateInSpec } from '../../../sdspecs.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 

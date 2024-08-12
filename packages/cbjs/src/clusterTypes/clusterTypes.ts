@@ -23,15 +23,12 @@ import {
   DefaultScopeName,
   DocDef,
   DocDefMatchingKey,
-  DocumentBag,
   IsNever,
   Keyspace,
   KeyspaceDocDef,
-  KeyspaceDocDefArray,
   MissingDefaultCollection,
   MissingDefaultScope,
   ObjectDocumentDef,
-  Pretty,
   ScopeName,
   WildcardFallback,
 } from '@cbjsdev/shared';
@@ -40,15 +37,7 @@ import { Bucket } from '../bucket.js';
 import type { Collection } from '../collection.js';
 import type { Scope } from '../scope.js';
 
-/**
- * Collection's documents types, as a CollectionDocumentBag.
- */
-// prettier-ignore
-export type CT<Instance> =
-  Instance extends Collection<infer T, infer B, infer S, infer C> ?
-    DocumentBag<KeyspaceDocDef<T, B, S, C>> :
-  never
-;
+export type { DocDef };
 
 // prettier-ignore
 export type CollectionDocDef<Instance> =
@@ -92,15 +81,12 @@ export type CollectionKeyspace<Instance> =
   never
 ;
 
-export type ExtractClusterTypes<T> =
-  T extends Bucket<infer ClusterTypes>
-    ? ClusterTypes
-    : T extends Scope<infer ClusterTypes>
-      ? ClusterTypes
-      : T extends Collection<infer ClusterTypes>
-        ? ClusterTypes
-        : never;
+// prettier-ignore
+export type CollectionJsonDocDef<Instance> = ObjectDocumentDef<CollectionDocDef<Instance>>;
 
+/**
+ * Extract the DocDef in a given collection that match the given key.
+ */
 // prettier-ignore
 export type ExtractCollectionJsonDocDef<Instance, Key extends string> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
@@ -226,7 +212,7 @@ export type CollectionContainingDocDef<
 > =
   ClusterCollection<T> extends infer AllCollections ?
     AllCollections extends unknown ?
-      ExpectedDocDef extends CT<AllCollections>['Document'] ?
+      ExpectedDocDef extends CollectionDocDef<AllCollections> ?
         AllCollections :
       never :
     never :
@@ -239,7 +225,7 @@ export type CollectionContainingDocDef<
 export type CollectionContainingDocBody<T extends CouchbaseClusterTypes, ExpectedDoc> =
   ClusterCollection<T> extends infer AllCollections
     ? AllCollections extends unknown
-      ? CT<AllCollections>['Document']['Body'] extends ExpectedDoc
+      ? CollectionDocDef<AllCollections>['Body'] extends ExpectedDoc
         ? AllCollections
         : never
       : never
@@ -247,7 +233,7 @@ export type CollectionContainingDocBody<T extends CouchbaseClusterTypes, Expecte
 
 export type CollectionMatchingDocDef<
   T extends CouchbaseClusterTypes,
-  ExpectedDocDefs extends DocDef<string, any>,
+  ExpectedDocDefs extends DocDef,
 > =
   ClusterCollection<T> extends infer AllCollections extends AnyCollection
     ? AllCollections extends unknown

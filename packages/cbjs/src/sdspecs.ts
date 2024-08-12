@@ -14,10 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from '@cbjsdev/shared';
+import { LookupInMacroReturnType } from '@cbjsdev/shared';
 
 import binding, { CppProtocolSubdocOpcode } from './binding.js';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
+import {
+  DocDef,
+  MutateInArrayAddUniquePath,
+  type MutateInArrayAppendPath,
+  MutateInArrayInsertPath,
+  MutateInArrayPrependPath,
+  MutateInCounterPath,
+  MutateInInsertPath,
+  MutateInReplacePath,
+} from './clusterTypes/index.js';
 import {
   LookupInInternalPath,
   LookupInPath,
@@ -25,7 +35,6 @@ import {
   MakeLookupInSpec,
   ToLookupInternalPath,
 } from './clusterTypes/kv/lookup/lookupIn.types.js';
-import { LookupInMacroReturnType } from './clusterTypes/kv/lookup/lookupInMacro.types.js';
 import {
   LookupInCountPath,
   LookupInExistsPath,
@@ -41,14 +50,20 @@ import {
 import { MutateInMacroReturnType } from './clusterTypes/kv/mutation/mutateInMacro.types.js';
 import {
   MutateInArrayAddUniqueOptions,
+  MutateInArrayAddUniqueValue,
   MutateInArrayAppendOptions,
+  MutateInArrayAppendValue,
   MutateInArrayInsertOptions,
+  MutateInArrayInsertValue,
   MutateInArrayPrependOptions,
+  MutateInArrayPrependValue,
   MutateInCounterOptions,
+  MutateInCounterValue,
   MutateInDecrementOptions,
   MutateInInsertOptions,
   MutateInRemoveOptions,
   MutateInReplaceOptions,
+  MutateInReplaceValue,
   MutateInUpsertOptions,
   ValidateMutateInInsertPath,
   ValidateMutateInRemovePath,
@@ -182,10 +197,7 @@ export class MutateInMacro<
 export class LookupInSpec<
   Def extends DocDef = DocDef,
   Opcode extends LookupInSpecOpCode = LookupInSpecOpCode,
-  InternalPath extends LookupInInternalPath<Def, Opcode> = LookupInInternalPath<
-    Def,
-    Opcode
-  >,
+  InternalPath extends string = string,
 > {
   /**
    * BUG(JSCBC-756): Previously provided access to the expiry macro for a
@@ -310,11 +322,7 @@ export class LookupInSpec<
     this: void,
     path: Path,
     options?: { xattr?: boolean }
-  ): LookupInSpec<
-    Def,
-    CppProtocolSubdocOpcode.get_count,
-    ToLookupInternalPath<Def, CppProtocolSubdocOpcode.get_count, Path>
-  > {
+  ): MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_count, Path> {
     return LookupInSpec._create(binding.protocol_subdoc_opcode.get_count, path, options);
   }
 }
@@ -387,7 +395,7 @@ export class MutateInSpec<
   private static _create<
     Def extends DocDef,
     Opcode extends MutateInSpecOpcode,
-    Path extends MutateInPath<Def, Opcode>,
+    Path extends string,
     Multi extends boolean,
     Value extends MutateInValue<Def, Opcode, Path, Multi>,
   >(
@@ -551,8 +559,8 @@ export class MutateInSpec<
    */
   static replace<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.replace>,
-    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.replace, Path>,
+    const Path extends MutateInReplacePath<Def>,
+    Value extends MutateInReplaceValue<Def, Path>,
   >(
     this: void,
     path: ValidateMutateInReplacePath<Def, Path>,
@@ -642,13 +650,8 @@ export class MutateInSpec<
    */
   static arrayAppend<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_push_last>,
-    Value extends AnyMutateInValue<
-      Def,
-      CppProtocolSubdocOpcode.array_push_last,
-      Path,
-      Multi
-    >,
+    const Path extends MutateInArrayAppendPath<Def>,
+    Value extends MutateInArrayAppendValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
     this: void,
@@ -682,13 +685,8 @@ export class MutateInSpec<
    */
   static arrayPrepend<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_push_first>,
-    Value extends AnyMutateInValue<
-      Def,
-      CppProtocolSubdocOpcode.array_push_first,
-      Path,
-      Multi
-    >,
+    const Path extends MutateInArrayPrependPath<Def>,
+    Value extends MutateInArrayPrependValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
     this: void,
@@ -724,13 +722,8 @@ export class MutateInSpec<
    */
   static arrayInsert<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_insert>,
-    Value extends AnyMutateInValue<
-      Def,
-      CppProtocolSubdocOpcode.array_insert,
-      Path,
-      Multi
-    >,
+    const Path extends MutateInArrayInsertPath<Def>,
+    Value extends MutateInArrayInsertValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
     this: void,
@@ -762,13 +755,8 @@ export class MutateInSpec<
    */
   static arrayAddUnique<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.array_add_unique>,
-    Value extends AnyMutateInValue<
-      Def,
-      CppProtocolSubdocOpcode.array_add_unique,
-      Path,
-      false
-    >,
+    const Path extends MutateInArrayAddUniquePath<Def>,
+    Value extends MutateInArrayAddUniqueValue<Def, Path>,
   >(
     this: void,
     path: Path,
@@ -798,8 +786,8 @@ export class MutateInSpec<
    */
   static increment<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.counter, Path>,
+    const Path extends MutateInCounterPath<Def>,
+    Value extends MutateInCounterValue,
   >(
     this: void,
     path: Path,
@@ -829,8 +817,8 @@ export class MutateInSpec<
    */
   static decrement<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.counter>,
-    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.counter, Path>,
+    const Path extends MutateInCounterPath<Def>,
+    Value extends MutateInCounterValue,
   >(
     this: void,
     path: Path,

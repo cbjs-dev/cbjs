@@ -14,46 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef, isArray } from '@cbjsdev/shared';
+import { isArray } from '@cbjsdev/shared';
 
+import { DocDef } from '../../../clusterTypes/index.js';
 import type { LookupInOptions } from '../../../collection.js';
 import { LookupInSpec } from '../../../sdspecs.js';
 import type { NodeCallback } from '../../../utilities.js';
 import type { LookupInArgs } from './types.js';
 
-type ResolvedArgs<
-  SpecDefinitions extends ReadonlyArray<LookupInSpec>,
-  OpResult,
-  ThrowOnSpecError extends boolean,
-> = {
-  options: LookupInOptions<ThrowOnSpecError>;
-  callback: NodeCallback<OpResult> | undefined;
-  specs: SpecDefinitions | undefined;
+type ResolvedArgs = {
+  options: LookupInOptions<boolean>;
+  callback: NodeCallback<unknown> | undefined;
+  specs: ReadonlyArray<LookupInSpec> | undefined;
 };
 
-export function resolveLookupInArgs<
-  Def extends DocDef,
-  SpecDefinitions extends ReadonlyArray<LookupInSpec<Def>>,
-  OpResult,
-  ThrowOnSpecError extends boolean,
->(
-  args: LookupInArgs<Def, SpecDefinitions, OpResult, ThrowOnSpecError>
-): ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError> {
+export function resolveLookupInArgs(args: LookupInArgs): ResolvedArgs {
   if (!isArray(args[0])) {
     return {
-      options: (args[0] as LookupInOptions<ThrowOnSpecError>) ?? {},
+      options: (args[0] as LookupInOptions<boolean>) ?? {},
       specs: undefined,
       callback: undefined,
-    } satisfies ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError>;
+    };
   }
 
-  const resolvedArgs: ResolvedArgs<SpecDefinitions, OpResult, ThrowOnSpecError> = {
+  const resolvedArgs: ResolvedArgs = {
     options: {},
     callback: undefined,
     specs: undefined,
   };
 
-  resolvedArgs.specs = args[0] as SpecDefinitions;
+  resolvedArgs.specs = args[0] as ReadonlyArray<LookupInSpec>;
 
   if (typeof args[1] === 'function') {
     resolvedArgs.callback = args[1];

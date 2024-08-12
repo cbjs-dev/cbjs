@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  And,
-  Extends,
-  IsAny,
-  IsExactly,
-  IsNever,
-  Or,
-  Primitive,
-} from '../../misc/index.js';
+import { type If, IsAny, IsNever, Primitive } from '../../misc/index.js';
 import { Keyspace } from '../utils/index.js';
 import {
   ClusterTypesOptions,
@@ -31,12 +23,46 @@ import {
   IsDefaultClusterTypes,
 } from './cluster.types.js';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
-import { DocumentPath } from './utils/index.js';
+import { LookupInMacroShape } from './lookupInMacro.types.js';
+import {
+  DocumentPath,
+  type ExtractPathToArray,
+  type ExtractPathToObject,
+} from './utils/index.js';
 
-export type DocDef<Key extends string = string, Body = any> = {
+export type OperationPath<Doc, Path> = If<
+  IsFuzzyDocument<Doc>,
+  string | LookupInMacroShape,
+  Path
+>;
+
+export type DocDef<
+  Key extends string = string,
+  Body = any,
+  Path extends string = DocumentPath<Body>,
+> = {
   Key: Key;
   Body: Body;
-  Path: DocumentPath<Body>;
+  Path: Path;
+  LookupPath: {
+    get: OperationPath<Body, Path | LookupInMacroShape | ''>;
+    exists: OperationPath<Body, Path | LookupInMacroShape>;
+    count: If<
+      IsFuzzyDocument<Body>,
+      string | LookupInMacroShape<'$document'>,
+      | ExtractPathToObject<Body, Path | ''>
+      | ExtractPathToArray<Body, Path | ''>
+      | LookupInMacroShape<'$document'>
+    >;
+  };
+};
+
+export type DocDefBodyPathShape = { Path: string; Body: any };
+export type DocDefBodyShape = { Body: any };
+export type DocDefKeyShape = { Key: string };
+export type DocDefPathShape = { Path: string };
+export type DocDefLookupGetPathShape = {
+  LookupPath: { get: string | LookupInMacroShape };
 };
 
 /**
@@ -50,7 +76,7 @@ export type KeyspaceDocDefArray<
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
 > =
   IsDefaultClusterTypes<T> extends true ?
-    [DocDef] :
+    readonly [DocDef] :
   Keyspace<T, B, S, C> extends infer KS extends { bucket: string; scope: string; collection: string } ?
     KS extends unknown ?
       KS['bucket'] extends infer KSB extends BucketName<T> ?
@@ -97,16 +123,15 @@ export type DocumentBag<Def extends DocDef> = {
 /**
  * Return `true` if sub-document information cannot be inferred from `T`.
  */
-export type IsFuzzyDocument<T> = Or<
-  [
-    IsExactly<T, object>,
-    IsExactly<string, keyof T>,
-    IsExactly<string | number, keyof T>,
-    IsExactly<string | number | symbol, keyof T>,
-    IsNever<keyof T>,
-    IsAny<T>,
-  ]
->;
+// prettier-ignore
+export type IsFuzzyDocument<T> =
+  IsNever<keyof T> extends true ? true :
+  string extends keyof T ? true :
+  symbol extends keyof T ? true :
+  T extends ReadonlyArray<unknown> ? false :
+  number extends keyof T ? true :
+  false
+;
 
 /**
  * A JSON object.
@@ -159,7 +184,7 @@ export type ObjectDocument<Doc> = Extract<Doc, object>;
 export type ObjectDocumentDef<Def extends DocDef> =
   Def extends unknown ?
     Def['Body'] extends object ?
-      DocDef<Def['Key'], Def['Body']> :
+      Def :
     never :
   never
 ;
@@ -187,13 +212,7 @@ export type DocDefMatchingKey<
           T[B][S][C] extends infer Defs extends ReadonlyArray<DocDef> ?
             Key extends unknown ?
               ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
-                Defs[number] extends infer Def extends DocDef ?
-                  Def extends unknown ?
-                    Key extends Def['Key'] ?
-                      Def :
-                    never :
-                  never :
-                never :
+                MatchDocDefKeyAlways<Key, Defs> :
               ResolvedOptions extends { keyDelimiter: string; keyMatchingStrategy: 'delimiter' } ?
                 MatchDocDefKeyByDelimiter<Key, Defs, ResolvedOptions> :
               ResolvedOptions extends { keyMatchingStrategy: 'firstMatch' } ?
@@ -208,12 +227,28 @@ export type DocDefMatchingKey<
 ;
 
 // prettier-ignore
+export type MatchDocDefKeyAlways<
+  Key extends string,
+  Defs,
+> =
+  Defs extends ReadonlyArray<DocDef> ?
+    Defs[number] extends infer Def extends DocDef ?
+      Def extends unknown ?
+        Key extends Def['Key'] ?
+          Def :
+        never :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
 export type MatchDocDefKeyByDelimiter<
   Key extends string,
-  CompareSet extends ReadonlyArray<DocDef>,
+  CompareSet,
   Options extends { keyDelimiter: string }
 > =
-  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest] ?
     Key extends HeadDocDef['Key'] ?
       // If it matches a longer template, it means it's not the more precise template
       Key extends `${HeadDocDef['Key']}${Options['keyDelimiter']}${string}` ?
@@ -224,8 +259,8 @@ export type MatchDocDefKeyByDelimiter<
 ;
 
 // prettier-ignore
-export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet extends ReadonlyArray<DocDef>> =
-  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest extends ReadonlyArray<DocDef>] ?
+export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet> =
+  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest] ?
     Key extends HeadDocDef['Key'] ?
       HeadDocDef :
     MatchDocDefKeyFirstMatch<Key, Rest> :

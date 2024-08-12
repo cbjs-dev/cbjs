@@ -24,6 +24,7 @@ import {
   ScopeName,
 } from '@cbjsdev/shared';
 
+import { AnyCollection } from '../../../clusterTypes/index.js';
 import type { Collection } from '../../../collection.js';
 import { CouchbaseError, PathExistsError } from '../../../errors.js';
 import { StoreSemantics } from '../../../generaltypes.js';

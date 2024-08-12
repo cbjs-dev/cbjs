@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { DocDef, NoInfer } from '@cbjsdev/shared';
+import type { NoInfer } from '@cbjsdev/shared';
 import { isArray } from '@cbjsdev/shared';
 
+import { DocDef } from '../../../clusterTypes/index.js';
 import type { MutateInSpecResults } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
 import type { MutateInOptions } from '../../../collection.js';
 import type { MutateInResult } from '../../../crudoptypes.js';
@@ -24,36 +25,38 @@ import type { MutateInSpec } from '../../../sdspecs.js';
 import type { NodeCallback } from '../../../utilities.js';
 import type { MutateInArgs } from './types.js';
 
-type ResolvedArgs<SpecDefinitions extends ReadonlyArray<MutateInSpec>> = {
+type ResolvedArgs = {
   options: MutateInOptions;
   callback:
-    | NodeCallback<MutateInResult<MutateInSpecResults<NoInfer<SpecDefinitions>>>>
+    | NodeCallback<MutateInResult<MutateInSpecResults<ReadonlyArray<MutateInSpec>>>>
     | undefined;
-  specs: SpecDefinitions | undefined;
+  specs: ReadonlyArray<MutateInSpec> | undefined;
 };
 
 export function resolveMutateInArgs<
   Def extends DocDef,
   SpecDefinitions extends ReadonlyArray<MutateInSpec>,
->(args: MutateInArgs<Def, SpecDefinitions>): ResolvedArgs<SpecDefinitions> {
+>(args: MutateInArgs<Def, SpecDefinitions>): ResolvedArgs {
   if (!isArray(args[0])) {
     return {
       options: (args[0] as MutateInOptions) ?? {},
       specs: undefined,
       callback: undefined,
-    } satisfies ResolvedArgs<SpecDefinitions>;
+    } satisfies ResolvedArgs;
   }
 
-  const resolvedArgs: ResolvedArgs<SpecDefinitions> = {
+  const resolvedArgs: ResolvedArgs = {
     options: {},
     callback: undefined,
     specs: undefined,
   };
 
-  resolvedArgs.specs = args[0] as SpecDefinitions;
+  resolvedArgs.specs = args[0];
 
   if (typeof args[1] === 'function') {
-    resolvedArgs.callback = args[1];
+    resolvedArgs.callback = args[1] as NodeCallback<
+      MutateInResult<MutateInSpecResults<ReadonlyArray<MutateInSpec>>>
+    >;
   }
 
   if (typeof args[1] === 'object') {
@@ -61,7 +64,9 @@ export function resolveMutateInArgs<
   }
 
   if (args.length === 3) {
-    resolvedArgs.callback = args[2];
+    resolvedArgs.callback = args[2] as NodeCallback<
+      MutateInResult<MutateInSpecResults<ReadonlyArray<MutateInSpec>>>
+    >;
   }
 
   return resolvedArgs;
