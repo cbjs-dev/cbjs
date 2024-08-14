@@ -15,7 +15,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { If, IsNever, Join, Or, Split } from '../../../misc/index.js';
+import type { If, IsNever, Join, Split } from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
   GuaranteedIndexes,
@@ -23,7 +23,7 @@ import {
   ResolveNegativeIndex,
   TupleIndexes,
 } from './array-utils.types.js';
-import type { OptionalKeys, ToNumber, WrapEach } from './misc-utils.types.js';
+import type { OptionalKeys } from './misc-utils.types.js';
 
 /**
  * Key types you can access using {@link DocumentPath}.
@@ -61,9 +61,7 @@ export type ExtractArrayIndexAccessor<T> = T extends `[${number}]` ? T : never;
 /**
  * Return `true` if T is an array index accessor, `false` otherwise.
  */
-export type IsArrayIndexAccessor<T> = [ExtractArrayIndexAccessor<T>] extends [never]
-  ? false
-  : true;
+export type IsArrayIndexAccessor<T> = T extends `[${number}]` ? true : false;
 
 /**
  * String literal to access the next element.
@@ -221,11 +219,27 @@ export type SplitIntoSegments<T extends string> = T extends string
 /**
  * Split a single segment into an ordered tuple of prop and array accessors.
  */
-type SplitSegmentIntoAccessors<T> = T extends `${infer Prop}[${infer Accessors}]`
-  ? Prop extends ''
-    ? WrapEach<Split<Accessors, '][', '`'>, '[', ']'>
-    : [Prop, ...WrapEach<Split<Accessors, '][', '`'>, '[', ']'>]
-  : [T];
+// prettier-ignore
+export type SplitSegmentIntoAccessors<T extends string> =
+  SplitSegmentIntoAccessorsTRE<T, [], `${string}`>
+;
+
+// prettier-ignore
+export type SplitSegmentIntoAccessorsTRE<
+  T extends string,
+  Acc extends ReadonlyArray<string>,
+  AccTemplate extends string,
+> =
+  T extends `${AccTemplate}[${infer Index extends number}][${string}]` ?
+    SplitSegmentIntoAccessorsTRE<T, [...Acc, `[${Index}]`], `${AccTemplate}[${Index}]`> :
+  T extends `${AccTemplate}[${infer Index extends number}]` ?
+    T extends `${infer Prop}[${string}` ?
+      Prop extends '' ?
+        [...Acc, `[${Index}]`] :
+      [Prop, ...Acc, `[${Index}]`] :
+    never :
+  [T]
+;
 
 /**
  * Join segments to form a path.
@@ -244,12 +258,18 @@ export type JoinSegments<
 /**
  * Split each segment into its accessors and return a flatten tuple.
  */
-type SplitSegmentsAccessors<Segments extends readonly string[]> = Segments extends [
-  infer Segment,
-  ...infer Rest extends readonly string[],
-]
-  ? [...SplitSegmentIntoAccessors<Segment>, ...SplitSegmentsAccessors<Rest>]
-  : [];
+type SplitSegmentsAccessors<Segments extends readonly string[]> =
+  SplitSegmentsAccessorsTRE<Segments, []>;
+
+// prettier-ignore
+type SplitSegmentsAccessorsTRE<
+  Segments extends readonly string[],
+  Acc extends ReadonlyArray<string>,
+> =
+  Segments extends [infer Segment extends string, ...infer Rest extends readonly string[]] ?
+    SplitSegmentsAccessorsTRE<Rest, [...Acc, ...SplitSegmentIntoAccessors<Segment>]> :
+  Acc
+;
 
 /**
  * Pop element from Tuple until it finds a property accessor.
@@ -415,6 +435,7 @@ export type PathToParentPropertyOrSelf<T extends string> =
  * PathToParentProperty<`path.to.array[42][${number}]`> = 'path.to.array[42]'
  * PathToParentProperty<'path.to.array[42].prop'> = 'path.to.array[42]'
  */
+// prettier-ignore
 export type PathToParentAccessor<T extends string> =
   SplitIntoSegments<T> extends [...infer Rest extends string[], unknown]
     ? 1 extends Partial<Rest>['length']
