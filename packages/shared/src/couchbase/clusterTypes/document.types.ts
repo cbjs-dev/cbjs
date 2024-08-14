@@ -244,29 +244,28 @@ export type MatchDocDefKeyAlways<
 ;
 
 // prettier-ignore
-// TODO TRE
 export type MatchDocDefKeyByDelimiter<
   Key extends string,
   CompareSet,
   Options extends { keyDelimiter: string }
-> = MatchDocDefKeyByDelimiterTRE<Key, CompareSet, Options, []>;
+> = MatchDocDefKeyByDelimiterTRE<Key, CompareSet, Options, never>;
 
 // prettier-ignore
 export type MatchDocDefKeyByDelimiterTRE<
   Key extends string,
   CompareSet,
   Options extends { keyDelimiter: string },
-  Acc extends ReadonlyArray<DocDefKeyShape>
+  Acc extends DocDefKeyShape
 > =
   CompareSet extends [infer HeadDocDef extends DocDefKeyShape, ...infer Rest] ?
     Key extends HeadDocDef['Key'] ?
       // If it matches a longer template, it means it's not the more precise template
       Key extends `${HeadDocDef['Key']}${Options['keyDelimiter']}${string}` ?
         MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, Acc> :
-      MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, [...Acc, HeadDocDef]> :
-    MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, Acc> :
-  never
-;
+        MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, Acc | HeadDocDef> :
+      MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, Acc> :
+    Acc
+  ;
 
 // prettier-ignore
 export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet> =
