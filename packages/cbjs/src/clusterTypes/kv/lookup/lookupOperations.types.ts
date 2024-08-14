@@ -88,7 +88,7 @@ export type LookupInSpecExistsFunction<Def extends DocDef> =
  */
 // prettier-ignore
 export type LookupInCountPath<Def> =
-  Def extends DocDef ?
+  Def extends DocDefBodyPathShape ?
     If<
       IsFuzzyDocument<Def['Body']>,
       string | LookupInMacro<'$document'>,

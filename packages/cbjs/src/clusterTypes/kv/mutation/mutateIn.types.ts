@@ -109,7 +109,7 @@ export type MutateInPath<Def, Opcode extends MutateInSpecOpcode> =
  * Distributive over `Doc` only.
  */
 export type AnyMutateInValue<
-  Def extends DocDef,
+  Def extends DocDefBodyPathShape,
   Opcode extends MutateInSpecOpcode,
   Path extends AnyMutateInPath<Def, Opcode>,
   Multi extends boolean = boolean,
@@ -123,7 +123,7 @@ export type AnyMutateInValue<
  * Mutation values - Non-distributive.
  */
 export type MutateInValue<
-  Def extends DocDef,
+  Def extends DocDefBodyPathShape,
   Opcode extends MutateInSpecOpcode,
   Path extends string,
   Multi extends boolean = boolean,

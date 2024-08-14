@@ -60,6 +60,7 @@ export type DocDef<
 export type DocDefBodyPathShape = { Path: string; Body: any };
 export type DocDefBodyShape = { Body: any };
 export type DocDefKeyShape = { Key: string };
+export type DocDefKeyBodyShape = { Key: string; Body: any };
 export type DocDefPathShape = { Path: string };
 export type DocDefLookupGetPathShape = {
   LookupPath: { get: string | LookupInMacroShape };
@@ -181,7 +182,7 @@ export type ObjectDocument<Doc> = Extract<Doc, object>;
  * Extract definitions of documents on which you can perform sub-document operations.
  */
 // prettier-ignore
-export type ObjectDocumentDef<Def extends DocDef> =
+export type ObjectDocumentDef<Def extends DocDefBodyShape> =
   Def extends unknown ?
     Def['Body'] extends object ?
       Def :
@@ -231,8 +232,8 @@ export type MatchDocDefKeyAlways<
   Key extends string,
   Defs,
 > =
-  Defs extends ReadonlyArray<DocDef> ?
-    Defs[number] extends infer Def extends DocDef ?
+  Defs extends ReadonlyArray<unknown> ?
+    Defs[number] extends infer Def extends DocDefKeyShape ?
       Def extends unknown ?
         Key extends Def['Key'] ?
           Def :
@@ -243,24 +244,33 @@ export type MatchDocDefKeyAlways<
 ;
 
 // prettier-ignore
+// TODO TRE
 export type MatchDocDefKeyByDelimiter<
   Key extends string,
   CompareSet,
   Options extends { keyDelimiter: string }
+> = MatchDocDefKeyByDelimiterTRE<Key, CompareSet, Options, []>;
+
+// prettier-ignore
+export type MatchDocDefKeyByDelimiterTRE<
+  Key extends string,
+  CompareSet,
+  Options extends { keyDelimiter: string },
+  Acc extends ReadonlyArray<DocDefKeyShape>
 > =
-  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest] ?
+  CompareSet extends [infer HeadDocDef extends DocDefKeyShape, ...infer Rest] ?
     Key extends HeadDocDef['Key'] ?
       // If it matches a longer template, it means it's not the more precise template
       Key extends `${HeadDocDef['Key']}${Options['keyDelimiter']}${string}` ?
-        MatchDocDefKeyByDelimiter<Key, Rest, Options> :
-      HeadDocDef | MatchDocDefKeyByDelimiter<Key, Rest, Options> :
-    MatchDocDefKeyByDelimiter<Key, Rest, Options> :
+        MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, Acc> :
+      MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, [...Acc, HeadDocDef]> :
+    MatchDocDefKeyByDelimiterTRE<Key, Rest, Options, Acc> :
   never
 ;
 
 // prettier-ignore
 export type MatchDocDefKeyFirstMatch<Key extends string, CompareSet> =
-  CompareSet extends [infer HeadDocDef extends DocDef, ...infer Rest] ?
+  CompareSet extends [infer HeadDocDef extends DocDefKeyShape, ...infer Rest] ?
     Key extends HeadDocDef['Key'] ?
       HeadDocDef :
     MatchDocDefKeyFirstMatch<Key, Rest> :

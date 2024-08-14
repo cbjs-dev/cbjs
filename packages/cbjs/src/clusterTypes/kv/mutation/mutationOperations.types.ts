@@ -72,7 +72,7 @@ export type MutateInInsertPath<Def extends DocDefBodyPathShape> =
 /**
  * Acceptable value for an `insert` operation at a specific path.
  */
-export type MutateInInsertValue<Def extends DocDefBodyPathShape, Path extends string> =
+export type MutateInInsertValue<Def extends DocDefBodyShape, Path extends string> =
   OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
 ;
 
@@ -220,7 +220,7 @@ export type MutateInArrayAddUniquePath<Def extends DocDefBodyPathShape> =
  * Acceptable value for an `arrayAddUnique` operation at a specific path.
  */
 export type MutateInArrayAddUniqueValue<
-  Def extends DocDef,
+  Def extends DocDefBodyShape,
   Path extends string,
 > =
   OperationValue<Def['Body'], false, ArrayAppendElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>

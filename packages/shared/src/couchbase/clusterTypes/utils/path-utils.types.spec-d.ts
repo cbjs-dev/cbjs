@@ -16,7 +16,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import {
-  Accessor,
   DocumentPath,
   MaybeMissing,
   PathTargetExpression,
@@ -25,6 +24,7 @@ import {
   PathToParentAccessor,
   PathToParentProperty,
   PathToParentPropertyOrSelf,
+  SplitSegmentIntoAccessors,
   SubDocument,
   TargetableArrayIndexes,
 } from './path-utils.types.js';
@@ -405,6 +405,22 @@ describe('TargetableArrayIndexes', function () {
     expectTypeOf<TargetableArrayIndexes<Array<{ foo: string }>>>().toEqualTypeOf<
       // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       number | -1
+    >();
+  });
+});
+
+describe('SplitSegmentIntoAccessors', () => {
+  it('should turn an object key into a tuple of that key', () => {
+    expectTypeOf<SplitSegmentIntoAccessors<'foo'>>().toEqualTypeOf<['foo']>();
+  });
+
+  it('should turn an index access into a tuple with the object key and the index accessor', () => {
+    expectTypeOf<SplitSegmentIntoAccessors<'arr[0]'>>().toEqualTypeOf<['arr', '[0]']>();
+  });
+
+  it('should turn multiple index accesses into a tuple with the object key and the index accessors', () => {
+    expectTypeOf<SplitSegmentIntoAccessors<'arr[0][1][2]'>>().toEqualTypeOf<
+      ['arr', '[0]', '[1]', '[2]']
     >();
   });
 });

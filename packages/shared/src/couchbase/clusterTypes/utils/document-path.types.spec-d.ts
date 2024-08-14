@@ -533,9 +533,6 @@ describe('ExtractPathToOptionalProperty', function () {
       | `historicalReferences.persons[${number}].surname`
     >();
   });
-
-  // TODO write more tests
-  // TODO then rewrite MutateInRemovePath
 });
 
 describe('ExtractPathToPojo', () => {

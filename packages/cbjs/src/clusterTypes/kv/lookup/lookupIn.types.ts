@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {
-  ArrayElement, DocDefBodyPathShape,
+  ArrayElement, DocDefBodyPathShape, DocDefBodyShape,
   If,
   IsAny,
   IsArrayLengthFixed,
@@ -31,12 +31,6 @@ import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
 import { DocDef } from '../../clusterTypes.js';
 import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './lookupOperations.types.js';
 
-/**
- * Infer the actual {@link CppProtocolSubdocOpcode} from the given path for a {@link LookupInSpec.get} operation.
- */
-export type LookupInSpecGetOpcode<Path extends string | LookupInMacro> = Path extends ''
-  ? CppProtocolSubdocOpcode.get_doc
-  : CppProtocolSubdocOpcode.get;
 
 /**
  * Return a {@link LookupInSpec} type with `Path` converted to an internal path.
@@ -118,7 +112,7 @@ export type LookupInPath<Def, Opcode extends LookupInSpecOpCode> =
  *
  * @internal
  */
-export type AnyLookupInInternalPath<Def extends DocDef, Opcode extends LookupInSpecOpCode = LookupInSpecOpCode> =
+export type AnyLookupInInternalPath<Def extends DocDefBodyShape, Opcode extends LookupInSpecOpCode = LookupInSpecOpCode> =
   If<
     IsFuzzyDocument<Def['Body']>,
     string,

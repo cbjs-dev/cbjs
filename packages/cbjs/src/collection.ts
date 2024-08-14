@@ -24,6 +24,7 @@ import {
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   DocDef,
+  DocDefBodyShape,
   DocDefMatchingBody,
   DocDefMatchingKey,
   hasOwn,
@@ -145,7 +146,10 @@ import {
 /**
  * @category Key-Value
  */
-export interface GetOptions<Def extends DocDef, WithExpiry extends boolean = boolean> {
+export interface GetOptions<
+  Def extends DocDefBodyShape,
+  WithExpiry extends boolean = boolean,
+> {
   /**
    * Specifies a list of fields within the document which should be fetched.
    * This allows for easy retrieval of select fields without incurring the
@@ -933,7 +937,6 @@ export class Collection<
    * @param key The document key to retrieve.
    * @param callbackOrOptions A node-style callback to be invoked after execution.
    */
-  // TODO check CT<>, it might be a performance issue
   async getAnyReplica<
     Key extends CollectionDocDef<this>['Key'],
     Def extends DocDefMatchingKey<Key, T, B, S, C>,

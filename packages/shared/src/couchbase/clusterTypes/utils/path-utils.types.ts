@@ -437,11 +437,12 @@ export type PathToParentPropertyOrSelf<T extends string> =
  */
 // prettier-ignore
 export type PathToParentAccessor<T extends string> =
-  SplitIntoSegments<T> extends [...infer Rest extends string[], unknown]
-    ? 1 extends Partial<Rest>['length']
-      ? JoinSegments<Rest>
-      : never
-    : never;
+  SplitIntoSegments<T> extends [...infer Rest extends string[], unknown] ?
+    Rest['length'] extends 0 ?
+      never :
+    JoinSegments<Rest> :
+  never
+;
 
 /**
  * Return the property name or the array expression of the path.

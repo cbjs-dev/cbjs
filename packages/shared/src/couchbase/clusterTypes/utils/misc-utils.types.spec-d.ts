@@ -16,7 +16,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import { CaptureUntil, Split } from '../../../misc/index.js';
-import { Json } from '../document.types.js';
 
 describe('Split', function () {
   it('should return a tuple with an empty string if the string is empty', function () {
@@ -53,7 +52,7 @@ describe('CaptureUntil', function () {
   });
 
   it('should ignore the delimiter if located inside two escaping chars', function () {
-    expectTypeOf<CaptureUntil<'yo`foo`.bar', '.', '`'>>().toEqualTypeOf<'yo`foo`'>();
+    expectTypeOf<CaptureUntil<'yo`foo.`bar', '.', '`'>>().toEqualTypeOf<'yo`foo.`'>();
     expectTypeOf<CaptureUntil<'`foo`lo.bar', '.', '`'>>().toEqualTypeOf<'`foo`lo'>();
     expectTypeOf<CaptureUntil<'yo`foo`lo.bar', '.', '`'>>().toEqualTypeOf<'yo`foo`lo'>();
   });
