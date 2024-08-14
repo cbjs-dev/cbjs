@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If } from '@cbjsdev/shared';
+import {
+  DocDefBodyPathShape,
+  DocDefKeyBodyShape,
+  DocDefKeyShape,
+  If,
+} from '@cbjsdev/shared';
 
 import { DocDef } from './clusterTypes/index.js';
 import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types.js';
