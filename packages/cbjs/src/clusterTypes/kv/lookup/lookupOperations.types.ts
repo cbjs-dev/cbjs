@@ -41,8 +41,6 @@ export type OperationPath<Doc, Path> =
 
 /**
  * Valid lookup path for a `get` operation.
- *
- * @see LookupInSpecGetFunction
  */
 // prettier-ignore
 export type LookupInGetPath<Def> =
@@ -52,20 +50,7 @@ export type LookupInGetPath<Def> =
 ;
 
 /**
- * Function that returns a {@link LookupInSpec} instance for a `get` operation.
- */
-export type LookupInSpecGetFunction<Def extends DocDef> = {
-  (path: '', options?: { xattr?: boolean }):
-    LookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>;
-
-  <Path extends Exclude<LookupInGetPath<Def>, ''>>(path: Path, options?: { xattr?: boolean }):
-    MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>;
-}
-
-/**
  * Valid lookup path for an `exists` operation.
- *
- * @see LookupInSpecExistsFunction
  */
 export type LookupInExistsPath<Def> =
   Def extends DocDefBodyPathShape ?
@@ -74,17 +59,7 @@ export type LookupInExistsPath<Def> =
 ;
 
 /**
- * Function that returns a {@link LookupInSpec} instance for an `exists` operation.
- */
-export type LookupInSpecExistsFunction<Def extends DocDef> =
-  <Path extends LookupInExistsPath<Def>>(path: Path, options?: { xattr?: boolean })
-    => MakeLookupInSpec<Def, CppProtocolSubdocOpcode.exists, Path>
-;
-
-/**
  * Valid lookup path for a `count` operation.
- *
- * @see LookupInSpecCountFunction
  */
 // prettier-ignore
 export type LookupInCountPath<Def> =
@@ -97,12 +72,4 @@ export type LookupInCountPath<Def> =
       | LookupInMacro<'$document'>
     > :
   never
-;
-
-/**
- * Function that returns a {@link LookupInSpec} instance for a `count` operation.
- */
-export type LookupInSpecCountFunction<Def extends DocDef> =
-  <Path extends LookupInCountPath<Def>>(path: Path, options?: { xattr?: boolean })
-    => MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_count, Path>
 ;

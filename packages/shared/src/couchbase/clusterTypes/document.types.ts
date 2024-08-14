@@ -57,11 +57,12 @@ export type DocDef<
   };
 };
 
-export type DocDefBodyPathShape = { Path: string; Body: any };
-export type DocDefBodyShape = { Body: any };
 export type DocDefKeyShape = { Key: string };
-export type DocDefKeyBodyShape = { Key: string; Body: any };
+export type DocDefBodyShape = { Body: any };
 export type DocDefPathShape = { Path: string };
+export type DocDefBodyPathShape = { Path: string; Body: any };
+export type DocDefKeyBodyShape = { Key: string; Body: any };
+export type DocDefKeyBodyPathShape = { Key: string; Path: string; Body: any };
 export type DocDefLookupGetPathShape = {
   LookupPath: { get: string | LookupInMacroShape };
 };
@@ -111,17 +112,6 @@ export type KeyspaceDocDef<
 ;
 
 /**
- * Contains the pre-computer types for the collection.
- */
-export type DocumentBag<Def extends DocDef> = {
-  Key: Def['Key'];
-  Document: Def;
-  JsonDocument: JsonDocumentDef<Def>;
-  ObjectDocument: ObjectDocumentDef<Def>;
-  ObjectDocumentPath: DocumentPath<ObjectDocumentDef<Def>['Body']> | '';
-};
-
-/**
  * Return `true` if sub-document information cannot be inferred from `T`.
  */
 // prettier-ignore
@@ -146,37 +136,9 @@ export type Json =
   | { [key: string]: Json };
 
 /**
- * Couchbase document types.
- */
-export type CouchbaseDocumentTypes = {
-  'JSON': Json;
-  'UTF-8': string;
-  'RAW': NodeJS.TypedArray;
-  'PRIVATE': unknown;
-};
-
-/**
  * Subset of Json types that extend `object`.
  */
 export type JsonObject = Exclude<Json, Primitive>;
-export type JsonPojo = Exclude<Json, Primitive | ReadonlyArray<unknown>>;
-
-/**
- * Extract definitions of JSON documents.
- */
-export type JsonDocumentDef<T extends DocDef> = T extends infer Doc extends DocDef
-  ? Doc['Body'] extends CouchbaseDocumentTypes['JSON']
-    ? Doc
-    : never
-  : never;
-
-/**
- * Extract documents on which you can perform sub-document operations.
- *
- * @see Collection.lookupIn
- * @see Collection.mutateIn
- */
-export type ObjectDocument<Doc> = Extract<Doc, object>;
 
 /**
  * Extract definitions of documents on which you can perform sub-document operations.
@@ -286,7 +248,7 @@ export type DocDefMatchingBody<
 > =
   KeyspaceDocDefArray<T, B, S, C> extends infer Defs extends ReadonlyArray<unknown> ?
     Body extends unknown ?
-      Defs[number] extends infer Def extends DocDef ?
+      Defs[number] extends infer Def extends DocDefBodyShape ?
         Def extends unknown ?
           Def['Body'] extends Body ?
             Def :

@@ -55,11 +55,11 @@ import { MutateInResult } from '../../../crudoptypes.js';
 import { MutateInSpec } from '../../../sdspecs.js';
 
 // prettier-ignore
-type ArrayAddUniqueSpecs<Def extends DocDef , Path extends string, Values extends ReadonlyArray<unknown>> =
+type ArrayAddUniqueSpecs<Values extends ReadonlyArray<unknown>> =
   Values extends [undefined, ...infer Rest] ?
     [
       undefined,
-      ...ArrayAddUniqueSpecs<Def, Path, Rest>
+      ...ArrayAddUniqueSpecs<Rest>
     ] :
   never
 ;
@@ -444,11 +444,7 @@ export class ChainableMutateIn<
     path: Path,
     values: Values,
     options?: MutateInArrayAddUniqueOptions
-  ): ChainableMutateIn<
-    C,
-    Key,
-    [...SpecResults, ...ArrayAddUniqueSpecs<Def, Path, Values>]
-  > {
+  ): ChainableMutateIn<C, Key, [...SpecResults, ...ArrayAddUniqueSpecs<Values>]> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let instance = this;
 
