@@ -22,6 +22,7 @@ import {
   DefaultScopeCollectionName,
   DefaultScopeName,
   DocDef,
+  DocDefKeyBodyShape,
   DocDefMatchingKey,
   IsNever,
   Keyspace,
@@ -238,7 +239,8 @@ export type CollectionMatchingDocDef<
   ClusterCollection<T> extends infer AllCollections extends AnyCollection
     ? AllCollections extends unknown
       ? ExpectedDocDefs extends unknown
-        ? CollectionDocDef<AllCollections> extends infer CollectionDocDefs extends DocDef
+        ? CollectionDocDef<AllCollections> extends infer CollectionDocDefs extends
+            DocDefKeyBodyShape
           ? CollectionDocDefs extends unknown
             ? CollectionDocDefs['Key'] extends ExpectedDocDefs['Key']
               ? CollectionDocDefs['Body'] extends ExpectedDocDefs['Body']
