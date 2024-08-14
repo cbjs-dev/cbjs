@@ -266,105 +266,82 @@ export type PopUntilProperty<Tuple extends readonly string[]> = Tuple extends [
 /**
  * Return `true` if `T[K]` may be undefined.
  */
-export type MaybeMissing<T, K = never> = If<
-  IsNever<
-    undefined extends T
-      ? true
-      : never | T extends ReadonlyArray<unknown>
-        ? K extends GuaranteedIndexes<T>
-          ? never
-          : true
-        : never | K extends OptionalKeys<T>
-          ? true
-          : never
-  >,
-  false,
-  true
->;
+// prettier-ignore
+export type MaybeMissing<T, K = never> =
+  undefined extends T ?
+    true :
+  IsNever<K> extends true ?
+    false :
+  T extends ReadonlyArray<unknown> ?
+    K extends GuaranteedIndexes<T> ?
+      false :
+    true :
+  K extends OptionalKeys<T> ?
+    true :
+  false
+;
 
 /**
- * Return the type at the object key.
+ * Return <subdoc> | undefined if the subdoc may be undefined.
  */
-export type ObjectSubDocument<
-  T,
-  Segments extends ReadonlyArray<string>,
-  OrUndefined extends boolean,
-> = Segments extends [
-  infer Segment extends string,
-  ...infer RestSegments extends string[],
-]
-  ? Segment extends keyof T // Object access
-    ? 1 extends Partial<RestSegments>['length']
-      ? SubDocumentFromPathSegments<T[Segment], RestSegments, MaybeMissing<T, Segment>>
-      : T[Segment] | If<Or<[OrUndefined, MaybeMissing<T, Segment>]>, undefined>
-    : Segment extends ''
-      ? T
-      : never
-  : never;
-
-/**
- * Return the type at the array index.
- */
-type ArraySubDocument<
-  T,
-  Segments extends ReadonlyArray<string>,
-  OrUndefined extends boolean,
-> = Segments extends [
-  infer Segment extends string,
-  ...infer RestSegments extends string[],
-]
-  ? Segment extends `[${infer Index}]` // Array access
-    ? Extract<T, ReadonlyArray<unknown>> extends infer Arr
-      ? ResolveNegativeIndex<Arr, ToNumber<Index>> extends infer ResolvedIndex extends
-          keyof Arr
-        ? 1 extends Partial<RestSegments>['length']
-          ? SubDocumentFromPathSegments<
-              Arr[ResolvedIndex],
-              RestSegments,
-              MaybeMissing<Arr, ResolvedIndex>
-            >
-          :
-              | Arr[ResolvedIndex]
-              | If<Or<[OrUndefined, MaybeMissing<Arr, ResolvedIndex>]>, undefined>
-        : never
-      : never
-    : never
-  : never;
-
-/**
- * Return the document itself if the segment is an empty string.
- */
-type RootSubDocument<T, Segments extends ReadonlyArray<string>> = Segments extends [
-  infer Segment extends string,
-  ...string[],
-]
-  ? Segment extends ''
-    ? T
-    : never
-  : never;
+// prettier-ignore
+type SubDocumentMaybeUndefined<T, Segment extends keyof T, OrUndefined extends boolean> =
+  OrUndefined extends true ?
+    T[Segment] | undefined :
+  MaybeMissing<T, Segment> extends true ?
+    T[Segment] | undefined :
+  T[Segment]
+;
 
 /**
  * Return the sub-document type from path segments.
+ * Non-Distributive.
  */
-type SubDocumentFromPathSegments<
+// prettier-ignore
+export type SubDocumentFromPathSegments<
   T,
   Segments extends ReadonlyArray<string>,
   OrUndefined extends boolean,
-> = T extends unknown
-  ?
-      | ObjectSubDocument<T, Segments, OrUndefined>
-      | ArraySubDocument<T, Segments, OrUndefined>
-      | RootSubDocument<T, Segments>
-  : never;
+> =
+  Segments extends [infer Segment, ...infer RestSegments extends string[]] ?
+    // Object access
+    Segment extends keyof T ?
+      RestSegments['length'] extends 0 ?
+        SubDocumentMaybeUndefined<T, Segment, OrUndefined> :
+      T[Segment] extends infer NextDoc ?
+        NextDoc extends unknown ?
+          SubDocumentFromPathSegments<NextDoc, RestSegments, MaybeMissing<T, Segment>> :
+        never :
+      never :
+
+    // Array access
+    Segment extends `[${infer Index extends number}]` ?
+      ResolveNegativeIndex<T, Index> extends infer ResolvedIndex extends keyof T ?
+        RestSegments['length'] extends 0 ?
+          SubDocumentMaybeUndefined<T, ResolvedIndex, OrUndefined> :
+        SubDocumentFromPathSegments<
+          T[ResolvedIndex],
+          RestSegments,
+          MaybeMissing<T, ResolvedIndex>
+        > :
+      never :
+    Segment extends '' ? // Root
+      T :
+    never :
+  never
+;
 
 /**
  * Return the type of an element at a specific path.
  */
-export type SubDocument<T, P extends string> = T extends unknown
-  ? P extends unknown
-    ? SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false>
-    : never
-  : never;
+// prettier-ignore
+export type SubDocument<T, P extends string> =
+  T extends unknown ?
+    P extends unknown ?
+      SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false> :
+    never :
+  never
+;
 
 /**
  * Return the {@link SubDocument} at the parent accessor or the document itself if there is no parent accessor.

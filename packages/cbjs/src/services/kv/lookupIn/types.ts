@@ -14,12 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PromiseValue } from '@cbjsdev/shared';
+import { IsArrayLengthKnown, IsNever, PromiseValue } from '@cbjsdev/shared';
+import { ExtractCollectionJsonDocDef, ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
+import { AnyCollection } from '../../../clusterTypes/index.js';
 import { LookupInSpecResults, NarrowLookupSpecs } from '../../../clusterTypes/kv/lookup/lookupIn.types.js';
 import { LookupInAllReplicasOptions, LookupInAnyReplicaOptions, LookupInOptions } from '../../../collection.js';
 import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes.js';
 import { LookupInSpec } from '../../../sdspecs.js';
 import { NodeCallback } from '../../../utilities.js';
+import { ChainableLookupIn } from './ChainableLookupIn.js';
 
 export type LookupMethodName = 'lookupIn' | 'lookupInAnyReplica' | 'lookupInAllReplicas';
 
@@ -42,4 +45,18 @@ export type LookupInArgs = readonly [
       optionsOrCallback?: LookupInOptions<boolean> | LookupInAnyReplicaOptions<boolean> | LookupInAllReplicasOptions<boolean> | NodeCallback<unknown>,
       callback?: NodeCallback<unknown>
     ]
+;
+
+export type LookupInReturnType<
+  C extends AnyCollection,
+  Method extends LookupMethodName,
+  Key extends ExtractCollectionJsonDocKey<C>,
+  SpecDefinitions,
+  ThrowOnSpecError extends boolean
+> =
+  IsNever<SpecDefinitions> extends true ?
+    ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError> :
+  IsArrayLengthKnown<SpecDefinitions> extends true ?
+    Promise<LookupResult<Method, SpecDefinitions, ExtractCollectionJsonDocDef<C, Key>, ThrowOnSpecError>> :
+  ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError>
 ;

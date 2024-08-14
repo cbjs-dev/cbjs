@@ -7,6 +7,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitOverride": true,
+    "noEmitOnError": true,
     "moduleResolution": "node16",
     "module": "node16",
     "declaration": true,

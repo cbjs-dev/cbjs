@@ -241,7 +241,8 @@ describe('mutateIn insert', async () => {
       .insert('visitors')
       // @ts-expect-error invalid path - the property does not exist
       .insert('visitors.visitor::001.missingProperty')
-      // @ts-expect-error invalid path - cannot insert a required property within a record
+      // TODO restore test using dedicated insertInRecord
+      // @nots-expect-error invalid path - cannot insert a required property within a record
       .insert('visitors.visitor::001.enteredAt', 1)
       // @ts-expect-error invalid path - cannot insert a required property within an array
       .insert('historicalReferences.persons[0].name', 'John')

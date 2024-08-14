@@ -69,19 +69,17 @@ export type LookupInSpecResults<Specs, Defs> =
  */
 export type LookupInSpecResult<Spec, Def> =
   Def extends DocDefBodyPathShape ?
-    Spec extends unknown ?
-      Spec extends LookupInSpec<infer LookupDef> ?
-        Spec['_op'] extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
-          Spec['_path'] extends keyof LookupInMacroReturnType ?
-            LookupInMacroReturnType[Spec['_path']] :
-          LookupDef extends DocDef<string, infer LookupDefBody> ?
-            If<IsAny<LookupDefBody>, SubDocument<Def['Body'], Spec['_path']>, SubDocument<LookupDefBody, Spec['_path']>> :
+    Spec extends LookupInSpec<infer LookupDef> ?
+      Spec['_op'] extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
+        Spec['_path'] extends keyof LookupInMacroReturnType ?
+          LookupInMacroReturnType[Spec['_path']] :
+        IsAny<LookupDef['Body']> extends true ?
           SubDocument<Def['Body'], Spec['_path']> :
-        Spec['_op'] extends CppProtocolSubdocOpcode.get_count ?
-          number :
-        Spec['_op'] extends CppProtocolSubdocOpcode.exists ?
-          boolean :
-        never :
+        SubDocument<LookupDef['Body'], Spec['_path']> :
+      Spec['_op'] extends CppProtocolSubdocOpcode.get_count ?
+        number :
+      Spec['_op'] extends CppProtocolSubdocOpcode.exists ?
+        boolean :
       never :
     never :
   never

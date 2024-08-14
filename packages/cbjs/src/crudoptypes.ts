@@ -333,7 +333,7 @@ export class MutateInResultEntry<Result = number | undefined> {
  *
  * @category Key-Value
  */
-export class MutateInResult<Results = Array<number | undefined>> {
+export class MutateInResult<Results = ReadonlyArray<number | undefined>> {
   /**
    * A list of result entries for each sub-operation performed.
    */

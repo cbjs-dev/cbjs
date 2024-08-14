@@ -15,8 +15,8 @@
  */
 import { DocDef } from '@cbjsdev/cbjs';
 
-type BookId = `book::${string}`;
-type BookDocument = {
+export type BookId = `book::${string}`;
+export type BookDocument = {
   title: string;
   authors: [string, ...string[]];
   styles: string[];
@@ -31,8 +31,8 @@ type BookDocument = {
   >;
 };
 
-type BookSalesId = `book::${string}::sales`;
-type BookSalesDocument = {
+export type BookSalesId = `book::${string}::sales`;
+export type BookSalesDocument = {
   perCountry: Record<
     string,
     {
@@ -42,16 +42,16 @@ type BookSalesDocument = {
   >;
 };
 
-type AuthorId = `author::${string}`;
-type AuthorDocument = {
+export type AuthorId = `author::${string}`;
+export type AuthorDocument = {
   firstname: string;
   lastname: string;
   birthDate: number;
   bookIds: BookId[];
 };
 
-type EditorId = `editor::${string}`;
-type EditorDocument = {
+export type EditorId = `editor::${string}`;
+export type EditorDocument = {
   name: string;
   createdAt?: number;
   bookPublished?: number;

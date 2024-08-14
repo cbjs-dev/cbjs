@@ -115,6 +115,7 @@ describe('SubDocument', function () {
     expectTypeOf<SubDocument<Doc, 'obj.requiredArrayOfObjects'>>().toEqualTypeOf<
       Array<{ aop: string }>
     >();
+
     expectTypeOf<
       SubDocument<Doc, `obj.requiredArrayOfObjects[${number}]`>
     >().toEqualTypeOf<{ aop: string } | undefined>();
@@ -148,6 +149,9 @@ describe('SubDocument', function () {
     expectTypeOf<SubDocument<Doc, `obj.mixed[${number}]`>>().toEqualTypeOf<
       string | undefined
     >();
+
+    type T = SubDocument<Doc, `obj.mixed.prop`>;
+    //   ^?
     expectTypeOf<SubDocument<Doc, `obj.mixed.prop`>>().toEqualTypeOf<string>();
     expectTypeOf<SubDocument<Doc, `obj.nestedArray`>>().toEqualTypeOf<string[][]>();
     expectTypeOf<SubDocument<Doc, `obj.nestedArray[0]`>>().toEqualTypeOf<

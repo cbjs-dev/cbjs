@@ -384,7 +384,7 @@ describe('Collection', async () => {
 
       expectTypeOf(whateverMap).toEqualTypeOf<
         CouchbaseMap<
-          DefaultClusterTypes,
+          UserClusterTypes,
           'test',
           '_default',
           '_default',

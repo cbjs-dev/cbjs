@@ -1894,14 +1894,14 @@ export class Collection<
   >(
     key: Key,
     specs: NarrowLookupSpecs<
-      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
+      ExtractCollectionJsonDocDef<Collection<T, B, S, C>, NoInfer<Key>>,
       SpecDefinitions
     >,
     callback?: NodeCallback<
       LookupInResult<
         LookupInSpecResults<
           SpecDefinitions,
-          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
+          ExtractCollectionJsonDocDef<Collection<T, B, S, C>, NoInfer<Key>>
         >,
         ThrowOnSpecError
       >

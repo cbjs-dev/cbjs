@@ -26,14 +26,15 @@ import {
   MutateInArrayPrependPath,
   MutateInCounterPath,
   MutateInInsertPath,
+  MutateInRemovePath,
   MutateInReplacePath,
+  MutateInUpsertPath,
 } from './clusterTypes/index.js';
 import {
   LookupInInternalPath,
   LookupInPath,
   LookupInSpecOpCode,
   MakeLookupInSpec,
-  ToLookupInternalPath,
 } from './clusterTypes/kv/lookup/lookupIn.types.js';
 import {
   LookupInCountPath,
@@ -43,7 +44,6 @@ import {
 import {
   AnyMutateInPath,
   AnyMutateInValue,
-  MutateInPath,
   MutateInSpecOpcode,
   MutateInValue,
 } from './clusterTypes/kv/mutation/mutateIn.types.js';
@@ -61,14 +61,12 @@ import {
   MutateInCounterValue,
   MutateInDecrementOptions,
   MutateInInsertOptions,
+  MutateInInsertValue,
   MutateInRemoveOptions,
   MutateInReplaceOptions,
   MutateInReplaceValue,
   MutateInUpsertOptions,
-  ValidateMutateInInsertPath,
-  ValidateMutateInRemovePath,
-  ValidateMutateInReplacePath,
-  ValidateMutateInUpsertPath,
+  MutateInUpsertValue,
 } from './clusterTypes/kv/mutation/mutationOperations.types.js';
 
 /**
@@ -459,11 +457,11 @@ export class MutateInSpec<
    */
   static insert<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_add>,
-    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_add, Path>,
+    const Path extends MutateInInsertPath<Def>,
+    Value extends MutateInInsertValue<Def, Path>,
   >(
     this: void,
-    path: ValidateMutateInInsertPath<Def, Path>,
+    path: Path,
     value: Value,
     options?: MutateInInsertOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.dict_add, Path, boolean, Value> {
@@ -487,11 +485,11 @@ export class MutateInSpec<
 
   static upsert<
     Def extends DocDef,
-    const Path extends AnyMutateInPath<Def, CppProtocolSubdocOpcode.dict_upsert>,
-    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.dict_upsert, Path>,
+    const Path extends MutateInUpsertPath<Def>,
+    Value extends MutateInUpsertValue<Def, Path>,
   >(
     this: void,
-    path: ValidateMutateInUpsertPath<Def, Path>,
+    path: Path,
     value: Value,
     options?: MutateInUpsertOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.dict_upsert, Path, false, Value>;
@@ -510,25 +508,12 @@ export class MutateInSpec<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  static upsert<
-    Def extends DocDef,
-    Path extends AnyMutateInPath<
-      Def,
-      CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert
-    >,
-    Value extends AnyMutateInValue<Def, CppProtocolSubdocOpcode.set_doc, Path>,
-  >(
+  static upsert(
     this: void,
-    path: Path,
-    value: Value,
+    path: string,
+    value: unknown,
     options?: MutateInUpsertOptions
-  ): MutateInSpec<
-    Def,
-    CppProtocolSubdocOpcode.set_doc | CppProtocolSubdocOpcode.dict_upsert,
-    any,
-    boolean,
-    any
-  > {
+  ): any {
     if (!path) {
       return MutateInSpec._create(
         binding.protocol_subdoc_opcode.set_doc,
@@ -563,7 +548,7 @@ export class MutateInSpec<
     Value extends MutateInReplaceValue<Def, Path>,
   >(
     this: void,
-    path: ValidateMutateInReplacePath<Def, Path>,
+    path: Path,
     value: Value,
     options?: MutateInReplaceOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.replace, Path, boolean, Value> {
@@ -583,10 +568,10 @@ export class MutateInSpec<
 
   static remove<
     Def extends DocDef,
-    const Path extends Exclude<AnyMutateInPath<Def, CppProtocolSubdocOpcode.remove>, ''>,
+    const Path extends Exclude<MutateInRemovePath<Def>, ''>,
   >(
     this: void,
-    path: ValidateMutateInRemovePath<Def, Path>,
+    path: Path,
     options?: MutateInRemoveOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.remove, Path, false, never>;
 
@@ -599,35 +584,19 @@ export class MutateInSpec<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  static remove<
-    Def extends DocDef,
-    Path extends AnyMutateInPath<
-      Def,
-      CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc
-    >,
-  >(
-    this: void,
-    path: ValidateMutateInRemovePath<Def, Path>,
-    options?: MutateInRemoveOptions
-  ): MutateInSpec<
-    Def,
-    CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc,
-    any,
-    false,
-    never
-  > {
+  static remove(this: void, path: string, options?: MutateInRemoveOptions): any {
     if (!path) {
       return MutateInSpec._create(
         binding.protocol_subdoc_opcode.remove_doc,
         '',
-        undefined as never,
+        undefined,
         options
       );
     }
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.remove,
-      path as any,
-      undefined as never,
+      path,
+      undefined,
       options
     );
   }

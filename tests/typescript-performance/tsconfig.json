@@ -14,6 +14,5 @@
     "declaration": true,
     "sourceMap": true,
     "resolveJsonModule": true
-  },
-  "files": ["src/lab2.ts"]
+  }
 }
