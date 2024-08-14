@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef } from './clusterTypes/index.js';
 
 /**
  * Represents a search term for a RangeScan.
@@ -146,17 +145,3 @@ export class PrefixScan<const Prefix extends string = string> implements ScanTyp
     return 'prefix_scan';
   }
 }
-
-export type ValidateScanTerm<DocDefs extends DocDef, Term> = Term extends string
-  ? `${Term}${string}` extends infer PrefixTemplate
-    ? DocDefs extends unknown
-      ? DocDefs['Key'] extends PrefixTemplate
-        ? {
-            DocDefs: DocDefs;
-            Term: Term;
-            PrefixTemplate: PrefixTemplate;
-          }
-        : never
-      : never
-    : never
-  : never;
