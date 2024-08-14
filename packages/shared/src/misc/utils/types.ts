@@ -138,12 +138,21 @@ export type Split<
   T extends string,
   Delimiter extends string,
   LiteralWrapper extends string,
+> = SplitTRE<T, Delimiter, LiteralWrapper, []>;
+
+// prettier-ignore
+export type SplitTRE<
+  T extends string,
+  Delimiter extends string,
+  LiteralWrapper extends string,
+  Acc extends ReadonlyArray<string>
 > =
-  CaptureUntil<T, Delimiter, LiteralWrapper> extends infer FirstChunk extends string
-    ? T extends `${FirstChunk}${Delimiter}${infer Rest}`
-      ? [FirstChunk, ...Split<Rest, Delimiter, LiteralWrapper>]
-      : [FirstChunk]
-    : [T];
+  CaptureUntil<T, Delimiter, LiteralWrapper> extends infer FirstChunk extends string ?
+    T extends `${FirstChunk}${Delimiter}${infer Rest}` ?
+      SplitTRE<Rest, Delimiter, LiteralWrapper, [...Acc, FirstChunk]> :
+    [...Acc, FirstChunk] :
+  Acc
+;
 
 /**
  * Join a tuple of string into a string.
