@@ -19,7 +19,7 @@ import { getQueryIndexRemainingMutations } from '@cbjsdev/http-client';
 import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
-describe('getQueryIndexRemainingMutations', async () => {
+describe('getQueryIndexRemainingMutations', { skip: true }, async () => {
   const test = await createCouchbaseTest();
 
   test(

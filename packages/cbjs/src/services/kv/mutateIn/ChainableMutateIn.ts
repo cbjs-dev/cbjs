@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import {
-  DocDef,
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes.js';
