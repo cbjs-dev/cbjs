@@ -26,9 +26,9 @@ Once you have defined your [Cluster Types](cluster-types), you will unlock many 
 ### Inferred return type
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -41,7 +41,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -60,9 +60,9 @@ const { content: [firstAuthor], } = await collection.lookupIn(bookId).get('autho
 ### IDE Autocompletion
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -75,7 +75,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -113,9 +113,9 @@ Because Cbjs uses discriminated unions, type guards emerge naturally.
 ### Sub-document lookup
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -128,7 +128,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -154,9 +154,9 @@ console.log(title);
 ### Callbacks
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -169,7 +169,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -187,9 +187,9 @@ const result = await collection.get(bookId, (err, res) => {
 Another example of what Cbjs does for you.
 
 ```ts twoslash
-import { DocDef, connect, ClusterTypes } from '@cbjsdev/cbjs';
+import { DocDef, connect } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -202,7 +202,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     },
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');

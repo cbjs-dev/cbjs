@@ -95,9 +95,9 @@ During a `lookupIn`, the function will not throw if the error is related to a `L
 In the following example, we assume `authors` contains a single element.
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [
@@ -105,7 +105,7 @@ type MyClusterTypes = ClusterTypes<{
       ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -135,9 +135,9 @@ if (secondAuthor.error !== null) {
 Each sub-document spec may fail individually. For this reason, the lookup return may be filled with errors. You can see below that `bookTitle` contains a union type, forcing you to check the error for each sub-doc operation.
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [
@@ -145,7 +145,7 @@ type MyClusterTypes = ClusterTypes<{
       ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -171,9 +171,9 @@ Using that option, `lookupIn` will fail if any spec leads to an error.
 This frees you from checking individual spec for error.
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [
@@ -181,7 +181,7 @@ type MyClusterTypes = ClusterTypes<{
       ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');

@@ -18,13 +18,13 @@ const cluster = await connect<MyClusterTypes>('...');
 The definition of the types is done when connecting to the cluster, by passing a type with this shape :
 
 ```ts
-type CouchbaseClusterTypes = ClusterTypes<{
+type CouchbaseClusterTypes = {
   [bucket: string]: {
     [scope: string]: {
       [collection: string]: DocDef[];
     };
   };
-}>;
+};
 ```
 
 The following example describe the keyspace `store.library.books` that can contain two types of documents.
@@ -34,7 +34,7 @@ Express documents keys as a template literal to enable key validation and more p
 :::
 
 ```ts
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [
@@ -43,7 +43,7 @@ type MyClusterTypes = ClusterTypes<{
       ]
     };
   };
-}>;
+};
 ```
 
 Note that the cluster definition must always be wrapped with `ClusterTypes`. Children definitions may use an object directly if they don't need to declare options. 
@@ -53,9 +53,9 @@ Note that the cluster definition must always be wrapped with `ClusterTypes`. Chi
 Given the previous definitions, the following type safety arise :
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [
@@ -64,7 +64,7 @@ type MyClusterTypes = ClusterTypes<{
       ]
     };
   };
-}>;
+};
 
 // ---cut-before---
 // @errors: 2304 2322 2345 2554 2769
@@ -104,7 +104,7 @@ This is the most basic strategy. It checks if the key extends the template.
 
 ```ts twoslash
 // ---cut-start---
-import { ClusterCollection, DocDef, connect, ClusterTypes } from '@cbjsdev/cbjs';
+import { ClusterCollection, DocDef, connect } from '@cbjsdev/cbjs';
 
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -113,7 +113,7 @@ const collection = cluster.bucket('store').scope('library').collection('books');
 // The result is either a book or the book reviews
 const result = await collection.get('book::001::reviews');
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: { 
     library: {
       books: [
@@ -122,7 +122,7 @@ type MyClusterTypes = ClusterTypes<{
       ];
     };
   };
-}>;
+};
 ```
 
 Because the key `'book::001::reviews'` extends both string templates, both documents are matched.
@@ -135,7 +135,7 @@ Now let's see another strategy named `delimiter`, that uses the common delimiter
 
 ```ts twoslash
 // ---cut-start---
-import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
+import { DocDef, connect } from '@cbjsdev/cbjs';
 
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -149,7 +149,8 @@ type ClusterTypesOptions = {
   keyDelimiter: '::';
 };
 
-type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
+type MyClusterTypes = {
+  '@options': ClusterTypesOptions;
   store: {
     library: {
       books: [
@@ -158,15 +159,15 @@ type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
       ];
     };
   };
-}>;
+};
 ```
 
 ### First Match
 Finally, if the previous strategy does not work for you, you can use the `firstMatch` strategy, that simply uses the first declared document that matches the key :
 
-```ts{12,13} twoslash
+```ts{13,14} twoslash
 // ---cut-start---
-import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef, connect } from '@cbjsdev/cbjs';
+import { DocDef, connect } from '@cbjsdev/cbjs';
 const cluster = await connect<MyClusterTypes>('...');
 const collection = cluster.bucket('store').scope('library').collection('books');
 // ---cut-end---
@@ -178,7 +179,8 @@ type ClusterTypesOptions = {
   keyMatchingStrategy: 'firstMatch';
 };
 
-type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
+type MyClusterTypes = {
+  '@options': ClusterTypesOptions;
   store: {
     library: {
       books: [
@@ -187,33 +189,39 @@ type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
       ];
     };
   };
-}>;
+};
 ```
 
 ### Picking a strategy
-When declaring your cluster types, you can pass some options using one of the type helpers.  
-Note that the cluster types options are inherited from the top down.
+When declaring your cluster types, you can pass some options the special jey `@options`.  
+Note that the cluster types options are inherited from the top down, but not merged.
 
 ```ts twoslash
-import { ClusterTypes, BucketTypes, ScopeTypes, CollectionTypes, DocDef } from '@cbjsdev/cbjs';
+import { DocDef } from '@cbjsdev/cbjs';
 // ---cut-before---
-type ClusterTypesOptions = {
-  keyMatchingStrategy: 'delimiter';
-  keyDelimiter: '::';
+type ClusterOptions = {
+  keyMatchingStrategy: 'firstMatch';
 };
 
-type MyClusterTypes = ClusterTypes<ClusterTypesOptions, {
-  store: BucketTypes<{
-    library: ScopeTypes<{
-      books: CollectionTypes<[ DocDef ]>
-    }>
-  }>
-}>;
-```
+type BucketOptions = {
+  keyMatchingStrategy: 'delimiter';
+  keyDelimiter: '__';
+};
 
-:::tip
-Passing options to the helper is optional but always comes as the first type argument.
-:::
+type CollectionOptions = {
+  keyMatchingStrategy: 'always';
+};
+
+type MyClusterTypes = {
+  '@options': ClusterOptions;
+  store: {
+    '@options': BucketOptions;
+    library: {
+      books: CollectionOptions | [ DocDef ]
+    }
+  }
+};
+```
 
 ## Incremental adoption
 
@@ -221,16 +229,16 @@ Using strict cluster types on an existing project can be overwhelming.
 You may want to adopt cluster types progressively, you can start by defining some part of your types :
 
 ```ts
-import type { DefaultClusterTypes, ClusterTypes } from '@cbjsdev/cbjs';
+import type { DefaultClusterTypes } from '@cbjsdev/cbjs';
 
 // Note the use of the type helper `DefaultClusterTypes`
-type MyClusterTypes = DefaultClusterTypes & ClusterTypes<{
+type MyClusterTypes = DefaultClusterTypes & {
   store: {
     library: {
       books: [/* Document definitions */];
     };
   };
-}>;
+};
 ```
 
 This will enable type safety only for the collection `store.library.books`. Reference to other bucket, scope or collection will be treated as before.
@@ -240,27 +248,28 @@ This will enable type safety only for the collection `store.library.books`. Refe
 When you expect some of your cluster's bucket, scope or collection, you cannot use a union type to define multiple collections for examples
 
 ```ts twoslash
-import { DocDef, Scope, ClusterTypes } from '@cbjsdev/cbjs';
+import { DocDef, Scope } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [DocDef];
     };
   };
-}>;
+};
 
 // ---cut-before---
 // @errors: 2344
+// ❌ Doesn't work
 type AcceptedScopes = Scope<MyClusterTypes, 'store', 'library' | 'groceries'>;
 ```
 
 If you want to reference a range of bucket/scope/collection, the solution is to use the types provided by Cbjs:
 
 ```ts twoslash
-import { ClusterScope, DocDef, Scope, ClusterTypes } from '@cbjsdev/cbjs';
+import { ClusterScope, DocDef, Scope } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [DocDef];
@@ -269,10 +278,10 @@ type MyClusterTypes = ClusterTypes<{
       meat: [DocDef];
     };
   };
-}>;
+};
 
 // ---cut-before---
-// We accept two scopes from the bucket `store`.
+// ✅ Works
 type AcceptedScopes = ClusterScope<MyClusterTypes, 'store', 'library' | 'groceries'>;
 
 declare function doSomethingWithScope(scope: AcceptedScopes): void;
@@ -288,9 +297,9 @@ The types `ClusterBucket`, `ClusterScope` and `ClusterCollection` simply generat
 You can also use some kind of wildcard by passing `any` or `never`.
 
 ```ts twoslash
-import { ClusterCollection, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { ClusterCollection, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   backend: {
     webstore: {
       customers: [DocDef<`customer::${string}`, { firstname: string }>];
@@ -299,7 +308,7 @@ type MyClusterTypes = ClusterTypes<{
       customers: [DocDef<`customer::${string}`, { firstname: string }>];
     };
   };
-}>;
+};
 
 // ---cut-before---
 // @errors: 2345
@@ -340,9 +349,9 @@ const result = await collection.lookupIn('book::001').get('title').get('authors[
 Because of IDEs current limitations, autocomplete will not be offered for array indexes. Using the previous example :
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -355,7 +364,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -374,9 +383,9 @@ Nevertheless, `authors[0]` is a valid path.
 This does not apply to tuples, as their length is fixed.
 
 ```ts twoslash
-import { connect, DocDef, ClusterTypes } from '@cbjsdev/cbjs';
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-type MyClusterTypes = ClusterTypes<{
+type MyClusterTypes = {
   store: {
     library: {
       books: [ DocDef<
@@ -389,7 +398,7 @@ type MyClusterTypes = ClusterTypes<{
       > ]
     };
   };
-}>;
+};
 
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
@@ -406,19 +415,6 @@ const result = await collection
 &nbsp;  
 &nbsp;  
 &nbsp;
-
-### Recursivity
-
-If a recursive type is identified, only one iteration will be performed, for the sake of autocompletion.
-Deeper path will be unchecked.
-
-```ts twoslash
-import { DocumentPath } from '@cbjsdev/shared';
-
-// ---cut-before---
-type RecursiveStringArray = (string | RecursiveStringArray)[];
-type AllowedPath = DocumentPath<RecursiveStringArray>;
-```
 
 ### Tuples
 
