@@ -38,13 +38,13 @@
     "json-bigint": "^1.0.0",
     "node-fetch": "^3.3.2",
     "semver": "^7.6.0",
-    "ts-retry-promise": "^0.8.0",
-    "vitest": "1.5.2"
+    "ts-retry-promise": "^0.8.0"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.4",
     "@types/semver": "^7.5.8",
     "typescript": "5.4.5",
+    "vitest": "1.5.2",
     "zod": "^3.22.4"
   },
   "publishConfig": {
