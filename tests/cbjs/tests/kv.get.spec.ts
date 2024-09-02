@@ -16,6 +16,7 @@
  */
 import { beforeEach, describe, vi } from 'vitest';
 
+import { DocumentNotFoundError } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
 import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
@@ -238,5 +239,62 @@ describe.shuffle('kv get', async () => {
     // BUG JSCBC-784: Check to make sure that the value property
     // returns the same as the content property.
     expect(res.value).toStrictEqual(res.content);
+  });
+
+  test('should get an existing document with throwIfMissing: true', async function ({
+    serverTestContext,
+    expect,
+    testKeyA,
+    testObjVal,
+  }) {
+    await serverTestContext.collection.upsert(testKeyA, testObjVal);
+    const res = await serverTestContext.collection.get(testKeyA, {
+      throwIfMissing: true,
+    });
+    expect(res.value).toStrictEqual(testObjVal);
+
+    // Support legacy API
+    expect(res.value).toStrictEqual(res.content);
+  });
+
+  test('should throw when getting a missing document with throwIfMissing: true', async function ({
+    serverTestContext,
+    expect,
+  }) {
+    await expect(
+      serverTestContext.collection.get('missingDocKey', {
+        throwIfMissing: true,
+      })
+    ).rejects.toThrowError(DocumentNotFoundError);
+  });
+  test('should get an existing document with throwIfMissing: false', async function ({
+    serverTestContext,
+    expect,
+    testKeyA,
+    testObjVal,
+  }) {
+    expect.hasAssertions();
+    await serverTestContext.collection.upsert(testKeyA, testObjVal);
+    const res = await serverTestContext.collection.get(testKeyA, {
+      throwIfMissing: false,
+    });
+
+    if (res) {
+      expect(res.value).toStrictEqual(testObjVal);
+
+      // Support legacy API
+      expect(res.value).toStrictEqual(res.content);
+    }
+  });
+
+  test('should return undefined when getting a missing document with throwIfMissing: false', async function ({
+    serverTestContext,
+    expect,
+  }) {
+    const result = await serverTestContext.collection.get('missingDocKey', {
+      throwIfMissing: false,
+    });
+
+    expect(result).toBeUndefined();
   });
 });

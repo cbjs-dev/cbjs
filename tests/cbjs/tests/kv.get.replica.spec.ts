@@ -16,7 +16,12 @@
  */
 import { beforeEach, describe, vi } from 'vitest';
 
-import { DefaultTranscoder, DurabilityLevel } from '@cbjsdev/cbjs';
+import {
+  DefaultTranscoder,
+  DocumentNotFoundError,
+  DocumentUnretrievableError,
+  DurabilityLevel,
+} from '@cbjsdev/cbjs';
 import { getPool } from '@cbjsdev/http-client';
 import { ServerFeatures } from '@cbjsdev/http-client';
 import { waitFor } from '@cbjsdev/shared';
@@ -175,5 +180,31 @@ describe
           expect(res.content).toEqual(testDocContent);
         }
       );
+    });
+
+    test('should throw when getting any replica of a missing document with throwIfMissing: true', async function ({
+      expect,
+      serverTestContext,
+    }) {
+      expect.hasAssertions();
+
+      await expect(
+        serverTestContext.collection.getAnyReplica('missingDocKey', {
+          throwIfMissing: true,
+        })
+      ).rejects.toThrowError(DocumentUnretrievableError);
+    });
+
+    test('should return undefined when getting any replica of a missing document with throwIfMissing: false', async function ({
+      expect,
+      serverTestContext,
+    }) {
+      expect.hasAssertions();
+
+      const result = await serverTestContext.collection.getAnyReplica('missingDocKey', {
+        throwIfMissing: false,
+      });
+
+      expect(result).toBeUndefined();
     });
   });

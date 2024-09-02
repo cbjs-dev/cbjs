@@ -22,6 +22,8 @@ import { DocDef } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import { connect } from './couchbase.js';
 import {
+  GetReplicaResult,
+  GetResult,
   LookupInReplicaResult,
   LookupInResult,
   LookupInResultEntry,
@@ -31,6 +33,7 @@ import { LookupInSpec, MutateInSpec } from './sdspecs.js';
 import { CouchbaseMap, CouchbaseSet } from './services/kv/dataStructures/index.js';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn.js';
+import { StreamableReplicasPromise } from './streamablepromises.js';
 
 type TestDoc = {
   title: string;
@@ -372,6 +375,71 @@ describe('Collection', async () => {
     it('should type expiryTime as number when requested', async () => {
       const result = await collection.get('book::001', { withExpiry: true });
       expectTypeOf(result.expiryTime).toEqualTypeOf<number>();
+    });
+
+    it('should return GetResult when throwIfMissing is true', async () => {
+      const result = collection.get('book::001', {
+        withExpiry: true,
+        throwIfMissing: true,
+      });
+      expectTypeOf(result).toEqualTypeOf<Promise<GetResult<TestDoc, true>>>();
+    });
+
+    it('should return undefined | GetResult when throwIfMissing is false', async () => {
+      const result = collection.get('book::001', {
+        withExpiry: true,
+        throwIfMissing: false,
+      });
+
+      expectTypeOf(result).toEqualTypeOf<Promise<GetResult<TestDoc, true> | undefined>>();
+    });
+  });
+
+  describe('getAnyReplica', () => {
+    it('should return GetReplicaResult when throwIfMissing is true', async () => {
+      const result = collection.getAnyReplica('book::001', {
+        throwIfMissing: true,
+      });
+      expectTypeOf(result).toEqualTypeOf<Promise<GetReplicaResult<TestDoc>>>();
+    });
+
+    it('should return undefined | GetReplicaResult when throwIfMissing is false', async () => {
+      const result = collection.getAnyReplica('book::001', {
+        throwIfMissing: false,
+      });
+
+      expectTypeOf(result).toEqualTypeOf<
+        Promise<GetReplicaResult<TestDoc> | undefined>
+      >();
+    });
+  });
+
+  describe('getAllReplicas', () => {
+    it('should return StreamableReplicasPromise when throwIfMissing is true', async () => {
+      const result = collection.getAllReplicas('book::001', {
+        throwIfMissing: true,
+      });
+
+      expectTypeOf(result).toEqualTypeOf<
+        StreamableReplicasPromise<
+          [GetReplicaResult<TestDoc>, ...GetReplicaResult<TestDoc>[]],
+          GetReplicaResult<TestDoc>
+        >
+      >();
+    });
+
+    it('should return undefined | StreamableReplicasPromise when throwIfMissing is false', async () => {
+      const result = collection.getAllReplicas('book::001', {
+        throwIfMissing: false,
+      });
+
+      expectTypeOf(result).toEqualTypeOf<
+        | StreamableReplicasPromise<
+            [GetReplicaResult<TestDoc>, ...GetReplicaResult<TestDoc>[]],
+            GetReplicaResult<TestDoc>
+          >
+        | undefined
+      >();
     });
   });
 

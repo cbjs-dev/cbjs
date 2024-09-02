@@ -110,7 +110,11 @@ import {
   MutationResult,
   ScanResult,
 } from './crudoptypes.js';
-import { InvalidArgumentError } from './errors.js';
+import {
+  DocumentNotFoundError,
+  DocumentUnretrievableError,
+  InvalidArgumentError,
+} from './errors.js';
 import { DurabilityLevel, StoreSemantics } from './generaltypes.js';
 import { MutationState } from './mutationstate.js';
 import { CollectionQueryIndexManager } from './queryindexmanager.js';
@@ -149,6 +153,7 @@ import {
 export interface GetOptions<
   Def extends DocDefBodyShape,
   WithExpiry extends boolean = boolean,
+  ThrowIfMissing extends boolean = boolean,
 > {
   /**
    * Specifies a list of fields within the document which should be fetched.
@@ -176,6 +181,13 @@ export interface GetOptions<
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * When true, throws a `DocumentNotFoundError` if the document is not found.
+   * When false, returns undefined.
+   * @default true
+   */
+  throwIfMissing?: ThrowIfMissing;
 }
 
 /**
@@ -267,7 +279,7 @@ export type RemoveOptions = Omit<
 /**
  * @category Key-Value
  */
-export interface GetAnyReplicaOptions {
+export interface GetAnyReplicaOptions<ThrowIfMissing extends boolean = boolean> {
   /**
    * Specifies an explicit transcoder to use for this specific operation.
    */
@@ -277,12 +289,19 @@ export interface GetAnyReplicaOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * When true, throws a `DocumentNotFoundError` if the document is not found.
+   * When false, returns undefined.
+   * @default true
+   */
+  throwIfMissing?: ThrowIfMissing;
 }
 
 /**
  * @category Key-Value
  */
-export interface GetAllReplicasOptions {
+export interface GetAllReplicasOptions<ThrowIfMissing extends boolean = boolean> {
   /**
    * Specifies an explicit transcoder to use for this specific operation.
    */
@@ -292,6 +311,13 @@ export interface GetAllReplicasOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * When true, throws a `DocumentNotFoundError` if the document is not found.
+   * When false, returns undefined.
+   * @default true
+   */
+  throwIfMissing?: ThrowIfMissing;
 }
 
 /**
@@ -573,22 +599,24 @@ export class Collection<
     const Key extends CollectionDocDef<this>['Key'],
     Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     WithExpiry extends boolean = false,
+    ThrowIfMissing extends boolean = true,
   >(
     key: Key,
     callbackOrOptions?:
-      | GetOptions<Doc, WithExpiry>
+      | GetOptions<Doc, WithExpiry, ThrowIfMissing>
       | NodeCallback<GetResult<Doc, WithExpiry>>
-  ): Promise<GetResult<Doc, WithExpiry>>;
+  ): Promise<CollectionGetReturn<Doc, WithExpiry, ThrowIfMissing>>;
 
   async get<
     const Key extends CollectionDocDef<this>['Key'],
     Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
-    WithExpiry extends boolean = boolean,
+    WithExpiry extends boolean = false,
+    ThrowIfMissing extends boolean = true,
   >(
     key: Key,
-    options: GetOptions<Doc, WithExpiry>,
+    options: GetOptions<Doc, WithExpiry, ThrowIfMissing>,
     callback: NodeCallback<GetResult<Doc, WithExpiry>>
-  ): Promise<GetResult<Doc, WithExpiry>>;
+  ): Promise<CollectionGetReturn<Doc, WithExpiry, ThrowIfMissing>>;
   /**
    * Retrieves the value of a document from the collection.
    *
@@ -600,15 +628,19 @@ export class Collection<
     const Key extends CollectionDocDef<this>['Key'],
     Doc extends DocDefMatchingKey<Key, T, B, S, C>['Body'],
     WithExpiry extends boolean,
+    ThrowIfMissing extends boolean = true,
   >(
     key: Key,
-    options?: GetOptions<Doc, WithExpiry> | NodeCallback<GetResult<Doc, WithExpiry>>,
+    options?:
+      | GetOptions<Doc, WithExpiry, ThrowIfMissing>
+      | NodeCallback<GetResult<Doc, WithExpiry>>,
     callback?: NodeCallback<GetResult<Doc, WithExpiry>>
-  ): Promise<GetResult<Doc, WithExpiry>> {
+  ): Promise<CollectionGetReturn<Doc, WithExpiry, ThrowIfMissing>> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
     }
+
     if (!options) {
       options = {};
     }
@@ -647,6 +679,12 @@ export class Collection<
 
       if (callback) {
         callback(err, null);
+      }
+
+      const { throwIfMissing = true } = options;
+
+      if (!throwIfMissing && err instanceof DocumentNotFoundError) {
+        return undefined as CollectionGetReturn<Doc, WithExpiry, ThrowIfMissing>;
       }
 
       throw err;
@@ -923,11 +961,12 @@ export class Collection<
   async getAnyReplica<
     Key extends CollectionDocDef<this>['Key'],
     Def extends DocDefMatchingKey<Key, T, B, S, C>,
+    ThrowIfMissing extends boolean = true,
   >(
     key: Key,
-    options: GetAnyReplicaOptions,
+    options: GetAnyReplicaOptions<ThrowIfMissing>,
     callback?: NodeCallback<GetReplicaResult<Def['Body']>>
-  ): Promise<GetReplicaResult<Def['Body']>>;
+  ): Promise<CollectionGetAnyReplicaReturn<Def['Body'], ThrowIfMissing>>;
 
   /**
    * Retrieves the value of the document from any of the available replicas.  This
@@ -940,22 +979,32 @@ export class Collection<
   async getAnyReplica<
     Key extends CollectionDocDef<this>['Key'],
     Def extends DocDefMatchingKey<Key, T, B, S, C>,
+    ThrowIfMissing extends boolean = true,
   >(
     key: Key,
-    callbackOrOptions?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Def['Body']>>
-  ): Promise<GetReplicaResult<Def['Body']>>;
+    callbackOrOptions?:
+      | GetAnyReplicaOptions<ThrowIfMissing>
+      | NodeCallback<GetReplicaResult<Def['Body']>>
+  ): Promise<CollectionGetAnyReplicaReturn<Def['Body'], ThrowIfMissing>>;
 
   async getAnyReplica<
     Key extends CollectionDocDef<this>['Key'],
     Def extends DocDefMatchingKey<Key, T, B, S, C>,
+    ThrowIfMissing extends boolean = true,
   >(
     key: Key,
-    options?: GetAnyReplicaOptions | NodeCallback<GetReplicaResult<Def['Body']>>,
+    options?:
+      | GetAnyReplicaOptions<ThrowIfMissing>
+      | NodeCallback<GetReplicaResult<Def['Body']>>,
     callback?: NodeCallback<GetReplicaResult<Def['Body']>>
-  ): Promise<GetReplicaResult<Def['Body']>> {
+  ): Promise<CollectionGetAnyReplicaReturn<Def['Body'], ThrowIfMissing>> {
     if (options instanceof Function) {
       callback = options;
       options = undefined;
+    }
+
+    if (!options) {
+      options = {};
     }
 
     try {
@@ -977,6 +1026,12 @@ export class Collection<
 
       if (callback) {
         callback(err, null);
+      }
+
+      const { throwIfMissing = true } = options;
+
+      if (!throwIfMissing && err instanceof DocumentUnretrievableError) {
+        return undefined as CollectionGetAnyReplicaReturn<Def['Body'], ThrowIfMissing>;
       }
 
       throw err;
@@ -2921,3 +2976,18 @@ type CollectionQueueReturn<
     never :
   never
 ;
+
+type CollectionGetReturn<
+  Doc,
+  WithExpiry extends boolean,
+  ThrowIfMissing extends boolean,
+> = ThrowIfMissing extends true
+  ? GetResult<Doc, WithExpiry>
+  : GetResult<Doc, WithExpiry> | undefined;
+
+type CollectionGetAnyReplicaReturn<
+  Doc,
+  ThrowIfMissing extends boolean,
+> = ThrowIfMissing extends true
+  ? GetReplicaResult<Doc>
+  : GetReplicaResult<Doc> | undefined;
