@@ -26,7 +26,7 @@ import {
   CouchbaseClusterChangeUpdateIndex,
 } from './types.js';
 
-export async function applyClusterChanges(
+export async function applyCouchbaseClusterChanges(
   cluster: Cluster,
   apiConfig: CouchbaseHttpApiConfig,
   changes: CouchbaseClusterChange[]
