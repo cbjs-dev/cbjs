@@ -24,7 +24,13 @@ import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
 export type WaitForQueryIndexOptions = Pretty<
-  WaitForOptions & { awaitMutations?: boolean }
+  WaitForOptions & {
+    /**
+     * Wait for the index to have processed all mutations.
+     * @default true
+     */
+    awaitMutations?: boolean;
+  }
 >;
 
 /**

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-export type ApiQueryResponseBody<T> = {
+export type ApiQueryResponseBody<Result, Signature = { name: 'json' }> = {
   requestID: string;
-  signature: {
-    name: 'json';
-  };
-  results: T;
+  signature: Signature;
+  results: Result;
   status: 'success' | 'failure';
   metrics: {
     elapsedTime: `${number}ms`;

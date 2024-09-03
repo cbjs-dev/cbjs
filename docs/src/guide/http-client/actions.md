@@ -365,6 +365,46 @@ declare function getQuerySearchIndexes(
 ): Promise<HttpClientSearchIndex[]>;
 ```
 
+### createQueryIndex
+
+Create a query index.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, HttpClientSearchIndex, Keyspace, CreateQueryIndexOptions, CreateQueryIndexResponse } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function createQueryIndex(
+  params: CouchbaseHttpApiConfig,
+  indexName: string,
+  keyspace: Keyspace,
+  config: {
+    keys: string[],
+    where?: string,
+    numReplicas?: number
+  },
+  options?: CreateQueryIndexOptions
+): Promise<CreateQueryIndexResponse>;
+```
+
+### updateQueryIndex
+
+Update a query index.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, HttpClientSearchIndex, Keyspace, CreateQueryIndexOptions, CreateQueryIndexResponse } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function updateQueryIndex(
+  params: CouchbaseHttpApiConfig,
+  indexName: string,
+  keyspace: Keyspace,
+  config: {
+    action: 'move' | 'replica_count' | 'drop_replica';
+    num_replica?: number;
+    nodes?: string[];
+    replicaId?: string;
+  }
+): Promise<[]>;
+```
+
 ## RBAC
 
 ### getScope

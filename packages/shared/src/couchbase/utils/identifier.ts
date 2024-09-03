@@ -23,10 +23,23 @@ import {
   ScopeName,
 } from '../clusterTypes/index.js';
 
+/**
+ * Surround the given string with backquotes.
+ * @param name
+ */
 export function quoteIdentifier(name: string) {
   return '`' + name + '`';
 }
 
+/**
+ * Return the given path with its identifier quoted.
+ * @example
+ * ```ts
+ * quotePath('a.b.c') // `a`.`b`.`c`
+ * quotePath('a.`b`.c') // `a`.`b`.`c`
+ * ```
+ * @param path
+ */
 export function quotePath(path: string) {
   if (path.length === 0) return '';
 

@@ -19,3 +19,5 @@ export * from './getQueryBuckets.js';
 export * from './getQueryIndexes.js';
 export * from './getQueryIndexStats.js';
 export * from './getQueryIndexRemainingMutations.js';
+export * from './createQueryIndex.js';
+export * from './updateQueryIndex.js';
