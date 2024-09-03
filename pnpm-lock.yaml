@@ -127,6 +127,25 @@ importers:
         specifier: 1.5.2
         version: 1.5.2(@types/node@20.14.9)(@vitest/ui@1.5.2)
 
+  packages/deploy:
+    dependencies:
+      '@cbjsdev/cbjs':
+        specifier: workspace:*
+        version: link:../cbjs
+      '@cbjsdev/http-client':
+        specifier: workspace:*
+        version: link:../http-client
+      '@cbjsdev/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.5.2
+        version: 1.5.2(@types/node@20.14.9)(@vitest/ui@1.5.2)
+
   packages/http-client:
     dependencies:
       '@cbjsdev/shared':

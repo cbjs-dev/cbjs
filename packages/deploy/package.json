@@ -1,0 +1,50 @@
+{
+  "name": "@cbjsdev/deploy",
+  "version": "1.12.1",
+  "description": "Utils to manage Couchbase deployment",
+  "keywords": [
+    "couchbase",
+    "deployment"
+  ],
+  "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
+  "license": "Apache-2.0",
+  "homepage": "https://cbjs.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cbjs-dev/cbjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cbjs-dev/cbjs/issues"
+  },
+  "engines": {
+    "node": ">=18.20.4"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "test": "vitest --run",
+    "prepack": "rm -rf dist && pnpm run build"
+  },
+  "main": "dist/src/index.js",
+  "module": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist/**/*.{js,js.map,d.ts}",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "dependencies": {
+    "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/http-client": "workspace:*",
+    "@cbjsdev/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.4.5",
+    "vitest": "1.5.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
