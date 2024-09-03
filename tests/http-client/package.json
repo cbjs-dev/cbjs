@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "typescript": "5.4.5",
+    "@types/semver": "^7.5.8",
     "zod": "^3.22.4"
   }
 }

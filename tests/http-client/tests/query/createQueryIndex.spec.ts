@@ -18,27 +18,48 @@ import { describe } from 'vitest';
 import { createQueryIndex } from '@cbjsdev/http-client';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
+import { serverVersionSatisfies } from '../../utils/serverVersionSatisfies.js';
+
 describe('createQueryIndex', { timeout: 40_000 }, async () => {
   const test = await createCouchbaseTest();
 
-  test('create a collection index', async ({ expect, serverTestContext, apiConfig }) => {
-    const indexName = `cbjs_${getRandomId()}`;
-    const ks = {
-      bucket: serverTestContext.bucket.name,
-      scope: serverTestContext.scope.name,
-      collection: serverTestContext.defaultCollection.name,
-    };
+  test.runIf(serverVersionSatisfies('>=7.6.0'))(
+    'create a collection index',
+    async ({ expect, serverTestContext, apiConfig }) => {
+      const indexName = `cbjs_${getRandomId()}`;
+      const ks = {
+        bucket: serverTestContext.bucket.name,
+        scope: serverTestContext.scope.name,
+        collection: serverTestContext.defaultCollection.name,
+      };
 
-    await expect(
-      createQueryIndex(apiConfig, indexName, ks, { keys: ['name'] })
-    ).resolves.toEqual(
-      expect.arrayContaining([
-        {
-          id: expect.any(String),
-          name: indexName,
-          state: 'online',
-        },
-      ])
-    );
-  });
+      await expect(
+        createQueryIndex(apiConfig, indexName, ks, { keys: ['name'] })
+      ).resolves.toEqual(
+        expect.arrayContaining([
+          {
+            id: expect.any(String),
+            name: indexName,
+            state: 'online',
+          },
+        ])
+      );
+    }
+  );
+
+  test.runIf(serverVersionSatisfies('<7.6.0'))(
+    'create a collection index',
+    async ({ expect, serverTestContext, apiConfig }) => {
+      const indexName = `cbjs_${getRandomId()}`;
+      const ks = {
+        bucket: serverTestContext.bucket.name,
+        scope: serverTestContext.scope.name,
+        collection: serverTestContext.defaultCollection.name,
+      };
+
+      await expect(
+        createQueryIndex(apiConfig, indexName, ks, { keys: ['name'] })
+      ).resolves.toEqual(expect.arrayContaining([]));
+    }
+  );
 });

@@ -293,6 +293,9 @@ importers:
         specifier: 1.5.2
         version: 1.5.2(@types/node@20.14.9)(@vitest/ui@1.5.2)
     devDependencies:
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.5.8
       typescript:
         specifier: 5.4.5
         version: 5.4.5
