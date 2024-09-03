@@ -13,7 +13,7 @@
     "url": "https://github.com/cbjs-dev/cbjs/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.4"
   },
   "type": "module",
   "scripts": {
