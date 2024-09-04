@@ -372,7 +372,7 @@ describe('getCouchbaseClusterChanges', () => {
         scope: 'scope1',
         collection: 'collection1',
         keys: ['groupId'],
-        where: 'groupId !== "groupSystem"',
+        where: 'groupId != "groupSystem"',
       },
     ]);
   });
