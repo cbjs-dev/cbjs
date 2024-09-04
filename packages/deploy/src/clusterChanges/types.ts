@@ -135,5 +135,6 @@ export type CouchbaseClusterCollectionConfig = {
 
 export type CouchbaseClusterCollectionIndexConfig = {
   keys: string[];
+  where?: string;
   numReplicas?: number;
 };

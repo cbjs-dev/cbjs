@@ -80,6 +80,9 @@ importers:
       '@cbjsdev/cbjs':
         specifier: workspace:*
         version: link:../packages/cbjs
+      '@cbjsdev/deploy':
+        specifier: workspace:*
+        version: link:../packages/deploy
       '@cbjsdev/http-client':
         specifier: workspace:*
         version: link:../packages/http-client

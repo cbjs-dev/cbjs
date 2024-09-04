@@ -12,6 +12,7 @@
     "@cbjsdev/cbjs": "workspace:*",
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
+    "@cbjsdev/deploy": "workspace:*",
     "@shikijs/vitepress-twoslash": "^1.2.4",
     "@vitejs/plugin-vue": "latest",
     "typescript": "5.4.5",

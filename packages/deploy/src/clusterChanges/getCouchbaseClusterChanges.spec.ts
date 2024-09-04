@@ -308,6 +308,9 @@ describe('getCouchbaseClusterChanges', () => {
                   index2: {
                     keys: ['name'],
                   },
+                  index3: {
+                    keys: ['groupId'],
+                  },
                 },
               },
             },
@@ -329,6 +332,10 @@ describe('getCouchbaseClusterChanges', () => {
                   index2: {
                     keys: ['name'],
                     numReplicas: 1,
+                  },
+                  index3: {
+                    keys: ['groupId'],
+                    where: 'groupId != "groupSystem"',
                   },
                 },
               },
@@ -357,6 +364,15 @@ describe('getCouchbaseClusterChanges', () => {
         collection: 'collection1',
         keys: ['name'],
         numReplicas: 1,
+      },
+      {
+        type: 'recreateIndex',
+        name: 'index3',
+        bucket: 'bucket1',
+        scope: 'scope1',
+        collection: 'collection1',
+        keys: ['groupId'],
+        where: 'groupId !== "groupSystem"',
       },
     ]);
   });

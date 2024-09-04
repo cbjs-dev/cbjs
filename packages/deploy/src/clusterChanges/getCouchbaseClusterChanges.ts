@@ -442,12 +442,11 @@ function getUpdatedIndexes(
       invariant(currentIndex, 'Current index definition not found.');
       invariant(requestedIndex, 'Requested index definition not found.');
 
-      const indexKeysHaveChanged = !areSameIndexKeys(
-        requestedIndex.keys,
-        currentIndex.keys
-      );
+      const indexHaveChanged =
+        !areSameIndexKeys(requestedIndex.keys, currentIndex.keys) ||
+        requestedIndex.where !== currentIndex.where;
 
-      if (indexKeysHaveChanged) {
+      if (indexHaveChanged) {
         return {
           type: 'recreateIndex',
           name: b,

@@ -26,12 +26,23 @@ import {
   CouchbaseClusterChangeUpdateIndex,
 } from './types.js';
 
+export type ChangeOptions = {
+  /**
+   * Timeout for each individual operation.
+   *
+   * @default 10_000
+   */
+  timeout?: number;
+};
+
 export async function applyCouchbaseClusterChanges(
   cluster: Cluster,
   apiConfig: CouchbaseHttpApiConfig,
-  changes: CouchbaseClusterChange[]
+  changes: CouchbaseClusterChange[],
+  options?: ChangeOptions
 ) {
-  const opts = { timeout: 10_000 };
+  const defaultOptions = { timeout: 10_000 };
+  const resolvedOptions = { ...defaultOptions, ...options };
 
   const operations: Record<
     CouchbaseClusterChange['type'],
@@ -59,18 +70,9 @@ export async function applyCouchbaseClusterChanges(
 
   for (const change of changes) {
     const operation = operations[change.type];
-    await operation(cluster, apiConfig, change as never, opts);
+    await operation(cluster, apiConfig, change as never, resolvedOptions);
   }
 }
-
-export type ChangeOptions = {
-  /**
-   * @default true
-   */
-  awaitReadiness?: boolean;
-
-  timeout?: number;
-};
 
 async function applyCreateBucket(
   cluster: Cluster,

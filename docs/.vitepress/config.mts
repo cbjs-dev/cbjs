@@ -142,6 +142,19 @@ export default defineConfig({
               ]
             },
             {
+              text: 'Deploy',
+              items: [
+                {
+                  text: 'Introduction',
+                  link: '/guide/deploy/',
+                },
+                {
+                  text: 'Keyspaces & Indexes',
+                  link: '/guide/deploy/keyspace-changes',
+                },
+              ]
+            },
+            {
               text: 'FAQ',
               link: '/guide/faq',
             }
