@@ -59,6 +59,10 @@ It's up to you to store your previous configuration. You can store the previous 
 You can then pass the changes to `applyCouchbaseClusterChanges`.
 Each change will be applied and awaited. This means means that if you create an index, it will only return once the index is fully available and built.
 
+## Creations
+
+If a bucket/scope/collection/index is scheduled for creation but already exists in the cluster, its creation will be skipped, regardless of its existing configuration.
+
 ## Deletions
 
 Deletions are executed first, to make sure there is enough space to proceed.  
