@@ -26,17 +26,21 @@ import {
   TransactionOperationFailedError,
 } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
-import { invariant, sleep } from '@cbjsdev/shared';
+import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Transactions))
-  .shuffle('transactions', { timeout: 20_000, retry: 1 }, async () => {
+  .shuffle('transactions', { timeout: 40_000, retry: 1 }, async () => {
     const test = await createCouchbaseTest(async ({ serverTestContext }) => {
-      await sleep(2000);
-      await serverTestContext.collection.queryIndexes().createPrimaryIndex();
+      await waitFor(
+        () => serverTestContext.collection.queryIndexes().createPrimaryIndex(),
+        {
+          retryInterval: 2_000,
+        }
+      );
     });
 
     test('should work with a simple transaction', async function ({
