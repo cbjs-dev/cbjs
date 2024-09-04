@@ -27,7 +27,7 @@ export type CouchbaseApiConfig = {
 
 export function getApiConfig(secure = true) {
   const params = getConnectionParams();
-  console.log(params);
+
   return {
     hostname: new URL(params.connectionString).hostname.split(',')[0],
     secure,
