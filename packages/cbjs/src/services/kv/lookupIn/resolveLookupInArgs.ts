@@ -16,7 +16,6 @@
  */
 import { isArray } from '@cbjsdev/shared';
 
-import { DocDef } from '../../../clusterTypes/index.js';
 import type { LookupInOptions } from '../../../collection.js';
 import { LookupInSpec } from '../../../sdspecs.js';
 import type { NodeCallback } from '../../../utilities.js';

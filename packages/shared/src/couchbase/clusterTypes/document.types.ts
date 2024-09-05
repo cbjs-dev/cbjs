@@ -66,7 +66,7 @@ export type KeyspaceDocDefArray<
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
 > =
   IsDefaultClusterTypes<T> extends true ?
-    readonly [DocDef] :
+    readonly [AnyDocDef] :
   Keyspace<T, B, S, C> extends infer KS extends { bucket: string; scope: string; collection: string } ?
     KS extends unknown ?
       KS['bucket'] extends infer KSB extends BucketName<T> ?
@@ -75,7 +75,7 @@ export type KeyspaceDocDefArray<
             KSS extends keyof T[KSB] ?
               KS['collection'] extends infer KSC extends CollectionName<T, KSB, KSS> ?
                 KSC extends keyof T[KSB][KSS] ?
-                  Extract<T[KSB][KSS][KSC], ReadonlyArray<DocDef>> :
+                  Extract<T[KSB][KSS][KSC], ReadonlyArray<AnyDocDef>> :
                 never :
               never :
             never :
@@ -104,6 +104,7 @@ export type KeyspaceDocDef<
  */
 // prettier-ignore
 export type IsFuzzyDocument<T> =
+  IsAny<T> extends true ? true :
   IsNever<keyof T> extends true ? true :
   string extends keyof T ? true :
   symbol extends keyof T ? true :
@@ -153,14 +154,14 @@ export type DocDefMatchingKey<
   C extends CollectionName<T, B, S>,
 > =
   IsAny<T> extends true ?
-    DocDef :
+    AnyDocDef :
   IsNever<Exclude<keyof T, '@options'>> extends true ?
-    DocDef :
+    AnyDocDef :
   GetKeyspaceOptions<T, B, S, C> extends infer ResolvedOptions extends ClusterTypesOptions ?
     B extends keyof T ?
       S extends keyof T[B] ?
         C extends keyof T[B][S] ?
-          T[B][S][C] extends infer Defs extends ReadonlyArray<DocDef> ?
+          T[B][S][C] extends infer Defs extends ReadonlyArray<AnyDocDef> ?
             Key extends unknown ?
               ResolvedOptions extends { keyMatchingStrategy: 'always' } ?
                 MatchDocDefKeyAlways<Key, Defs> :

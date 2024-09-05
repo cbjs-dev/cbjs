@@ -2927,10 +2927,10 @@ type CollectionSetReturn<
   C extends CollectionName<T, B, S>,
   Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key'],
 > =
-  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Def ?
-    IsNever<Def> extends true ?
+  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Doc ?
+    IsNever<Doc> extends true ?
       'This collection does not contain any set.' :
-    If<IsFuzzyDocument<Def>, any, ArrayElement<Def>> extends infer Item ?
+    If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>> extends infer Item ?
       CouchbaseSet<T, B, S, C, Key, Item> :
     never :
   never
@@ -2944,10 +2944,10 @@ type CollectionListReturn<
   C extends CollectionName<T, B, S>,
   Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key'],
 > =
-  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Def ?
-    IsNever<Def> extends true ?
+  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Doc ?
+    IsNever<Doc> extends true ?
       'This collection does not contain any list.' :
-    If<IsFuzzyDocument<Def>, any, ArrayElement<Def>> extends infer Item ?
+    If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>> extends infer Item ?
       CouchbaseList<T, B, S, C, Key, Item> :
     never :
   never
@@ -2961,10 +2961,10 @@ type CollectionQueueReturn<
   C extends CollectionName<T, B, S>,
   Key extends DocDefMatchingBody<ReadonlyArray<unknown>, T, B, S, C>['Key'],
 > =
-  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Def ?
-    IsNever<Def> extends true ?
+  Extract<DocDefMatchingKey<Key, T, B, S, C>['Body'], unknown[]> extends infer Doc ?
+    IsNever<Doc> extends true ?
       'This collection does not contain any queue.' :
-    If<IsFuzzyDocument<Def>, any, ArrayElement<Def>> extends infer Item ?
+    If<IsFuzzyDocument<Doc>, any, ArrayElement<Doc>> extends infer Item ?
       CouchbaseQueue<T, B, S, C, Key, Item> :
     never :
   never

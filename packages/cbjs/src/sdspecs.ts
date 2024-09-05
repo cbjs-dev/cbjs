@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LookupInMacroReturnType } from '@cbjsdev/shared';
+import { AnyDocDef, LookupInMacroReturnType } from '@cbjsdev/shared';
 
 import binding, { CppProtocolSubdocOpcode } from './binding.js';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
@@ -42,8 +42,6 @@ import {
   LookupInGetPath,
 } from './clusterTypes/kv/lookup/lookupOperations.types.js';
 import {
-  AnyMutateInPath,
-  AnyMutateInValue,
   MutateInSpecOpcode,
   MutateInValue,
 } from './clusterTypes/kv/mutation/mutateIn.types.js';
@@ -193,7 +191,7 @@ export class MutateInMacro<
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class LookupInSpec<
-  Def extends DocDef = DocDef,
+  Def extends AnyDocDef = DocDef,
   Opcode extends LookupInSpecOpCode = LookupInSpecOpCode,
   InternalPath extends string = string,
 > {
@@ -229,7 +227,7 @@ export class LookupInSpec<
   }
 
   private static _create<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     Opcode extends LookupInSpecOpCode,
     Path extends LookupInPath<Def, Opcode>,
   >(
@@ -257,13 +255,13 @@ export class LookupInSpec<
     return new LookupInSpec(op, pathValue, flags) as MakeLookupInSpec<Def, Opcode, Path>;
   }
 
-  static get<Def extends DocDef>(
+  static get<Def extends AnyDocDef>(
     this: void,
     path: '',
     options?: { xattr?: boolean }
   ): MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>;
 
-  static get<Def extends DocDef, const Path extends Exclude<LookupInGetPath<Def>, ''>>(
+  static get<Def extends AnyDocDef, const Path extends Exclude<LookupInGetPath<Def>, ''>>(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
@@ -278,7 +276,7 @@ export class LookupInSpec<
    * attributes data for the document.
    */
   static get<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     Path extends LookupInGetPath<Def> = LookupInGetPath<Def>,
   >(this: void, path: Path, options?: { xattr?: boolean }): LookupInSpec {
     if (path === '') {
@@ -296,7 +294,7 @@ export class LookupInSpec<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  static exists<Def extends DocDef, const Path extends LookupInExistsPath<Def>>(
+  static exists<Def extends AnyDocDef, const Path extends LookupInExistsPath<Def>>(
     this: void,
     path: Path,
     options?: { xattr?: boolean }
@@ -314,7 +312,7 @@ export class LookupInSpec<
    * attributes data for the document.
    */
   static count<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends LookupInCountPath<Def> = LookupInCountPath<Def>,
   >(
     this: void,
@@ -331,7 +329,7 @@ export class LookupInSpec<
  * @category Key-Value
  */
 export class MutateInSpec<
-  Def extends DocDef = DocDef,
+  Def extends AnyDocDef = DocDef,
   Opcode extends MutateInSpecOpcode = MutateInSpecOpcode,
   Path extends string = string,
   Multi extends boolean = false,
@@ -391,7 +389,7 @@ export class MutateInSpec<
   }
 
   private static _create<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     Opcode extends MutateInSpecOpcode,
     Path extends string,
     Multi extends boolean,
@@ -456,7 +454,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static insert<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInInsertPath<Def>,
     Value extends MutateInInsertValue<Def, Path>,
   >(
@@ -474,7 +472,7 @@ export class MutateInSpec<
   }
 
   static upsert<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     Value extends MutateInValue<Def, CppProtocolSubdocOpcode.set_doc, ''>,
   >(
     this: void,
@@ -484,7 +482,7 @@ export class MutateInSpec<
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.set_doc, '', false, Value>;
 
   static upsert<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInUpsertPath<Def>,
     Value extends MutateInUpsertValue<Def, Path>,
   >(
@@ -543,7 +541,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static replace<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInReplacePath<Def>,
     Value extends MutateInReplaceValue<Def, Path>,
   >(
@@ -560,14 +558,14 @@ export class MutateInSpec<
     );
   }
 
-  static remove<Def extends DocDef>(
+  static remove<Def extends AnyDocDef>(
     this: void,
     path: '',
     options?: MutateInRemoveOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.remove_doc, '', false, never>;
 
   static remove<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends Exclude<MutateInRemovePath<Def>, ''>,
   >(
     this: void,
@@ -589,14 +587,14 @@ export class MutateInSpec<
       return MutateInSpec._create(
         binding.protocol_subdoc_opcode.remove_doc,
         '',
-        undefined,
+        undefined as never,
         options
       );
     }
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.remove,
       path,
-      undefined,
+      undefined as never,
       options
     );
   }
@@ -618,7 +616,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayAppend<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInArrayAppendPath<Def>,
     Value extends MutateInArrayAppendValue<Def, Path, Multi>,
     Multi extends boolean = false,
@@ -653,7 +651,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayPrepend<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInArrayPrependPath<Def>,
     Value extends MutateInArrayPrependValue<Def, Path, Multi>,
     Multi extends boolean = false,
@@ -690,7 +688,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayInsert<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInArrayInsertPath<Def>,
     Value extends MutateInArrayInsertValue<Def, Path, Multi>,
     Multi extends boolean = false,
@@ -723,7 +721,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static arrayAddUnique<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInArrayAddUniquePath<Def>,
     Value extends MutateInArrayAddUniqueValue<Def, Path>,
   >(
@@ -754,7 +752,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static increment<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInCounterPath<Def>,
     Value extends MutateInCounterValue,
   >(
@@ -785,7 +783,7 @@ export class MutateInSpec<
    * attributes data for the document.
    */
   static decrement<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     const Path extends MutateInCounterPath<Def>,
     Value extends MutateInCounterValue,
   >(

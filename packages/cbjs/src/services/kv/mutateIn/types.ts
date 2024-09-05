@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDef, DocDefKeyBodyPathShape, DocDefKeyBodyShape, If, IsArrayLengthKnown } from '@cbjsdev/shared';
+import { DocDefKeyBodyPathShape, IsArrayLengthKnown } from '@cbjsdev/shared';
 import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
 
 import { AnyCollection } from '../../../clusterTypes/index.js';

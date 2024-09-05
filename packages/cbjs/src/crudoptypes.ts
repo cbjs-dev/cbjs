@@ -14,14 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  DocDefBodyPathShape,
-  DocDefKeyBodyShape,
-  DocDefKeyShape,
-  If,
-} from '@cbjsdev/shared';
+import { AnyDocDef, If } from '@cbjsdev/shared';
 
-import { DocDef } from './clusterTypes/index.js';
 import { LookupInResultEntries } from './clusterTypes/kv/lookup/lookupIn.types.js';
 import { MutateInResultEntries } from './clusterTypes/kv/mutation/mutateIn.types.js';
 import { MutationToken } from './mutationstate.js';
@@ -91,7 +85,7 @@ export class GetResult<T = any, WithExpiry extends boolean = boolean> {
  *
  * @category Key-Value
  */
-export class ScanResult<Def extends DocDef = DocDef> {
+export class ScanResult<Def extends AnyDocDef = AnyDocDef> {
   /**
    * The ID of the document.
    */

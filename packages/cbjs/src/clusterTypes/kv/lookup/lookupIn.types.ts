@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import {
-  ArrayElement, DocDefBodyPathShape, DocDefBodyShape,
+  AnyDocDef,
+  ArrayElement,
+  DocDefBodyPathShape,
+  DocDefBodyShape,
   If,
-  IsAny,
   IsArrayLengthFixed,
   IsFuzzyDocument,
-  LookupInMacroReturnType, LookupInMacroShape, OperationPath,
+  LookupInMacroReturnType,
   SubDocument,
   Try,
 } from '@cbjsdev/shared';
@@ -28,7 +30,6 @@ import type { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { Collection } from '../../../collection.js';
 import type { LookupInResultEntry } from '../../../crudoptypes.js';
 import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
-import { DocDef } from '../../clusterTypes.js';
 import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './lookupOperations.types.js';
 
 
@@ -36,7 +37,7 @@ import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './l
  * Return a {@link LookupInSpec} type with `Path` converted to an internal path.
  */
 export type MakeLookupInSpec<Def, Opcode extends LookupInSpecOpCode, Path> =
-  Def extends DocDef ?
+  Def extends AnyDocDef ?
     LookupInSpec<Def, Opcode, ToLookupInternalPath<Path>> :
   never
 ;
@@ -59,7 +60,7 @@ export type LookupInSpecResults<Specs, Defs> =
 ;
 
 /**
- * Spec operation result type for a {@link LookupInSpec}.
+ * Spec operation result type for a single {@link LookupInSpec}.
  */
 export type LookupInSpecResult<Spec, Def> =
   Def extends DocDefBodyPathShape ?
@@ -67,7 +68,7 @@ export type LookupInSpecResult<Spec, Def> =
       Spec['_op'] extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
         Spec['_path'] extends keyof LookupInMacroReturnType ?
           LookupInMacroReturnType[Spec['_path']] :
-        IsAny<LookupDef['Body']> extends true ?
+        IsFuzzyDocument<LookupDef['Body']> extends true ?
           SubDocument<Def['Body'], Spec['_path']> :
         SubDocument<LookupDef['Body'], Spec['_path']> :
       Spec['_op'] extends CppProtocolSubdocOpcode.get_count ?
@@ -149,7 +150,7 @@ export type ToLookupInternalPath<PublicPath> =
  * Returns an error message if the path or the value is inconsistency, `T` if everything looks good.
  */
 export type ValidateLookupInSpec<ExpectedDefs, Spec> =
-  ExpectedDefs extends DocDef ?
+  ExpectedDefs extends AnyDocDef ?
     Spec extends LookupInSpec<infer Def, infer Opcode, infer InternalPath> ?
       IsFuzzyDocument<ExpectedDefs['Body']> extends true ?
         LookupInSpec<Def, Opcode, InternalPath> :

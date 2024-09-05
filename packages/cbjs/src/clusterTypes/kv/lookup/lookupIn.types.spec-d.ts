@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { LookupInMacroDocument } from '@cbjsdev/shared';
+import { AnyDocDef, LookupInMacroDocument } from '@cbjsdev/shared';
 
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { LookupInResult } from '../../../crudoptypes.js';
@@ -339,10 +339,10 @@ describe('LookupInSpecs', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
+            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'title'>,
+            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
           ],
           TestDocDef
         >
@@ -354,9 +354,9 @@ describe('LookupInSpecs', () => {
       expectTypeOf<
         LookupInSpecResults<
           [
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<DocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+            LookupInSpec<AnyDocDef, CppProtocolSubdocOpcode.get, 'title'>,
+            LookupInSpec<AnyDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+            LookupInSpec<AnyDocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
           ],
           TestDocDef | TestDocDef2
         >
@@ -364,6 +364,7 @@ describe('LookupInSpecs', () => {
     });
 
     it('should fallback to `any` when using default cluster types', () => {
+      // prettier-ignore
       expectTypeOf<
         LookupInSpecResults<
           [

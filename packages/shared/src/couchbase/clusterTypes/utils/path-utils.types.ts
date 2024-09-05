@@ -15,7 +15,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { If, IsNever, Join, Split } from '../../../misc/index.js';
+import type { IsNever, Join, Split } from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
   GuaranteedIndexes,
@@ -112,14 +112,10 @@ type NextDepth<N extends number> = [
  * Note: does not include the root path '' by design.
  */
 // prettier-ignore
-export type DocumentPath<T, K = never> =
+export type DocumentPath<T> =
   T extends object ?
     IsFuzzyDocument<T> extends false ?
-      If<IsNever<K>, keyof T, K> extends infer Key ?
-        Key extends keyof T & AccessibleKey ?
-          BuildPath<T, Key> :
-        never :
-      never :
+      BuildPath<T, Extract<keyof T, AccessibleKey>> :
     string :
   never
 ;
@@ -129,7 +125,7 @@ export type DocumentPath<T, K = never> =
  * Distributed against `T` and `Key`.
  */
 // prettier-ignore
-type BuildPath<T extends object, Key extends AccessibleKey & keyof T> =
+type BuildPath<T extends object, Key> =
   Key extends unknown ?
     PathAhead<T, Key, 1, Accessor<T, Key, 0>, Accessor<T, Key, 0>> :
   never
@@ -141,7 +137,7 @@ type BuildPath<T extends object, Key extends AccessibleKey & keyof T> =
 // prettier-ignore
 type PathAhead<
   T extends object,
-  Key extends AccessibleKey & keyof T,
+  Key,
   Depth extends number,
   ParentPath extends string,
   Acc
@@ -356,11 +352,9 @@ export type SubDocumentFromPathSegments<
  */
 // prettier-ignore
 export type SubDocument<T, P extends string> =
-  T extends unknown ?
-    P extends unknown ?
-      SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false> :
-    never :
-  never
+  IsFuzzyDocument<T> extends true ?
+    any :
+  SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false>
 ;
 
 /**

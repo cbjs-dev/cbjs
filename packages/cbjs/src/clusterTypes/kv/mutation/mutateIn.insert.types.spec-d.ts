@@ -16,6 +16,7 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import {
+  AnyDocDef,
   AssertTests,
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
@@ -37,7 +38,7 @@ describe('mutateIn insert', async () => {
   type TestDocDef = DocDef<string, TestDoc>;
 
   type TestPaths<
-    Def extends DocDef,
+    Def extends AnyDocDef,
     T extends Record<MakeTestPaths<Def['Body']>, boolean>,
   > = {
     [Path in keyof T]: [T[Path], Path extends MutateInInsertPath<Def> ? true : false];

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { IsAny, IsNever, Pretty } from '../../misc/index.js';
-import { DocDef } from './document.types.js';
+import { AnyDocDef } from './document.types.js';
 import {
   BucketName,
   CollectionName,
@@ -56,7 +56,7 @@ type ScopeTypeDefinition =
     }
   | OptionsDefinition;
 
-type CollectionTypeDefinition = ClusterTypesOptions | ReadonlyArray<DocDef> | never[];
+type CollectionTypeDefinition = ClusterTypesOptions | ReadonlyArray<AnyDocDef> | never[];
 
 export type DefaultKeyspaceOptions = {
   keyMatchingStrategy: 'always';
@@ -117,7 +117,7 @@ export type DefaultClusterTypes =
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         [scope in DefaultScopeName | NonNullable<string>]: {
           // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-          [collection in DefaultCollectionName | NonNullable<string>]: [DocDef];
+          [collection in DefaultCollectionName | NonNullable<string>]: [AnyDocDef];
         };
       };
     };

@@ -15,7 +15,7 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { AssertTests, DocumentPath } from '@cbjsdev/shared';
+import { AnyDocDef, AssertTests, DocumentPath } from '@cbjsdev/shared';
 
 import { DocDef } from '../../clusterTypes.js';
 import type {
@@ -34,7 +34,7 @@ describe('lookup operations', function () {
 
   type TestDocDef = DocDef<string, TestDoc>;
 
-  type Paths<Def extends DocDef> = {
+  type Paths<Def extends AnyDocDef> = {
     get: LookupInGetPath<Def>;
     exists: LookupInExistsPath<Def>;
     count: LookupInCountPath<Def>;

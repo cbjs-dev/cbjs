@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {
+  AnyDocDef,
   BucketName,
   CollectionName,
   CouchbaseClusterTypes,
@@ -209,7 +210,7 @@ export type ClusterBucket<
 // prettier-ignore
 export type CollectionContainingDocDef<
   T extends CouchbaseClusterTypes,
-  ExpectedDocDef extends DocDef,
+  ExpectedDocDef extends AnyDocDef,
 > =
   ClusterCollection<T> extends infer AllCollections ?
     AllCollections extends unknown ?
@@ -234,7 +235,7 @@ export type CollectionContainingDocBody<T extends CouchbaseClusterTypes, Expecte
 
 export type CollectionMatchingDocDef<
   T extends CouchbaseClusterTypes,
-  ExpectedDocDefs extends DocDef,
+  ExpectedDocDefs extends DocDefKeyBodyShape,
 > =
   ClusterCollection<T> extends infer AllCollections extends AnyCollection
     ? AllCollections extends unknown
