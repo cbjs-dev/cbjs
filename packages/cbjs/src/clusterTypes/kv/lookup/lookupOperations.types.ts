@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-import type {
+import {
   DocDefBodyPathShape,
-  DocDefLookupGetPathShape,
   ExtractPathToArray,
   ExtractPathToObject,
   If,
-  IsFuzzyDocument,
+  IsFuzzyDocument, LookupInMacroShape,
 } from '@cbjsdev/shared';
-import type { CppProtocolSubdocOpcode } from '../../../binding.js';
-import type { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
-import { DocDef } from '../../clusterTypes.js';
-import type { MakeLookupInSpec } from './lookupIn.types.js';
+import type { LookupInMacro } from '../../../sdspecs.js';
 
 /**
  * Helper to build the path of a lookup operation.
@@ -44,8 +40,8 @@ export type OperationPath<Doc, Path> =
  */
 // prettier-ignore
 export type LookupInGetPath<Def> =
-  Def extends DocDefLookupGetPathShape ?
-    Def['LookupPath']['get'] :
+  Def extends DocDefBodyPathShape ?
+    OperationPath<Def['Body'], Def['Path'] | LookupInMacroShape | ''> :
   never
 ;
 

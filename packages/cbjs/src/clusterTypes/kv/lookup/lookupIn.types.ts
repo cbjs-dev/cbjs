@@ -19,7 +19,7 @@ import {
   IsAny,
   IsArrayLengthFixed,
   IsFuzzyDocument,
-  LookupInMacroReturnType,
+  LookupInMacroReturnType, LookupInMacroShape, OperationPath,
   SubDocument,
   Try,
 } from '@cbjsdev/shared';
@@ -37,7 +37,7 @@ import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './l
  */
 export type MakeLookupInSpec<Def, Opcode extends LookupInSpecOpCode, Path> =
   Def extends DocDef ?
-    LookupInSpec<Def, Opcode, ToLookupInternalPath<Def, Opcode, Path>> :
+    LookupInSpec<Def, Opcode, ToLookupInternalPath<Path>> :
   never
 ;
 
@@ -136,7 +136,7 @@ export type LookupInInternalPath<Def, Opcode extends LookupInSpecOpCode> =
 /**
  * Transform the spec path into the spec internal path.
  */
-export type ToLookupInternalPath<Def, Opcode extends LookupInSpecOpCode, PublicPath> =
+export type ToLookupInternalPath<PublicPath> =
   PublicPath extends LookupInMacro<infer LookupInMacroPath> ?
       LookupInMacroPath :
   PublicPath extends string ?

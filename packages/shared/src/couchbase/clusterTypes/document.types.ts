@@ -24,11 +24,7 @@ import {
 } from './cluster.types.js';
 import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
 import { LookupInMacroShape } from './lookupInMacro.types.js';
-import {
-  DocumentPath,
-  type ExtractPathToArray,
-  type ExtractPathToObject,
-} from './utils/index.js';
+import { DocumentPath } from './utils/index.js';
 
 export type OperationPath<Doc, Path> = If<
   IsFuzzyDocument<Doc>,
@@ -45,42 +41,10 @@ export type DocDef<
       Key: Key;
       Body: Body;
       Path: Path;
-      LookupPath: {
-        get: DocDefLookupPath<'get', Body, Path>;
-        exists: DocDefLookupPath<'exists', Body, Path>;
-        count: DocDefLookupPath<'count', Body, Path>;
-      };
     }
   : never;
 
-// prettier-ignore
-export type DocDefLookupPath<SpecName extends 'get' | 'exists' | 'count', Body, Path extends string> =
-  SpecName extends 'get' ? OperationPath<Body, Path | LookupInMacroShape | ''> :
-  SpecName extends 'exist' ? OperationPath<Body, Path | LookupInMacroShape> :
-  SpecName extends 'count' ? If<
-    IsFuzzyDocument<Body>,
-    string | LookupInMacroShape<'$document'>,
-    | ExtractPathToObject<Body, Path | ''>
-    | ExtractPathToArray<Body, Path | ''>
-    | LookupInMacroShape<'$document'>
-  > : never
-;
-
-type MutationSpecName =
-  | 'insert'
-  | 'upsert'
-  | 'remove'
-  | 'arrayInsert'
-  | 'arrayAppend'
-  | 'arrayPrepend'
-  | 'increment'
-  | 'decrement';
-
-// export type DocDefMutationPath<SpecName extends MutationSpecName, Body, Path> =
-//   SpecName extends 'insert' ?  :
-//   never
-// ;
-
+export type AnyDocDef = { Key: string; Body: any; Path: string };
 export type DocDefKeyShape = { Key: string };
 export type DocDefBodyShape = { Body: any };
 export type DocDefPathShape = { Path: string };
