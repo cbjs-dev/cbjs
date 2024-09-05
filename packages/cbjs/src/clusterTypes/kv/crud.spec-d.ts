@@ -48,7 +48,8 @@ describe('Collection.get', function () {
   it('should return any if no cluster types are defined', async function () {
     const cluster = await connect('couchbase://127.0.0.1');
     const collection = cluster.bucket('test').defaultCollection();
-    expectTypeOf(collection.get).returns.resolves.toEqualTypeOf<GetResult<any>>();
+    const result = await collection.get('');
+    expectTypeOf(result).toEqualTypeOf<GetResult<any, false>>();
   });
 
   it('should narrow the doc using the key if types are defined', async function () {
@@ -63,9 +64,8 @@ describe('Collection.getAnyReplica', function () {
   it('should return any if no cluster types are defined', async function () {
     const cluster = await connect('couchbase://127.0.0.1');
     const collection = cluster.bucket('test').defaultCollection();
-    expectTypeOf(collection.getAnyReplica).returns.resolves.toEqualTypeOf<
-      GetReplicaResult<any>
-    >();
+    const result = await collection.getAnyReplica('');
+    expectTypeOf(result).toEqualTypeOf<GetReplicaResult<any>>();
   });
 
   it('should narrow the doc using the key if types are defined', async function () {

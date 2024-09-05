@@ -414,35 +414,6 @@ describe('Collection', async () => {
     });
   });
 
-  describe('getAllReplicas', () => {
-    it('should return StreamableReplicasPromise when throwIfMissing is true', async () => {
-      const result = collection.getAllReplicas('book::001', {
-        throwIfMissing: true,
-      });
-
-      expectTypeOf(result).toEqualTypeOf<
-        StreamableReplicasPromise<
-          [GetReplicaResult<TestDoc>, ...GetReplicaResult<TestDoc>[]],
-          GetReplicaResult<TestDoc>
-        >
-      >();
-    });
-
-    it('should return undefined | StreamableReplicasPromise when throwIfMissing is false', async () => {
-      const result = collection.getAllReplicas('book::001', {
-        throwIfMissing: false,
-      });
-
-      expectTypeOf(result).toEqualTypeOf<
-        | StreamableReplicasPromise<
-            [GetReplicaResult<TestDoc>, ...GetReplicaResult<TestDoc>[]],
-            GetReplicaResult<TestDoc>
-          >
-        | undefined
-      >();
-    });
-  });
-
   describe('map', () => {
     it('should get a CouchbaseMap when the collection contains a map', async () => {
       const cluster = await connect<UserClusterTypes>('');

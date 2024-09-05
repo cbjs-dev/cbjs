@@ -301,7 +301,7 @@ export interface GetAnyReplicaOptions<ThrowIfMissing extends boolean = boolean> 
 /**
  * @category Key-Value
  */
-export interface GetAllReplicasOptions<ThrowIfMissing extends boolean = boolean> {
+export interface GetAllReplicasOptions {
   /**
    * Specifies an explicit transcoder to use for this specific operation.
    */
@@ -311,13 +311,6 @@ export interface GetAllReplicasOptions<ThrowIfMissing extends boolean = boolean>
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
-
-  /**
-   * When true, throws a `DocumentNotFoundError` if the document is not found.
-   * When false, returns undefined.
-   * @default true
-   */
-  throwIfMissing?: ThrowIfMissing;
 }
 
 /**
