@@ -40,22 +40,46 @@ export type DocDef<
   Key extends string = string,
   Body = any,
   Path extends string = DocumentPath<Body>,
-> = {
-  Key: Key;
-  Body: Body;
-  Path: Path;
-  LookupPath: {
-    get: OperationPath<Body, Path | LookupInMacroShape | ''>;
-    exists: OperationPath<Body, Path | LookupInMacroShape>;
-    count: If<
-      IsFuzzyDocument<Body>,
-      string | LookupInMacroShape<'$document'>,
-      | ExtractPathToObject<Body, Path | ''>
-      | ExtractPathToArray<Body, Path | ''>
-      | LookupInMacroShape<'$document'>
-    >;
-  };
-};
+> = Key extends unknown
+  ? {
+      Key: Key;
+      Body: Body;
+      Path: Path;
+      LookupPath: {
+        get: DocDefLookupPath<'get', Body, Path>;
+        exists: DocDefLookupPath<'exists', Body, Path>;
+        count: DocDefLookupPath<'count', Body, Path>;
+      };
+    }
+  : never;
+
+// prettier-ignore
+export type DocDefLookupPath<SpecName extends 'get' | 'exists' | 'count', Body, Path extends string> =
+  SpecName extends 'get' ? OperationPath<Body, Path | LookupInMacroShape | ''> :
+  SpecName extends 'exist' ? OperationPath<Body, Path | LookupInMacroShape> :
+  SpecName extends 'count' ? If<
+    IsFuzzyDocument<Body>,
+    string | LookupInMacroShape<'$document'>,
+    | ExtractPathToObject<Body, Path | ''>
+    | ExtractPathToArray<Body, Path | ''>
+    | LookupInMacroShape<'$document'>
+  > : never
+;
+
+type MutationSpecName =
+  | 'insert'
+  | 'upsert'
+  | 'remove'
+  | 'arrayInsert'
+  | 'arrayAppend'
+  | 'arrayPrepend'
+  | 'increment'
+  | 'decrement';
+
+// export type DocDefMutationPath<SpecName extends MutationSpecName, Body, Path> =
+//   SpecName extends 'insert' ?  :
+//   never
+// ;
 
 export type DocDefKeyShape = { Key: string };
 export type DocDefBodyShape = { Body: any };
