@@ -40,6 +40,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: git reset --hard HEAD~1 && npx changelogithub
+      - run: |
+          export PREVIOUS_TAG=$(git tag --sort=-creatordate --merged origin/main | sed -n '2p')
+          export LATEST_TAG=$(git tag --sort=-creatordate --merged origin/main | sed -n '1p')
+          npx changelogithub --from $PREVIOUS_TAG --to $$LATEST_TAG
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
