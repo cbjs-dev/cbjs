@@ -72,9 +72,9 @@ export class CouchbaseCas implements Cas {
    */
   public static isCasInput(value: unknown): value is CasInput {
     return (
+      typeof value === 'string' ||
       value instanceof Buffer ||
-      CouchbaseCas.isCasObject(value) ||
-      typeof value === 'string'
+      CouchbaseCas.isCasObject(value)
     );
   }
 
