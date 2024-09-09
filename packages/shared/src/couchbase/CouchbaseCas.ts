@@ -73,7 +73,7 @@ export class CouchbaseCas implements Cas {
   public static isCasInput(value: unknown): value is CasInput {
     return (
       typeof value === 'string' ||
-      value instanceof Uint8Array ||
+      Buffer.isBuffer(value) ||
       CouchbaseCas.isCasObject(value)
     );
   }
@@ -85,10 +85,14 @@ export class CouchbaseCas implements Cas {
    */
   public static isCasObject(value: unknown): value is Cas {
     return (
-      hasOwn(value, 'toJSON') &&
-      hasOwn(value, 'toString') &&
-      value.toJSON !== undefined &&
-      value.toString !== undefined
+      typeof value === 'object' &&
+      value !== null &&
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      typeof value.toJSON === 'function' &&
+      typeof value.toString === 'function' &&
+      hasOwn(value, 'raw') &&
+      value.raw instanceof Uint8Array
     );
   }
 
