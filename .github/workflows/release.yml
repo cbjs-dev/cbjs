@@ -1,4 +1,4 @@
-name: Release
+name: Create GitHub Release
 
 permissions:
   contents: write
@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: 18.x
 
-      - run: npx changelogithub
+      - run: |
+          export PREVIOUS_TAG=$(git tag --sort=-creatordate --merged origin/main | sed -n '2p')
+          export LATEST_TAG=$(git tag --sort=-creatordate --merged origin/main | sed -n '1p')
+          npx changelogithub --from $PREVIOUS_TAG --to $$LATEST_TAG
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
