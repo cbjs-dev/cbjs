@@ -19,7 +19,6 @@
 import { expect } from 'vitest';
 
 import { CouchbaseCas } from '@cbjsdev/cbjs';
-import { hasOwn } from '@cbjsdev/shared';
 
 expect.extend({
   toBeNonZeroCAS(received) {
@@ -29,14 +28,6 @@ expect.extend({
         `expected ${received} ${isNot ? 'to not be' : 'to be'} a Non-Zero CAS`,
       pass: false,
     };
-
-    if (
-      typeof received !== 'string' &&
-      !Buffer.isBuffer(received) &&
-      !hasOwn(received, 'raw')
-    ) {
-      return failure;
-    }
 
     if (CouchbaseCas.isZeroCas(received)) {
       return failure;
@@ -54,14 +45,6 @@ expect.extend({
       message: () => `expected ${received} ${isNot ? 'to not be' : 'to be'} a Zero CAS`,
       pass: false,
     };
-
-    if (
-      typeof received !== 'string' &&
-      !Buffer.isBuffer(received) &&
-      !hasOwn(received, 'raw')
-    ) {
-      return failure;
-    }
 
     if (!CouchbaseCas.isZeroCas(received)) {
       return failure;
