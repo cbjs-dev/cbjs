@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/shared",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "description": "Shared utils and types for Cbjs",
   "author": "Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>",
   "license": "Apache-2.0",
