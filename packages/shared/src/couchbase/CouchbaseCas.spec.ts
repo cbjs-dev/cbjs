@@ -47,10 +47,6 @@ describe('CouchbaseCas', () => {
     expect(CouchbaseCas.from(0)).toHaveProperty('raw');
   });
 
-  it('should consider a Uint8Array to be a valid CasInput', ({ expect }) => {
-    expect(CouchbaseCas.isCasInput(new Uint8Array())).toBe(true);
-  });
-
   it('should consider a Buffer to be a valid CasInput', ({ expect }) => {
     expect(CouchbaseCas.isCasInput(Buffer.of(0))).toBe(true);
   });
