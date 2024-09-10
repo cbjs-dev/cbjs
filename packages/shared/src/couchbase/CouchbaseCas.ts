@@ -41,10 +41,13 @@ export type CouchbaseCasInput = Cas | Buffer | string | bigint | number;
  * Create, parse and compare CAS objects.
  */
 export class CouchbaseCas implements Cas {
-  private raw: Buffer;
+  private readonly input: CouchbaseCasInput;
+  private get raw() {
+    return CouchbaseCas.toBuffer(this.input);
+  }
 
   constructor(value: CouchbaseCasInput) {
-    this.raw = CouchbaseCas.toBuffer(value);
+    this.input = value;
   }
 
   /**
@@ -124,7 +127,11 @@ export class CouchbaseCas implements Cas {
   }
 
   toString(): string {
-    const binaryString = Array.from(this.raw)
+    if (!Buffer.isBuffer(this.input)) {
+      return this.input.toString();
+    }
+
+    const binaryString = Array.from(this.input)
       .reverse()
       .map((byte) => byte.toString(2).padStart(8, '0'))
       .join('');
@@ -145,7 +152,7 @@ export class CouchbaseCas implements Cas {
   }
 
   public static isZeroCas(cas: CouchbaseCasInput): boolean {
-    return CouchbaseCas.isEqual('0', cas);
+    return CouchbaseCas.isEqual('0', CouchbaseCas.toString(cas));
   }
 
   public static isEqual(cas1: CouchbaseCasInput, cas2: CouchbaseCasInput): boolean {
