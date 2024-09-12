@@ -82,6 +82,24 @@ if (title.error) {
 
 The same goes for callbacks and many more ! [Read more](https://cbjs.dev/guide/features.html#discriminated-unions).
 
+### Useful Stack Trace
+
+Without `cbjs` :
+
+```
+node:internal/process/esm_loader:97
+    internalBinding('errors').triggerUncaughtException(
+```
+
+With `cbjs` :
+
+```
+DocumentNotFoundError: document not found
+    at errorFromCpp (/project/node_modules/@cbjsdev/cbjs/src/bindingutilities.ts:787:14)
+    at Collection.remove (/project/node_modules/@cbjsdev/cbjs/src/collection.ts:1417:19)
+    at remove (/project/index.ts:31:3)
+```
+
 ### Support for cloud lambdas
 
 Unlike the official library, Cbjs doesn't use the filesystem, which is sometimes unavailable on cloud lambas like Cloudflare Workers.

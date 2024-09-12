@@ -10,6 +10,7 @@ outline: deep
 - [Inferred return type for document and sub-document operation](#inferred-return-type)
 - [Path autocomplete for sub-document operation](#ide-autocompletion)
 - [Chainable sub-document operations](/guide/services/kv#chainable-sub-doc-operations)
+- Async Stack trace
 - HTTP Client
 - Vitest fixtures
 
@@ -221,3 +222,26 @@ const { expiryTime } = await collection.get(bookId, { withExpiry: true });
 
 &nbsp;  
 &nbsp;
+
+
+## Async stack trace
+
+Because the official client is a C++ binding, the stack trace is not available by default when a method throws an error.
+
+Asynchronous calls internal to the library have been rewritten in order to provide an actual, useful stack trace at runtime.
+
+Without `cbjs` :
+
+```
+node:internal/process/esm_loader:97
+    internalBinding('errors').triggerUncaughtException(
+```
+
+With `cbjs` :
+
+```
+DocumentNotFoundError: document not found
+    at errorFromCpp (/project/node_modules/@cbjsdev/cbjs/src/bindingutilities.ts:787:14)
+    at Collection.remove (/project/node_modules/@cbjsdev/cbjs/src/collection.ts:1417:19)
+    at remove (/project/index.ts:31:3)
+```

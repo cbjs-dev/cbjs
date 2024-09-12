@@ -7,7 +7,7 @@ title: Why Cbjs | Guide
 ## Seeking a greater DX
 
 We love Couchbase products.  
-When using them, we want to have a great experience, we want to feel some magic.
+When we use them, we want to have a great experience, we want to feel some magic.
 
 ### Powerful TypeScript integration
 
