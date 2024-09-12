@@ -16,9 +16,9 @@
  */
 import { describe } from 'vitest';
 
-import { HttpErrorContext, UserNotFoundError } from '@cbjsdev/cbjs';
-import { ServerFeatures } from '@cbjsdev/http-client';
-import { getConnectionParams, invariant, sleep, waitFor } from '@cbjsdev/shared';
+import { HttpErrorContext, Role, UserNotFoundError } from '@cbjsdev/cbjs';
+import { ServerFeatures, waitForUser } from '@cbjsdev/http-client';
+import { getConnectionParams, invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
@@ -71,6 +71,36 @@ describe
         invariant(err instanceof UserNotFoundError);
         expect(err.context).toBeInstanceOf(HttpErrorContext);
       }
+    });
+
+    test('should successfully set roles to a user', async ({
+      expect,
+      apiConfig,
+      serverTestContext,
+    }) => {
+      const username = 'cbjs_' + getRandomId();
+      await expect(
+        serverTestContext.cluster.users().upsertUser({
+          username,
+          password: getRandomId(),
+          roles: [
+            new Role({
+              name: 'scope_admin',
+              bucket: serverTestContext.bucket.name,
+              scope: '*',
+              collection: undefined,
+            }),
+            {
+              name: 'fts_admin',
+              bucket: serverTestContext.bucket.name,
+            },
+          ],
+        })
+      ).resolves.toBeUndefined();
+
+      await waitForUser(apiConfig, username);
+
+      await serverTestContext.cluster.users().dropUser(username);
     });
 
     test('should successfully change current user password', async function ({

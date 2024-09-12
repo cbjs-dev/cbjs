@@ -20,12 +20,11 @@ import { OptionalProps } from '@cbjsdev/shared';
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
-import { UserFixtureParams } from './UserFixture.js';
 
 export type UserGroupFixtureParams = OptionalProps<IGroup, 'name'>;
 
 export class UserGroupFixture extends FixtureFunctionValue<
-  [UserFixtureParams?],
+  [UserGroupFixtureParams?],
   Promise<string>,
   CouchbaseTestContext
 > {

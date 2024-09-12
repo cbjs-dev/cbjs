@@ -113,12 +113,11 @@ export class Role<Name extends RoleName = RoleName> {
   /**
    * @internal
    */
-  constructor(data: SdkScopedRole) {
-    const role = data as Role;
-    this.name = role.name as never;
-    this.bucket = role.bucket as never;
-    this.scope = role.scope as never;
-    this.collection = role.collection as never;
+  constructor(data: Role<Name>) {
+    this.name = data.name;
+    this.bucket = data.bucket;
+    this.scope = data.scope;
+    this.collection = data.collection;
   }
 
   /**
@@ -139,15 +138,15 @@ export class Role<Name extends RoleName = RoleName> {
       return role;
     }
 
-    if (role.bucket && role.scope && role.collection) {
-      return `${role.name}[${role.bucket}:${role.scope}:${role.collection}]`;
-    } else if (role.bucket && role.scope) {
-      return `${role.name}[${role.bucket}:${role.scope}]`;
-    } else if (role.bucket) {
-      return `${role.name}[${role.bucket}]`;
-    } else {
-      return role.name;
+    const granularity = [role.bucket, role.scope, role.collection].filter(
+      (g) => g !== undefined && g !== '*'
+    );
+
+    if (granularity.length > 0) {
+      return `${role.name}[${granularity.join(':')}]`;
     }
+
+    return role.name;
   }
 
   toString() {
@@ -184,12 +183,12 @@ export class RoleAndDescription extends Role {
    * @internal
    * @deprecated
    */
-  static override _fromNsData(data: ApiRole): RoleAndDescription {
+  static override _fromNsData(data: ApiRole): RoleAndDescription & SdkScopedRole {
     return new RoleAndDescription({
-      ...Role._fromNsData(data),
+      ...(Role._fromNsData(data) as any),
       displayName: data.name,
       description: data.desc,
-    });
+    }) as never;
   }
 }
 
@@ -215,14 +214,14 @@ export class RoleAndOrigin extends Role {
   /**
    * @internal
    */
-  static override _fromNsData(data: ApiUserRole): RoleAndOrigin {
+  static override _fromNsData(data: ApiUserRole): RoleAndOrigin & SdkScopedRole {
     const origins =
       data.origins?.map((originData: any) => Origin._fromNsData(originData)) ?? [];
 
     return new RoleAndOrigin({
-      ...Role._fromNsData(data),
+      ...(Role._fromNsData(data) as any),
       origins,
-    });
+    }) as never;
   }
 }
 
@@ -250,7 +249,7 @@ export interface IUser {
   /**
    * The roles associates with this user.
    */
-  roles?: (Role | string)[];
+  roles?: (SdkScopedRole | string)[];
 
   /**
    * The password for this user.
@@ -282,7 +281,7 @@ export class User implements IUser {
   /**
    * The roles associates with this user.
    */
-  roles: Role[];
+  roles: SdkScopedRole[];
 
   /**
    * This is never populated in a result returned by the server.
@@ -309,7 +308,7 @@ export class User implements IUser {
         // or whether it was through a group.
         return !!roleData.origins?.find((originData) => originData.type === 'user');
       })
-      .map((roleData) => Role._fromNsData(roleData));
+      .map((roleData) => Role._fromNsData(roleData)) as SdkScopedRole[];
 
     return new User({
       username: data.id,
@@ -330,7 +329,7 @@ export class User implements IUser {
       name: user.displayName,
       groups: user.groups,
       password: user.password,
-      roles: user.roles?.map((role) => Role._toNsStr(role)).join(','),
+      roles: user.roles?.map((role) => Role._toNsStr(role as Role)).join(','),
     };
   }
 }
@@ -772,21 +771,15 @@ export class UserManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
     return PromiseHelper.wrapAsync(async () => {
-      const roles = user.roles?.map((role) => Role._toNsStr(role)).join(',');
-
-      const userData = {
-        name: user.displayName,
-        groups: user.groups,
-        password: user.password,
-        roles: roles,
-      };
+      const userData = User._toNsData(user);
+      const body = cbQsStringify(userData);
 
       const res = await this._http.request({
         type: HttpServiceType.Management,
         method: HttpMethod.Put,
         path: `/settings/rbac/users/${domainName}/${user.username}`,
         contentType: 'application/x-www-form-urlencoded',
-        body: cbQsStringify(userData),
+        body,
         timeout: timeout,
       });
 
