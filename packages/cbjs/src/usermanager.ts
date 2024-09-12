@@ -21,7 +21,13 @@ import {
   ApiUserRole,
   ApiUserRoleOrigin,
 } from '@cbjsdev/http-client';
-import { CouchbaseClusterTypes, getRoleScope, RoleName } from '@cbjsdev/shared';
+import {
+  CouchbaseClusterTypes,
+  getRoleScope,
+  Pretty,
+  RoleName,
+  RoleScope,
+} from '@cbjsdev/shared';
 
 import { Cluster } from './cluster.js';
 import { CouchbaseError, GroupNotFoundError, UserNotFoundError } from './errors.js';
@@ -68,40 +74,51 @@ export class Origin {
   }
 }
 
+export type SdkScopedRole = Pretty<
+  {
+    [key in RoleName]: {
+      name: key;
+    } & {
+      [scope in RoleScope[key][number]]: string;
+    };
+  }[RoleName]
+>;
+
 /**
  * Contains information about a role.
  *
  * @category Management
  */
-export class Role {
+export class Role<Name extends RoleName = RoleName> {
   /**
    * The name of the role.
    */
-  name: RoleName;
+  name: Name;
 
   /**
    * The bucket this role applies to.
    */
-  bucket: string | undefined;
+  bucket: 'bucket' extends RoleScope[Name][number] ? string : undefined;
 
   /**
    * The scope this role applies to.
    */
-  scope: string | undefined;
+  scope: 'scope' extends RoleScope[Name][number] ? string : undefined;
 
   /**
    * The collection this role applies to.
    */
-  collection: string | undefined;
+  collection: 'collection' extends RoleScope[Name][number] ? string : undefined;
 
   /**
    * @internal
    */
-  constructor(data: Role) {
-    this.name = data.name;
-    this.bucket = data.bucket;
-    this.scope = data.scope;
-    this.collection = data.collection;
+  constructor(data: SdkScopedRole) {
+    const role = data as Role;
+    this.name = role.name as never;
+    this.bucket = role.bucket as never;
+    this.scope = role.scope as never;
+    this.collection = role.collection as never;
   }
 
   /**
@@ -110,14 +127,14 @@ export class Role {
   static _fromNsData(data: ApiUserRole): Role {
     return new Role({
       name: data.role,
-      ...getRoleScope(data),
+      ...(getRoleScope(data) as any),
     });
   }
 
   /**
    * @internal
    */
-  static _toNsStr(role: string | Role): string {
+  static _toNsStr(role: string | Role<any>): string {
     if (typeof role === 'string') {
       return role;
     }
@@ -133,7 +150,7 @@ export class Role {
     }
   }
 
-  toString(role: string | Role) {
+  toString() {
     return Role._toNsStr(this);
   }
 }
@@ -158,7 +175,7 @@ export class RoleAndDescription extends Role {
    * @internal
    */
   constructor(data: RoleAndDescription) {
-    super(data);
+    super(data as any);
     this.displayName = data.displayName;
     this.description = data.description;
   }
@@ -191,7 +208,7 @@ export class RoleAndOrigin extends Role {
    * @internal
    */
   constructor(data: RoleAndOrigin) {
-    super(data);
+    super(data as any);
     this.origins = data.origins;
   }
 
@@ -457,7 +474,7 @@ export class Group {
         (roleData) =>
           new Role({
             name: roleData.role,
-            ...getRoleScope(roleData),
+            ...(getRoleScope(roleData) as any),
           })
       ) ?? [];
 
@@ -932,7 +949,7 @@ export class UserManager<T extends CouchbaseClusterTypes = CouchbaseClusterTypes
             name: roleData.role,
             displayName: roleData.name,
             description: roleData.desc,
-            ...getRoleScope(roleData),
+            ...(getRoleScope(roleData) as any),
           })
       );
     }, callback);

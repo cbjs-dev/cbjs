@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ScopedRole } from '@cbjsdev/shared';
+import { ApiScopedRole } from '@cbjsdev/shared';
 
 export type ApiUserGroup = {
   id: string;
-  roles: ScopedRole[];
+  roles: ApiScopedRole[];
   description: string;
   ldap_group_reference?: string;
 };

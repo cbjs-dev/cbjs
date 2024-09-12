@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ScopedRole } from '@cbjsdev/shared';
+import { ApiScopedRole } from '@cbjsdev/shared';
 
 export type ApiRole = {
   name: string;
   desc: string;
-} & ScopedRole;
+} & ApiScopedRole;

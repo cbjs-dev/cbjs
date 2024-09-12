@@ -15,7 +15,7 @@
  */
 import { Pretty } from '../../misc/index.js';
 
-type RoleScope = {
+export type RoleScope = {
   admin: [];
   ro_admin: [];
   security_admin_local: [];
@@ -23,57 +23,57 @@ type RoleScope = {
   cluster_admin: [];
   eventing_admin: [];
   backup_admin: [];
-  bucket_admin: ['bucket_name'];
-  scope_admin: ['bucket_name', 'scope_name'];
-  bucket_full_access: ['bucket_name'];
-  views_admin: ['bucket_name'];
-  views_reader: ['bucket_name'];
+  bucket_admin: ['bucket'];
+  scope_admin: ['bucket', 'scope'];
+  bucket_full_access: ['bucket'];
+  views_admin: ['bucket'];
+  views_reader: ['bucket'];
   replication_admin: [];
-  data_reader: ['bucket_name', 'scope_name', 'collection_name'];
-  data_writer: ['bucket_name', 'scope_name', 'collection_name'];
-  data_dcp_reader: ['bucket_name', 'scope_name', 'collection_name'];
-  data_backup: ['bucket_name'];
-  data_monitoring: ['bucket_name', 'scope_name', 'collection_name'];
-  fts_admin: ['bucket_name'];
-  fts_searcher: ['bucket_name', 'scope_name', 'collection_name'];
-  query_select: ['bucket_name', 'scope_name', 'collection_name'];
-  query_update: ['bucket_name', 'scope_name', 'collection_name'];
-  query_insert: ['bucket_name', 'scope_name', 'collection_name'];
-  query_delete: ['bucket_name', 'scope_name', 'collection_name'];
-  query_manage_index: ['bucket_name', 'scope_name', 'collection_name'];
+  data_reader: ['bucket', 'scope', 'collection'];
+  data_writer: ['bucket', 'scope', 'collection'];
+  data_dcp_reader: ['bucket', 'scope', 'collection'];
+  data_backup: ['bucket'];
+  data_monitoring: ['bucket', 'scope', 'collection'];
+  fts_admin: ['bucket'];
+  fts_searcher: ['bucket', 'scope', 'collection'];
+  query_select: ['bucket', 'scope', 'collection'];
+  query_update: ['bucket', 'scope', 'collection'];
+  query_insert: ['bucket', 'scope', 'collection'];
+  query_delete: ['bucket', 'scope', 'collection'];
+  query_manage_index: ['bucket', 'scope', 'collection'];
   query_system_catalog: [];
   query_external_access: [];
   query_manage_global_functions: [];
   query_execute_global_functions: [];
-  query_manage_functions: ['bucket_name', 'scope_name'];
-  query_execute_functions: ['bucket_name', 'scope_name'];
+  query_manage_functions: ['bucket', 'scope'];
+  query_execute_functions: ['bucket', 'scope'];
   query_manage_global_external_functions: [];
   query_execute_global_external_functions: [];
-  query_manage_external_functions: ['bucket_name', 'scope_name'];
-  query_execute_external_functions: ['bucket_name', 'scope_name'];
-  replication_target: ['bucket_name'];
-  analytics_manager: ['bucket_name'];
+  query_manage_external_functions: ['bucket', 'scope'];
+  query_execute_external_functions: ['bucket', 'scope'];
+  replication_target: ['bucket'];
+  analytics_manager: ['bucket'];
   analytics_reader: [];
-  analytics_select: ['bucket_name', 'scope_name', 'collection_name'];
+  analytics_select: ['bucket', 'scope', 'collection'];
   analytics_admin: [];
-  mobile_sync_gateway: ['bucket_name'];
-  sync_gateway_configurator: ['bucket_name', 'scope_name', 'collection_name'];
-  sync_gateway_app: ['bucket_name', 'scope_name', 'collection_name'];
-  sync_gateway_app_ro: ['bucket_name', 'scope_name', 'collection_name'];
-  sync_gateway_replicator: ['bucket_name', 'scope_name', 'collection_name'];
+  mobile_sync_gateway: ['bucket'];
+  sync_gateway_configurator: ['bucket', 'scope', 'collection'];
+  sync_gateway_app: ['bucket', 'scope', 'collection'];
+  sync_gateway_app_ro: ['bucket', 'scope', 'collection'];
+  sync_gateway_replicator: ['bucket', 'scope', 'collection'];
   sync_gateway_dev_ops: [];
   external_stats_reader: [];
-  eventing_manage_functions: ['bucket_name', 'scope_name'];
+  eventing_manage_functions: ['bucket', 'scope'];
 };
 
 export type RoleName = keyof RoleScope;
 
-export type ScopedRole = Pretty<
+export type ApiScopedRole = Pretty<
   {
     [key in RoleName]: {
       role: key;
     } & {
-      [scope in RoleScope[key][number]]: string;
+      [scope in `${RoleScope[key][number]}_name`]: string;
     };
   }[RoleName]
 >;

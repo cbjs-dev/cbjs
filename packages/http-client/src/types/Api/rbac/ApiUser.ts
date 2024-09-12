@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RoleName } from '@cbjsdev/shared';
+import { ApiScopedRole } from '@cbjsdev/shared';
 
 export type ApiUser = {
   id: string;
@@ -33,12 +33,8 @@ export type ApiUser = {
 };
 
 export type ApiUserRole = {
-  role: RoleName;
   origins?: ApiUserRoleOrigin[];
-  bucket_name?: '*' | (string & NonNullable<unknown>);
-  scope_name?: '*' | (string & NonNullable<unknown>);
-  collection_name?: '*' | (string & NonNullable<unknown>);
-};
+} & ApiScopedRole;
 
 export type ApiUserRoleOrigin = {
   type: string;

@@ -53,16 +53,13 @@ export class CouchbaseCas implements Cas {
   /**
    * Returns `true` is the given value is of type {@link CouchbaseCasInput}.
    *
-   * CouchbaseCasInput is a union type that accept more representations of a Cas. It was used
-   * before the official library introduced {@link CasInput}, which should be your preferred type now.
+   * CouchbaseCasInput is a union type that accept more representations of a Cas.
    *
    * @param value
    */
   public static isCouchbaseCasInput(value: unknown): value is CouchbaseCasInput {
     return (
-      value instanceof Buffer ||
-      CouchbaseCas.isCasObject(value) ||
-      typeof value === 'string' ||
+      CouchbaseCas.isCasInput(value) ||
       typeof value === 'number' ||
       typeof value === 'bigint'
     );
