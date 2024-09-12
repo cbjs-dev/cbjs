@@ -234,9 +234,9 @@ importers:
       '@cbjsdev/cbjs':
         specifier: workspace:*
         version: link:../../packages/cbjs
-      '@cbjsdev/deploy':
+      '@cbjsdev/http-client':
         specifier: workspace:*
-        version: link:../../packages/deploy
+        version: link:../../packages/http-client
       '@cbjsdev/shared':
         specifier: workspace:*
         version: link:../../packages/shared
