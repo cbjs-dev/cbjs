@@ -86,8 +86,11 @@ async function applyCreateBucket(
     return;
   }
 
+  console.log(`Requesting creation of bucket "${change.config.name}"`);
   await cluster.buckets().createBucket(change.config, opts);
+  console.log(`Waiting for bucket "${change.config.name}" to be created`);
   await waitForBucket(apiConfig, change.config.name, opts);
+  console.log(`Bucket "${change.config.name}" created`);
 }
 
 async function applyDropBucket(
@@ -102,11 +105,14 @@ async function applyDropBucket(
     return;
   }
 
+  console.log(`Requesting deletion of bucket "${change.name}"`);
   await cluster.buckets().dropBucket(change.name, opts);
+  console.log(`Waiting for bucket "${change.name}" to be dropped`);
   await waitForBucket(apiConfig, change.name, {
     ...opts,
     expectMissing: true,
   });
+  console.log(`Bucket "${change.name}" dropped`);
 }
 
 async function applyUpdateBucket(
@@ -124,6 +130,7 @@ async function applyUpdateBucket(
   }
 
   const currentSettings = await cluster.buckets().getBucket(change.config.name);
+  console.log(`Requesting update of bucket "${change.config.name}"`);
   await cluster.buckets().updateBucket(
     {
       ...currentSettings,
@@ -131,6 +138,7 @@ async function applyUpdateBucket(
     },
     opts
   );
+  console.log(`Bucket "${change.config.name}" updated`);
 }
 
 async function applyRecreateBucket(
@@ -142,10 +150,18 @@ async function applyRecreateBucket(
   const buckets = await cluster.buckets().getAllBuckets();
 
   if (buckets.some((b) => b.name === change.config.name)) {
+    console.log(`Requesting deletion of bucket "${change.config.name}"`);
     await cluster.buckets().dropBucket(change.config.name, opts);
+    console.log(`Waiting for bucket "${change.config.name}" to be dropped`);
+    await waitForBucket(apiConfig, change.config.name, opts);
+    console.log(`Bucket "${change.config.name}" created`);
   }
 
+  console.log(`Requesting creation of bucket "${change.config.name}"`);
   await cluster.buckets().createBucket(change.config, opts);
+  console.log(`Waiting for bucket "${change.config.name}" to be created`);
+  await waitForBucket(apiConfig, change.config.name, opts);
+  console.log(`Bucket "${change.config.name}" created`);
 }
 
 async function applyCreateScope(
@@ -160,8 +176,11 @@ async function applyCreateScope(
     return;
   }
 
+  console.log(`Requesting creation of scope "${change.bucket}.${change.name}"`);
   await cluster.bucket(change.bucket).collections().createScope(change.name, opts);
+  console.log(`Waiting for scope "${change.bucket}.${change.name}" to be created`);
   await waitForScope(apiConfig, change.bucket, change.name, opts);
+  console.log(`Scope "${change.bucket}.${change.name}" created`);
 }
 
 async function applyDropScope(
@@ -176,11 +195,14 @@ async function applyDropScope(
     return;
   }
 
+  console.log(`Requesting deletion of scope "${change.bucket}.${change.name}"`);
   await cluster.bucket(change.bucket).collections().dropScope(change.name, opts);
+  console.log(`Waiting for scope "${change.bucket}.${change.name}" to be dropped`);
   await waitForScope(apiConfig, change.bucket, change.name, {
     ...opts,
     expectMissing: true,
   });
+  console.log(`Scope "${change.bucket}.${change.name}" dropped`);
 }
 
 async function applyCreateCollection(
@@ -199,11 +221,18 @@ async function applyCreateCollection(
     return;
   }
 
+  console.log(
+    `Requesting creation of collection "${change.bucket}.${change.scope}.${change.name}"`
+  );
   await cluster
     .bucket(change.bucket)
     .collections()
     .createCollection(change.name, change.scope, change, opts);
+  console.log(
+    `Waiting for collection "${change.bucket}.${change.scope}.${change.name}" to be created`
+  );
   await waitForCollection(apiConfig, change.bucket, change.scope, change.name, opts);
+  console.log(`Collection "${change.bucket}.${change.scope}.${change.name}" created`);
 }
 
 async function applyDropCollection(
@@ -222,11 +251,18 @@ async function applyDropCollection(
     return;
   }
 
+  console.log(
+    `Requesting deletion of collection "${change.bucket}.${change.scope}.${change.name}"`
+  );
   await cluster
     .bucket(change.bucket)
     .collections()
     .dropCollection(change.name, change.scope, opts);
+  console.log(
+    `Waiting for collection "${change.bucket}.${change.scope}.${change.name}" to be dropped`
+  );
   await waitForCollection(apiConfig, change.bucket, change.scope, change.name, opts);
+  console.log(`Collection "${change.bucket}.${change.scope}.${change.name}" dropped`);
 }
 
 async function applyUpdateCollection(
@@ -251,11 +287,13 @@ async function applyUpdateCollection(
     );
   }
 
+  console.log(
+    `Requesting update of collection "${change.bucket}.${change.scope}.${change.name}"`
+  );
   await cluster
     .bucket(change.bucket)
     .collections()
     .updateCollection(change.name, change.scope, change, opts);
-  await waitForCollection(apiConfig, change.bucket, change.scope, change.name, opts);
 }
 
 async function applyCreateIndex(
@@ -275,6 +313,9 @@ async function applyCreateIndex(
     return;
   }
 
+  console.log(
+    `Requesting creation of index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}"`
+  );
   await createQueryIndex(
     apiConfig,
     change.name,
@@ -288,6 +329,9 @@ async function applyCreateIndex(
       where: change.where,
     }
   );
+  console.log(
+    `Waiting for index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}" to be created`
+  );
   await waitForQueryIndex(
     apiConfig,
     change.name,
@@ -297,6 +341,9 @@ async function applyCreateIndex(
       collection: change.collection,
     },
     opts
+  );
+  console.log(
+    `Index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}" created`
   );
 }
 
@@ -317,12 +364,19 @@ async function applyDropIndex(
     return;
   }
 
+  console.log(
+    `Requesting deletion of index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}"`
+  );
   await cluster
     .bucket(change.bucket)
     .scope(change.scope)
     .collection(change.collection)
     .queryIndexes()
     .dropIndex(change.name, opts);
+
+  console.log(
+    `Waiting for index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}" to be dropped`
+  );
   await waitForQueryIndex(
     apiConfig,
     change.name,
@@ -335,6 +389,9 @@ async function applyDropIndex(
       ...opts,
       expectMissing: true,
     }
+  );
+  console.log(
+    `Index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}" dropped`
   );
 }
 
@@ -361,6 +418,9 @@ async function applyUpdateIndex(
     );
   }
 
+  console.log(
+    `Requesting update of index "${change.bucket}.${change.scope}.${change.collection} # ${change.name}"`
+  );
   await updateQueryIndex(
     apiConfig,
     change.name,

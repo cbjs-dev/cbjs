@@ -1,0 +1,27 @@
+{
+  "name": "test-project-deploy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Test project for @cbjsdev/deploy",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/deploy": "workspace:*",
+    "@cbjsdev/shared": "workspace:*",
+    "@cbjsdev/vitest": "workspace:*",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
+    "semver": "^7.5.4",
+    "vitest": "1.5.2"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.5.8",
+    "http-client": "^4.3.1",
+    "typescript": "5.4.5",
+    "zod": "^3.22.4"
+  }
+}

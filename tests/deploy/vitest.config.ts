@@ -21,7 +21,7 @@ export default mergeConfig(
   sharedProjectConfig,
   defineProject({
     test: {
-      name: 'project:cbjs',
+      name: 'project:deploy',
       pool: 'forks',
       minWorkers: 1,
       maxWorkers: 1,
