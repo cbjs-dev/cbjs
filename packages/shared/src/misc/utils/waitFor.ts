@@ -16,10 +16,14 @@
 import { sleep } from './sleep.js';
 
 export type WaitForOptions = {
+  /**
+   * @default 10_000
+   */
   timeout?: number;
 
   /**
    * Time to wait between two retries. Milliseconds.
+   * @default 500
    */
   retryInterval?: number;
 };

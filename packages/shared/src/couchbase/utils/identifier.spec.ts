@@ -15,8 +15,8 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { DocDef, IsFuzzyDocument } from '../clusterTypes/index.js';
-import { isValidBucketName, Keyspace, quotePath } from './identifier.js';
+import { DocDef } from '../clusterTypes/index.js';
+import { isValidBucketName, Keyspace, keyspacePath, quotePath } from './identifier.js';
 
 describe('isValidBucketName', () => {
   test('should return true with a valid identifier', ({ expect }) => {
@@ -221,6 +221,22 @@ describe('quotePath', () => {
       const path = 'wei`rd';
       const result = quotePath(path);
       expect(result).toBe('`wei\\`rd`');
+    });
+  });
+
+  describe('keyspacePath', () => {
+    it('should return the path with string args', ({ expect }) => {
+      expect(keyspacePath('foo')).toEqual('`foo`');
+      expect(keyspacePath('foo', 'bar')).toEqual('`foo`.`bar`');
+      expect(keyspacePath('foo', 'bar', 'baz')).toEqual('`foo`.`bar`.`baz`');
+    });
+
+    it('should return the path with keyspace', ({ expect }) => {
+      expect(keyspacePath({ bucket: 'foo' })).toEqual('`foo`');
+      expect(keyspacePath({ bucket: 'foo', scope: 'bar' })).toEqual('`foo`.`bar`');
+      expect(keyspacePath({ bucket: 'foo', scope: 'bar', collection: 'baz' })).toEqual(
+        '`foo`.`bar`.`baz`'
+      );
     });
   });
 });

@@ -64,7 +64,7 @@ export async function waitForQueryIndex(
     if (!indexExists && !expectMissing) throw new Error('Query index is not visible yet');
     if (indexExists && expectMissing) throw new Error('Query index still exists');
 
-    if (!awaitMutations) {
+    if (!awaitMutations || expectMissing) {
       return;
     }
 
