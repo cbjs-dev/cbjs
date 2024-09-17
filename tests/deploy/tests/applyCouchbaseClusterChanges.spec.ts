@@ -21,7 +21,7 @@ import {
   CouchbaseClusterConfig,
   getCouchbaseClusterChanges,
 } from '@cbjsdev/deploy';
-import { getApiConfig, getConnectionParams, invariant } from '@cbjsdev/shared';
+import { getApiConfig, getConnectionParams, invariant, sleep } from '@cbjsdev/shared';
 import { getRandomId } from '@cbjsdev/vitest';
 
 describe('applyCouchbaseClusterChanges', { sequential: true }, async () => {
@@ -35,6 +35,9 @@ describe('applyCouchbaseClusterChanges', { sequential: true }, async () => {
 
   afterAll(async () => {
     await cluster.buckets().dropBucket(bucketName);
+    // All this keyspace activity tends to mess up with the stability of the db
+    // So we give it time to chill a bit
+    await sleep(10_000);
   });
 
   const clusterConfig: CouchbaseClusterConfig = {
