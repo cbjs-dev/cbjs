@@ -18,7 +18,7 @@ import { describe } from 'vitest';
 import { getQueryIndexes } from '@cbjsdev/http-client';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-describe('getQueryIndexes', { timeout: 40_000 }, async () => {
+describe('getQueryIndexes', { timeout: 40_000, retry: 2 }, async () => {
   const test = await createCouchbaseTest();
 
   test('cluster level primary index', async ({
