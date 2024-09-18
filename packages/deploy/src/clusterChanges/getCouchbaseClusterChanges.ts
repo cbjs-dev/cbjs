@@ -2,63 +2,85 @@ import { UpdateBucketSettings } from '@cbjsdev/cbjs';
 import { invariant } from '@cbjsdev/shared';
 
 import { areSameIndexKeys } from './areSameIndexKeys.js';
-import { CouchbaseClusterBucketConfig, CouchbaseClusterConfig } from './types.js';
 import {
+  CouchbaseClusterBucketConfig,
   CouchbaseClusterChange,
   CouchbaseClusterChangeCreateBucket,
   CouchbaseClusterChangeCreateCollection,
   CouchbaseClusterChangeCreateIndex,
   CouchbaseClusterChangeCreateScope,
+  CouchbaseClusterChangeCreateUser,
   CouchbaseClusterChangeDropCollection,
   CouchbaseClusterChangeDropIndex,
   CouchbaseClusterChangeDropScope,
+  CouchbaseClusterChangeDropUser,
   CouchbaseClusterChangeRecreateBucket,
   CouchbaseClusterChangeRecreateIndex,
+  CouchbaseClusterChangeRecreateUser,
   CouchbaseClusterChangeUpdateBucket,
   CouchbaseClusterChangeUpdateCollection,
   CouchbaseClusterChangeUpdateIndex,
+  CouchbaseClusterChangeUpdateUser,
+  CouchbaseClusterConfig,
 } from './types.js';
 
+/**
+ * Return the changes required to meet the nextConfig, given the currentConfig.
+ * All changes are given in the order they should be applied, in order to minimize operational risks.
+ *
+ * @param currentConfig
+ * @param nextConfig
+ */
 export function getCouchbaseClusterChanges(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig
+  currentConfig: Partial<CouchbaseClusterConfig>,
+  nextConfig: Partial<CouchbaseClusterConfig>
 ): CouchbaseClusterChange[] {
   const changes: CouchbaseClusterChange[] = [];
 
-  const obsoleteBuckets = getObsoleteBuckets(currentConfig, nextConfig);
-  const newBuckets = getNewBuckets(currentConfig, nextConfig);
-  const updatedBuckets = getUpdatedBuckets(currentConfig, nextConfig);
+  ///////////////
+  // KEYSPACES //
+  ///////////////
+  const currentKeyspaceConfig = currentConfig.keyspaces ?? {};
+  const nextKeyspaceConfig = nextConfig.keyspaces ?? {};
+
+  const obsoleteBuckets = getObsoleteBuckets(currentKeyspaceConfig, nextKeyspaceConfig);
+  const newBuckets = getNewBuckets(currentKeyspaceConfig, nextKeyspaceConfig);
+  const updatedBuckets = getUpdatedBuckets(currentKeyspaceConfig, nextKeyspaceConfig);
 
   changes.push(...obsoleteBuckets, ...newBuckets, ...updatedBuckets);
 
-  Object.entries(nextConfig).forEach(([requestedBucketName, requestedBucket]) => {
+  Object.entries(nextKeyspaceConfig).forEach(([requestedBucketName, requestedBucket]) => {
     const obsoleteScopes = getObsoleteScopes(
-      currentConfig,
-      nextConfig,
+      currentKeyspaceConfig,
+      nextKeyspaceConfig,
       requestedBucketName
     );
 
-    const newScopes = getNewScopes(currentConfig, nextConfig, requestedBucketName);
+    const newScopes = getNewScopes(
+      currentKeyspaceConfig,
+      nextKeyspaceConfig,
+      requestedBucketName
+    );
 
     changes.push(...obsoleteScopes, ...newScopes);
 
     Object.entries(requestedBucket.scopes).forEach(
       ([requestedScopeName, requestedScope]) => {
         const obsoleteCollections = getObsoleteCollections(
-          currentConfig,
-          nextConfig,
+          currentKeyspaceConfig,
+          nextKeyspaceConfig,
           requestedBucketName,
           requestedScopeName
         );
         const newCollections = getNewCollections(
-          currentConfig,
-          nextConfig,
+          currentKeyspaceConfig,
+          nextKeyspaceConfig,
           requestedBucketName,
           requestedScopeName
         );
         const updatedCollections = getUpdatedCollections(
-          currentConfig,
-          nextConfig,
+          currentKeyspaceConfig,
+          nextKeyspaceConfig,
           requestedBucketName,
           requestedScopeName
         );
@@ -67,24 +89,24 @@ export function getCouchbaseClusterChanges(
 
         Object.keys(requestedScope.collections).forEach((requestedCollectionName) => {
           const obsoleteIndexes = getObsoleteIndexes(
-            currentConfig,
-            nextConfig,
+            currentKeyspaceConfig,
+            nextKeyspaceConfig,
             requestedBucketName,
             requestedScopeName,
             requestedCollectionName
           );
 
           const newIndexes = getNewIndexes(
-            currentConfig,
-            nextConfig,
+            currentKeyspaceConfig,
+            nextKeyspaceConfig,
             requestedBucketName,
             requestedScopeName,
             requestedCollectionName
           );
 
           const updatedIndexes = getUpdatedIndexes(
-            currentConfig,
-            nextConfig,
+            currentKeyspaceConfig,
+            nextKeyspaceConfig,
             requestedBucketName,
             requestedScopeName,
             requestedCollectionName
@@ -96,6 +118,18 @@ export function getCouchbaseClusterChanges(
     );
   });
 
+  ///////////
+  // USERS //
+  ///////////
+  const currentUsersConfig = currentConfig.users ?? [];
+  const nextUsersConfig = nextConfig.users ?? [];
+
+  const newUsers = getNewUsers(currentUsersConfig, nextUsersConfig);
+  const updatedUsers = getUpdatedUsers(currentUsersConfig, nextUsersConfig);
+  const obsoleteUsers = getObsoleteUsers(currentUsersConfig, nextUsersConfig);
+
+  changes.push(...newUsers, ...updatedUsers, ...obsoleteUsers);
+
   return changes;
 }
 
@@ -103,8 +137,8 @@ export function getCouchbaseClusterChanges(
  * Return buckets to drop because they are no longer required.
  */
 function getObsoleteBuckets(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces']
 ): CouchbaseClusterChange[] {
   const currentBuckets = Object.keys(currentConfig);
   const requestedBuckets = Object.keys(nextConfig);
@@ -121,8 +155,8 @@ function getObsoleteBuckets(
  * Return scopes to drop because they are no longer required.
  */
 function getObsoleteScopes(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string
 ): CouchbaseClusterChangeDropScope[] {
   const currentScopes = Object.keys(currentConfig[bucketName]?.scopes || []);
@@ -138,8 +172,8 @@ function getObsoleteScopes(
 }
 
 function getObsoleteCollections(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string,
   scopeName: string
 ): CouchbaseClusterChangeDropCollection[] {
@@ -161,8 +195,8 @@ function getObsoleteCollections(
 }
 
 function getNewCollections(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string,
   scopeName: string
 ): CouchbaseClusterChangeCreateCollection[] {
@@ -190,8 +224,8 @@ function getNewCollections(
 }
 
 function getNewScopes(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string
 ): CouchbaseClusterChangeCreateScope[] {
   const currentScopes = Object.keys(currentConfig[bucketName]?.scopes || []);
@@ -207,8 +241,8 @@ function getNewScopes(
 }
 
 function getNewBuckets(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces']
 ): CouchbaseClusterChangeCreateBucket[] {
   const currentBuckets = Object.keys(currentConfig);
   const requestedBuckets = Object.keys(nextConfig);
@@ -225,8 +259,8 @@ function getNewBuckets(
 }
 
 function getUpdatedBuckets(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces']
 ): Array<CouchbaseClusterChangeRecreateBucket | CouchbaseClusterChangeUpdateBucket> {
   const updatableProperties = [
     'flushEnabled',
@@ -304,8 +338,8 @@ function getUpdatedBuckets(
 }
 
 function getUpdatedCollections(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string,
   scopeName: string
 ): Array<CouchbaseClusterChangeUpdateCollection> {
@@ -353,8 +387,8 @@ function getUpdatedCollections(
 }
 
 function getObsoleteIndexes(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string,
   scopeName: string,
   collectionName: string
@@ -379,8 +413,8 @@ function getObsoleteIndexes(
 }
 
 function getNewIndexes(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string,
   scopeName: string,
   collectionName: string
@@ -415,8 +449,8 @@ function getNewIndexes(
 }
 
 function getUpdatedIndexes(
-  currentConfig: CouchbaseClusterConfig,
-  nextConfig: CouchbaseClusterConfig,
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
   bucketName: string,
   scopeName: string,
   collectionName: string
@@ -473,4 +507,117 @@ function getUpdatedIndexes(
   return changes as Array<
     CouchbaseClusterChangeRecreateIndex | CouchbaseClusterChangeUpdateIndex
   >;
+}
+
+function findUser(
+  users: CouchbaseClusterConfig['users'][number][],
+  user: CouchbaseClusterConfig['users'][number]
+) {
+  return users.find((u) => {
+    const { username, domain = 'local' } = u;
+    return username === user.username && domain === (user.domain ?? 'local');
+  });
+}
+
+function getObsoleteUsers(
+  currentConfig: CouchbaseClusterConfig['users'],
+  nextConfig: CouchbaseClusterConfig['users']
+): CouchbaseClusterChangeDropUser[] {
+  const changes: CouchbaseClusterChangeDropUser[] = [];
+  const requestedUsers: string[] = [];
+
+  nextConfig.forEach(({ username, domain = 'local' }) => {
+    requestedUsers.push(`${domain} ${username}`);
+  });
+
+  currentConfig.forEach((u) => {
+    const { username, domain = 'local' } = u;
+    if (!requestedUsers.includes(`${domain} ${username}`)) {
+      changes.push({
+        type: 'dropUser',
+        user: {
+          ...u,
+          domain,
+        },
+      });
+    }
+  });
+
+  return changes;
+}
+
+function getUpdatedUsers(
+  currentConfig: CouchbaseClusterConfig['users'],
+  nextConfig: CouchbaseClusterConfig['users']
+): Array<CouchbaseClusterChangeUpdateUser | CouchbaseClusterChangeRecreateUser> {
+  const changes: Array<
+    CouchbaseClusterChangeUpdateUser | CouchbaseClusterChangeRecreateUser
+  > = [];
+  const requestedUsers: string[] = [];
+
+  nextConfig.forEach(({ username, domain = 'local' }) => {
+    requestedUsers.push(`${domain} ${username}`);
+  });
+
+  currentConfig.forEach((currentUser) => {
+    const { username, domain = 'local' } = currentUser;
+    if (requestedUsers.includes(`${domain} ${username}`)) {
+      const nextUser = findUser(nextConfig, currentUser);
+      invariant(nextUser, 'Requested user definition not found.');
+
+      if (nextUser.password && nextUser.password !== currentUser.password) {
+        return changes.push({
+          type: 'recreateUser',
+          user: {
+            ...nextUser,
+            domain,
+          },
+        });
+      }
+
+      if (
+        nextUser.domain !== currentUser.domain ||
+        nextUser.displayName !== currentUser.displayName ||
+        nextUser.groups !== currentUser.groups ||
+        JSON.stringify(nextUser.roles) !== JSON.stringify(currentUser.roles)
+      ) {
+        return changes.push({
+          type: 'updateUser',
+          user: {
+            ...nextUser,
+            domain,
+          },
+        });
+      }
+    }
+  });
+
+  return changes;
+}
+
+function getNewUsers(
+  currentConfig: CouchbaseClusterConfig['users'],
+  nextConfig: CouchbaseClusterConfig['users']
+): CouchbaseClusterChangeCreateUser[] {
+  const changes: CouchbaseClusterChangeCreateUser[] = [];
+  const existingUsers: string[] = [];
+
+  currentConfig.forEach(({ username, domain = 'local' }) => {
+    existingUsers.push(`${domain} ${username}`);
+  });
+
+  nextConfig.forEach((u) => {
+    const { username, domain = 'local' } = u;
+    if (!existingUsers.includes(`${domain} ${username}`)) {
+      changes.push({
+        type: 'createUser',
+        user: {
+          ...u,
+          domain,
+        },
+      });
+    }
+  });
+
+  return changes;
 }

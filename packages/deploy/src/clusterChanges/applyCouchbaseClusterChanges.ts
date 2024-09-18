@@ -7,6 +7,7 @@ import {
   waitForCollection,
   waitForQueryIndex,
   waitForScope,
+  waitForUser,
 } from '@cbjsdev/http-client';
 
 import {
@@ -15,15 +16,19 @@ import {
   CouchbaseClusterChangeCreateCollection,
   CouchbaseClusterChangeCreateIndex,
   CouchbaseClusterChangeCreateScope,
+  CouchbaseClusterChangeCreateUser,
   CouchbaseClusterChangeDropBucket,
   CouchbaseClusterChangeDropCollection,
   CouchbaseClusterChangeDropIndex,
   CouchbaseClusterChangeDropScope,
+  CouchbaseClusterChangeDropUser,
   CouchbaseClusterChangeRecreateBucket,
   CouchbaseClusterChangeRecreateIndex,
+  CouchbaseClusterChangeRecreateUser,
   CouchbaseClusterChangeUpdateBucket,
   CouchbaseClusterChangeUpdateCollection,
   CouchbaseClusterChangeUpdateIndex,
+  CouchbaseClusterChangeUpdateUser,
 } from './types.js';
 
 export type ChangeOptions = {
@@ -66,6 +71,10 @@ export async function applyCouchbaseClusterChanges(
     dropIndex: applyDropIndex,
     recreateIndex: applyRecreateIndex,
     updateIndex: applyUpdateIndex,
+    createUser: applyCreateUser,
+    updateUser: applyUpdateUser,
+    dropUser: applyDropUser,
+    recreateUser: applyRecreateUser,
   };
 
   for (const change of changes) {
@@ -451,4 +460,94 @@ async function applyRecreateIndex(
   }
 
   await applyCreateIndex(cluster, apiConfig, { ...change, type: 'createIndex' }, opts);
+}
+
+async function applyCreateUser(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change: CouchbaseClusterChangeCreateUser,
+  opts: ChangeOptions
+) {
+  console.log(`Requesting creation of user "${change.user.username}"`);
+  await cluster.users().upsertUser(change.user, {
+    ...opts,
+    domainName: change.user.domain,
+  });
+  console.log(`Awaiting user "${change.user.username}" to be created`);
+  await waitForUser(apiConfig, change.user.username, change.user.domain, opts);
+  console.log(`User "${change.user.username}" created`);
+}
+
+async function applyUpdateUser(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change: CouchbaseClusterChangeUpdateUser,
+  opts: ChangeOptions
+) {
+  const users = await cluster.users().getAllUsers();
+  const currentUser = users.find(
+    (u) =>
+      u.username === change.user.username && (u.domain ?? 'local') === change.user.domain
+  );
+
+  if (!currentUser) {
+    throw new Error(
+      `User ${change.user.username} in domain ${change.user.domain} was scheduled for an update but was not found.`
+    );
+  }
+
+  if (
+    currentUser.displayName !== change.user.displayName ||
+    currentUser.domain !== change.user.domain ||
+    JSON.stringify(currentUser.groups) !== JSON.stringify(change.user.groups) ||
+    JSON.stringify(currentUser.roles) !== JSON.stringify(change.user.roles)
+  ) {
+    console.log(`Requesting update of user "${change.user.username}"`);
+    await cluster.users().upsertUser(change.user, {
+      ...opts,
+      domainName: change.user.domain,
+    });
+
+    console.log(`Awaiting user "${change.user.username}" to be updated`);
+    await waitForUser(apiConfig, change.user.username, change.user.domain, opts);
+    console.log(`User "${change.user.username}" updated`);
+  }
+}
+
+async function applyRecreateUser(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change: CouchbaseClusterChangeRecreateUser,
+  opts: ChangeOptions
+) {
+  const users = await cluster.users().getAllUsers();
+  const user = users.find(
+    (u) =>
+      u.username === change.user.username && (u.domain ?? 'local') === change.user.domain
+  );
+
+  if (user) {
+    await applyDropUser(cluster, apiConfig, { ...change, type: 'dropUser' }, opts);
+  }
+
+  await applyCreateUser(cluster, apiConfig, { ...change, type: 'createUser' }, opts);
+}
+
+async function applyDropUser(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change: CouchbaseClusterChangeDropUser,
+  opts: ChangeOptions
+) {
+  console.log(`Requesting deletion of user "${change.user.username}"`);
+  await cluster.users().dropUser(change.user.username, {
+    ...opts,
+    domainName: change.user.domain,
+  });
+  console.log(`Awaiting user "${change.user.username}" to be dropped`);
+  await waitForUser(apiConfig, change.user.username, change.user.domain, {
+    ...opts,
+    expectMissing: true,
+  });
+  console.log(`User "${change.user.username}" dropped`);
 }

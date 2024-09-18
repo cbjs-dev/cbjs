@@ -22,3 +22,8 @@ docker run \
   -p 11210:11210 \
   -p 11280:11280 \
   couchbase:7.6.1
+
+sleep 5
+
+source loadEnv.sh
+pnpm dlx tsx ./initTestCluster.ts

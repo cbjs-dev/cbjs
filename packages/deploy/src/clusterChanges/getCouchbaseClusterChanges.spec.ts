@@ -15,12 +15,29 @@ describe('getCouchbaseClusterChanges', () => {
     expect(changes).toEqual([]);
   });
 
+  it('should set changes in the right order', ({ expect }) => {
+    const nextConfig = {
+      users: [{ username: 'cbjsUser_a', password: 'cbjsUser_a' }],
+      keyspaces: { bucket1: { ramQuotaMB: 100, scopes: {} } },
+    };
+
+    const changes = getCouchbaseClusterChanges({}, nextConfig);
+
+    expect(changes).toEqual([
+      { type: 'createBucket', config: { name: 'bucket1', ramQuotaMB: 100, scopes: {} } },
+      {
+        type: 'createUser',
+        user: { username: 'cbjsUser_a', password: 'cbjsUser_a', domain: 'local' },
+      },
+    ]);
+  });
+
   it('should identify obsolete and new buckets and add them to changes', ({ expect }) => {
     const currentConfig = {
-      bucket1: { ramQuotaMB: 100, scopes: {} },
+      keyspaces: { bucket1: { ramQuotaMB: 100, scopes: {} } },
     };
     const nextConfig = {
-      bucket2: { ramQuotaMB: 100, scopes: {} },
+      keyspaces: { bucket2: { ramQuotaMB: 100, scopes: {} } },
     };
 
     const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
@@ -35,12 +52,14 @@ describe('getCouchbaseClusterChanges', () => {
     expect,
   }) => {
     const currentConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: {},
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {},
+              },
             },
           },
         },
@@ -57,10 +76,10 @@ describe('getCouchbaseClusterChanges', () => {
     expect,
   }) => {
     const currentConfig = {
-      bucket1: { scopes: {}, ramQuotaMB: 100 },
+      keyspaces: { bucket1: { scopes: {}, ramQuotaMB: 100 } },
     };
     const nextConfig = {
-      bucket1: { scopes: {}, ramQuotaMB: 200 },
+      keyspaces: { bucket1: { scopes: {}, ramQuotaMB: 200 } },
     };
 
     const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
@@ -73,11 +92,13 @@ describe('getCouchbaseClusterChanges', () => {
   it('should add buckets to recreate to changes when their properties are modified but not updatable', ({
     expect,
   }) => {
-    const currentConfig: CouchbaseClusterConfig = {
-      bucket1: { scopes: {}, ramQuotaMB: 100, storageBackend: 'couchstore' },
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: { scopes: {}, ramQuotaMB: 100, storageBackend: 'couchstore' },
+      },
     };
-    const nextConfig: CouchbaseClusterConfig = {
-      bucket1: { scopes: {}, ramQuotaMB: 100, storageBackend: 'magma' },
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: { bucket1: { scopes: {}, ramQuotaMB: 100, storageBackend: 'magma' } },
     };
 
     const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
@@ -92,21 +113,25 @@ describe('getCouchbaseClusterChanges', () => {
 
   it('should identify obsolete and new scopes and add them to changes', ({ expect }) => {
     const currentConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {},
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {},
+            },
           },
         },
       },
     };
     const nextConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope2: {
-            collections: {},
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope2: {
+              collections: {},
+            },
           },
         },
       },
@@ -124,21 +149,25 @@ describe('getCouchbaseClusterChanges', () => {
     expect,
   }) => {
     const currentConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: {},
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {},
+              },
             },
           },
         },
       },
     };
     const nextConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {},
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {},
+        },
       },
     };
 
@@ -151,26 +180,30 @@ describe('getCouchbaseClusterChanges', () => {
     expect,
   }) => {
     const currentConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: { history: true, maxExpiry: 100 },
-              collection2: { history: false, maxExpiry: 200 },
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: { history: true, maxExpiry: 100 },
+                collection2: { history: false, maxExpiry: 200 },
+              },
             },
           },
         },
       },
     };
     const nextConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection2: { history: false, maxExpiry: 200 },
-              collection3: { history: true, maxExpiry: 150 },
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection2: { history: false, maxExpiry: 200 },
+                collection3: { history: true, maxExpiry: 150 },
+              },
             },
           },
         },
@@ -194,24 +227,28 @@ describe('getCouchbaseClusterChanges', () => {
 
   it('should identify updated collections and add them to changes', ({ expect }) => {
     const currentConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: { history: true, maxExpiry: 100 },
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: { history: true, maxExpiry: 100 },
+              },
             },
           },
         },
       },
     };
     const nextConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: { history: true, maxExpiry: 200 },
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: { history: true, maxExpiry: 200 },
+              },
             },
           },
         },
@@ -233,16 +270,18 @@ describe('getCouchbaseClusterChanges', () => {
   });
 
   it('should identify obsolete and new indexes and add them to changes', ({ expect }) => {
-    const currentConfig: CouchbaseClusterConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: {
-                indexes: {
-                  index1: {
-                    keys: ['title'],
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {
+                  indexes: {
+                    index1: {
+                      keys: ['title'],
+                    },
                   },
                 },
               },
@@ -251,16 +290,18 @@ describe('getCouchbaseClusterChanges', () => {
         },
       },
     };
-    const nextConfig: CouchbaseClusterConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: {
-                indexes: {
-                  index2: {
-                    keys: ['name'],
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {
+                  indexes: {
+                    index2: {
+                      keys: ['name'],
+                    },
                   },
                 },
               },
@@ -294,22 +335,24 @@ describe('getCouchbaseClusterChanges', () => {
   it('should identify updated indexes that need to be recreated or simply updated', ({
     expect,
   }) => {
-    const currentConfig: CouchbaseClusterConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: {
-                indexes: {
-                  index1: {
-                    keys: ['title'],
-                  },
-                  index2: {
-                    keys: ['name'],
-                  },
-                  index3: {
-                    keys: ['groupId'],
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {
+                  indexes: {
+                    index1: {
+                      keys: ['title'],
+                    },
+                    index2: {
+                      keys: ['name'],
+                    },
+                    index3: {
+                      keys: ['groupId'],
+                    },
                   },
                 },
               },
@@ -318,24 +361,26 @@ describe('getCouchbaseClusterChanges', () => {
         },
       },
     };
-    const nextConfig: CouchbaseClusterConfig = {
-      bucket1: {
-        ramQuotaMB: 100,
-        scopes: {
-          scope1: {
-            collections: {
-              collection1: {
-                indexes: {
-                  index1: {
-                    keys: ['title', 'group'],
-                  },
-                  index2: {
-                    keys: ['name'],
-                    numReplicas: 1,
-                  },
-                  index3: {
-                    keys: ['groupId'],
-                    where: 'groupId != "groupSystem"',
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {
+                  indexes: {
+                    index1: {
+                      keys: ['title', 'group'],
+                    },
+                    index2: {
+                      keys: ['name'],
+                      numReplicas: 1,
+                    },
+                    index3: {
+                      keys: ['groupId'],
+                      where: 'groupId != "groupSystem"',
+                    },
                   },
                 },
               },
@@ -373,6 +418,108 @@ describe('getCouchbaseClusterChanges', () => {
         collection: 'collection1',
         keys: ['groupId'],
         where: 'groupId != "groupSystem"',
+      },
+    ]);
+  });
+
+  it('should identify users changes', ({ expect }) => {
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      users: [
+        {
+          username: 'a',
+          password: 'pa',
+          roles: [{ name: 'fts_admin', bucket: 'b1' }],
+        },
+        {
+          username: 'b',
+          password: 'pb',
+        },
+        {
+          username: 'c',
+          password: 'pc',
+        },
+        {
+          username: 'd',
+          password: 'pd',
+        },
+      ],
+      keyspaces: {},
+    };
+
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      users: [
+        {
+          username: 'a',
+          roles: [{ name: 'admin' }], // Role change
+        },
+        {
+          username: 'b',
+          password: 'pb2', // Password change
+        },
+        {
+          username: 'd',
+          domain: 'ext', // Domain change
+          password: 'pd',
+        },
+        {
+          username: 'e', // New user
+          password: 'pe',
+        },
+      ],
+      keyspaces: {},
+    };
+
+    const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
+
+    // The order matters : first we create new users, then we update and finally we delete.
+    expect(changes).toEqual([
+      {
+        type: 'createUser',
+        user: {
+          username: 'd',
+          domain: 'ext',
+          password: 'pd',
+        },
+      },
+      {
+        type: 'createUser',
+        user: {
+          username: 'e',
+          password: 'pe',
+          domain: 'local',
+        },
+      },
+      {
+        type: 'updateUser',
+        user: {
+          username: 'a',
+          roles: [{ name: 'admin' }],
+          domain: 'local',
+        },
+      },
+      {
+        type: 'recreateUser',
+        user: {
+          username: 'b',
+          password: 'pb2',
+          domain: 'local',
+        },
+      },
+      {
+        type: 'dropUser',
+        user: {
+          username: 'c',
+          password: 'pc',
+          domain: 'local',
+        },
+      },
+      {
+        type: 'dropUser',
+        user: {
+          username: 'd',
+          password: 'pd',
+          domain: 'local',
+        },
       },
     ]);
   });
