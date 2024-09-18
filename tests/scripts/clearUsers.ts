@@ -24,7 +24,7 @@ const cluster = await connect(params.connectionString, {
 });
 
 const users = await cluster.users().getAllUsers();
-const usersToDrop = users.filter((u) => u.username.startsWith('cbjs_'));
+const usersToDrop = users.filter((u) => u.username.startsWith('cbjsUser_'));
 
 for (const u of usersToDrop) {
   await cluster.users().dropUser(u.username);

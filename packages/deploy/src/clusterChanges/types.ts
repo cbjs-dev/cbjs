@@ -1,6 +1,7 @@
 import {
   IBucketSettings,
   ICreateBucketSettings,
+  IUser,
   UpdateBucketSettings,
 } from '@cbjsdev/cbjs';
 
@@ -17,7 +18,11 @@ export type CouchbaseClusterChange =
   | CouchbaseClusterChangeCreateIndex
   | CouchbaseClusterChangeDropIndex
   | CouchbaseClusterChangeRecreateIndex
-  | CouchbaseClusterChangeUpdateIndex;
+  | CouchbaseClusterChangeUpdateIndex
+  | CouchbaseClusterChangeCreateUser
+  | CouchbaseClusterChangeUpdateUser
+  | CouchbaseClusterChangeRecreateUser
+  | CouchbaseClusterChangeDropUser;
 
 export type CouchbaseClusterChangeCreateBucket = {
   type: 'createBucket';
@@ -117,7 +122,34 @@ export type CouchbaseClusterChangeRecreateIndex = {
   numReplicas?: number;
 };
 
-export type CouchbaseClusterConfig = Record<string, CouchbaseClusterBucketConfig>;
+export type CouchbaseClusterChangeCreateUser = {
+  type: 'createUser';
+  user: IUser & { domain: string };
+};
+
+export type CouchbaseClusterChangeUpdateUser = {
+  type: 'updateUser';
+  user: IUser & { domain: string };
+};
+
+export type CouchbaseClusterChangeRecreateUser = {
+  type: 'recreateUser';
+  user: IUser & { domain: string };
+};
+
+export type CouchbaseClusterChangeDropUser = {
+  type: 'dropUser';
+  user: IUser & { domain: string };
+};
+
+export type CouchbaseClusterConfig = {
+  /**
+   * The users in your cluster.
+   * If the password property is set during an update, a user update will systematically be triggered.
+   */
+  users: Array<IUser & { domain?: string }>;
+  keyspaces: Record<string, CouchbaseClusterBucketConfig>;
+};
 
 export type CouchbaseClusterBucketConfig = Omit<IBucketSettings, 'name'> & {
   scopes: Record<string, CouchbaseClusterScopeConfig>;

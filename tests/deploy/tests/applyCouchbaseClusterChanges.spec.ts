@@ -24,100 +24,55 @@ import {
 import { getApiConfig, getConnectionParams, invariant, sleep } from '@cbjsdev/shared';
 import { getRandomId } from '@cbjsdev/vitest';
 
-describe('applyCouchbaseClusterChanges', { sequential: true }, async () => {
-  const bucketName = 'cbjs_' + getRandomId();
-  const scopeName = getRandomId();
-  const collectionName1 = getRandomId();
-  const collectionName2 = getRandomId();
+import { apiConfig } from '../setupTests.js';
 
-  const params = getConnectionParams();
-  const cluster = await connect(params.connectionString, params.credentials);
+describe(
+  'applyCouchbaseClusterChanges',
+  { sequential: true, timeout: 180_000 },
+  async () => {
+    const bucketName = 'cbjs_' + getRandomId();
+    const scopeName = getRandomId();
+    const collectionName1 = getRandomId();
+    const collectionName2 = getRandomId();
 
-  afterAll(async () => {
-    await cluster.buckets().dropBucket(bucketName);
-    // All this keyspace activity tends to mess up with the stability of the db
-    // So we give it time to chill a bit
-    await sleep(10_000);
-  });
-
-  const clusterConfig: CouchbaseClusterConfig = {
-    [bucketName]: {
-      ramQuotaMB: 100,
-      numReplicas: 0,
-      scopes: {
-        [scopeName]: {
-          collections: {
-            [collectionName1]: {
-              indexes: {
-                c1_title: {
-                  keys: ['title'],
-                },
-              },
-            },
-            [collectionName2]: {
-              indexes: {
-                c2_group: {
-                  keys: ['groupId'],
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  it(
-    'should apply all the changes from scratch',
-    { timeout: 180_000 },
-    async ({ expect }) => {
-      const changes = getCouchbaseClusterChanges({}, clusterConfig);
-
-      console.log(
-        `The following changes have been detected in the cluster : \n\t${changes.map((c) => JSON.stringify(c)).join('\n\t')}`
-      );
-
-      await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
-        timeout: 30_000,
-      });
-
-      await expect(cluster.buckets().getBucket(bucketName)).resolves.toBeDefined();
-
-      const scopes = await cluster.bucket(bucketName).collections().getAllScopes();
-      const scope = scopes.find((s) => s.name === scopeName);
-
-      expect(scope).toBeDefined();
-
-      invariant(scope);
-
-      expect(scope.collections.find((c) => c.name === collectionName1)).toBeDefined();
-      expect(scope.collections.find((c) => c.name === collectionName2)).toBeDefined();
-
-      const c1indexes = await cluster
-        .bucket(bucketName)
-        .scope(scopeName)
-        .collection(collectionName1)
-        .queryIndexes()
-        .getAllIndexes();
-      const c2indexes = await cluster
-        .bucket(bucketName)
-        .scope(scopeName)
-        .collection(collectionName2)
-        .queryIndexes()
-        .getAllIndexes();
-
-      expect(c1indexes.find((i) => i.name === 'c1_title')).toBeDefined();
-      expect(c2indexes.find((i) => i.name === 'c2_group')).toBeDefined();
-    }
-  );
-
-  it(
-    'should drop and create indexes when they change',
-    { timeout: 180_000 },
-    async ({ expect }) => {
+    afterAll(async () => {
+      const params = getConnectionParams();
       const cluster = await connect(params.connectionString, params.credentials);
+      await cluster.buckets().dropBucket(bucketName);
 
-      const nextClusterConfig: CouchbaseClusterConfig = {
+      const users = await cluster.users().getAllUsers();
+
+      for (const user of users) {
+        if (user.username.startsWith('cbjsUser_')) {
+          // await cluster.users().dropUser(user.username);
+        }
+      }
+
+      await cluster.closeGracefully();
+
+      // All this keyspace activity tends to mess up with the stability of the db
+      // So we give it time to chill a bit
+      await sleep(10_000);
+    });
+
+    const clusterConfig: CouchbaseClusterConfig = {
+      users: [
+        {
+          username: 'cbjsUser_a',
+          password: 'cbjsPassword_a',
+          roles: [{ name: 'bucket_full_access', bucket: bucketName }],
+        },
+        {
+          username: 'cbjsUser_b',
+          password: 'cbjsPassword_b',
+          roles: [{ name: 'admin' }],
+        },
+        {
+          username: 'cbjsUser_c',
+          password: 'cbjsPassword_c',
+        },
+      ],
+      keyspaces: {
         [bucketName]: {
           ramQuotaMB: 100,
           numReplicas: 0,
@@ -133,8 +88,181 @@ describe('applyCouchbaseClusterChanges', { sequential: true }, async () => {
                 },
                 [collectionName2]: {
                   indexes: {
-                    c2_groupId: {
+                    c2_group: {
                       keys: ['groupId'],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    it('should apply all the changes from scratch', async ({ expect }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
+
+      const changes = getCouchbaseClusterChanges({}, clusterConfig);
+
+      console.log(
+        `The following changes have been detected in the cluster : \n\t${changes.map((c) => JSON.stringify(c)).join('\n\t')}`
+      );
+
+      await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
+        timeout: 30_000,
+      });
+
+      // Check keyspaces //
+      await expect(cluster.buckets().getBucket(bucketName)).resolves.toBeDefined();
+
+      const scopes = await cluster.bucket(bucketName).collections().getAllScopes();
+      const scope = scopes.find((s) => s.name === scopeName);
+
+      expect(scope).toBeDefined();
+
+      invariant(scope);
+
+      expect(scope.collections.find((c) => c.name === collectionName1)).toBeDefined();
+      expect(scope.collections.find((c) => c.name === collectionName2)).toBeDefined();
+
+      // Check indexes //
+      const c1indexes = await cluster
+        .bucket(bucketName)
+        .scope(scopeName)
+        .collection(collectionName1)
+        .queryIndexes()
+        .getAllIndexes();
+      const c2indexes = await cluster
+        .bucket(bucketName)
+        .scope(scopeName)
+        .collection(collectionName2)
+        .queryIndexes()
+        .getAllIndexes();
+
+      expect(c1indexes.find((i) => i.name === 'c1_title')).toBeDefined();
+      expect(c2indexes.find((i) => i.name === 'c2_group')).toBeDefined();
+
+      // Check users //
+      const users = await cluster.users().getAllUsers();
+
+      const userA = users.find((u) => u.username === 'cbjsUser_a');
+      const userB = users.find((u) => u.username === 'cbjsUser_b');
+      const userC = users.find((u) => u.username === 'cbjsUser_c');
+
+      expect(userA).toBeDefined();
+      expect(userA?.domain).toEqual('local');
+      expect(userA?.roles).toEqual([{ name: 'bucket_full_access', bucket: bucketName }]);
+
+      expect(userB).toBeDefined();
+      expect(userB?.domain).toEqual('local');
+      expect(userB?.roles).toEqual([{ name: 'admin' }]);
+
+      expect(userC).toBeDefined();
+      expect(userC?.domain).toEqual('local');
+      expect(userC?.roles).toEqual([]);
+
+      await cluster.closeGracefully();
+    });
+
+    it('should create, update or delete users when they change', async ({ expect }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
+
+      const nextUsers: CouchbaseClusterConfig['users'] = [
+        {
+          username: 'cbjsUser_a',
+          // Role change
+          roles: [
+            { name: 'data_reader', bucket: bucketName, scope: '*', collection: '*' },
+          ],
+        },
+        {
+          username: 'cbjsUser_b',
+          password: 'cbjsPassword_b2', // Password is updated
+          roles: [{ name: 'admin' }],
+        },
+        {
+          username: 'cbjsUser_e', // New user
+          password: 'cbjsPassword_e',
+        },
+      ];
+
+      const nextConfig: CouchbaseClusterConfig = {
+        ...clusterConfig,
+        users: nextUsers,
+      };
+
+      const changes = getCouchbaseClusterChanges(clusterConfig, nextConfig);
+
+      console.log(
+        `The following changes have been detected in the cluster : \n\t${changes.map((c) => JSON.stringify(c)).join('\n\t')}`
+      );
+
+      await applyCouchbaseClusterChanges(cluster, apiConfig, changes);
+
+      const users = await cluster.users().getAllUsers();
+
+      const userA = users.find((u) => u.username === 'cbjsUser_a');
+      const userB = users.find((u) => u.username === 'cbjsUser_b');
+      const userC = users.find((u) => u.username === 'cbjsUser_c');
+      const userE = users.find((u) => u.username === 'cbjsUser_e');
+
+      expect(userA).toBeDefined();
+      expect(userA?.domain).toEqual('local');
+      expect(userA?.roles).toEqual([
+        { name: 'data_reader', bucket: bucketName, scope: '*', collection: '*' },
+      ]);
+
+      expect(userB).toBeDefined();
+      expect(userB?.domain).toEqual('local');
+      expect(userB?.roles).toEqual([{ name: 'admin' }]);
+
+      // We check we can connect with the new password
+      await cluster.close();
+      const { connectionString } = getConnectionParams();
+
+      await expect(
+        connect(connectionString, {
+          username: 'cbjsUser_b',
+          password: 'cbjsPassword_b2',
+        })
+      ).resolves.toBeDefined();
+
+      expect(userC).toBeUndefined();
+
+      expect(userE).toBeDefined();
+      expect(userE?.roles).toEqual([]);
+
+      clusterConfig.users = nextUsers;
+    });
+
+    it('should drop and create indexes when they change', async ({ expect }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
+
+      const nextClusterConfig: CouchbaseClusterConfig = {
+        ...clusterConfig,
+        keyspaces: {
+          [bucketName]: {
+            ramQuotaMB: 100,
+            numReplicas: 0,
+            scopes: {
+              [scopeName]: {
+                collections: {
+                  [collectionName1]: {
+                    indexes: {
+                      c1_title: {
+                        keys: ['title'],
+                      },
+                    },
+                  },
+                  [collectionName2]: {
+                    indexes: {
+                      c2_groupId: {
+                        keys: ['groupId'],
+                      },
                     },
                   },
                 },
@@ -182,6 +310,6 @@ describe('applyCouchbaseClusterChanges', { sequential: true }, async () => {
       expect(c1indexes.find((i) => i.name === 'c1_title')).toBeDefined();
       expect(c2indexes.find((i) => i.name === 'c2_group')).toBeUndefined();
       expect(c2indexes.find((i) => i.name === 'c2_groupId')).toBeDefined();
-    }
-  );
-});
+    });
+  }
+);
