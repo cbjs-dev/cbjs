@@ -62,7 +62,12 @@ export * from './viewtypes.js';
 
 export * from './clusterTypes/index.js';
 
-export type { Keyspace, CasInput } from '@cbjsdev/shared';
+export type {
+  Keyspace,
+  CasInput,
+  CouchbaseCasInput,
+  QueryContext,
+} from '@cbjsdev/shared';
 export {
   keyspacePath,
   namespacedKeyspacePath,

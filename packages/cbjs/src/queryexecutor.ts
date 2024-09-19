@@ -139,7 +139,7 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
    */
   query<TRow = any, WithMetrics extends boolean = false>(
     query: string,
-    options: QueryOptions<WithMetrics>
+    options: QueryOptions<T, WithMetrics>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
     const timeout = options.timeout ?? this._cluster.queryTimeout;
 

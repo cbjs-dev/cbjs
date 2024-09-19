@@ -106,8 +106,20 @@ export function isPartialKeyspace(v: unknown): v is Partial<Keyspace> {
 /**
  * Return a keyspace string with quoted identifiers.
  */
-export function keyspacePath(...args: ReadonlyArray<string>): string;
-export function keyspacePath(ks: Partial<Keyspace>): string;
+export function keyspacePath(
+  bucket: string,
+  scope: string,
+  collection: string
+): `${string}.${string}.${string}`;
+export function keyspacePath(bucket: string, scope: string): `${string}.${string}`;
+export function keyspacePath(bucket: string): string;
+export function keyspacePath(
+  ks: Pick<Keyspace, 'bucket' | 'scope' | 'collection'>
+): `${string}.${string}.${string}`;
+export function keyspacePath(
+  ks: Pick<Keyspace, 'bucket' | 'scope'>
+): `${string}.${string}`;
+export function keyspacePath(ks: Pick<Keyspace, 'bucket'>): string;
 export function keyspacePath(
   ...args: ReadonlyArray<string> | [Partial<Keyspace>]
 ): string {
