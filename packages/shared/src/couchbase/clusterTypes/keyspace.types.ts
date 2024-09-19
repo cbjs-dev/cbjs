@@ -124,3 +124,14 @@ export type DefaultScopeCollectionName<
     never :
   never
 ;
+
+// prettier-ignore
+export type QueryContext<T extends CouchbaseClusterTypes> =
+  BucketName<T> extends infer B extends BucketName<T> ?
+    B extends unknown ?
+      ScopeName<T, B> extends infer S extends string ?
+        B | `${B}.${S}` :
+      never :
+    never :
+  never
+;

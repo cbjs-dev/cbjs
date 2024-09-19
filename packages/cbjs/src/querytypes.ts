@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If } from '@cbjsdev/shared';
+import {
+  CouchbaseClusterTypes,
+  DefaultClusterTypes,
+  If,
+  QueryContext,
+} from '@cbjsdev/shared';
 
 import { MutationState } from './mutationstate.js';
 
@@ -291,7 +296,10 @@ export enum QueryScanConsistency {
 /**
  * @category Query
  */
-export interface QueryOptions<WithMetrics extends boolean = false> {
+export interface QueryOptions<
+  T extends CouchbaseClusterTypes = DefaultClusterTypes,
+  WithMetrics extends boolean = false,
+> {
   /**
    * Values to be used for the placeholders within the query.
    */
@@ -402,10 +410,10 @@ export interface QueryOptions<WithMetrics extends boolean = false> {
   metrics?: WithMetrics;
 
   /**
-   * Specifies the context within which this query should be executed.  This can be
-   * scoped to a scope or a collection within the dataset.
+   * Specifies the context within which this query should be executed.
+   * This can be scoped to a bucket or a scope within the dataset.
    */
-  queryContext?: string;
+  queryContext?: QueryContext<T>;
 
   /**
    * Specifies any additional parameters which should be passed to the query engine

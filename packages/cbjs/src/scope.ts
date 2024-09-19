@@ -127,7 +127,7 @@ export class Scope<
    */
   query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options: QueryOptions<WithMetrics>,
+    options: QueryOptions<T, WithMetrics>,
     callback?: NodeCallback<QueryResult<TRow, WithMetrics>>
   ): StreamableRowPromise<
     QueryResult<TRow, WithMetrics>,
@@ -142,7 +142,7 @@ export class Scope<
 
   query<TRow = any>(
     statement: string,
-    options?: QueryOptions | NodeCallback<QueryResult<TRow>>,
+    options?: QueryOptions<T> | NodeCallback<QueryResult<TRow>>,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
     if (options instanceof Function) {
@@ -150,7 +150,7 @@ export class Scope<
       options = undefined;
     }
     if (!options) {
-      options = {} as QueryOptions;
+      options = {} as QueryOptions<T>;
     }
 
     const bucket = this.bucket;
@@ -161,7 +161,7 @@ export class Scope<
       () =>
         exec.query<TRow>(statement, {
           ...options_,
-          queryContext: `${bucket.name}.${this.name}`,
+          queryContext: `${bucket.name}.${this.name}` as never,
         }),
       callback
     );

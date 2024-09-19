@@ -525,13 +525,13 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    */
   query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options: QueryOptions<WithMetrics>,
+    options: QueryOptions<T, WithMetrics>,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData>;
 
   query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options?: QueryOptions<WithMetrics> | NodeCallback<QueryResult<TRow>>,
+    options?: QueryOptions<T, WithMetrics> | NodeCallback<QueryResult<TRow>>,
     callback?: NodeCallback<QueryResult<TRow>>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
     if (options instanceof Function) {
@@ -539,7 +539,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       options = undefined;
     }
     if (!options) {
-      options = {} as QueryOptions<WithMetrics>;
+      options = {} as QueryOptions<T, WithMetrics>;
     }
 
     const exec = new QueryExecutor(this);
