@@ -21,6 +21,7 @@ import {
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
+  DocDef,
   DocDefMatchingKey,
   If,
   invariant,
@@ -522,6 +523,23 @@ function translateGetResult<
     _metadata: cppRes.metadata,
   });
 }
+
+/**
+ * Represents a {@link TransactionAttemptContext} where the bucket has been defined.
+ */
+export type TransactionAttemptContextBucket<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T> = never,
+> = ReturnType<TransactionAttemptContext<T, never, B>['bucket']>;
+
+/**
+ * Represents a {@link TransactionAttemptContext} where the bucket and the scope have been defined.
+ */
+export type TransactionAttemptContextScope<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T> = never,
+  S extends ScopeName<T, B> = never,
+> = ReturnType<ReturnType<TransactionAttemptContext<T, never, B, S>['bucket']>['scope']>;
 
 /**
  * Provides an interface to preform transactional operations in a transaction.
