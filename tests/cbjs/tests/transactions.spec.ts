@@ -20,6 +20,7 @@ import {
   BucketNotFoundError,
   DocumentExistsError,
   DocumentNotFoundError,
+  keyspacePath,
   KeyValueErrorContext,
   ParsingFailureError,
   TransactionFailedError,
@@ -768,5 +769,30 @@ describe
         },
         { timeout: 5000 }
       );
+    });
+
+    test('should be able to perform a query with a query context', async ({
+      serverTestContext,
+      expect,
+    }) => {
+      expect.hasAssertions();
+
+      await serverTestContext.c.transactions().run(async (ctx) => {
+        try {
+          await expect(
+            ctx.query(
+              `SELECT * FROM ${keyspacePath(serverTestContext.collection.name)}`,
+              {
+                queryContext: keyspacePath(
+                  serverTestContext.bucket.name,
+                  serverTestContext.scope.name
+                ),
+              }
+            )
+          ).resolves.toBeDefined();
+        } catch (err) {
+          expect.fail(`Error during the execution of the query: ${err}`);
+        }
+      });
     });
   });

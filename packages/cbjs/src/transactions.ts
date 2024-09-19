@@ -21,12 +21,12 @@ import {
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
-  DocDef,
   DocDefMatchingKey,
   If,
   invariant,
   IsNever,
   KeyspaceDocDef,
+  QueryContext,
   ScopeName,
 } from '@cbjsdev/shared';
 
@@ -404,7 +404,12 @@ export class TransactionQueryResult<TRow = any, WithMetrics extends boolean = fa
 /**
  * @category Transactions
  */
-export type TransactionQueryOptions<WithMetrics extends boolean = false> = {
+export type TransactionQueryOptions<
+  T extends CouchbaseClusterTypes,
+  WithMetrics extends boolean = false,
+> = {
+  queryContext?: QueryContext<T>;
+
   /**
    * Values to be used for the placeholders within the query.
    */
@@ -885,13 +890,18 @@ export class TransactionAttemptContext<
    */
   async query<TRow = any, WithMetrics extends boolean = false>(
     statement: string,
-    options?: TransactionQueryOptions<WithMetrics>
+    options?: TransactionQueryOptions<T, WithMetrics>
   ): Promise<TransactionQueryResult<TRow, WithMetrics>> {
     // This await statement is explicit here to ensure our query is completely
     // processed before returning the result to the user (no row streaming).
     const syncQueryRes = await QueryExecutor.execute<TRow, WithMetrics>((callback) => {
       if (!options) {
         options = {};
+      }
+
+      if (options.queryContext) {
+        options.raw ??= {};
+        options.raw.query_context = options.queryContext;
       }
 
       this._impl.query(
