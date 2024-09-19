@@ -15,9 +15,9 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CouchbaseClusterTypes } from './cluster.types.js';
+import { CouchbaseClusterTypes, DefaultClusterTypes } from './cluster.types.js';
 import { DocDef } from './document.types.js';
-import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
+import { BucketName, CollectionName, QueryContext, ScopeName } from './keyspace.types.js';
 
 type Doc<T extends string> = { [K in T]: string };
 
@@ -126,5 +126,21 @@ describe('CollectionName', () => {
 
   it('should fallback to string when given the default cluster types', () => {
     expectTypeOf<CollectionName<CouchbaseClusterTypes>>().toEqualTypeOf<string>();
+  });
+});
+
+describe('QueryContext', () => {
+  it('should give a union of all possible query contexts', () => {
+    expectTypeOf<QueryContext<UserClusterTypes>>().toEqualTypeOf<
+      | 'BucketOne'
+      | 'BucketOne.ScopeOne'
+      | 'BucketOne.ScopeTwo'
+      | 'BucketTwo'
+      | 'BucketTwo.ScopeOne'
+      | 'BucketTwo.ScopeThree'
+      | 'BucketTwo.ScopeFour'
+    >();
+
+    expectTypeOf<QueryContext<DefaultClusterTypes>>().toEqualTypeOf<string>();
   });
 });
