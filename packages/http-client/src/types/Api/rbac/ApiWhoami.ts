@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiScopedRole } from '@cbjsdev/shared';
 
-export * from './getUser.js';
-export * from './getUserGroup.js';
-export * from './getUsers.js';
-export * from './whoami.js';
-export * from './getUserGroups.js';
-export * from './getRoles.js';
-export * from './updateUserPassword.js';
+export type ApiWhoami = {
+  roles: ApiScopedRole[];
+  /**
+   * The username of the user.
+   */
+  id: string;
+  domain: string;
+};
