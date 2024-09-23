@@ -407,6 +407,18 @@ declare function updateQueryIndex(
 
 ## RBAC
 
+### whoami
+
+Retrieves a user by its username. Can filter by domain using a third parameter.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, ApiWhoami } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function whoami(
+  apiConfig: CouchbaseHttpApiConfig
+): Promise<ApiWhoami>;
+```
+
 ### getUser
 
 Retrieves a user by its username. Can filter by domain using a third parameter.
