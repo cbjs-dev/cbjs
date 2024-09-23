@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import JSONBigint from 'json-bigint';
 import { describe } from 'vitest';
 
 import {
@@ -27,7 +28,7 @@ import {
   TransactionOperationFailedError,
 } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
-import { invariant, waitFor } from '@cbjsdev/shared';
+import { getConnectionParams, invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
@@ -793,6 +794,62 @@ describe
         } catch (err) {
           expect.fail(`Error during the execution of the query: ${err}`);
         }
+      });
+    });
+
+    test('should use the cluster custom row parser', async ({
+      expect,
+      serverTestContext,
+      useDocumentKey,
+    }) => {
+      expect.hasAssertions();
+
+      const docKey = useDocumentKey();
+
+      const { cas: insertCas } = await serverTestContext.collection.insert(docKey, {
+        title: 'cbjs',
+      });
+
+      const params = getConnectionParams();
+      const newConnection = await serverTestContext.newConnection(params, {
+        queryRowParser: JSONBigint.parse,
+      });
+
+      await newConnection.transactions().run(async (ctx) => {
+        const queryResult = await ctx.query<{ cas: bigint }>(
+          `SELECT META().cas AS cas FROM ${serverTestContext.getKeyspacePath()} USE KEYS $1`,
+          {
+            parameters: [docKey],
+          }
+        );
+        const { cas: queryCas } = queryResult.rows[0];
+        expect(insertCas.toString()).toEqual(queryCas.toString());
+      });
+    });
+
+    test('should use the given custom row parser', async ({
+      expect,
+      serverTestContext,
+      useDocumentKey,
+    }) => {
+      expect.hasAssertions();
+
+      const docKey = useDocumentKey();
+
+      const { cas: insertCas } = await serverTestContext.collection.insert(docKey, {
+        title: 'cbjs',
+      });
+
+      await serverTestContext.c.transactions().run(async (ctx) => {
+        const queryResult = await ctx.query<{ cas: bigint }>(
+          `SELECT META().cas AS cas FROM ${serverTestContext.getKeyspacePath()} USE KEYS $1`,
+          {
+            parameters: [docKey],
+            queryRowParser: JSONBigint.parse,
+          }
+        );
+        const { cas: queryCas } = queryResult.rows[0];
+        expect(insertCas.toString()).toEqual(queryCas.toString());
       });
     });
   });

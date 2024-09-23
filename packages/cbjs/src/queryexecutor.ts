@@ -53,7 +53,8 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
   static execute<TRow = any, WithMetrics extends boolean = false>(
     exec: (
       callback: (err: CppError | null, resp: CppQueryResponse | undefined) => void
-    ) => void
+    ) => void,
+    parser?: (value: string) => any
   ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData> {
     const emitter = new StreamableRowPromise<
       QueryResult<TRow, WithMetrics>,
@@ -76,8 +77,10 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
 
       invariant(resp);
 
+      const rowParser = parser ?? JSON.parse;
+
       resp.rows.forEach((row) => {
-        emitter.emit('row', JSON.parse(row));
+        emitter.emit('row', rowParser(row) as TRow);
       });
 
       {
@@ -142,6 +145,7 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
     options: QueryOptions<T, WithMetrics>
   ): StreamableRowPromise<QueryResult<TRow>, TRow, QueryMetaData> {
     const timeout = options.timeout ?? this._cluster.queryTimeout;
+    const rowParser = options.queryRowParser ?? this._cluster.queryRowParser;
 
     return QueryExecutor.execute((callback) => {
       this._cluster.conn.query(
@@ -187,6 +191,6 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
         },
         callback
       );
-    });
+    }, rowParser);
   }
 }
