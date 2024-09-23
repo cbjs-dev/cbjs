@@ -15,6 +15,8 @@
  */
 import 'node-fetch';
 
+import { jsonToUrlSearchParams } from '@cbjsdev/shared';
+
 import { CouchbaseHttpApiConfig } from '../../../types.js';
 import { apiPOST } from '../../../utils/apiPOST.js';
 
@@ -25,6 +27,11 @@ export async function requestUpdateUserPassword(
   return await apiPOST(
     { ...params },
     `/controller/changePassword`,
-    JSON.stringify({ password: newPassword })
+    jsonToUrlSearchParams({ password: newPassword }),
+    'management',
+    undefined,
+    {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
   );
 }
