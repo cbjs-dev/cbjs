@@ -77,3 +77,8 @@ If a bucket/scope/collection/index is scheduled for creation but already exists 
 
 Deletions are executed first, to make sure there is enough space to proceed.  
 This can cause some issues with indexes, since the index being rebuilt won't be able to serve queries during that time. If this is an issue, you should consider creating a separate index with a different name, apply that change and then remove the obsolete index.
+
+## User password
+
+During creation, the password is required.
+Once created, the password can be omitted, but if it is set again later in the future, since the last config won't have the password, the user will be recreated.
