@@ -160,6 +160,7 @@ export class Scope<
     return PromiseHelper.wrapAsync(
       () =>
         exec.query<TRow>(statement, {
+          queryRowParser: this.cluster.queryRowParser,
           ...options_,
           queryContext: `${bucket.name}.${this.name}` as never,
         }),

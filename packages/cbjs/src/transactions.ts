@@ -493,6 +493,13 @@ export type TransactionQueryOptions<
    * when executing the query.
    */
   raw?: { [key: string]: any };
+
+  /**
+   * Specifies the default function to parse results from the query service.
+   *
+   * @default {@link JSON.parse}
+   */
+  queryRowParser?: (value: string) => any;
 };
 
 /**
@@ -892,6 +899,8 @@ export class TransactionAttemptContext<
     statement: string,
     options?: TransactionQueryOptions<T, WithMetrics>
   ): Promise<TransactionQueryResult<TRow, WithMetrics>> {
+    const rowParser = options?.queryRowParser ?? this.cluster.queryRowParser;
+
     // This await statement is explicit here to ensure our query is completely
     // processed before returning the result to the user (no row streaming).
     const syncQueryRes = await QueryExecutor.execute<TRow, WithMetrics>((callback) => {
@@ -942,7 +951,7 @@ export class TransactionAttemptContext<
           callback(cppErr, resp);
         }
       );
-    });
+    }, rowParser);
     return new TransactionQueryResult<TRow, WithMetrics>({
       rows: syncQueryRes.rows,
       meta: syncQueryRes.meta,

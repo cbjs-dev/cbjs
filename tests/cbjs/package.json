@@ -13,12 +13,14 @@
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
+    "json-bigint": "^1.0.0",
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
     "semver": "^7.5.4",
     "vitest": "1.5.2"
   },
   "devDependencies": {
+    "@types/json-bigint": "^1.0.4",
     "@types/semver": "^7.5.8",
     "http-client": "^4.3.1",
     "typescript": "5.4.5",

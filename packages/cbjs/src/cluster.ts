@@ -196,8 +196,16 @@ export type ConnectOptions = {
 
   /**
    * Specifies the default transcoder to use when encoding or decoding document values.
+   * This is specific to the KV service.
    */
   transcoder?: Transcoder;
+
+  /**
+   * Specifies the default function to parse results from the query service.
+   *
+   * @default {@link JSON.parse}
+   */
+  queryRowParser?: (value: string) => any;
 
   /**
    * Specifies the options for transactions.
@@ -244,6 +252,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _auth: Authenticator;
   private _conn: CppConnection;
   private _transcoder: Transcoder;
+  private _queryRowParser: (value: string) => any;
   private _txnConfig: TransactionsConfig;
   private _transactions?: Transactions<T>;
   private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
@@ -261,6 +270,13 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   */
   get transcoder(): Transcoder {
     return this._transcoder;
+  }
+
+  /**
+  @internal
+  */
+  get queryRowParser(): (value: string) => any {
+    return this._queryRowParser;
   }
 
   /**
@@ -366,11 +382,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._connectTimeout = options.timeouts?.connectTimeout;
     this._resolveTimeout = options.timeouts?.resolveTimeout;
 
-    if (options.transcoder) {
-      this._transcoder = options.transcoder;
-    } else {
-      this._transcoder = new DefaultTranscoder();
-    }
+    this._transcoder = options.transcoder ?? new DefaultTranscoder();
+    this._queryRowParser = options.queryRowParser ?? JSON.parse;
 
     if (options.transactions) {
       this._txnConfig = options.transactions;
@@ -544,9 +557,11 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
 
     const exec = new QueryExecutor(this);
 
-    const options_ = options;
     return PromiseHelper.wrapAsync(
-      () => exec.query<TRow, WithMetrics>(statement, options_),
+      () =>
+        exec.query<TRow, WithMetrics>(statement, {
+          ...options,
+        }),
       callback
     );
   }

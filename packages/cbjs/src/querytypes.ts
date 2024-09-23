@@ -22,6 +22,7 @@ import {
 } from '@cbjsdev/shared';
 
 import { MutationState } from './mutationstate.js';
+import { Transcoder } from './transcoders.js';
 
 /**
  * Represents the status of a query.
@@ -425,4 +426,11 @@ export interface QueryOptions<
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * Specifies the default function to parse results from the query service.
+   *
+   * @default {@link JSON.parse}
+   */
+  queryRowParser?: (value: string) => any;
 }
