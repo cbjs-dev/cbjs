@@ -249,7 +249,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
 
         const params = getConnectionParams();
         const newConnection = await serverTestContext.newConnection(params, {
-          queryRowParser: JSONBigint.parse,
+          queryResultParser: JSONBigint.parse,
         });
 
         const collection = newConnection
@@ -281,7 +281,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
 
         const params = getConnectionParams();
         const newConnection = await serverTestContext.newConnection(params, {
-          queryRowParser: JSONBigint.parse,
+          queryResultParser: JSONBigint.parse,
         });
 
         const scope = newConnection
@@ -320,7 +320,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
           `SELECT META().cas AS cas FROM ${serverTestContext.getKeyspacePath()} USE KEYS $1`,
           {
             parameters: [docKey],
-            queryRowParser: JSONBigint.parse,
+            queryResultParser: JSONBigint.parse,
           }
         );
         const { cas: queryCas } = queryResult.rows[0];
@@ -343,7 +343,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
           `SELECT META().cas AS cas FROM ${serverTestContext.getKeyspacePath()} USE KEYS $1`,
           {
             parameters: [docKey],
-            queryRowParser: JSONBigint.parse,
+            queryResultParser: JSONBigint.parse,
           }
         );
         const { cas: queryCas } = queryResult.rows[0];

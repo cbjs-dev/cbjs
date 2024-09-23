@@ -205,7 +205,7 @@ export type ConnectOptions = {
    *
    * @default {@link JSON.parse}
    */
-  queryRowParser?: (value: string) => any;
+  queryResultParser?: (value: string) => any;
 
   /**
    * Specifies the options for transactions.
@@ -252,7 +252,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _auth: Authenticator;
   private _conn: CppConnection;
   private _transcoder: Transcoder;
-  private _queryRowParser: (value: string) => any;
+  private _queryResultParser: (value: string) => any;
   private _txnConfig: TransactionsConfig;
   private _transactions?: Transactions<T>;
   private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
@@ -275,8 +275,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   /**
   @internal
   */
-  get queryRowParser(): (value: string) => any {
-    return this._queryRowParser;
+  get queryResultParser(): (value: string) => any {
+    return this._queryResultParser;
   }
 
   /**
@@ -383,7 +383,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._resolveTimeout = options.timeouts?.resolveTimeout;
 
     this._transcoder = options.transcoder ?? new DefaultTranscoder();
-    this._queryRowParser = options.queryRowParser ?? JSON.parse;
+    this._queryResultParser = options.queryResultParser ?? JSON.parse;
 
     if (options.transactions) {
       this._txnConfig = options.transactions;

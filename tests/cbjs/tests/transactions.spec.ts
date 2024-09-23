@@ -812,7 +812,7 @@ describe
 
       const params = getConnectionParams();
       const newConnection = await serverTestContext.newConnection(params, {
-        queryRowParser: JSONBigint.parse,
+        queryResultParser: JSONBigint.parse,
       });
 
       await newConnection.transactions().run(async (ctx) => {
@@ -845,7 +845,7 @@ describe
           `SELECT META().cas AS cas FROM ${serverTestContext.getKeyspacePath()} USE KEYS $1`,
           {
             parameters: [docKey],
-            queryRowParser: JSONBigint.parse,
+            queryResultParser: JSONBigint.parse,
           }
         );
         const { cas: queryCas } = queryResult.rows[0];
