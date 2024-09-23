@@ -149,8 +149,8 @@ export default defineConfig({
                   link: '/guide/deploy/',
                 },
                 {
-                  text: 'Keyspaces & Indexes',
-                  link: '/guide/deploy/keyspace-changes',
+                  text: 'Cluster config',
+                  link: '/guide/deploy/cluster-config',
                 },
               ]
             },

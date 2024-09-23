@@ -3,9 +3,9 @@ title: Keyspace changes | Deploy Couchbase Cluster
 outline: [2, 3]
 ---
 
-# Keyspaces & Indexes
+# Cluster configuration
 
-To keep your keyspaces in sync with your cluster and share the changes with your team you can write the keyspaces in a file that will be used to create, update and delete the keyspaces.
+To keep your cluster configuration in sync and share the changes with your team,  you can write the configuration in a file that will be used to create, update and delete the keyspaces, indexes and users.
 
 ## Example
 
@@ -27,25 +27,34 @@ You specify buckets, scopes, collections and there indexes.
 import { CouchbaseClusterConfig } from '@cbjsdev/deploy';
 
 const config: CouchbaseClusterConfig = {
-  myBucket: {
-    ramQuotaMB: 1024,
-    scopes: {
-      scopeOne: {
-        collections: {
-          collectionOne: {
-            maxExpiry: 120,
-            history: true,
-            indexes: {
-              group: {
-                keys: ['groupId'],
-                where: 'groupId != "groupSystem"'
+  keyspaces: {
+    myBucket: {
+      ramQuotaMB: 1024,
+      scopes: {
+        scopeOne: {
+          collections: {
+            collectionOne: {
+              maxExpiry: 120,
+              history: true,
+              indexes: {
+                group: {
+                  keys: ['groupId'],
+                  where: 'groupId != "groupSystem"'
+                }
               }
-            }
-          },
+            },
+          }
         }
       }
     }
-  }
+  },
+  users: [
+    {
+      username: 'lee_koss',
+      password: 'password',
+      roles: [{ name: 'fts_admin', bucket: 'myBucket'}]
+    }
+  ]
 }
 ```
 
@@ -53,7 +62,8 @@ const config: CouchbaseClusterConfig = {
 
 The function `getCouchbaseClusterChanges` will compare the previous configuration with the new one and determine the changes to apply.
 
-You need to provide a previous configuration in order to manage the deletion of former keyspaces.  
+You need to provide a previous configuration in order to manage the deletion of former keyspaces/users/indexes. If no previous configuration is given, only updates and creation are performed.
+
 It's up to you to store your previous configuration. You can store the previous configuration in your database or on disk, for example.
 
 You can then pass the changes to `applyCouchbaseClusterChanges`.
