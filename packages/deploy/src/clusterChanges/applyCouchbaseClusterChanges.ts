@@ -3,6 +3,7 @@ import {
   CouchbaseHttpApiConfig,
   createQueryIndex,
   updateQueryIndex,
+  updateUserPassword,
   waitForBucket,
   waitForCollection,
   waitForQueryIndex,
@@ -29,6 +30,7 @@ import {
   CouchbaseClusterChangeUpdateCollection,
   CouchbaseClusterChangeUpdateIndex,
   CouchbaseClusterChangeUpdateUser,
+  CouchbaseClusterChangeUpdateUserPassword,
 } from './types.js';
 
 export type ChangeOptions = {
@@ -75,6 +77,7 @@ export async function applyCouchbaseClusterChanges(
     updateUser: applyUpdateUser,
     dropUser: applyDropUser,
     recreateUser: applyRecreateUser,
+    updateUserPassword: applyUpdateUserPassword,
   };
 
   for (const change of changes) {
@@ -512,6 +515,26 @@ async function applyUpdateUser(
     await waitForUser(apiConfig, change.user.username, change.user.domain, opts);
     console.log(`User "${change.user.username}" updated`);
   }
+}
+
+async function applyUpdateUserPassword(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change: CouchbaseClusterChangeUpdateUserPassword,
+  opts: ChangeOptions
+) {
+  const localApiConfig: CouchbaseHttpApiConfig = {
+    ...apiConfig,
+    credentials: {
+      username: change.username,
+      password: change.password,
+    },
+  };
+  await updateUserPassword(localApiConfig, change.newPassword);
+
+  console.log(`Awaiting user "${change.username}" to be updated`);
+  await waitForUser(apiConfig, change.username, 'local', opts);
+  console.log(`User "${change.username}" updated`);
 }
 
 async function applyRecreateUser(

@@ -21,6 +21,7 @@ import {
   CouchbaseClusterChangeUpdateCollection,
   CouchbaseClusterChangeUpdateIndex,
   CouchbaseClusterChangeUpdateUser,
+  CouchbaseClusterChangeUpdateUserPassword,
   CouchbaseClusterConfig,
 } from './types.js';
 
@@ -549,9 +550,15 @@ function getObsoleteUsers(
 function getUpdatedUsers(
   currentConfig: CouchbaseClusterConfig['users'],
   nextConfig: CouchbaseClusterConfig['users']
-): Array<CouchbaseClusterChangeUpdateUser | CouchbaseClusterChangeRecreateUser> {
+): Array<
+  | CouchbaseClusterChangeUpdateUser
+  | CouchbaseClusterChangeRecreateUser
+  | CouchbaseClusterChangeUpdateUserPassword
+> {
   const changes: Array<
-    CouchbaseClusterChangeUpdateUser | CouchbaseClusterChangeRecreateUser
+    | CouchbaseClusterChangeUpdateUser
+    | CouchbaseClusterChangeRecreateUser
+    | CouchbaseClusterChangeUpdateUserPassword
   > = [];
   const requestedUsers: string[] = [];
 
@@ -565,7 +572,20 @@ function getUpdatedUsers(
       const nextUser = findUser(nextConfig, currentUser);
       invariant(nextUser, 'Requested user definition not found.');
 
-      if (nextUser.password && nextUser.password !== currentUser.password) {
+      if (
+        currentUser.password &&
+        nextUser.password &&
+        nextUser.password !== currentUser.password
+      ) {
+        return changes.push({
+          type: 'updateUserPassword',
+          username: currentUser.username,
+          password: currentUser.password,
+          newPassword: nextUser.password,
+        });
+      }
+
+      if (!currentUser.password && nextUser.password) {
         return changes.push({
           type: 'recreateUser',
           user: {

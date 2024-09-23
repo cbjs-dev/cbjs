@@ -21,6 +21,7 @@ import {
   CouchbaseClusterConfig,
   getCouchbaseClusterChanges,
 } from '@cbjsdev/deploy';
+import { whoami } from '@cbjsdev/http-client';
 import { getApiConfig, getConnectionParams, invariant, sleep } from '@cbjsdev/shared';
 import { getRandomId } from '@cbjsdev/vitest';
 
@@ -219,14 +220,13 @@ describe(
       expect(userB?.domain).toEqual('local');
       expect(userB?.roles).toEqual([{ name: 'admin' }]);
 
-      // We check we can connect with the new password
-      await cluster.close();
-      const { connectionString } = getConnectionParams();
-
       await expect(
-        connect(connectionString, {
-          username: 'cbjsUser_b',
-          password: 'cbjsPassword_b2',
+        whoami({
+          ...apiConfig,
+          credentials: {
+            username: 'cbjsUser_b',
+            password: 'cbjsPassword_b2',
+          },
         })
       ).resolves.toBeDefined();
 
