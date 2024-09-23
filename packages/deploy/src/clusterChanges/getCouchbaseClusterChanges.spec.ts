@@ -442,6 +442,9 @@ describe('getCouchbaseClusterChanges', () => {
           username: 'd',
           password: 'pd',
         },
+        {
+          username: 'f',
+        },
       ],
       keyspaces: {},
     };
@@ -464,6 +467,10 @@ describe('getCouchbaseClusterChanges', () => {
         {
           username: 'e', // New user
           password: 'pe',
+        },
+        {
+          username: 'f',
+          password: 'pf', // Password is set, previous password unknown
         },
       ],
       keyspaces: {},
@@ -498,11 +505,17 @@ describe('getCouchbaseClusterChanges', () => {
         },
       },
       {
+        type: 'updateUserPassword',
+        username: 'b',
+        password: 'pb',
+        newPassword: 'pb2',
+      },
+      {
         type: 'recreateUser',
         user: {
-          username: 'b',
-          password: 'pb2',
+          username: 'f',
           domain: 'local',
+          password: 'pf',
         },
       },
       {

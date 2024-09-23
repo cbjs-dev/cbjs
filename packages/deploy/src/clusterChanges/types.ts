@@ -21,6 +21,7 @@ export type CouchbaseClusterChange =
   | CouchbaseClusterChangeUpdateIndex
   | CouchbaseClusterChangeCreateUser
   | CouchbaseClusterChangeUpdateUser
+  | CouchbaseClusterChangeUpdateUserPassword
   | CouchbaseClusterChangeRecreateUser
   | CouchbaseClusterChangeDropUser;
 
@@ -130,6 +131,13 @@ export type CouchbaseClusterChangeCreateUser = {
 export type CouchbaseClusterChangeUpdateUser = {
   type: 'updateUser';
   user: IUser & { domain: string };
+};
+
+export type CouchbaseClusterChangeUpdateUserPassword = {
+  type: 'updateUserPassword';
+  username: string;
+  password: string;
+  newPassword: string;
 };
 
 export type CouchbaseClusterChangeRecreateUser = {

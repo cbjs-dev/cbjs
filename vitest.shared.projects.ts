@@ -38,5 +38,12 @@ export default defineProject({
     pool: 'forks',
     minWorkers: 1,
     maxWorkers: 1,
+    env: {
+      CB_CONNECTION_STRING: process.env.CB_CONNECTION_STRING ?? 'couchbase://127.0.0.1',
+      CB_USER: process.env.CB_USER ?? 'Administrator',
+      CB_PASSWORD: process.env.CB_PASSWORD ?? 'password',
+      DEBUG: '1',
+      LOG_LEVEL: 'info',
+    },
   },
 });

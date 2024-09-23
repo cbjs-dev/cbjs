@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/deploy": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
@@ -20,7 +21,6 @@
   },
   "devDependencies": {
     "@types/semver": "^7.5.8",
-    "http-client": "^4.3.1",
     "typescript": "5.4.5",
     "zod": "^3.22.4"
   }
