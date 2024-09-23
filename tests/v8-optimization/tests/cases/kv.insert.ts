@@ -15,7 +15,7 @@ const cluster = await connect(params.connectionString, {
 const promises = [];
 const collection = cluster.bucket(bucketName).defaultCollection();
 
-for (let i = 0; i < 1000; i++) {
+for (let i = 0; i < 1500; i++) {
   promises.push(collection.insert(`optimizationDoc_${prefix}_${i}`, 'hi'));
   promises.push(
     collection.insert(`optimizationDoc_${prefix}_${i}_opts`, 'hi', {

@@ -16,13 +16,13 @@ const insertPromises = [];
 const getPromises = [];
 const collection = cluster.bucket(bucketName).defaultCollection();
 
-for (let i = 0; i < 1000; i++) {
+for (let i = 0; i < 1500; i++) {
   insertPromises.push(collection.insert(`optimizationDoc_${prefix}_${i}`, 'hi'));
 }
 
 await Promise.allSettled(insertPromises);
 
-for (let i = 0; i < 1000; i++) {
+for (let i = 0; i < 1500; i++) {
   getPromises.push(collection.get(`optimizationDoc_${prefix}_${i}`));
   getPromises.push(
     collection.get(`optimizationDoc_${prefix}_${i}`, {
