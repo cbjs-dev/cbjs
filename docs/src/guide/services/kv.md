@@ -48,7 +48,35 @@ const result = await collection.get('docKey', {
 });
 ```
 
-### Sub-document retrieval
+### Option `throwIfMissing`
+
+If you want to avoid using `try/catch` in some circumstances, you can use the following :
+
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const result = await collection.get('book::001', {
+  throwIfMissing: false,
+});
+```
+
+If the document is not found or not retrievable, the operation will not throw. This is also reflected in the return type of the function.
+
+## Sub-document retrieval
 
 You may not be interested in the entire document. In that case you can use the `lookupIn` method to only retrieve some parts of the document.  
 You can `get` a property, check if a property `exists` and `count` the number of elements in an array or the number of keys an object has.
@@ -67,7 +95,7 @@ For this operation, only the `timeout` option is available.
 
 If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted collection, the paths will be type checked and the result will be typed accordingly.
 
-#### Chainable sub-doc lookups
+### Chainable sub-doc lookups
 
 Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
 
@@ -130,41 +158,9 @@ if (secondAuthor.error !== null) {
 }
 ```
 
-#### Throw on spec error
+### Option `throwOnSpecError`
 
-Each sub-document spec may fail individually. For this reason, the lookup return may be filled with errors. You can see below that `bookTitle` contains a union type, forcing you to check the error for each sub-doc operation.
-
-```ts twoslash
-import { connect, DocDef } from '@cbjsdev/cbjs';
-
-type MyClusterTypes = {
-  store: {
-    library: {
-      books: [
-        DocDef<`book::${string}`, { title: string; authors: string[] }>,
-      ]
-    };
-  };
-};
-
-const cluster = await connect<MyClusterTypes>('...');
-const collection = cluster.bucket('store').scope('library').collection('books');
-
-// ---cut-before---
-const { content: [title, secondAuthor] } = await collection
-  .lookupIn('book::001')
-  .get('title')
-  .get('authors[1]');
-
-if (title.error !== null) {
-  // handle the error
-}
-
-if (secondAuthor.error !== null) {
-  // handle the error
-}
-
-```
+Each sub-document spec may fail individually. For this reason, the lookup return may be filled with errors. You can see below that `bookTitle` contains a union type, forcing you to check the error for each sub-doc operation, as demonstrated above.
 
 If you need all the data in order to proceed, Cbjs provides an additional option when performing the request : `throwOnSpecError`.
 Using that option, `lookupIn` will fail if any spec leads to an error.  
@@ -219,7 +215,7 @@ When upserting, if any expiry time has been set on the document, it will be remo
 If you don't want that, use the `preserveExpiry` option, the expiry time will then be reset, just like when using `Collection.touch`.
 :::
 
-### Sub-document mutation
+## Sub-document mutation
 
 If you want to modify some parts of the documents, as opposed to the whole document, you can mutate only those parts.
 
@@ -238,7 +234,7 @@ Learn more about [optimistic locking](/guide/services/kv-advanced).
 await collection.mutateIn('book::001').arrayAddUnique('metadata.tags', 'history');
 ```
 
-#### Chainable sub-doc mutations
+### Chainable sub-doc mutations
 
 Cbjs introduce the ability to chain sub-doc mutations. Using this syntax also enables path autocompletion :
 
