@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export * from './getUser.js';
-export * from './getUserGroup.js';
-export * from './getUsers.js';
-export * from './whoami.js';
-export * from './getUserGroups.js';
-export * from './getRoles.js';
-export * from './updateUserPassword.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+
+export async function requestWhoami(params: CouchbaseHttpApiConfig) {
+  return apiGET({ ...params }, `/whoami`);
+}

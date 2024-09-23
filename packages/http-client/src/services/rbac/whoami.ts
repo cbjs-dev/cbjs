@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { ApiWhoami } from '../../types/Api/rbac/ApiWhoami.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestWhoami } from './requests/requestWhoami.js';
 
-export * from './getUser.js';
-export * from './getUserGroup.js';
-export * from './getUsers.js';
-export * from './whoami.js';
-export * from './getUserGroups.js';
-export * from './getRoles.js';
-export * from './updateUserPassword.js';
+/**
+ * Return user info about the user making the request.
+ */
+export async function whoami(apiConfig: CouchbaseHttpApiConfig) {
+  const response = await requestWhoami(apiConfig);
+  if (response.status !== 200) {
+    throw await createHttpError('GET', response);
+  }
+
+  return (await response.json()) as ApiWhoami;
+}
