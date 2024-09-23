@@ -10,6 +10,7 @@ import {
   waitForQueryIndex,
   waitForScope,
   waitForUser,
+  whoami,
 } from '@cbjsdev/http-client';
 import { waitFor } from '@cbjsdev/shared';
 
@@ -532,19 +533,22 @@ async function applyUpdateUserPassword(
       password: change.password,
     },
   };
-  const passwordUpdateDate = new Date();
+
   await updateUserPassword(localApiConfig, change.newPassword);
 
   console.log(`Awaiting user "${change.username}" to be updated`);
-  await waitFor(async () => {
-    await waitForUser(apiConfig, change.username, 'local', opts);
-    const user = await getUser(apiConfig, change.username);
-    const passwordChangeDate = new Date(user.password_change_date);
 
-    if (passwordChangeDate.getTime() < passwordUpdateDate.getTime()) {
-      throw new Error();
-    }
+  await waitForUser(apiConfig, change.username, 'local', opts);
+  await waitFor(async () => {
+    await whoami({
+      ...apiConfig,
+      credentials: {
+        username: change.username,
+        password: change.newPassword,
+      },
+    });
   }, opts);
+
   console.log(`User "${change.username}" updated`);
 }
 

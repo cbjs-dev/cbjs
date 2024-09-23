@@ -45,7 +45,7 @@ describe(
 
       for (const user of users) {
         if (user.username.startsWith('cbjsUser_')) {
-          // await cluster.users().dropUser(user.username);
+          await cluster.users().dropUser(user.username);
         }
       }
 
