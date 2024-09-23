@@ -122,6 +122,10 @@ export default defineConfig({
                   text: 'KeyValue',
                   link: '/guide/services/kv',
                 },
+                {
+                  text: 'Query',
+                  link: '/guide/services/query',
+                },
               ],
             },
             {

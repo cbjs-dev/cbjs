@@ -499,7 +499,7 @@ export type TransactionQueryOptions<
    *
    * @default {@link JSON.parse}
    */
-  queryRowParser?: (value: string) => any;
+  queryResultParser?: (value: string) => any;
 };
 
 /**
@@ -899,7 +899,7 @@ export class TransactionAttemptContext<
     statement: string,
     options?: TransactionQueryOptions<T, WithMetrics>
   ): Promise<TransactionQueryResult<TRow, WithMetrics>> {
-    const rowParser = options?.queryRowParser ?? this.cluster.queryRowParser;
+    const rowParser = options?.queryResultParser ?? this.cluster.queryResultParser;
 
     // This await statement is explicit here to ensure our query is completely
     // processed before returning the result to the user (no row streaming).

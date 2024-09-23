@@ -432,5 +432,5 @@ export interface QueryOptions<
    *
    * @default {@link JSON.parse}
    */
-  queryRowParser?: (value: string) => any;
+  queryResultParser?: (value: string) => any;
 }
