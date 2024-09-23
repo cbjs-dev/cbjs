@@ -2,6 +2,7 @@ import { Cluster, keyspacePath } from '@cbjsdev/cbjs';
 import {
   CouchbaseHttpApiConfig,
   createQueryIndex,
+  getUser,
   updateQueryIndex,
   updateUserPassword,
   waitForBucket,
@@ -10,6 +11,7 @@ import {
   waitForScope,
   waitForUser,
 } from '@cbjsdev/http-client';
+import { waitFor } from '@cbjsdev/shared';
 
 import {
   CouchbaseClusterChange,
@@ -530,10 +532,19 @@ async function applyUpdateUserPassword(
       password: change.password,
     },
   };
+  const passwordUpdateDate = new Date();
   await updateUserPassword(localApiConfig, change.newPassword);
 
   console.log(`Awaiting user "${change.username}" to be updated`);
-  await waitForUser(apiConfig, change.username, 'local', opts);
+  await waitFor(async () => {
+    await waitForUser(apiConfig, change.username, 'local', opts);
+    const user = await getUser(apiConfig, change.username);
+    const passwordChangeDate = new Date(user.password_change_date);
+
+    if (passwordChangeDate.getTime() < passwordUpdateDate.getTime()) {
+      throw new Error();
+    }
+  }, opts);
   console.log(`User "${change.username}" updated`);
 }
 
