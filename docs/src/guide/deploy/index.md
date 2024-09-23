@@ -7,7 +7,7 @@ title: Introduction | Deploy Couchbase Cluster
 Cbjs provides a set of functions to help you deploy and maintain your Couchbase cluster.
 
 ::: warning
-This package in early stage of development and is not recommended for production yet.
+This package is in active development and its API may change without warning.
 :::
 
 ```bash [npm]
