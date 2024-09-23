@@ -25,6 +25,4 @@ export async function updateUserPassword(
   if (response.status !== 200) {
     throw await createHttpError('POST', response);
   }
-
-  return (await response.json()) as void;
 }
