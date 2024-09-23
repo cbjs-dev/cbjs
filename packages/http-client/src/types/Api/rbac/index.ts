@@ -16,4 +16,5 @@
 
 export * from './ApiRole.js';
 export * from './ApiUser.js';
+export * from './ApiWhoami.js';
 export * from './ApiUserGroup.js';
