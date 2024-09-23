@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export * from './getUser.js';
-export * from './getUserGroup.js';
-export * from './getUsers.js';
-export * from './getUserGroups.js';
-export * from './getRoles.js';
-export * from './updateUserPassword.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiPOST } from '../../../utils/apiPOST.js';
+
+export async function requestUpdateUserPassword(
+  params: CouchbaseHttpApiConfig,
+  newPassword: string
+) {
+  return await apiPOST(
+    { ...params },
+    `/controller/changePassword`,
+    JSON.stringify({ password: newPassword })
+  );
+}
