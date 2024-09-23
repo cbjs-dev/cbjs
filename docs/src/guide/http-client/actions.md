@@ -407,7 +407,7 @@ declare function updateQueryIndex(
 
 ## RBAC
 
-### getScope
+### getUser
 
 Retrieves a user by its username. Can filter by domain using a third parameter.
 
@@ -419,6 +419,19 @@ declare function getUser(
   username: string, 
   domain?: string
 ): Promise<ApiUser>;
+```
+
+### updateUserPassword
+
+Update a user's password.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function updateUserPassword(
+  apiConfig: CouchbaseHttpApiConfig, 
+  newPassword: string,
+): Promise<void>;
 ```
 
 ### getUsers

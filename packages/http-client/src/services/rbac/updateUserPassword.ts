@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CouchbaseHttpApiConfig } from '../../types.js';
+import { createHttpError } from '../../utils/createHttpError.js';
+import { requestUpdateUserPassword } from './requests/requestUpdateUserPassword.js';
 
-export * from './getUser.js';
-export * from './getUserGroup.js';
-export * from './getUsers.js';
-export * from './getUserGroups.js';
-export * from './getRoles.js';
-export * from './updateUserPassword.js';
+export async function updateUserPassword(
+  apiConfig: CouchbaseHttpApiConfig,
+  newPassword: string
+) {
+  const response = await requestUpdateUserPassword(apiConfig, newPassword);
+  if (response.status !== 200) {
+    throw await createHttpError('POST', response);
+  }
+
+  return (await response.json()) as void;
+}
