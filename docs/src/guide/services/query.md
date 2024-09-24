@@ -53,7 +53,7 @@ console.log(typeof queryCas); // 'number'
 console.log(queryCas > Number.MAX_SAFE_INTEGER); // true 
 ```
 
-So you may want to pass a custom parser :
+So you may want to pass a custom parser, such as `json-bigint` :
 
 ```ts
 import JSONBigint from 'json-bigint';
@@ -73,18 +73,3 @@ const cluster = connect('...', {
   queryResultParser: customParser
 })
 ```
-
-::: tip
-Starting with Node.js v21, you can use the following reviver to parse `cas` :
-
-```ts
-function bigIntReviver(key: string, value: unknown, context?: { source: string }) {
-  if (!context) throw new Error('Missing `context` in JSON.parse reviver function.');
-
-  if (typeof value === 'number' && value > Number.MAX_SAFE_INTEGER) {
-    return BigInt(context.source);
-  }
-  return value;
-};
-```
-:::
