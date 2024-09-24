@@ -59,7 +59,7 @@ So you may want to pass a custom parser, such as `json-bigint` :
 import JSONBigint from 'json-bigint';
 
 const result = cluster.query('SELECT META().cas AS cas FROM store.library.book', {
-  queryResultParser: JSONBigint.parse,
+  queryResultParser: JSONBigInt({ useNativeBigInt: true }).parse,
 });
 const queryCas = result.rows[0].cas;
 
