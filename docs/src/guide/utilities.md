@@ -6,6 +6,27 @@ outline: [2, 3]
 
 A few utilities are exposed to help you in your daily development.
 
+## keyspacePath
+Create a path to the given keyspace, while surrounding each segment with backticks.
+
+```ts twoslash
+import { keyspacePath } from '@cbjsdev/shared';
+
+const path = keyspacePath('store', 'library');
+const path2 = keyspacePath({ bucket: 'store', scope: 'library' }); 
+
+// => `store`.`library`
+```
+
+## quotePath
+Use this when one of the property name is a reserved word.
+
+```ts twoslash
+import { quotePath } from '@cbjsdev/shared';
+
+const subDocPath = quotePath('root.scope.groupId'); // `root`.`scope`.`groupId`
+```
+
 ## CouchbaseCas
 
 The class `CouchbaseCas` can be used to convert a CAS representation to another or to compare two CAS.
@@ -15,7 +36,7 @@ The class `CouchbaseCas` can be used to convert a CAS representation to another 
 Create a new instance from the given value.
 
 ```ts twoslash
-import { CouchbaseCas } from '@cbjsdev/cbjs';
+import { CouchbaseCas } from '@cbjsdev/shared';
 // ---cut-before---
 const cas = CouchbaseCas.from(0);
 ```
