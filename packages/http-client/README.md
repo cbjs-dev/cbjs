@@ -60,9 +60,13 @@ The Couchbase REST API is vast. This package currently support the following :
 * [getQueryIndexes](https://cbjs.dev/guide/http-client/actions.html#getqueryindexes)
 * [getQueryIndexRemainingMutations](https://cbjs.dev/guide/http-client/actions.html#getqueryindexremainingmutations)
 * [getQuerySearchIndexes](https://cbjs.dev/guide/http-client/actions.html#getquerysearchindexes)
+* [createQueryIndex](https://cbjs.dev/guide/http-client/actions.html#createqueryindex)
+* [updateQueryIndex](https://cbjs.dev/guide/http-client/actions.html#updatequeryindex)
 
 ### RBAC
-* [getScope](https://cbjs.dev/guide/http-client/actions.html#getscope)
+* [wohami](https://cbjs.dev/guide/http-client/actions.html#whoami)
+* [updateUserPassword](https://cbjs.dev/guide/http-client/actions.html#updateuserpassword)
+* [getUser](https://cbjs.dev/guide/http-client/actions.html#getuser)
 * [getUsers](https://cbjs.dev/guide/http-client/actions.html#getusers)
 * [getUserGroup](https://cbjs.dev/guide/http-client/actions.html#getusergroup)
 * [getUserGroups](https://cbjs.dev/guide/http-client/actions.html#getusergroups)
