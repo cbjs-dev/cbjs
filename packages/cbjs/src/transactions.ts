@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { promisify } from 'node:util';
+
 import {
   BucketName,
   Cas,
@@ -31,6 +33,7 @@ import {
 } from '@cbjsdev/shared';
 
 import binding, {
+  type CppError,
   CppTransaction,
   CppTransactionGetMetaData,
   CppTransactionGetResult,
@@ -640,29 +643,18 @@ export class TransactionAttemptContext<
 
     invariant(collection);
 
-    return (await PromiseHelper.wrap(
-      (wrapCallback: NodeCallback<TransactionGetResult>) => {
-        const id = collection.getDocId(key);
-        this._impl.get(
-          {
-            id,
-          },
-          (cppErr, cppRes) => {
-            const err = errorFromCpp(cppErr);
-            if (err) {
-              return wrapCallback(err, null);
-            }
+    try {
+      const get = promisify(this._impl.get).bind(this._impl);
+      const id = collection.getDocId(key);
+      const result = await get({ id });
 
-            invariant(cppRes);
-            wrapCallback(
-              null,
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-              translateGetResult(cppRes)
-            );
-          }
-        );
-      }
-    )) as never;
+      invariant(result);
+
+      return translateGetResult(result) as never;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
   }
 
   /**
@@ -788,29 +780,19 @@ export class TransactionAttemptContext<
 
     invariant(collection);
 
-    return (await PromiseHelper.wrap(
-      (wrapCallback: NodeCallback<TransactionGetResult<T, B, S, C, Key>>) => {
-        const id = collection.getDocId(key);
-        const [data, flags] = this.transcoder.encode(content);
+    try {
+      const insert = promisify(this._impl.insert).bind(this._impl);
+      const id = collection.getDocId(key);
+      const [data, flags] = this.transcoder.encode(content);
+      const result = await insert({ id, content: { data, flags } });
 
-        this._impl.insert(
-          {
-            id,
-            content: { data, flags },
-          },
-          (cppErr, cppRes) => {
-            const err = errorFromCpp(cppErr);
+      invariant(result);
 
-            if (err) {
-              return wrapCallback(err, null);
-            }
-
-            invariant(cppRes);
-            wrapCallback(null, translateGetResult(cppRes));
-          }
-        );
-      }
-    )) as never;
+      return translateGetResult(result) as never;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
   }
 
   /**
@@ -828,33 +810,27 @@ export class TransactionAttemptContext<
     doc: Exclude<TransactionDocInfo<T, LB, LS, LC, Key>, 'cas'> & { cas: CasInput },
     content: DocDefMatchingKey<Key, T, LB, LS, LC>['Body']
   ): Promise<TransactionGetResult<T, LB, LS, LC, Key>> {
-    return PromiseHelper.wrap(
-      (wrapCallback: NodeCallback<TransactionGetResult<T, LB, LS, LC, Key>>) => {
-        const [data, flags] = this.transcoder.encode(content);
-        this._impl.replace(
-          {
-            doc: {
-              id: doc.id,
-              content: Buffer.from(''),
-              cas: doc.cas,
-              links: doc._links,
-              metadata: doc._metadata,
-            },
-            content: { data, flags },
-          },
-          (cppErr, cppRes) => {
-            const err = errorFromCpp(cppErr);
+    try {
+      const replace = promisify(this._impl.replace).bind(this._impl);
+      const [data, flags] = this.transcoder.encode(content);
+      const result = await replace({
+        doc: {
+          id: doc.id,
+          content: Buffer.from(''),
+          cas: doc.cas,
+          links: doc._links,
+          metadata: doc._metadata,
+        },
+        content: { data, flags },
+      });
 
-            if (err !== null) {
-              return wrapCallback(err, null);
-            }
+      invariant(result);
 
-            invariant(cppRes);
-            wrapCallback(null, translateGetResult(cppRes));
-          }
-        );
-      }
-    );
+      return translateGetResult(result) as never;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
   }
 
   /**
@@ -870,23 +846,23 @@ export class TransactionAttemptContext<
   >(
     doc: Exclude<TransactionDocInfo<T, LB, LS, LC, Key>, 'cas'> & { cas: CasInput }
   ): Promise<void> {
-    return PromiseHelper.wrap((wrapCallback) => {
-      this._impl.remove(
-        {
-          doc: {
-            id: doc.id,
-            content: Buffer.from(''),
-            cas: doc.cas,
-            links: doc._links,
-            metadata: doc._metadata,
-          },
+    try {
+      const remove = promisify(this._impl.remove).bind(this._impl);
+      await remove({
+        doc: {
+          id: doc.id,
+          content: Buffer.from(''),
+          cas: doc.cas,
+          links: doc._links,
+          metadata: doc._metadata,
         },
-        (cppErr) => {
-          const err = errorFromCpp(cppErr);
-          wrapCallback(err);
-        }
-      );
-    });
+      });
+
+      return;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
   }
 
   /**
@@ -1122,10 +1098,18 @@ export class Transactions<T extends CouchbaseClusterTypes> {
       } catch (e) {
         await txn._rollback();
         if (e instanceof TransactionOperationFailedError) {
-          throw new TransactionFailedError(undefined, e.cause, e.context);
+          const transformedError = new TransactionFailedError(
+            e.message,
+            e.cause,
+            e.context
+          );
+          swapStack(transformedError, e);
+          throw transformedError;
         }
         invariant(e instanceof Error);
-        throw new TransactionFailedError(undefined, e);
+        const transformedError = new TransactionFailedError(e.message, e);
+        swapStack(transformedError, e);
+        throw transformedError;
       }
 
       try {
@@ -1141,4 +1125,11 @@ export class Transactions<T extends CouchbaseClusterTypes> {
       }
     }
   }
+}
+
+function swapStack(e1: Error, e2: Error) {
+  const newFirstLine = e1.stack?.split('\n')[0];
+  const stack = e2.stack?.split('\n') ?? [];
+  stack.shift();
+  e1.stack = newFirstLine + '\n' + stack.join('\n');
 }

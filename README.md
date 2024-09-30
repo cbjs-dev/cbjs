@@ -95,9 +95,9 @@ With `cbjs` :
 
 ```
 DocumentNotFoundError: document not found
-    at errorFromCpp (/project/node_modules/@cbjsdev/cbjs/src/bindingutilities.ts:787:14)
-    at Collection.remove (/project/node_modules/@cbjsdev/cbjs/src/collection.ts:1417:19)
-    at remove (/project/index.ts:31:3)
+    at errorFromCpp (/yourProject/node_modules/@cbjsdev/cbjs/src/bindingutilities.ts:787:14)
+    at Collection.remove (/yourProject/node_modules/@cbjsdev/cbjs/src/collection.ts:1417:19)
+    at remove (/yourProject/something.ts:31:3)
 ```
 
 ### Support for cloud lambdas

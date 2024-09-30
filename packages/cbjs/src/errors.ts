@@ -1134,7 +1134,7 @@ export class TransactionOperationFailedError extends CouchbaseError {
 export class TransactionFailedError extends CouchbaseError {
   declare cause: Error;
   constructor(reason?: string, cause?: Error, context?: ServiceErrorContext) {
-    super(`transaction failed${appendReason(reason)}`, cause, context);
+    super(reason ?? `transaction failed`, cause, context);
   }
 }
 

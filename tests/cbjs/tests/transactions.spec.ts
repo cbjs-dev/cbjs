@@ -852,4 +852,22 @@ describe
         expect(insertCas.toString()).toEqual(queryCas.toString());
       });
     });
+
+    test('should provide the lambda stack trace when a TransactionFailedError is thrown', async ({
+      expect,
+      serverTestContext,
+    }) => {
+      expect.hasAssertions();
+
+      try {
+        await serverTestContext.cluster.transactions().run(async (ctx) => {
+          await ctx.get(serverTestContext.collection, 'missingDocKey');
+        });
+      } catch (err) {
+        expect(err).toBeInstanceOf(TransactionFailedError);
+        invariant(err instanceof TransactionFailedError);
+        expect(err.stack).toContain('TransactionFailedError');
+        expect(err.stack).toContain('document not found');
+      }
+    });
   });
