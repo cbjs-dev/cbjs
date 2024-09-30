@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 export { ServerTestContext } from './ServerTestContext.js';
 
 export {
@@ -40,5 +39,3 @@ export * from './fixtures/couchbase/query/index.js';
 export * from './fixtures/couchbase/rbac/index.js';
 export * from './fixtures/couchbase/search/index.js';
 export * from './fixtures/couchbase/views/index.js';
-
-export { getApiConfig, getConnectionParams, CouchbaseApiConfig } from '@cbjsdev/shared';

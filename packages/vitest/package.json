@@ -43,6 +43,12 @@
         "types": "./dist/src/matchers.d.ts",
         "default": "./dist/src/matchers.js"
       }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/src/util.d.ts",
+        "default": "./dist/src/utils.js"
+      }
     }
   },
   "files": [
