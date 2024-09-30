@@ -32,3 +32,10 @@ const dsSize = collection.set(binaryDocumentKey).size();
 **You are affected if**: you create an instance of the class `DocumentId` and test the properties before you've set them.
 
 When creating a new instance of the class `DocumentId`, its properties were initialized to an empty string. This is no longer the case with Cbjs.
+
+## Error messages
+
+**You are affected if**: you rely on the `message` property of Couchbase errors.
+
+Cbjs will always try to provide helpful error messages.  
+If you rely of the `Error.message` to handle business logic, you will run into troubles.
