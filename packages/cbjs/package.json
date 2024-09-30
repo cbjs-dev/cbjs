@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/cbjs",
-  "version": "1.17.1",
+  "version": "1.18.0",
   "description": "Modern Couchbase client for JS runtimes.",
   "keywords": [
     "couchbase",
