@@ -40,3 +40,5 @@ export * from './fixtures/couchbase/query/index.js';
 export * from './fixtures/couchbase/rbac/index.js';
 export * from './fixtures/couchbase/search/index.js';
 export * from './fixtures/couchbase/views/index.js';
+
+export { getApiConfig, getConnectionParams, CouchbaseApiConfig } from '@cbjsdev/shared';

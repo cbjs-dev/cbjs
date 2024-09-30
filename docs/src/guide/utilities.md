@@ -10,7 +10,7 @@ A few utilities are exposed to help you in your daily development.
 Create a path to the given keyspace, while surrounding each segment with backticks.
 
 ```ts twoslash
-import { keyspacePath } from '@cbjsdev/shared';
+import { keyspacePath } from '@cbjsdev/cbjs';
 
 const path = keyspacePath('store', 'library');
 const path2 = keyspacePath({ bucket: 'store', scope: 'library' }); 
@@ -22,7 +22,7 @@ const path2 = keyspacePath({ bucket: 'store', scope: 'library' });
 Use this when one of the property name is a reserved word.
 
 ```ts twoslash
-import { quotePath } from '@cbjsdev/shared';
+import { quotePath } from '@cbjsdev/cbjs';
 
 const subDocPath = quotePath('root.scope.groupId'); // `root`.`scope`.`groupId`
 ```
@@ -36,7 +36,7 @@ The class `CouchbaseCas` can be used to convert a CAS representation to another 
 Create a new instance from the given value.
 
 ```ts twoslash
-import { CouchbaseCas } from '@cbjsdev/shared';
+import { CouchbaseCas } from '@cbjsdev/cbjs';
 // ---cut-before---
 const cas = CouchbaseCas.from(0);
 ```
