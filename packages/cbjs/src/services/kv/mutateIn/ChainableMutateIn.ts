@@ -22,6 +22,7 @@ import {
   AnyCollection,
   MutateInArrayAddUniquePath,
   type MutateInArrayAppendPath,
+  MutateInArrayInsertPath,
   MutateInArrayPrependPath,
   MutateInCounterPath,
   MutateInInsertPath,
@@ -372,7 +373,7 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayInsert<
-    Path extends MutateInInsertPath<Def>,
+    Path extends MutateInArrayInsertPath<Def>,
     Value extends MutateInArrayInsertValue<Def, Path, Multi>,
     Multi extends boolean = false,
   >(
@@ -385,7 +386,7 @@ export class ChainableMutateIn<
   }
 
   arrayInsertMultiple<
-    Path extends MutateInInsertPath<Def>,
+    Path extends MutateInArrayInsertPath<Def>,
     Value extends MutateInArrayInsertValue<Def, Path, true>,
   >(
     path: Path,
