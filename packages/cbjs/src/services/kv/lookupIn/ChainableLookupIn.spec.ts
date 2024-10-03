@@ -18,6 +18,7 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import { AnyCollection, DocDef } from '../../../clusterTypes/index.js';
 import { Collection } from '../../../collection.js';
+import { connect } from '../../../couchbase.js';
 import { LookupInSpec } from '../../../sdspecs.js';
 import { ChainableLookupIn } from './ChainableLookupIn.js';
 
@@ -75,7 +76,7 @@ describe('ChainableLookupIn', function () {
       ChainableLookupIn<
         Collection<UserClusterTypes, 'store', 'library', 'books'>,
         'lookupIn',
-        `book::${string}`,
+        `book::001`,
         [],
         boolean,
         BookDocDef

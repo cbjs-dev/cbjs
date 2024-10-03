@@ -17,6 +17,7 @@
 import {
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
+  PathAutocomplete,
 } from '../../../clusterTypes/clusterTypes.js';
 import {
   AnyCollection,
@@ -217,14 +218,14 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   replace<
-    Path extends MutateInReplacePath<Def>,
-    Value extends MutateInReplaceValue<Def, Path>,
+    Path extends PathAutocomplete<C, MutateInReplacePath<Def>>,
+    Value extends MutateInReplaceValue<Def, Extract<Path, MutateInReplacePath<Def>>>,
   >(
     path: Path,
     value: Value,
     options?: MutateInUpsertOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.replace<Def, Path, Value>(path, value, options);
+    const spec = MutateInSpec.replace(path as never, value, options);
     return this.push(spec);
   }
 
@@ -233,7 +234,7 @@ export class ChainableMutateIn<
     options?: MutateInRemoveOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]>;
 
-  remove<Path extends MutateInRemovePath<Def>>(
+  remove<Path extends PathAutocomplete<C, MutateInRemovePath<Def>>>(
     path: Path,
     options?: MutateInRemoveOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]>;
@@ -373,27 +374,35 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayInsert<
-    Path extends MutateInArrayInsertPath<Def>,
-    Value extends MutateInArrayInsertValue<Def, Path, Multi>,
+    Path extends PathAutocomplete<C, MutateInArrayInsertPath<Def>>,
+    Value extends MutateInArrayInsertValue<
+      Def,
+      Extract<Path, MutateInArrayInsertPath<Def>>,
+      Multi
+    >,
     Multi extends boolean = false,
   >(
     path: Path,
     value: Value,
     options?: MutateInArrayInsertOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayInsert<Def, Path, Value, Multi>(path, value, options);
+    const spec = MutateInSpec.arrayInsert(path as never, value, options);
     return this.push(spec);
   }
 
   arrayInsertMultiple<
-    Path extends MutateInArrayInsertPath<Def>,
-    Value extends MutateInArrayInsertValue<Def, Path, true>,
+    Path extends PathAutocomplete<C, MutateInArrayInsertPath<Def>>,
+    Value extends MutateInArrayInsertValue<
+      Def,
+      Extract<Path, MutateInArrayInsertPath<Def>>,
+      true
+    >,
   >(
     path: Path,
     value: Value,
     options?: Omit<MutateInArrayInsertOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayInsert<Def, Path, Value, true>(path, value, {
+    const spec = MutateInSpec.arrayInsert(path as never, value, {
       ...options,
       multi: true,
     });
@@ -470,12 +479,15 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  increment<Path extends MutateInCounterPath<Def>, Value extends MutateInCounterValue>(
+  increment<
+    Path extends PathAutocomplete<C, MutateInCounterPath<Def>>,
+    Value extends MutateInCounterValue,
+  >(
     path: Path,
     incrementBy: Value,
     options?: MutateInCounterOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
-    const spec = MutateInSpec.increment<Def, Path, Value>(path, incrementBy, options);
+    const spec = MutateInSpec.increment(path as never, incrementBy, options);
     return this.push(spec);
   }
 
@@ -492,12 +504,15 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  decrement<Path extends MutateInCounterPath<Def>, Value extends MutateInCounterValue>(
+  decrement<
+    Path extends PathAutocomplete<C, MutateInCounterPath<Def>>,
+    Value extends MutateInCounterValue,
+  >(
     path: Path,
     decrementBy: Value,
     options?: MutateInDecrementOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
-    const spec = MutateInSpec.decrement<Def, Path, Value>(path, decrementBy, options);
+    const spec = MutateInSpec.decrement(path as never, decrementBy, options);
     return this.push(spec);
   }
 

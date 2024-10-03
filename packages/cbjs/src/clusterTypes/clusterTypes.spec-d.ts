@@ -17,8 +17,10 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import {
   CollectionName,
+  CouchbaseClusterTypes,
   DefaultClusterTypes,
   IsDefaultClusterTypes,
+  LookupInMacroShape,
 } from '@cbjsdev/shared';
 
 import { Bucket } from '../bucket.js';
@@ -32,7 +34,9 @@ import {
   CollectionContainingDocDef,
   CollectionMatchingDocDef,
   DocDef,
+  PathAutocomplete,
 } from './clusterTypes.js';
+import { LookupInGetPath } from './kv/lookup/lookupOperations.types.js';
 
 type Doc<T extends string> = { [K in T]: string };
 
@@ -357,5 +361,80 @@ describe('CollectionContainingDocBody', () => {
     expectTypeOf<
       CollectionContainingDocBody<UserClusterTypes, { title: string }>
     >().toEqualTypeOf<Collection<UserClusterTypes, 'store', 'library', 'books'>>();
+  });
+});
+
+describe('PathAutocomplete', () => {
+  type BookDocDef = DocDef<`book::${string}`, { metadata: { tags: string[] } }>;
+
+  it('should offer friendly paths as is when no options are provided', () => {
+    type ClusterTypesWithArrays = {
+      b: { s: { c: [BookDocDef] } };
+    };
+
+    type UserCollection = Collection<ClusterTypesWithArrays, 'b', 's', 'c'>;
+
+    expectTypeOf<
+      PathAutocomplete<UserCollection, Exclude<LookupInGetPath<BookDocDef>, ''>>
+    >().toEqualTypeOf<
+      | 'metadata'
+      | 'metadata.tags'
+      | `metadata.tags[${number}]`
+      | 'metadata.tags[]'
+      | LookupInMacroShape
+    >();
+  });
+
+  it('should offer friendly paths as is when options are set but no the autocomplete property', () => {
+    type ClusterTypesWithArrays = {
+      '@options': { keyMatchingStrategy: 'always' };
+      'b': { s: { c: [BookDocDef] } };
+    };
+
+    type UserCollection = Collection<ClusterTypesWithArrays, 'b', 's', 'c'>;
+
+    expectTypeOf<
+      PathAutocomplete<UserCollection, Exclude<LookupInGetPath<BookDocDef>, ''>>
+    >().toEqualTypeOf<
+      | 'metadata'
+      | 'metadata.tags'
+      | `metadata.tags[${number}]`
+      | 'metadata.tags[]'
+      | LookupInMacroShape
+    >();
+  });
+
+  it('should offer friendly paths as is when the option is set to friendly', () => {
+    type ClusterTypesWithArrays = {
+      '@options': { autocomplete: 'friendly' };
+      'b': { s: { c: [BookDocDef] } };
+    };
+
+    type UserCollection = Collection<ClusterTypesWithArrays, 'b', 's', 'c'>;
+
+    expectTypeOf<
+      PathAutocomplete<UserCollection, Exclude<LookupInGetPath<BookDocDef>, ''>>
+    >().toEqualTypeOf<
+      | 'metadata'
+      | 'metadata.tags'
+      | `metadata.tags[${number}]`
+      | 'metadata.tags[]'
+      | LookupInMacroShape
+    >();
+  });
+
+  it('should offer strict paths as is when the option is set to strict', () => {
+    type ClusterTypesWithArrays = {
+      '@options': { autocomplete: 'strict' };
+      'b': { s: { c: [BookDocDef] } };
+    };
+
+    type UserCollection = Collection<ClusterTypesWithArrays, 'b', 's', 'c'>;
+
+    expectTypeOf<
+      PathAutocomplete<UserCollection, Exclude<LookupInGetPath<BookDocDef>, ''>>
+    >().toEqualTypeOf<
+      'metadata' | 'metadata.tags' | `metadata.tags[${number}]` | LookupInMacroShape
+    >();
   });
 });

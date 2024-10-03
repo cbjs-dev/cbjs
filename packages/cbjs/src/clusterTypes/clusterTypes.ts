@@ -16,6 +16,7 @@
 import {
   AnyDocDef,
   BucketName,
+  ClusterTypesOptions,
   CollectionName,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
@@ -25,6 +26,8 @@ import {
   DocDef,
   DocDefKeyBodyShape,
   DocDefMatchingKey,
+  FriendlyPathToArrayIndex,
+  GetKeyspaceOptions,
   IsNever,
   Keyspace,
   KeyspaceDocDef,
@@ -40,6 +43,22 @@ import type { Collection } from '../collection.js';
 import type { Scope } from '../scope.js';
 
 export type { DocDef };
+
+/**
+ * Add friendly paths that are autocomplete friendly, is configured that way.
+ */
+// prettier-ignore
+export type PathAutocomplete<Instance, Path> =
+  Instance extends Collection<infer T extends CouchbaseClusterTypes, infer B, infer S, infer C> ?
+    GetKeyspaceOptions<T, B, S, C> extends infer Options extends ClusterTypesOptions ?
+      Options extends { autocomplete?: infer Autocomplete } ?
+        Autocomplete extends 'friendly' ?
+          FriendlyPathToArrayIndex<Path> :
+        Path :
+      Path :
+    never :
+  never
+;
 
 // prettier-ignore
 export type CollectionDocDef<Instance> =

@@ -106,6 +106,17 @@ type NextDepth<N extends number> = [
   33,
 ][N];
 
+// prettier-ignore
+export type FriendlyPathToArrayIndex<Path> =
+  Path extends unknown ?
+    Path extends `${infer PathToArray}[${infer Index extends number}]` ?
+      number extends Index ?
+        Path | `${PathToArray}[]` :
+        Path :
+      Path :
+    never
+;
+
 /**
  * Union of all paths to all elements of the object. Distributive.
  *

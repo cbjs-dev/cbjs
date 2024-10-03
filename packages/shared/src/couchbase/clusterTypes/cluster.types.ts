@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsNever, Pretty } from '../../misc/index.js';
+import { IsAny, IsNever, Or, Pretty, Try } from '../../misc/index.js';
 import { AnyDocDef } from './document.types.js';
 import {
   BucketName,
@@ -25,9 +25,15 @@ import {
 
 export type ClusterTypesOptions =
   | {
+      autocomplete?: 'strict' | 'friendly';
+      keyMatchingStrategy?: undefined;
+    }
+  | {
+      autocomplete?: 'strict' | 'friendly';
       keyMatchingStrategy: 'always' | 'firstMatch';
     }
   | {
+      autocomplete?: 'strict' | 'friendly';
       keyMatchingStrategy: 'delimiter';
       keyDelimiter: string;
     };
@@ -60,6 +66,7 @@ type CollectionTypeDefinition = ClusterTypesOptions | ReadonlyArray<AnyDocDef> |
 
 export type DefaultKeyspaceOptions = {
   keyMatchingStrategy: 'always';
+  autocomplete: 'friendly';
 };
 
 // prettier-ignore
@@ -87,8 +94,9 @@ export type GetKeyspaceOptions<
   S extends ScopeName<T, B>,
   C extends CollectionName<T, B, S>,
 > =
-  IsAny<T> extends true ?
+  IsDefaultClusterTypes<T> extends true ?
     DefaultKeyspaceOptions :
+    // { Options: T['@options'] } :
   T['@options'] extends infer ClusterOptions ?
     B extends keyof T ?
       Extract<T[B], OptionsDefinition>['@options'] extends infer BucketOptions ?
@@ -123,4 +131,4 @@ export type DefaultClusterTypes =
     };
 
 // prettier-ignore
-export type IsDefaultClusterTypes<T> = IsNever<Exclude<keyof T, '@options'>>;
+export type IsDefaultClusterTypes<T> = Or<[IsAny<T>, IsNever<Exclude<keyof T, '@options'>>]>;

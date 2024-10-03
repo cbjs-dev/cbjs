@@ -179,6 +179,12 @@ describe('GetKeyspaceOptions', () => {
     >().toEqualTypeOf<DefaultKeyspaceOptions>();
   });
 
+  it('should return the default options when the default cluster types are given', () => {
+    expectTypeOf<
+      GetKeyspaceOptions<DefaultClusterTypes, 'b', 's', 'c'>
+    >().toEqualTypeOf<DefaultKeyspaceOptions>();
+  });
+
   it('should return the default options when none are defined', () => {
     //   v?
     type T = GetKeyspaceOptions<
@@ -212,7 +218,7 @@ describe('GetKeyspaceOptions', () => {
         'library',
         'books'
       >
-    >().toEqualTypeOf<{ keyMatchingStrategy: 'firstMatch' }>();
+    >().toEqualTypeOf<{ keyMatchingStrategy: 'firstMatch'; autocomplete: 'friendly' }>();
   });
 
   it('should merge cluster options and bucket options', () => {
@@ -232,7 +238,11 @@ describe('GetKeyspaceOptions', () => {
         'library',
         'books'
       >
-    >().toEqualTypeOf<{ keyMatchingStrategy: 'firstMatch'; keyDelimiter: '::' }>();
+    >().toEqualTypeOf<{
+      keyMatchingStrategy: 'firstMatch';
+      keyDelimiter: '::';
+      autocomplete: 'friendly';
+    }>();
   });
 
   it('should merge cluster, bucket and scope options', () => {
@@ -255,7 +265,11 @@ describe('GetKeyspaceOptions', () => {
         'library',
         'books'
       >
-    >().toEqualTypeOf<{ keyMatchingStrategy: 'always'; keyDelimiter: '::' }>();
+    >().toEqualTypeOf<{
+      keyMatchingStrategy: 'always';
+      keyDelimiter: '::';
+      autocomplete: 'friendly';
+    }>();
   });
 
   it('should merge cluster, bucket, scope and collection options', () => {
@@ -283,7 +297,11 @@ describe('GetKeyspaceOptions', () => {
         'library',
         'books'
       >
-    >().toEqualTypeOf<{ keyMatchingStrategy: 'delimiter'; keyDelimiter: '__' }>();
+    >().toEqualTypeOf<{
+      keyMatchingStrategy: 'delimiter';
+      keyDelimiter: '__';
+      autocomplete: 'friendly';
+    }>();
   });
 });
 

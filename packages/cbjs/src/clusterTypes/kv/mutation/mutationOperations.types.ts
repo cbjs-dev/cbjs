@@ -32,7 +32,6 @@ import {
   IsFuzzyDocument,
   SubDocument,
 } from '@cbjsdev/shared';
-import { DocDef } from '../../clusterTypes.js';
 
 import type { CompatibleMacro } from './mutateIn.types.js';
 
@@ -57,7 +56,7 @@ type OperationValue<Doc, Multi extends boolean, Value> =
  * Helper to build the path of a mutation operation.
  * Handles cases where the document is fuzzy.
  */
-type OperationPath<Doc extends DocDefBodyShape, Path extends string> =
+type OperationPath<Doc, Path extends string> =
   If<IsFuzzyDocument<Doc>, string, Path>
 ;
 

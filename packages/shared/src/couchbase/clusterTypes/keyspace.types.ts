@@ -54,17 +54,6 @@ export type BucketName<T extends CouchbaseClusterTypes> =
   Exclude<Extract<keyof T, string>, '@options'>
 ;
 
-type MT = {
-  '@options': { keyDelimiter: '::'; keyMatchingStrategy: 'delimiter' };
-  'BucketOne': {
-    ScopeOne: {
-      CollectionOne: [DocDef<string, string>];
-    };
-  };
-};
-type TB = BucketName<MT>;
-//    ^?
-
 /**
  * Scope names existing in a bucket. Distributive.
  */

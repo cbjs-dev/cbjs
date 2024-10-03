@@ -18,6 +18,7 @@ import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import {
   CollectionDocDefMatchingKey,
   ExtractCollectionJsonDocKey,
+  PathAutocomplete,
 } from '../../../clusterTypes/clusterTypes.js';
 import type { AnyCollection } from '../../../clusterTypes/index.js';
 import type {
@@ -165,7 +166,7 @@ export class ChainableLookupIn<
     options?: { xattr?: boolean }
   ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>>;
 
-  get<Path extends Exclude<LookupInGetPath<Def>, ''>>(
+  get<Path extends PathAutocomplete<C, Exclude<LookupInGetPath<Def>, ''>>>(
     path: Path,
     options?: { xattr?: boolean }
   ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>>;
@@ -195,11 +196,14 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  exists<Path extends LookupInExistsPath<Def>>(
+  exists<Path extends PathAutocomplete<C, LookupInExistsPath<Def>>>(
     path: Path,
     options?: { xattr?: boolean }
   ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.exists, Path>> {
-    const spec = LookupInSpec.exists<Def, Path>(path, options);
+    const spec = LookupInSpec.exists<Def, Extract<Path, LookupInExistsPath<Def>>>(
+      path as never,
+      options
+    );
     return this.push(spec);
   }
 
@@ -213,11 +217,14 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  count<Path extends LookupInCountPath<Def>>(
+  count<Path extends PathAutocomplete<C, LookupInCountPath<Def>>>(
     path: Path,
     options?: { xattr?: boolean }
   ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_count, Path>> {
-    const spec = LookupInSpec.count<Def, Path>(path, options);
+    const spec = LookupInSpec.count<Def, Extract<Path, LookupInCountPath<Def>>>(
+      path as never,
+      options
+    );
     return this.push(spec);
   }
 
