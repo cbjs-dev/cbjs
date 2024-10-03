@@ -15,6 +15,8 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { FriendlyPathToArrayIndex } from '@cbjsdev/shared';
+
 import { connect } from '../../couchbase.js';
 import {
   GetReplicaResult,
@@ -25,7 +27,7 @@ import {
 import { PrefixScan, SamplingScan } from '../../rangeScan.js';
 import { LookupInSpec } from '../../sdspecs.js';
 import { StreamableReplicasPromise } from '../../streamablepromises.js';
-import { DocDef } from '../clusterTypes.js';
+import { DocDef, PathAutocomplete } from '../clusterTypes.js';
 
 type Book = { title: string };
 type QuarterSales = { sales: number[] };
@@ -239,6 +241,7 @@ describe('Collection.lookupIn', function () {
     const cluster = await connect('couchbase://127.0.0.1');
     const collection = cluster.bucket('test').defaultCollection();
     const doc = await collection.lookupIn('book::001').get('title');
+
     expectTypeOf(doc).toEqualTypeOf<LookupInResult<[any]>>();
   });
 
@@ -246,6 +249,7 @@ describe('Collection.lookupIn', function () {
     const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
     const collection = cluster.bucket('test').defaultCollection();
     const doc = await collection.lookupIn('book::001', [LookupInSpec.get('title')]);
+
     expectTypeOf(doc).toEqualTypeOf<LookupInResult<[string]>>();
   });
 });

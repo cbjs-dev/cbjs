@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type If, IsAny, IsNever, Primitive } from '../../misc/index.js';
+import { IsAny, IsNever, Primitive } from '../../misc/index.js';
 import { Keyspace } from '../utils/index.js';
 import {
   ClusterTypesOptions,
@@ -25,12 +25,6 @@ import {
 import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
 import { LookupInMacroShape } from './lookupInMacro.types.js';
 import { DocumentPath } from './utils/index.js';
-
-export type OperationPath<Doc, Path> = If<
-  IsFuzzyDocument<Doc>,
-  string | LookupInMacroShape,
-  Path
->;
 
 export type DocDef<
   Key extends string = string,

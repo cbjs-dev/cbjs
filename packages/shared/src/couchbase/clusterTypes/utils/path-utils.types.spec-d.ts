@@ -15,8 +15,10 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
+import { LookupInMacroShape } from '../lookupInMacro.types.js';
 import {
   DocumentPath,
+  FriendlyPathToArrayIndex,
   MaybeMissing,
   PathTargetExpression,
   PathToClosestObject,
@@ -421,6 +423,22 @@ describe('SplitSegmentIntoAccessors', () => {
   it('should turn multiple index accesses into a tuple with the object key and the index accessors', () => {
     expectTypeOf<SplitSegmentIntoAccessors<'arr[0][1][2]'>>().toEqualTypeOf<
       ['arr', '[0]', '[1]', '[2]']
+    >();
+  });
+});
+
+describe('FriendlyPathToArrayIndex', () => {
+  it('should not add a friendly path to path that do not point to array index', () => {
+    expectTypeOf<
+      FriendlyPathToArrayIndex<
+        DocumentPath<{ metadata: { tags: string[] } }> | LookupInMacroShape
+      >
+    >().toEqualTypeOf<
+      | 'metadata'
+      | 'metadata.tags'
+      | `metadata.tags[${number}]`
+      | 'metadata.tags[]'
+      | LookupInMacroShape
     >();
   });
 });

@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsExactly, IsNever, Join, UnionToTuple } from '../../../misc/index.js';
+import { If, IsExactly, IsNever } from '../../../misc/index.js';
 import {
   ArrayInfoShape,
   ArrayLastElement,
-  DropTupleHead,
   ExtractAppendableArray,
   ExtractPrependableArray,
   GetArrayInfo,
@@ -27,7 +26,7 @@ import {
   TupleFilter,
   TupleIndexes,
 } from './array-utils.types.js';
-import type { OptionalKeys, RequiredKeys, WritableKeys } from './misc-utils.types.js';
+import type { OptionalKeys, WritableKeys } from './misc-utils.types.js';
 import {
   DocumentPath,
   ParentDocument,
@@ -137,68 +136,56 @@ export type ExtractPathToPojo<
  * Extract document paths that point to the index of a non-readonly array.
  * You can filter the type of the indexes by passing `FilterType`.
  */
+// prettier-ignore
 export type ExtractPathToWritableArrayIndex<
   Doc,
   Path extends string,
   FilterType = never,
-> = Doc extends unknown
-  ? Path extends unknown
-    ? ExtractPathToArrayIndex<Path> extends infer PTAI extends string
-      ? ExtractPathToWritable<Doc, PTAI> extends infer PathToWritableIndex extends unknown
-        ? PathToWritableIndex extends string
-          ? ParentDocument<Doc, PathToWritableIndex> extends infer SubDocArray
-            ? SubDocArray extends ReadonlyArray<unknown>
-              ? IsNever<FilterType> extends true
-                ? PathToWritableIndex
-                : PathToWritableIndex extends `${infer PathToArray extends PathToParentAccessor<PathToWritableIndex>}[${infer Index extends number}]`
-                  ? GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfoShape
-                    ? FilterType extends Info['RestElement']
-                      ? PathToWritableIndex
-                      : Info['IsFullyStatic'] extends true
-                        ? FilterType extends SubDocArray[ResolveNegativeIndex<
-                            SubDocArray,
-                            Index
-                          >]
-                          ? PathToWritableIndex
-                          : never
-                        : Info['IsHeadStatic'] extends true
-                          ?
-                              | TupleIndexes<Info['StaticSlice']>
-                              | -1 extends infer TupleIndex extends number
-                            ? FilterType extends SubDocArray[TupleIndex]
-                              ? `${PathToArray}[${TupleIndex}]`
-                              : never
-                            : never
-                          : Info['IsTailStatic'] extends true
-                            ? TupleFilter<
-                                Info['StaticSlice'],
-                                FilterType
-                              >['length'] extends 0
-                              ? never
-                              : 2 extends Partial<
-                                    TupleFilter<Info['StaticSlice'], FilterType>
-                                  >['length']
-                                ? `${PathToArray}[${number}]`
-                                : FilterType extends Info['StaticSlice'][ResolveNegativeIndex<
-                                      Info['StaticSlice'],
-                                      -1
-                                    >]
-                                  ? `${PathToArray}[-1]`
-                                  : 1 extends Partial<
-                                        TupleFilter<Info['StaticSlice'], FilterType>
-                                      >['length']
-                                    ? `${PathToArray}[${number}]`
-                                    : never
-                            : never
-                    : never
-                  : never
-              : never
-            : never
-          : never
-        : never
-      : never
-    : never
-  : never;
+> =
+  Doc extends unknown ?
+  Path extends unknown ?
+    ExtractPathToArrayIndex<Path> extends infer PTAI extends string ?
+      ExtractPathToWritable<Doc, PTAI> extends infer PathToWritableIndex extends unknown ?
+        PathToWritableIndex extends string ?
+          ParentDocument<Doc, PathToWritableIndex> extends infer SubDocArray ?
+            SubDocArray extends ReadonlyArray<unknown> ?
+              IsNever<FilterType> extends true ?
+                PathToWritableIndex :
+              PathToWritableIndex extends `${infer PathToArray extends PathToParentAccessor<PathToWritableIndex>}[${infer Index extends number}]` ?
+                GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfoShape ?
+                  FilterType extends Info['RestElement'] ?
+                    PathToWritableIndex :
+                    Info['IsFullyStatic'] extends true ?
+                      FilterType extends SubDocArray[ResolveNegativeIndex<SubDocArray, Index>] ?
+                        PathToWritableIndex :
+                      never :
+                    Info['IsHeadStatic'] extends true ?
+                      (TupleIndexes<Info['StaticSlice']> | -1) extends infer TupleIndex extends number ?
+                        FilterType extends SubDocArray[TupleIndex] ?
+                          `${PathToArray}[${TupleIndex}]` :
+                        never :
+                      never :
+                    Info['IsTailStatic'] extends true ?
+                      TupleFilter<Info['StaticSlice'], FilterType>['length'] extends 0 ?
+                        never :
+                      2 extends Partial<TupleFilter<Info['StaticSlice'], FilterType>>['length'] ?
+                        `${PathToArray}[${number}]` :
+                      FilterType extends Info['StaticSlice'][ResolveNegativeIndex<Info['StaticSlice'], -1>] ?
+                        `${PathToArray}[-1]` :
+                      1 extends Partial<TupleFilter<Info['StaticSlice'], FilterType>>['length'] ?
+                        `${PathToArray}[${number}]` :
+                      never :
+                    never :
+                  never :
+                never :
+              never :
+            never :
+          never :
+        never :
+      never :
+    never :
+  never
+;
 
 /**
  * Extract document paths that point to a property of type array.

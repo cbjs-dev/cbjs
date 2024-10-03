@@ -22,6 +22,7 @@ import { LookupInResult } from '../../../crudoptypes.js';
 import {
   connect,
   DocDef,
+  type LookupInGetPath,
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,
@@ -258,6 +259,13 @@ describe('LookupInSpecs', () => {
           LookupInSpec.get('title'),
           LookupInSpec.get('does_not_exists'),
         ]);
+      });
+
+      it('should offer friendly autocomplete values for array indexes', async () => {
+        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+        const collection = cluster.bucket('test').defaultCollection();
+
+        const result = await collection.lookupIn('test__document').get('');
       });
 
       it('should infer the result type of an array of typeless specs based on collection documents', async () => {

@@ -14,7 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnyDocDef, LookupInMacroReturnType } from '@cbjsdev/shared';
+import {
+  AnyDocDef,
+  FriendlyPathToArrayIndex,
+  LookupInMacroReturnType,
+} from '@cbjsdev/shared';
 
 import binding, { CppProtocolSubdocOpcode } from './binding.js';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
