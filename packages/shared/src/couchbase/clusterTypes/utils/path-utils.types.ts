@@ -15,7 +15,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { IsNever, Join, Split } from '../../../misc/index.js';
+import type { And, IsNever, Join, Split } from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
   GuaranteedIndexes,
@@ -329,15 +329,16 @@ export type SubDocumentFromPathSegments<
   T,
   Segments extends ReadonlyArray<string>,
   OrUndefined extends boolean,
+  DeepUndefined extends boolean
 > =
   Segments extends [infer Segment, ...infer RestSegments extends string[]] ?
     // Object access
     Segment extends keyof T ?
       RestSegments['length'] extends 0 ?
-        SubDocumentMaybeUndefined<T, Segment, OrUndefined> :
+        SubDocumentMaybeUndefined<T, Segment, And<[DeepUndefined, OrUndefined]>> :
       T[Segment] extends infer NextDoc ?
         NextDoc extends unknown ?
-          SubDocumentFromPathSegments<NextDoc, RestSegments, MaybeMissing<T, Segment>> :
+          SubDocumentFromPathSegments<NextDoc, RestSegments, MaybeMissing<T, Segment>, DeepUndefined> :
         never :
       never :
 
@@ -345,11 +346,12 @@ export type SubDocumentFromPathSegments<
     Segment extends `[${infer Index extends number}]` ?
       ResolveNegativeIndex<T, Index> extends infer ResolvedIndex extends keyof T ?
         RestSegments['length'] extends 0 ?
-          SubDocumentMaybeUndefined<T, ResolvedIndex, OrUndefined> :
+          SubDocumentMaybeUndefined<T, ResolvedIndex, And<[DeepUndefined, OrUndefined]>> :
         SubDocumentFromPathSegments<
           T[ResolvedIndex],
           RestSegments,
-          MaybeMissing<T, ResolvedIndex>
+          MaybeMissing<T, ResolvedIndex>,
+          DeepUndefined
         > :
       never :
     Segment extends '' ? // Root
@@ -360,12 +362,26 @@ export type SubDocumentFromPathSegments<
 
 /**
  * Return the type of an element at a specific path.
+ *
+ * `DeepUndefined` toggles if `undefined` should be included in the result type when
+ * a parent property is optional.
+ *
+ * @example
+ *
+ * ```ts
+ * type TestDoc = {
+ *   metadata?: { tags: string[] };
+ * };
+ *
+ * SubDocument<TestDoc, 'metadata.tags'>        // string[] | undefined
+ * SubDocument<TestDoc, 'metadata.tags', false> // string[]
+ * ```
  */
 // prettier-ignore
-export type SubDocument<T, P extends string> =
+export type SubDocument<T, P extends string, DeepUndefined extends boolean = true> =
   IsFuzzyDocument<T> extends true ?
     any :
-  SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false>
+  SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false, DeepUndefined>
 ;
 
 /**

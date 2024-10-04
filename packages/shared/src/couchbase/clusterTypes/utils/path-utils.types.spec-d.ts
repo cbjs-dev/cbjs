@@ -174,6 +174,16 @@ describe('SubDocument', function () {
     expectTypeOf<SubDocument<[string], ''>>().toEqualTypeOf<[string]>();
     expectTypeOf<SubDocument<[string], '[0]'>>().toEqualTypeOf<string>();
   });
+
+  it('should not include undefined if DeepUndefined is false', () => {
+    type TestDoc = {
+      metadata?: { tags: string[] };
+    };
+
+    expectTypeOf<SubDocument<TestDoc, 'metadata.tags', false>>().toEqualTypeOf<
+      string[]
+    >();
+  });
 });
 
 describe('MaybeMissing', function () {

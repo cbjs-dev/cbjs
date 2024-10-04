@@ -77,39 +77,7 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
  * Return the type of the last element of the array.
  */
 // prettier-ignore
-export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
-  T extends unknown ?
-    GetArrayInfo<T> extends {
-        IsFullyStatic: unknown;
-        IsHeadStatic: unknown;
-        IsTailStatic: infer IsTailStatic extends boolean;
-        RestElement: infer RestElement extends unknown;
-        StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
-      } ?
-      IsTailStatic extends true ?
-        StaticSlice[ArrayLastIndex<StaticSlice>] :
-      RestElement :
-    never :
-  never
-;
-
-/**
- * Return the type of the first element of the array.
- */
-// prettier-ignore
-export type ArrayFirstElement<T extends ReadonlyArray<unknown>> =
-  GetArrayInfo<T> extends {
-    IsFullyStatic: unknown;
-    IsHeadStatic: infer IsHeadStatic extends boolean;
-    IsTailStatic: unknown;
-    RestElement: infer RestElement extends unknown;
-    StaticSlice: infer StaticSlice extends ReadonlyArray<unknown>;
-    } ?
-    IsHeadStatic extends true ?
-      StaticSlice[0] :
-    RestElement :
-  never
-;
+export type ArrayLastElement<T extends ReadonlyArray<unknown>> = T[ArrayLastIndex<T>];
 
 /**
  * Transform an array into a union of tuple representing its entries.

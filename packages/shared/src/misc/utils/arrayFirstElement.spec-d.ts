@@ -27,8 +27,8 @@ describe('arrayFirstElement', () => {
     expectTypeOf(
       arrayFirstElement(['a', 2, 3] as [string, ...number[]])
     ).toEqualTypeOf<string>();
-    expectTypeOf(
-      arrayFirstElement([1, 2, 'a'] as [...number[], string])
-    ).toEqualTypeOf<number>();
+    expectTypeOf(arrayFirstElement([1, 2, 'a'] as [...number[], string])).toEqualTypeOf<
+      number | string
+    >();
   });
 });

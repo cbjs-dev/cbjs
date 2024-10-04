@@ -29,8 +29,8 @@ describe('arrayLastElement', () => {
 
   it('should return the trailing type of an array with unknown length', () => {
     expectTypeOf(arrayLastElement([1, 2, 3] as number[])).toEqualTypeOf<number>();
-    expectTypeOf(
-      arrayLastElement(['a', 2, 3] as [string, ...number[]])
-    ).toEqualTypeOf<number>();
+    expectTypeOf(arrayLastElement(['a', 2, 3] as [string, ...number[]])).toEqualTypeOf<
+      string | number
+    >();
   });
 });
