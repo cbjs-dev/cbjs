@@ -21,7 +21,9 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
+  DocumentPath,
   MakeTestPaths,
+  SubDocument,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
@@ -236,15 +238,23 @@ describe('mutateIn insert', async () => {
     const cluster = await connect<UserClusterTypes>('...');
     const collection = cluster.bucket('test').defaultCollection();
 
+    type MV = Exclude<SubDocument<Monument, 'visitors.visitor::001'>, undefined>;
+    type MVP = DocumentPath<MV>;
+
+    type T = MutateInInsertPath<{
+      Body: MV;
+      Path: MVP;
+    }>;
+
     void collection
       .mutateIn('monument::001')
       // @ts-expect-error invalid path - cannot insert a required property
       .insert('visitors')
       // @ts-expect-error invalid path - the property does not exist
       .insert('visitors.visitor::001.missingProperty')
-      // TODO restore test using dedicated insertInRecord
-      // @nots-expect-error invalid path - cannot insert a required property within a record
-      .insert('visitors.visitor::001.enteredAt', 1)
+      .insertIntoRecord('visitors.visitor::001', 'leftAt', 1)
+      // @ts-expect-error invalid path - cannot insert a required property within a record
+      .insertIntoRecord('visitors.visitor::001', 'enteredAt', 1)
       // @ts-expect-error invalid path - cannot insert a required property within an array
       .insert('historicalReferences.persons[0].name', 'John')
       // @ts-expect-error invalid path - cannot insert a required property within a dictionary

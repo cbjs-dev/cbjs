@@ -24,6 +24,8 @@ import {
   ExtractPathToOptionalProperty,
   ExtractPathToPojo,
   ExtractPathToPrependableArray,
+  ExtractPathToRecord,
+  ExtractPathToRecordEntry,
   ExtractPathToRemovableArrayIndex,
   ExtractPathToType,
   ExtractPathToWritable,
@@ -590,5 +592,51 @@ describe('ExtractPathToPojo', () => {
     expectTypeOf<
       ExtractPathToPojo<{ foo: Array<Record<string, number>> }>
     >().toEqualTypeOf<`foo[${number}]`>();
+  });
+});
+
+describe('ExtractPathToRecord', () => {
+  it('should extract path to a record', () => {
+    type Result = ExtractPathToRecord<{
+      lastModifiedAt: number;
+      sales: Record<`user::${string}`, number>;
+      body: { title: string };
+      subscriptions: Array<Record<`user::${string}`, string>>;
+      links: Record<
+        `user::${string}`,
+        Record<`user::${string}`, Record<`user::${string}`, { type: 'a' | 'b' }>>
+      >;
+    }>;
+
+    expectTypeOf<Result>().toEqualTypeOf<
+      | 'sales'
+      | `subscriptions[${number}]`
+      | 'links'
+      | `links.user::${string}`
+      | `links.user::${string}.user::${string}`
+    >();
+  });
+});
+
+describe('ExtractPathToRecordEntry', () => {
+  it('should extract path to a record entry', () => {
+    type Result = ExtractPathToRecordEntry<{
+      lastModifiedAt: number;
+      sales: Record<`user::${string}`, number>;
+      body: { title: string };
+      subscriptions: Array<Record<`user::${string}`, string>>;
+      links: Record<
+        `user::${string}`,
+        Record<`user::${string}`, Record<`user::${string}`, { type: 'a' | 'b' }>>
+      >;
+    }>;
+
+    expectTypeOf<Result>().toEqualTypeOf<
+      | `sales.user::${string}`
+      | `subscriptions[${number}].user::${string}`
+      | `links.user::${string}`
+      | `links.user::${string}.user::${string}`
+      | `links.user::${string}.user::${string}.user::${string}`
+    >();
   });
 });

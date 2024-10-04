@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocumentPath, ExtractPathToRecordEntry, SubDocument } from '@cbjsdev/shared';
+
 import {
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
@@ -170,6 +172,33 @@ export class ChainableMutateIn<
     return this.push(spec);
   }
 
+  /**
+   * Just like {@link ChainableMutateIn.insert}, it adds a property to a document.
+   * This method offers better type safety because it looks at optional properties from
+   * the standpoint of the record.
+   */
+  insertIntoRecord<
+    const PathToRecord extends ExtractPathToRecordEntry<Def['Body'], Def['Path']>,
+    const PathWithinRecord extends MutateInInsertPath<{
+      Body: RecordValue;
+      Path: DocumentPath<RecordValue>;
+    }>,
+    Value extends MutateInInsertValue<Def, `${PathToRecord}.${PathWithinRecord}`>,
+    RecordValue = Extract<SubDocument<Def['Body'], PathToRecord>, Record<any, any>>,
+  >(
+    pathToRecord: PathToRecord,
+    pathWithinRecord: PathWithinRecord,
+    value: Value,
+    options?: MutateInInsertOptions
+  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
+    const spec = MutateInSpec.insert(
+      (pathToRecord as string) + '.' + pathWithinRecord,
+      value,
+      options
+    );
+    return this.push(spec);
+  }
+
   upsert<Value extends Def['Body']>(
     path: '',
     value: Value,
@@ -241,6 +270,8 @@ export class ChainableMutateIn<
 
   /**
    * Remove a property from the document.
+   * If you remove a property from `MyRecord` in `Record<DocKey, MyRecord>`,
+   * you will should use {@link ChainableMutateIn.removeFromRecord} to have better type safety.
    *
    * Fails if the property does not exist.
    *
@@ -253,6 +284,29 @@ export class ChainableMutateIn<
    */
   remove(path: string, options?: MutateInRemoveOptions): any {
     const spec = MutateInSpec.remove(path as never, options);
+    return this.push(spec);
+  }
+
+  /**
+   * Just like {@link ChainableMutateIn.remove}, it removes a property from a document.
+   * This method offers better type safety because it looks at optional properties from
+   * the standpoint of the record.
+   *
+   * @param pathToRecord
+   * @param pathWithinRecord
+   */
+  removeFromRecord<
+    const PathToRecord extends ExtractPathToRecordEntry<Def['Body'], Def['Path']>,
+    const PathWithinRecord extends MutateInRemovePath<{
+      Body: RecordValue;
+      Path: DocumentPath<RecordValue>;
+    }>,
+    RecordValue = Extract<SubDocument<Def['Body'], PathToRecord>, Record<any, any>>,
+  >(
+    pathToRecord: PathToRecord,
+    pathWithinRecord: PathWithinRecord
+  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
+    const spec = MutateInSpec.remove((pathToRecord as string) + '.' + pathWithinRecord);
     return this.push(spec);
   }
 
