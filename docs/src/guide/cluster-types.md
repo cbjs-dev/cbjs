@@ -1,5 +1,6 @@
 ---
 title: Cluster Types | Guide
+outline: [2, 3]
 next:
   text: 'KeyValue Service'
   link: '/guide/services/kv'
@@ -94,12 +95,37 @@ await collection.mutateIn(bookId).insert('title', 'documentation');
 // Invalid value : `quaterSales` is a tuple of numbers.
 await collection.mutateIn(bookId).arrayInsert('quaterSales[2]', '3467');
 ```
+## Options
 
-## Key Matching Strategy
+Cluster types support a few options that can be passed during their declaration.
+
+```ts
+type ClusterTypesOptions = {
+  autocomplete?: 'strict' | 'friendly'; // default: 'friendly'
+  keyMatchingStrategy?: 'always' | 'firstMatch'; // default: 'always'
+  keyDelimiter?: string;
+}
+```
+
+Note that you can redefine the options at any level. Options get merged from the top down :
+
+```ts
+type MyClusterTypes = {
+  '@options': ClusterOptions;
+  store: {
+    '@options': BucketOptions;
+    library: {
+      books: CollectionOptions | [ DocDef ]
+    }
+  }
+};
+```
+
+### Key Matching Strategy
 When inferring the type of a document, Cbjs matches the given key with the string template of the document definitions of the targeted collection.  
 Three strategies are available : `always`, `delimiter`, `firstMatch`.
 
-### Always <Badge type="info" text="default" />
+#### Always <Badge type="info" text="default" />
 This is the most basic strategy. It checks if the key extends the template.
 
 ```ts twoslash
@@ -129,7 +155,7 @@ Because the key `'book::001::reviews'` extends both string templates, both docum
 
 This is the default key matching strategy.
 
-### Delimiter <Badge type="tip" text="recommended" />
+#### Delimiter <Badge type="tip" text="recommended" />
 
 Now let's see another strategy named `delimiter`, that uses the common delimiters to match the keys :
 
@@ -162,7 +188,7 @@ type MyClusterTypes = {
 };
 ```
 
-### First Match
+#### First Match
 Finally, if the previous strategy does not work for you, you can use the `firstMatch` strategy, that simply uses the first declared document that matches the key :
 
 ```ts{13,14} twoslash
@@ -192,36 +218,77 @@ type MyClusterTypes = {
 };
 ```
 
-### Picking a strategy
-When declaring your cluster types, you can pass some options the special jey `@options`.  
-Note that the cluster types options are inherited from the top down, but not merged.
+### Autocomplete
+
+There is a limitation of TypeScript regarding autocomplete when the path is a template string like `authors[${number}]`, the autocomplete will not offer that value.  
+Because of that, Cbjs adds _friendly paths_ to the autocomplete list :
 
 ```ts twoslash
-import { DocDef } from '@cbjsdev/cbjs';
-// ---cut-before---
-type ClusterOptions = {
-  keyMatchingStrategy: 'firstMatch';
-};
-
-type BucketOptions = {
-  keyMatchingStrategy: 'delimiter';
-  keyDelimiter: '__';
-};
-
-type CollectionOptions = {
-  keyMatchingStrategy: 'always';
-};
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
 type MyClusterTypes = {
-  '@options': ClusterOptions;
   store: {
-    '@options': BucketOptions;
     library: {
-      books: CollectionOptions | [ DocDef ]
-    }
-  }
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
+    };
+  };
 };
+
+const cluster = await connect<MyClusterTypes>('');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+// @noErrors: 2769
+const result = await collection
+  .lookupIn('book::001')
+  .get('autho');
+//           ^|
 ```
+
+Because their length is fixed, all indexes will be offered for tuples.
+
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          title: string;
+          authors: string[];
+          quater_sales: [number, number, number, number];
+        }
+      > ]
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+// @noErrors: 2769
+const result = await collection
+  .lookupIn('book::001')
+  .get('quater_sal');
+//                ^|
+```
+
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;
+
+You can turn off friendly path in the cluster types options :
 
 ## Incremental adoption
 
@@ -343,78 +410,6 @@ type Book = {
 
 const result = await collection.lookupIn('book::001').get('title').get('authors[0]');
 ```
-
-### IDE autocompletion
-
-Because of IDEs current limitations, autocomplete will not be offered for array indexes. Using the previous example :
-
-```ts twoslash
-import { connect, DocDef } from '@cbjsdev/cbjs';
-
-type MyClusterTypes = {
-  store: {
-    library: {
-      books: [ DocDef<
-        `book::${string}`,
-        {
-          title: string;
-          authors: string[];
-          quater_sales: [number, number, number, number];
-        }
-      > ]
-    };
-  };
-};
-
-const cluster = await connect<MyClusterTypes>('');
-const collection = cluster.bucket('store').scope('library').collection('books');
-
-// ---cut-before---
-// @noErrors: 2769
-const result = await collection
-  .lookupIn('book::001')
-  .get('autho');
-//           ^|
-```
-
-Because the path is expressed as a template literal, `authors[${number}]`, your IDE will not offer `authors[0]` but only `authors`.  
-Nevertheless, `authors[0]` is a valid path.
-
-This does not apply to tuples, as their length is fixed.
-
-```ts twoslash
-import { connect, DocDef } from '@cbjsdev/cbjs';
-
-type MyClusterTypes = {
-  store: {
-    library: {
-      books: [ DocDef<
-        `book::${string}`,
-        {
-          title: string;
-          authors: string[];
-          quater_sales: [number, number, number, number];
-        }
-      > ]
-    };
-  };
-};
-
-const cluster = await connect<MyClusterTypes>('');
-const collection = cluster.bucket('store').scope('library').collection('books');
-
-// ---cut-before---
-// @noErrors: 2769
-const result = await collection
-  .lookupIn('book::001')
-  .get('quater_sal');
-//                ^|
-```
-
-&nbsp;  
-&nbsp;  
-&nbsp;  
-&nbsp;
 
 ### Tuples
 
