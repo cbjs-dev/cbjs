@@ -16,7 +16,6 @@
 import { If, IsExactly, IsNever } from '../../../misc/index.js';
 import {
   ArrayInfoShape,
-  ArrayLastElement,
   ExtractAppendableArray,
   ExtractPrependableArray,
   GetArrayInfo,
@@ -26,7 +25,7 @@ import {
   TupleFilter,
   TupleIndexes,
 } from './array-utils.types.js';
-import type { OptionalKeys, WritableKeys } from './misc-utils.types.js';
+import type { WritableKeys } from './misc-utils.types.js';
 import {
   DocumentPath,
   ParentDocument,
@@ -292,12 +291,10 @@ export type ExtractPathToOptionalProperty<
     DocPath extends `${string}[${number}]` ?
       never :
 
-    Extract<ParentDocument<Doc, DocPath>, Record<PropertyKey, unknown>> extends infer ParentDoc ?
-      ArrayLastElement<SplitIntoSegments<DocPath>> extends infer PropertyName extends string ?
-        PropertyName extends OptionalKeys<ParentDoc> ?
-          DocPath :
-        never :
-      never :
+    // since properties with `undefined` value are stripped when stored
+    // we can just check if `undefined` extends the subdoc at the path
+    undefined extends SubDocument<Doc, DocPath, false> ?
+      DocPath :
     never :
   never
 ;

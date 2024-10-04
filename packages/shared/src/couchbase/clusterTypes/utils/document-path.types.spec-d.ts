@@ -500,7 +500,7 @@ describe('ValidatePathToProperty', () => {
   });
 });
 
-describe('ExtractPathToOptionalProperty', function () {
+describe('ExtractPathToOptionalProperty', () => {
   type VisitorId = `visitor::${string}`;
 
   type Monument = {

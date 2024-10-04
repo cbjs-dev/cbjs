@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ArrayFirstElement } from '../../couchbase/index.js';
 
 export function arrayFirstElement<const T extends ReadonlyArray<unknown>>(arr: T) {
   if (arr.length === 0) {
     throw new Error('Array is empty.');
   }
 
-  return arr[0] as ArrayFirstElement<T>;
+  return arr[0] as T[0];
 }
