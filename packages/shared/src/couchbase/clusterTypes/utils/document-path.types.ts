@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { If, IsExactly, IsNever } from '../../../misc/index.js';
+import { IsFuzzyDocument } from '../document.types.js';
 import {
   ArrayInfoShape,
   ExtractAppendableArray,
@@ -89,6 +90,36 @@ export type ExtractPathToWritable<
           PathTargetExpression<DocumentPath> extends WritableKeys<ParentDoc> ?
             DocumentPath :
           never :
+        never :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
+export type ExtractPathToRecord<
+  Doc,
+  DocPath extends string = DocumentPath<Doc>,
+> =
+  DocPath extends unknown ?
+    Record<string, any> extends SubDocument<Doc, DocPath> ?
+      DocPath :
+    never :
+  never
+;
+
+// prettier-ignore
+export type ExtractPathToRecordEntry<
+  Doc,
+  DocPath extends string = DocumentPath<Doc>,
+> =
+  IsFuzzyDocument<Doc> extends true ?
+    string :
+  ExtractPathToRecord<Doc, DocPath> extends infer PathToRecord ?
+    PathToRecord extends string ?
+      Extract<SubDocument<Doc, PathToRecord>, Record<any, any>> extends infer SubDoc ?
+        keyof SubDoc extends infer RecordKey extends string ?
+          `${PathToRecord}.${RecordKey}` :
         never :
       never :
     never :

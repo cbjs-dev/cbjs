@@ -225,11 +225,22 @@ describe.shuffle('kv mutateIn', async () => {
   }) => {
     useLogger().trace(testDocKey);
 
+    await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .insertIntoRecord(
+        'users',
+        'user::001',
+        { name: 'me', createdAt: 1 },
+        { createPath: true }
+      );
+
     const result = await serverTestContext.collection
       .mutateIn(testDocKey)
       .increment('int', 3)
       .upsert('str', 'newStr')
       .insert('newProp', 'newPropValue')
+      .removeFromRecord('users.user::001', 'createdAt')
+      .insertIntoRecord('users.user::001', 'description', 'me again')
       .arrayAppend('arr', 4)
       .arrayAppend('arr', [5, 6], { multi: true });
 
@@ -241,6 +252,7 @@ describe.shuffle('kv mutateIn', async () => {
     expect(result.content[2]).toHaveProperty('value', undefined);
     expect(result.content[3]).toHaveProperty('value', undefined);
     expect(result.content[4]).toHaveProperty('value', undefined);
+    expect(result.content[5]).toHaveProperty('value', undefined);
 
     const resultGet = await serverTestContext.collection.get(testDocKey);
 
@@ -249,6 +261,12 @@ describe.shuffle('kv mutateIn', async () => {
       str: 'newStr',
       newProp: 'newPropValue',
       arr: [1, 2, 3, 4, 5, 6],
+      users: {
+        'user::001': {
+          name: 'me',
+          description: 'me again',
+        },
+      },
     });
   });
 

@@ -220,10 +220,13 @@ If you don't want that, use the `preserveExpiry` option, the expiry time will th
 If you want to modify some parts of the documents, as opposed to the whole document, you can mutate only those parts.
 
 ```ts
+import { MutateInSpec } from './sdspecs';
+
 await collection
-  .mutateIn('docKey')
-  .replace('title', 'New title')
-  .replace('lastUpdatedAt', Date.now());
+  .mutateIn('docKey', [
+    MutateInSpec.replace('title', 'New title'),
+    MutateInSpec.replace('lastUpdatedAt', Date.now())
+  ]);
 ```
 
 One of the key advantages of sub-document mutation is being able to perform an operation that do not conflict with concurrent ones.  
@@ -253,6 +256,43 @@ return await mutations;
 > [!IMPORTANT]
 > When using the classic `mutateIn` syntax, the request is executed immediately, regardless of it being awaited or not.
 > A chained mutateIn will only perform the request once awaited `await mutations` or `.then()` is called on it.
+
+Cbjs also introduce two new methods `insertIntoRecord` and `removeFromRecord` :
+
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [
+        DocDef<`book::${string}`, { title: string; editions: Record<string, { year: number; sales?: number }> }>,
+      ]
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// @errors: 2339 2345
+// ---cut-before---
+// Let's say we have defined a `Book` document as follow :
+type Book = { 
+  title: string; 
+  editions: Record<string, { year: number; sales?: number }> 
+}
+
+const result = await collection
+  .mutateIn('book::001')
+  // No error, yet it should show an error, because `year` is not an optional property
+  .insert('editions.001.year', 2000)
+
+  // Show an error, as we would expect
+  .insertIntoRecord('editions.edition::001', 'year', 2000)
+  .removeFromRecord('editions.edition::000', 'year')
+;
+```
 
 ### Error handling
 
