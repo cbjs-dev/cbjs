@@ -25,7 +25,7 @@
     "node": ">=18.20.4"
   },
   "scripts": {
-    "install": "node ./scripts/install.mjs 4.4.1",
+    "install": "node ./scripts/install.mjs 4.4.2",
     "reinstall": "rm -f src/couchbase-native.node && rm -f dist/src/couchbase-native.node && pnpm install",
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
