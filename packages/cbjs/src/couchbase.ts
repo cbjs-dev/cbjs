@@ -32,7 +32,7 @@ import { NodeCallback } from './utilities.js';
  */
 export async function connect<T extends CouchbaseClusterTypes = DefaultClusterTypes>(
   connStr: `couchbase://` | (string & NonNullable<unknown>),
-  options?: ConnectOptions,
+  options?: ConnectOptions<T>,
   callback?: NodeCallback<Cluster<T>>
 ): Promise<Cluster<T>> {
   return await Cluster.connect<T>(connStr, options, callback);

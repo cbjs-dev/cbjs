@@ -147,7 +147,18 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
     const timeout = options.timeout ?? this._cluster.queryTimeout;
     const rowParser = options.queryResultParser ?? this._cluster.queryResultParser;
 
-    return QueryExecutor.execute((callback) => {
+    let hookReturnValue: unknown;
+
+    try {
+      hookReturnValue = this._cluster.hooks?.onQueryStart?.({
+        statement: query,
+        options,
+      });
+    } catch (err) {
+      this._cluster.hooks?.onHookError?.(err);
+    }
+
+    const result = QueryExecutor.execute((callback) => {
       this._cluster.conn.query(
         {
           statement: query,
@@ -192,5 +203,39 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
         callback
       );
     }, rowParser);
+
+    if (this._cluster.hooks?.onQueryEnd) {
+      void result
+        .then((r) => {
+          try {
+            this._cluster.hooks?.onQueryEnd?.(
+              {
+                statement: query,
+                options,
+                result: r,
+              },
+              hookReturnValue
+            );
+          } catch (err) {
+            this._cluster.hooks?.onHookError?.(err);
+          }
+        })
+        .catch((err) => {
+          try {
+            this._cluster.hooks?.onQueryEnd?.(
+              {
+                statement: query,
+                options,
+                error: err,
+              },
+              hookReturnValue
+            );
+          } catch (err) {
+            this._cluster.hooks?.onHookError?.(err);
+          }
+        });
+    }
+
+    return result;
   }
 }

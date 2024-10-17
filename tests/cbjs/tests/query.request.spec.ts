@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 import JSONBigint from 'json-bigint';
-import { describe } from 'vitest';
+import { describe, vi } from 'vitest';
 
 import { QueryMetaData, QueryProfileMode, QueryResult, QueryStatus } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
-import { getConnectionParams, invariant, keyspacePath } from '@cbjsdev/shared';
+import { getConnectionParams, keyspacePath } from '@cbjsdev/shared';
 import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
@@ -238,6 +238,113 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Query))(
         });
       }
     );
+
+    describe('hooks', () => {
+      test('should call onQueryStart and onQueryEnd', async ({
+        expect,
+        serverTestContext,
+        useDocumentKey,
+      }) => {
+        const mockOnQueryStart = vi.fn().mockReturnValue('mockStartReturn');
+        const mockOnQueryEnd = vi.fn();
+
+        const params = getConnectionParams();
+        const newConnection = await serverTestContext.newConnection(params, {
+          hooks: {
+            onQueryStart: mockOnQueryStart,
+            onQueryEnd: mockOnQueryEnd,
+          },
+        });
+
+        const collection = newConnection
+          .bucket(serverTestContext.bucket.name)
+          .scope(serverTestContext.scope.name)
+          .collection(serverTestContext.collection.name);
+
+        const docKey = useDocumentKey();
+        await collection.insert(docKey, {
+          title: 'cbjs',
+        });
+
+        const statement = `SELECT META().cas AS cas FROM ${serverTestContext.getKeyspacePath()} USE KEYS $1`;
+        const options = {
+          parameters: [docKey],
+        };
+        const queryResult = await newConnection.query<{ cas: bigint }>(
+          statement,
+          options
+        );
+
+        expect(mockOnQueryStart).toHaveBeenCalledWith({
+          statement,
+          options,
+        });
+
+        expect(mockOnQueryEnd).toHaveBeenCalledWith(
+          {
+            statement,
+            options,
+            result: queryResult,
+          },
+          'mockStartReturn'
+        );
+      });
+
+      test('should call onQueryEnd with the error when the query throws', async ({
+        expect,
+        serverTestContext,
+      }) => {
+        expect.hasAssertions();
+        const mockOnQueryEnd = vi.fn();
+
+        const params = getConnectionParams();
+        const newConnection = await serverTestContext.newConnection(params, {
+          hooks: {
+            onQueryEnd: mockOnQueryEnd,
+          },
+        });
+
+        const statement = `SELECT INVALID QUERY`;
+
+        try {
+          await newConnection.query(statement);
+        } catch (err) {
+          expect(mockOnQueryEnd).toHaveBeenCalledWith(
+            {
+              statement,
+              options: {},
+              error: err,
+            },
+            undefined
+          );
+        }
+      });
+
+      test('should call onHookError when either onQueryStart or onQueryEnd throws', async ({
+        expect,
+        serverTestContext,
+      }) => {
+        const mockOnHookError = vi.fn();
+
+        const params = getConnectionParams();
+        const newConnection = await serverTestContext.newConnection(params, {
+          hooks: {
+            onHookError: mockOnHookError,
+            onQueryStart: () => {
+              throw new Error('onQueryStart failed');
+            },
+            onQueryEnd: () => {
+              throw new Error('onQueryEnd failed');
+            },
+          },
+        });
+
+        const statement = `SELECT 1 as foo`;
+        await newConnection.query(statement);
+
+        expect(mockOnHookError).toHaveBeenCalledTimes(2);
+      });
+    });
 
     describe('row parser', () => {
       test('should use the cluster custom row parser for cluster level query', async ({

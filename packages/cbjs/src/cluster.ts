@@ -43,6 +43,7 @@ import {
   PingOptions,
   PingResult,
 } from './diagnosticstypes.js';
+import { CouchbaseError } from './errors.js';
 import { EventingFunctionManager } from './eventingfunctionmanager.js';
 import { QueryExecutor } from './queryexecutor.js';
 import { QueryIndexManager } from './queryindexmanager.js';
@@ -159,13 +160,39 @@ export type DnsConfig = {
   dnsSrvTimeout?: number;
 };
 
+export type Hooks<T extends CouchbaseClusterTypes> = {
+  /**
+   * Any error thrown in a hook will be swallowed and this function will be called
+   * @param err The error thrown by the hook function.
+   */
+  onHookError: (err: unknown) => void;
+  onQueryStart: (opts: {
+    statement: string;
+    options: QueryOptions<T, boolean>;
+  }) => unknown;
+  onQueryEnd: (
+    opts:
+      | {
+          statement: string;
+          options: QueryOptions<T, boolean>;
+          result: QueryResult<any, boolean>;
+        }
+      | {
+          statement: string;
+          options: QueryOptions<T, boolean>;
+          error: Error;
+        },
+    returnOfOnQueryStart: unknown
+  ) => void;
+};
+
 /**
  * Specifies the options which can be specified when connecting
  * to a cluster.
  *
  * @category Core
  */
-export type ConnectOptions = {
+export type ConnectOptions<T extends CouchbaseClusterTypes = any> = {
   /**
    * Specifies a username to use for an implicitly created IPasswordAuthenticator
    * used for authentication with the cluster.
@@ -206,6 +233,11 @@ export type ConnectOptions = {
    * @default {@link JSON.parse}
    */
   queryResultParser?: (value: string) => any;
+
+  /**
+   * Specifies hook functions that allow you to perform actions before and after some Couchbase operations.
+   */
+  hooks?: Partial<Hooks<T>>;
 
   /**
    * Specifies the options for transactions.
@@ -253,6 +285,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _conn: CppConnection;
   private _transcoder: Transcoder;
   private _queryResultParser: (value: string) => any;
+  private _hooks?: Partial<Hooks<T>>;
   private _txnConfig: TransactionsConfig;
   private _transactions?: Transactions<T>;
   private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
@@ -277,6 +310,13 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   */
   get queryResultParser(): (value: string) => any {
     return this._queryResultParser;
+  }
+
+  /**
+  @internal
+  */
+  get hooks(): Partial<Hooks<T>> | undefined {
+    return this._hooks;
   }
 
   /**
@@ -353,7 +393,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   @internal
   @deprecated Use the static sdk-level {@link connect} method instead.
   */
-  constructor(connStr: string, options?: ConnectOptions) {
+  constructor(connStr: string, options?: ConnectOptions<T>) {
     if (!options) {
       options = {};
     }
@@ -369,7 +409,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._trustStorePath = options.security.trustStorePath ?? '';
 
     if (options.configProfile) {
-      connectionProfiles.applyProfile(options.configProfile, options);
+      connectionProfiles.applyProfile(options.configProfile, options as never);
     }
     this._kvTimeout = options.timeouts.kvTimeout ?? 2500;
     this._kvDurableTimeout = options.timeouts.kvDurableTimeout ?? 10000;
@@ -384,6 +424,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
 
     this._transcoder = options.transcoder ?? new DefaultTranscoder();
     this._queryResultParser = options.queryResultParser ?? JSON.parse;
+    this._hooks = options.hooks;
 
     if (options.transactions) {
       this._txnConfig = options.transactions;
@@ -434,7 +475,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   */
   static async connect<T extends CouchbaseClusterTypes = DefaultClusterTypes>(
     connStr: string,
-    options?: ConnectOptions,
+    options?: ConnectOptions<T>,
     callback?: NodeCallback<Cluster<T>>
   ): Promise<Cluster<T>> {
     return await PromiseHelper.wrapAsync(async () => {
