@@ -14,11 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  AnyDocDef,
-  FriendlyPathToArrayIndex,
-  LookupInMacroReturnType,
-} from '@cbjsdev/shared';
+import { AnyDocDef, LookupInMacroReturnType } from '@cbjsdev/shared';
 
 import binding, { CppProtocolSubdocOpcode } from './binding.js';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
@@ -120,7 +116,7 @@ export class LookupInMacro<
   /**
    * A macro which references the last modified time of a document.
    */
-  static get LastModified(): LookupInMacro {
+  static get LastModified(): LookupInMacro<'$document.last_modified'> {
     return new LookupInMacro('$document.last_modified');
   }
 
@@ -129,21 +125,21 @@ export class LookupInMacro<
    * only makes sense to use in concert with the internal AccessDeleted
    * flags, which are internal.
    */
-  static get IsDeleted(): LookupInMacro {
+  static get IsDeleted(): LookupInMacro<'$document.deleted'> {
     return new LookupInMacro('$document.deleted');
   }
 
   /**
    * A macro which references the size of a document, expressed in bytes.
    */
-  static get ValueSizeBytes(): LookupInMacro {
+  static get ValueSizeBytes(): LookupInMacro<'$document.value_bytes'> {
     return new LookupInMacro('$document.value_bytes');
   }
 
   /**
    * A macro which references the revision id of a document.
    */
-  static get RevId(): LookupInMacro {
+  static get RevId(): LookupInMacro<'$document.revid'> {
     return new LookupInMacro('$document.revid');
   }
 }
