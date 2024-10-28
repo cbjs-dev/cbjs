@@ -96,15 +96,22 @@ export type GetKeyspaceOptions<
 > =
   IsDefaultClusterTypes<T> extends true ?
     DefaultKeyspaceOptions :
-    // { Options: T['@options'] } :
   T['@options'] extends infer ClusterOptions ?
     B extends keyof T ?
-      Extract<T[B], OptionsDefinition>['@options'] extends infer BucketOptions ?
-        S extends keyof T[B] ?
-          Extract<T[B][S], OptionsDefinition>['@options'] extends infer ScopeOptions ?
-            C extends keyof T[B][S] ?
-              Extract<T[B][S][C], ClusterTypesOptions> extends infer CollectionOptions ?
-                MergeOptions<[DefaultKeyspaceOptions, ClusterOptions, BucketOptions, ScopeOptions, CollectionOptions]> :
+      Extract<T[B], OptionsDefinition> extends infer TB ?
+        '@options' extends keyof TB ?
+          TB['@options'] extends infer BucketOptions ?
+            S extends keyof T[B] ?
+              Extract<T[B][S], OptionsDefinition> extends infer TBS ?
+                '@options' extends keyof TBS ?
+                  Extract<T[B][S], OptionsDefinition>['@options'] extends infer ScopeOptions ?
+                    C extends keyof T[B][S] ?
+                      Extract<T[B][S][C], ClusterTypesOptions> extends infer CollectionOptions ?
+                        MergeOptions<[DefaultKeyspaceOptions, ClusterOptions, BucketOptions, ScopeOptions, CollectionOptions]> :
+                      never :
+                    never :
+                  never :
+                never :
               never :
             never :
           never :
