@@ -29,8 +29,8 @@ import {
   ExtractPathToWritableArrayIndex,
   ExtractPathToWritableProperty,
   If,
-  IsFuzzyDocument,
-  SubDocument,
+  IsFuzzyDocument, IsNever, Join,
+  SubDocument, SubDocumentFromPathSegments,
 } from '@cbjsdev/shared';
 
 import type { CompatibleMacro } from './mutateIn.types.js';
@@ -86,6 +86,34 @@ export type MutateInInsertOptions = { createPath?: boolean; xattr?: boolean };
 export type MutateInUpsertPath<Def extends DocDefBodyPathShape> =
   OperationPath<Def['Body'], ExtractPathToWritableProperty<Def['Body'], Def['Path']> | ''>
 ;
+
+// type AccessBody<T, Segments>
+
+// TODO use this bag
+type DocumentCompletionBag = {
+  insert: Array<{ segments: ReadonlyArray<string>, value: unknown }>
+  upsert: Array<{ segments: ReadonlyArray<string>, value: unknown }>
+}
+
+type EmptyBag = {
+  insert: [];
+  upsert: [];
+};
+
+// TODO build InsertPath, UpsertPath, etc... in a single run
+//  return an object that contains everything
+type WalkBody<T, Segments extends ReadonlyArray<string> = [], Bag extends DocumentCompletionBag = EmptyBag> =
+  T extends ReadonlyArray<unknown> ?
+    // TODO push to upsert, remove, arrayAppend, arrayPrepend, arrayInsert
+    ['pushArray'] :
+  T extends object ?
+    // TODO push to insert, upsert, replace, remove
+    ['pushObject'] :
+  never
+;
+
+type TWB = WalkBody<{ metadata?: { tags: string[] } }>;
+type TWBN1 = WalkBody<{ tags: string[] }, ['metadata']>;
 
 /**
  * Acceptable value for an `upsert` operation at a specific path.

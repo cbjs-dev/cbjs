@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SaveIdentity } from '../../couchbase/index.js';
 
 export type IsUnion<T> = [T] extends [UnionToIntersection<T>] ? false : true;
 
@@ -106,6 +107,21 @@ type LastInUnion<U> =
 export type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
   ? readonly []
   : readonly [...UnionToTuple<Exclude<U, Last>>, Last];
+
+// prettier-ignore
+export type UnionToTupleCheap<U, E extends ReadonlyArray<unknown> = []> =
+  SaveIdentity<U> extends [infer Union] ?
+    U extends unknown ?
+      IsNever<Exclude<Union, U | E[number]>> extends true ?
+        [U, ...E] :
+      UnionToTupleCheap<Exclude<Union, U | E[number]>, [...E, U]> :
+    never :
+  never
+;
+
+// export type MergeTuples<>
+
+type T = UnionToTupleCheap<'a' | 'b' | 'c' | 'd'>;
 
 /**
  * Extract the string up the delimiter.

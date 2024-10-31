@@ -15,12 +15,30 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { And, IsNever, Join, Split } from '../../../misc/index.js';
+import type {
+  And,
+  If,
+  IsExactly,
+  IsNever,
+  Join,
+  Split,
+  UnionToTuple,
+} from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
+import { LookupInMacroShape } from '../lookupInMacro.types.js';
+import { MutateInMacroShape } from '../mutateInMacro.types.js';
 import {
+  ArrayAppendElement,
+  ArrayIndexes,
+  ArrayInfo,
+  ArrayInfoShape,
+  ArrayLastElement,
+  ArrayLastIndex,
+  ArrayPrependElement,
   GuaranteedIndexes,
+  IsArrayLengthFixed,
   IsArrayLengthKnown,
-  ResolveNegativeIndex,
+  ResolveIndex,
   TupleIndexes,
 } from './array-utils.types.js';
 import type { OptionalKeys } from './misc-utils.types.js';
@@ -117,18 +135,117 @@ export type FriendlyPathToArrayIndex<Path> =
     never
 ;
 
+// There is no 'arrayAddUnique' because it's the same as 'arrayAppend'.
+type KvOperation =
+  | 'get' // LookupIn
+  | 'exists'
+  | 'count'
+  | 'upsert' // MutateIn
+  | 'replace'
+  | 'remove'
+  | 'arrayAppend'
+  | 'arrayPrepend'
+  | 'arrayInsert'
+  | 'increment'
+  | 'decrement';
+
+type CodeCompletionBagShape = [KvOperation, string, unknown][];
+type FuzzyBag = [
+  ['get', string | LookupInMacroShape, any], // TODO
+  ['exists', string | LookupInMacroShape], // TODO
+  ['count', string | LookupInMacroShape], // TODO
+  ['upsert', string | MutateInMacroShape, any], // TODO
+  ['replace', string | MutateInMacroShape, any], // TODO
+  ['remove', string | MutateInMacroShape],
+  ['arrayAppend', string | MutateInMacroShape, any],
+  ['arrayPrepend', string | MutateInMacroShape, any],
+  ['arrayInsert', string | MutateInMacroShape, any],
+  ['increment', string | MutateInMacroShape, any], // TODO
+  ['decrement', string | MutateInMacroShape, any], // TODO
+];
+
 /**
  * Union of all paths to all elements of the object. Distributive.
  *
  * Note: does not include the root path '' by design.
  */
 // prettier-ignore
-export type DocumentPath<T> =
+export type DocumentCodeCompletionBag<T> =
   T extends object ?
     IsFuzzyDocument<T> extends false ?
-      BuildPath<T, Extract<keyof T, AccessibleKey>> :
-    string :
+      BuildBag<T, Extract<keyof T, AccessibleKey>> :
+    FuzzyBag :
   never
+;
+
+/**
+ * Code completion for an array document.
+ */
+// prettier-ignore
+type ArrayCodeCompletion<Path extends string, Arr extends ReadonlyArray<unknown>> = [
+ ...ArrayAppendCodeCompletion<Path, Arr>,
+ ...ArrayPrependCodeCompletion<Path, Arr>,
+ ...ArrayInsertCodeCompletion<Path, Arr>,
+];
+
+// prettier-ignore
+export type ArrayAppendCodeCompletion<Path, Arr extends ReadonlyArray<unknown>> =
+  ArrayAppendElement<Arr> extends infer Element ?
+    IsNever<Element> extends true ?
+      [] :
+    [['arrayAppend', Path, Element]] :
+  never
+;
+
+// prettier-ignore
+export type ArrayPrependCodeCompletion<Path, Arr extends ReadonlyArray<unknown>> =
+  ArrayPrependElement<Arr> extends infer Element ?
+    IsNever<Element> extends true ?
+      [] :
+    [['arrayPrepend', Path, Element]] :
+  never
+;
+
+// prettier-ignore
+export type ArrayInsertCodeCompletion<Path extends string, Arr extends ReadonlyArray<unknown>> =
+  IsArrayLengthFixed<Arr> extends true ?
+    [] :
+  ArrayInfo<Arr> extends infer ArrInfo extends ArrayInfoShape ?
+    [
+      ...UnionToTuple<
+        ArrInfo['OptionalIndexes'] extends infer Index extends number ?
+          ['arrayInsert', `${Path}[${Index}]`, ArrInfo['RestElement']] :
+        never
+      >
+    ] :
+  never
+;
+
+// prettier-ignore
+export type RemoveCodeCompletion<Path extends string, T> =
+  T extends ReadonlyArray<unknown> ? // Array
+    IsArrayLengthFixed<T> extends true ?
+      [] :
+    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+      [
+        ...UnionToTuple<
+          Info['OptionalIndexes'] extends infer Index extends number ?
+            IsExactly<Info['RestElement'], Info['StaticSlice'][number]> extends true ?
+              ['remove', `${Path}[${Index}]`] :
+            (['remove', `${Path}[-1]`] | ['remove', `${Path}[${Index}]`]) :
+          never
+        >
+      ] :
+      never :
+  [ // Object
+    ...UnionToTuple<
+      OptionalKeys<T> extends infer Key ?
+        Key extends AccessibleKey ?
+          ['remove', `${Path}.${Key}`] :
+          never :
+        never
+    >
+  ]
 ;
 
 /**
@@ -136,9 +253,17 @@ export type DocumentPath<T> =
  * Distributed against `T` and `Key`.
  */
 // prettier-ignore
-type BuildPath<T extends object, Key> =
+type BuildBag<T extends object, Key> =
   Key extends unknown ?
-    PathAhead<T, Key, 1, Accessor<T, Key, 0>, Accessor<T, Key, 0>> :
+    T extends readonly unknown[] ?
+      TargetableArrayIndexes<T> extends infer Index extends number ?
+        PathAhead<T, Key, 1, `[${Index}]`, [
+          ['get', `[${Index}]`, T[Index]],
+          ['exists', `[${Index}]`, boolean],
+          ['count', '', never],
+        ]> :
+      PathAhead<T, Key, 1, ObjectAccessor<Key, 0>, []> :
+    never :
   never
 ;
 
@@ -151,18 +276,18 @@ type PathAhead<
   Key,
   Depth extends number,
   ParentPath extends string,
-  Acc
+  CodeCompletionBag extends CodeCompletionBagShape
 > =
   Depth extends 32 ?
-    ParentPath :
-  ResolveNegativeIndex<T, Key> extends infer Index extends keyof T & AccessibleKey ?
+    CodeCompletionBag :
+  ResolveIndex<T, Key> extends infer Index extends keyof T & AccessibleKey ?
     T[Index] extends infer Doc ?
       Doc extends unknown ?
         Doc extends readonly unknown[] ?
-          ArrayPath<Doc, Depth, ParentPath, Acc> :
+          ArrayPath<Doc, Depth, ParentPath, CodeCompletionBag> :
         Doc extends object ?
-          ObjectPath<Doc, Depth, ParentPath, Acc> :
-        Acc | ParentPath :
+          ObjectPath<Doc, Depth, ParentPath, CodeCompletionBag> :
+        CodeCompletionBag | ParentPath :
       never :
     never :
   never
@@ -312,7 +437,7 @@ export type MaybeMissing<T, K = never> =
  * Return <subdoc> | undefined if the subdoc may be undefined.
  */
 // prettier-ignore
-type SubDocumentMaybeUndefined<T, Segment extends keyof T, OrUndefined extends boolean> =
+export type SubDocumentMaybeUndefined<T, Segment extends keyof T, OrUndefined extends boolean> =
   OrUndefined extends true ?
     T[Segment] | undefined :
   MaybeMissing<T, Segment> extends true ?
@@ -344,7 +469,7 @@ export type SubDocumentFromPathSegments<
 
     // Array access
     Segment extends `[${infer Index extends number}]` ?
-      ResolveNegativeIndex<T, Index> extends infer ResolvedIndex extends keyof T ?
+      ResolveIndex<T, Index> extends infer ResolvedIndex extends keyof T ?
         RestSegments['length'] extends 0 ?
           SubDocumentMaybeUndefined<T, ResolvedIndex, And<[DeepUndefined, OrUndefined]>> :
         SubDocumentFromPathSegments<
@@ -469,9 +594,9 @@ export type PathToParentAccessor<T extends string> =
  * Return the property name or the array expression of the path.
  *
  * @example
- * PathTargetExpression<'path.to.property'> = 'property'
- * PathTargetExpression<'path.to.array'> = 'array'
- * PathTargetExpression<'path.to.array[1]'> = 'array[1]'
+ * PathTargetExpression<'path.to.property'> // 'property'
+ * PathTargetExpression<'path.to.array'> // 'array'
+ * PathTargetExpression<'path.to.array[1]'> // 'array[1]'
  */
 export type PathTargetExpression<T extends string> =
   Split<T, '.', '`'> extends [...string[], infer Tail] ? Tail : never;

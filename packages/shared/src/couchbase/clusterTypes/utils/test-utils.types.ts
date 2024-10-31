@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Extends, If, IsExactly } from '../../../misc/index.js';
-import { ResolveNegativeIndex } from './array-utils.types.js';
+import { ResolveIndex } from './array-utils.types.js';
 import { TargetableArrayIndexes } from './path-utils.types.js';
 
 /**
@@ -95,7 +95,7 @@ export type MakeTestPaths<
 > = K extends AccessibleKey
   ? `${Accessor<T, K, IsRoot>}${
       | ''
-      | (ResolveNegativeIndex<T, K> extends infer Index extends keyof T
+      | (ResolveIndex<T, K> extends infer Index extends keyof T
           ? T[Index] extends infer Doc
             ? Doc extends readonly unknown[]
               ? TargetableArrayIndexes<Doc> extends infer Index extends number

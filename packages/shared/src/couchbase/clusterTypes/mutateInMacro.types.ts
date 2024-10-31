@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StringHex } from './utils/index.js';
 
-import { StringHex } from '@cbjsdev/shared';
+export type MutateInMacroShape<
+  Value extends keyof MutateInMacroReturnType = keyof MutateInMacroReturnType,
+> = {
+  _value: Value;
+};
 
 /**
  * An object type with the macro string as key and the return type as parameter.
  */
 export type MutateInMacroReturnType = {
-  '${Mutation.CAS}': StringHex,
+  '${Mutation.CAS}': StringHex;
   '${Mutation.seqno}': StringHex;
   '${Mutation.value_crc32c}': StringHex;
-}
+};

@@ -19,20 +19,20 @@ import {
   ArrayAppendElement,
   ArrayEntries,
   ArrayIndexes,
+  ArrayInfo,
   ArrayLastIndex,
-  ArrayMinLength,
   ArrayPrependElement,
-  GetArrayInfo,
   GuaranteedIndexes,
   IsIndexRemovalStrictlyForbidden,
-  ResolveNegativeIndex,
+  ResolveIndex,
   TupleFilter,
   TupleIndexes,
 } from './array-utils.types.js';
 
 describe('ArrayIndexes', function () {
   it('should return all the keys of a tuple', function () {
-    expectTypeOf<ArrayIndexes<[string, number]>>().toEqualTypeOf<0 | 1>();
+    type Test = ArrayIndexes<[string, number]>;
+    expectTypeOf<Test>().toEqualTypeOf<0 | 1>();
   });
 
   it('should return `number` for a variable-length array', function () {
@@ -88,7 +88,7 @@ describe('ArrayEntries', function () {
   });
 });
 
-describe('ArrayFilter', function () {
+describe('TupleFilter', function () {
   it('should retain tuple entries to which you can assign the given type', function () {
     expectTypeOf<TupleFilter<[string, number], number>>().toEqualTypeOf<[number]>();
     expectTypeOf<TupleFilter<[number, number], number>>().toEqualTypeOf<
@@ -120,11 +120,9 @@ describe('ArrayFilter', function () {
 
 describe('ResolveNegativeIndex', function () {
   it('should resolve the last element of a tuple', function () {
-    expectTypeOf<ResolveNegativeIndex<[string], -1>>().toEqualTypeOf<0>();
-    expectTypeOf<ResolveNegativeIndex<[string, number], -1>>().toEqualTypeOf<1>();
-    expectTypeOf<
-      ResolveNegativeIndex<readonly [string, number], -1>
-    >().toEqualTypeOf<1>();
+    expectTypeOf<ResolveIndex<[string], -1>>().toEqualTypeOf<0>();
+    expectTypeOf<ResolveIndex<[string, number], -1>>().toEqualTypeOf<1>();
+    expectTypeOf<ResolveIndex<readonly [string, number], -1>>().toEqualTypeOf<1>();
   });
 });
 
@@ -134,6 +132,7 @@ describe('ArrayLastIndex', function () {
     expectTypeOf<ArrayLastIndex<[string]>>().toEqualTypeOf<0>();
     expectTypeOf<ArrayLastIndex<[string, string]>>().toEqualTypeOf<1>();
     expectTypeOf<ArrayLastIndex<[string, number]>>().toEqualTypeOf<1>();
+    expectTypeOf<ArrayLastIndex<[string, number?]>>().toEqualTypeOf<1>();
     expectTypeOf<ArrayLastIndex<[...string[], string]>>().toEqualTypeOf<number>();
     expectTypeOf<ArrayLastIndex<[string, ...string[]]>>().toEqualTypeOf<number>();
     expectTypeOf<ArrayLastIndex<[string, ...number[]]>>().toEqualTypeOf<number>();
@@ -192,94 +191,117 @@ describe('ArrayAppendElement', function () {
   });
 });
 
-describe('GetArrayInfo', function () {
+describe('ArrayInfo', function () {
   it('should return information about the static portion of the array', function () {
-    expectTypeOf<GetArrayInfo<[string, string]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<[string, string]>>().toEqualTypeOf<{
       IsHeadStatic: true;
       IsTailStatic: true;
       IsFullyStatic: true;
       RestElement: never;
       StaticSlice: readonly [string, string];
+      MinLength: 2;
+      MaxLength: 2;
+      LastIndex: 1;
+      OptionalIndexes: never;
     }>();
 
-    expectTypeOf<GetArrayInfo<[...string[], number, object]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<[...string[], number, object]>>().toEqualTypeOf<{
       IsHeadStatic: false;
       IsTailStatic: true;
       IsFullyStatic: false;
       RestElement: string;
       StaticSlice: readonly [number, object];
+      MinLength: 2;
+      MaxLength: number;
+      LastIndex: number;
+      OptionalIndexes: number;
     }>();
 
-    expectTypeOf<GetArrayInfo<[string, number, ...object[]]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<[string, number, ...object[]]>>().toEqualTypeOf<{
       IsHeadStatic: true;
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: object;
       StaticSlice: readonly [string, number];
+      MinLength: 2;
+      MaxLength: number;
+      LastIndex: number;
+      OptionalIndexes: number;
     }>();
 
-    expectTypeOf<GetArrayInfo<string[]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<[string, number?, number?]>>().toEqualTypeOf<{
+      IsHeadStatic: true;
+      IsTailStatic: false;
+      IsFullyStatic: false;
+      RestElement: number;
+      StaticSlice: readonly [string];
+      MinLength: 1;
+      MaxLength: 3;
+      LastIndex: 2;
+      OptionalIndexes: 1 | 2;
+    }>();
+
+    expectTypeOf<ArrayInfo<string[]>>().toEqualTypeOf<{
       IsHeadStatic: false;
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: string;
       StaticSlice: readonly [];
+      MinLength: 0;
+      MaxLength: number;
+      LastIndex: number;
+      OptionalIndexes: number;
     }>();
 
     // RO input
 
-    expectTypeOf<GetArrayInfo<readonly [string, string]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<readonly [string, string]>>().toEqualTypeOf<{
       IsHeadStatic: true;
       IsTailStatic: true;
       IsFullyStatic: true;
       RestElement: never;
       StaticSlice: readonly [string, string];
+      MinLength: 2;
+      MaxLength: 2;
+      LastIndex: 1;
+      OptionalIndexes: never;
     }>();
 
-    expectTypeOf<GetArrayInfo<readonly [...string[], number, object]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<readonly [...string[], number, object]>>().toEqualTypeOf<{
       IsHeadStatic: false;
       IsTailStatic: true;
       IsFullyStatic: false;
       RestElement: string;
       StaticSlice: readonly [number, object];
+      MinLength: 2;
+      MaxLength: number;
+      LastIndex: number;
+      OptionalIndexes: number;
     }>();
 
-    expectTypeOf<GetArrayInfo<readonly [string, number, ...object[]]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<readonly [string, number, ...object[]]>>().toEqualTypeOf<{
       IsHeadStatic: true;
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: object;
       StaticSlice: readonly [string, number];
+      MinLength: 2;
+      MaxLength: number;
+      LastIndex: number;
+      OptionalIndexes: number;
     }>();
 
-    expectTypeOf<GetArrayInfo<readonly string[]>>().toEqualTypeOf<{
+    expectTypeOf<ArrayInfo<readonly string[]>>().toEqualTypeOf<{
       IsHeadStatic: false;
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: string;
       StaticSlice: readonly [];
+      MinLength: 0;
+      MaxLength: number;
+      LastIndex: number;
+      OptionalIndexes: number;
     }>();
-  });
-});
-
-describe('ArrayMinLength', function () {
-  it('should return the minimum length of the array', function () {
-    expectTypeOf<ArrayMinLength<[string]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<[...string[], string]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<[...number[], string]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<[string, ...string[]]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<[string, object, ...number[]]>>().toEqualTypeOf<2>();
-    expectTypeOf<ArrayMinLength<string[]>>().toEqualTypeOf<0>();
-
-    expectTypeOf<ArrayMinLength<readonly [string]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<readonly [...string[], string]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<readonly [...number[], string]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<readonly [string, ...string[]]>>().toEqualTypeOf<1>();
-    expectTypeOf<ArrayMinLength<readonly [string, ...number[]]>>().toEqualTypeOf<1>();
-    expectTypeOf<
-      ArrayMinLength<readonly [string, object, ...number[]]>
-    >().toEqualTypeOf<2>();
-    expectTypeOf<ArrayMinLength<readonly string[]>>().toEqualTypeOf<0>();
   });
 });
 

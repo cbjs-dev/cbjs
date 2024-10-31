@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, it } from 'vitest';
+import { describe, expectTypeOf, it, test } from 'vitest';
 
 import { LookupInMacroShape } from '../lookupInMacro.types.js';
 import {
+  ArrayIndexes,
+  ArrayInfo,
+  IsArrayLengthFixed,
+  IsArrayLengthKnown,
+  TupleIndexes,
+} from './array-utils.types.js';
+import {
+  ArrayAppendCodeCompletion,
+  ArrayInsertCodeCompletion,
+  ArrayPrependCodeCompletion,
   DocumentPath,
   FriendlyPathToArrayIndex,
   MaybeMissing,
@@ -26,6 +36,7 @@ import {
   PathToParentAccessor,
   PathToParentProperty,
   PathToParentPropertyOrSelf,
+  RemoveCodeCompletion,
   SplitSegmentIntoAccessors,
   SubDocument,
   TargetableArrayIndexes,
@@ -450,5 +461,198 @@ describe('FriendlyPathToArrayIndex', () => {
       | 'metadata.tags[]'
       | LookupInMacroShape
     >();
+  });
+});
+
+describe('ArrayAppendCodeCompletion', () => {
+  test('array', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', string]]>();
+  });
+
+  test('readonly array', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', [string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', [...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', string]]>();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', number]]>();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', [number, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', number]]>();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = ArrayAppendCodeCompletion<'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', number]]>();
+  });
+});
+
+describe('ArrayPrependCodeCompletion', () => {
+  test('array', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', string]]>();
+  });
+
+  test('readonly array', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', [string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', number]]>();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', [...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', string]]>();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', [string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', string]]>();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = ArrayPrependCodeCompletion<'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+});
+
+describe('ArrayInsertCodeCompletion', () => {
+  test('array', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, string]]>();
+  });
+
+  test('readonly array', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', [string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, number]]>();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', [...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, string]]>();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, number]]>();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', [string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, string]]>();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = ArrayInsertCodeCompletion<'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', 'arr[1]', number]]>();
+  });
+});
+
+describe('RemoveCodeCompletion', () => {
+  test('array', () => {
+    type Test = RemoveCodeCompletion<'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+  });
+
+  test('readonly array', () => {
+    type Test = RemoveCodeCompletion<'arr', readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple', () => {
+    type Test = RemoveCodeCompletion<'arr', [string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = RemoveCodeCompletion<'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = RemoveCodeCompletion<'arr', [...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = RemoveCodeCompletion<'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = RemoveCodeCompletion<'arr', [string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = RemoveCodeCompletion<'arr', [string, number?]>;
+    expectTypeOf<Test[number]>().toEqualTypeOf<
+      ['remove', 'arr[-1]'] | ['remove', 'arr[1]']
+    >();
+  });
+
+  test('object with no optional property', () => {
+    type Test = RemoveCodeCompletion<'obj', { title: string }>;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
+  });
+
+  test('object with some optional properties', () => {
+    type Test = RemoveCodeCompletion<
+      'obj',
+      { title: string; description?: string; metadata?: { tags: string[] } }
+    >;
+    expectTypeOf<Test[number]>().toEqualTypeOf<
+      ['remove', 'obj.description'] | ['remove', 'obj.metadata']
+    >();
+  });
+
+  test('object with some properties that can be undefined', () => {
+    type Test = RemoveCodeCompletion<
+      'obj',
+      { title: string; description: string | undefined }
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<[]>();
   });
 });

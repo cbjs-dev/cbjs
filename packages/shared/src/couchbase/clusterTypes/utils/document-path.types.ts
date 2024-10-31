@@ -16,13 +16,13 @@
 import { If, IsExactly, IsNever } from '../../../misc/index.js';
 import { IsFuzzyDocument } from '../document.types.js';
 import {
+  ArrayInfo,
   ArrayInfoShape,
   ExtractAppendableArray,
   ExtractPrependableArray,
-  GetArrayInfo,
   IsArrayLengthFixed,
   IsIndexRemovalStrictlyForbidden,
-  ResolveNegativeIndex,
+  ResolveIndex,
   TupleFilter,
   TupleIndexes,
 } from './array-utils.types.js';
@@ -135,13 +135,12 @@ export type ExtractPathToWritableProperty<
   DocumentPath extends string,
 > =
   Document extends unknown ?
-    DocumentPath extends unknown ?
-      PathToClosestProperty<DocumentPath> extends infer PathToProperty extends string ?
-        ExtractPathToWritable<Document, PathToProperty> extends infer PathToWritableProperty extends string ?
-          PathToWritableProperty :
-        never :
+    DocumentPath extends `${string}[${string}]` ?
       never :
-    never :
+    DocumentPath :
+    // ExtractPathToWritable<Document, DocumentPath> extends infer PathToWritableProperty extends string ?
+    //   PathToWritableProperty :
+    // never :
   never
 ;
 
@@ -182,11 +181,11 @@ export type ExtractPathToWritableArrayIndex<
               IsNever<FilterType> extends true ?
                 PathToWritableIndex :
               PathToWritableIndex extends `${infer PathToArray extends PathToParentAccessor<PathToWritableIndex>}[${infer Index extends number}]` ?
-                GetArrayInfo<SubDocArray> extends infer Info extends ArrayInfoShape ?
+                ArrayInfo<SubDocArray> extends infer Info extends ArrayInfoShape ?
                   FilterType extends Info['RestElement'] ?
                     PathToWritableIndex :
                     Info['IsFullyStatic'] extends true ?
-                      FilterType extends SubDocArray[ResolveNegativeIndex<SubDocArray, Index>] ?
+                      FilterType extends SubDocArray[ResolveIndex<SubDocArray, Index>] ?
                         PathToWritableIndex :
                       never :
                     Info['IsHeadStatic'] extends true ?
@@ -200,7 +199,7 @@ export type ExtractPathToWritableArrayIndex<
                         never :
                       2 extends Partial<TupleFilter<Info['StaticSlice'], FilterType>>['length'] ?
                         `${PathToArray}[${number}]` :
-                      FilterType extends Info['StaticSlice'][ResolveNegativeIndex<Info['StaticSlice'], -1>] ?
+                      FilterType extends Info['StaticSlice'][ResolveIndex<Info['StaticSlice'], -1>] ?
                         `${PathToArray}[-1]` :
                       1 extends Partial<TupleFilter<Info['StaticSlice'], FilterType>>['length'] ?
                         `${PathToArray}[${number}]` :

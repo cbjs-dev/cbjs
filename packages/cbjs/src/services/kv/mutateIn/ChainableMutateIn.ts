@@ -68,10 +68,13 @@ type ArrayAddUniqueSpecs<Values extends ReadonlyArray<unknown>> =
 ;
 
 export class ChainableMutateIn<
-  C extends AnyCollection,
-  Key extends ExtractCollectionJsonDocKey<C>,
-  SpecResults extends ReadonlyArray<undefined | number>,
-  Def extends ExtractCollectionJsonDocDef<C, Key> = ExtractCollectionJsonDocDef<C, Key>,
+  out C extends AnyCollection,
+  out Key extends ExtractCollectionJsonDocKey<C>,
+  in out SpecResults extends ReadonlyArray<undefined | number>,
+  in out Def extends ExtractCollectionJsonDocDef<C, Key> = ExtractCollectionJsonDocDef<
+    C,
+    Key
+  >,
 > implements Promise<MutateInResult<SpecResults>>
 {
   // Promise stuff
