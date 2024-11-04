@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ArrayElement, ArrayMap } from '../../couchbase/index.js';
+import type { ArrayElement, ArrayMap } from '../../couchbase/index.js';
 import { hasOwn } from './hasOwn.js';
 
 export function arrayMap<

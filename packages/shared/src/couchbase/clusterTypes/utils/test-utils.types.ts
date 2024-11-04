@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { Extends, If, IsExactly } from '../../../misc/index.js';
-import { ResolveIndex } from './array-utils.types.js';
-import { TargetableArrayIndexes } from './path-utils.types.js';
+import { IsArrayLengthKnown, ResolveIndex, TupleIndexes } from './array-utils.types.js';
 
 /**
  * THIS IS FOR TESTS PURPOSES ONLY.
@@ -82,6 +81,19 @@ export type BuildReadonlyArrayProperties<T extends object> = {
     ? Readonly<Value>
     : T[Key];
 };
+
+/**
+ * Extract all the possible keys of an array.
+ */
+// prettier-ignore
+type TargetableArrayIndexes<T extends ReadonlyArray<unknown>> =
+  IsArrayLengthKnown<T> extends false ?
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    -1 | (number & unknown) :
+  0 extends TupleIndexes<T> ?
+    -1 | TupleIndexes<T> :
+  never
+;
 
 /**
  * Union of all paths to all elements of the object.

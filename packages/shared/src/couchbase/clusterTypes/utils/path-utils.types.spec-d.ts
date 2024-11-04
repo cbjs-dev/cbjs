@@ -15,644 +15,561 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import { LookupInMacroShape } from '../lookupInMacro.types.js';
-import {
-  ArrayIndexes,
-  ArrayInfo,
-  IsArrayLengthFixed,
-  IsArrayLengthKnown,
-  TupleIndexes,
-} from './array-utils.types.js';
-import {
+import type { OmitNeverValues } from './misc-utils.types.js';
+import type {
   ArrayAppendCodeCompletion,
   ArrayInsertCodeCompletion,
   ArrayPrependCodeCompletion,
-  DocumentPath,
+  CountCodeCompletion,
+  DocumentCodeCompletion,
   FriendlyPathToArrayIndex,
-  MaybeMissing,
-  PathTargetExpression,
-  PathToClosestObject,
-  PathToClosestProperty,
-  PathToParentAccessor,
-  PathToParentProperty,
-  PathToParentPropertyOrSelf,
+  GetCodeCompletion,
+  KvOperation,
   RemoveCodeCompletion,
-  SplitSegmentIntoAccessors,
-  SubDocument,
-  TargetableArrayIndexes,
+  ReplaceCodeCompletion,
+  UnionToTree,
 } from './path-utils.types.js';
-
-describe('DocumentPath', function () {
-  type Doc = {
-    rootProperty: number;
-    obj: {
-      requiredString: string;
-      requiredFixedLengthArray: [string, string];
-      requiredArrayOfObjects: Array<{ aop: string }>;
-      requiredFixedLengthArrayOfObjects: [{ aop1: string }, { aop2: number }];
-      mixed: { prop: string } | string[];
-      optionalArray?: string[];
-    };
-  };
-
-  it('should return a union of all the path to access all elements of the object', function () {
-    expectTypeOf<DocumentPath<Doc>>().toEqualTypeOf<
-      | 'rootProperty'
-      | 'obj'
-      | 'obj.requiredString'
-      | 'obj.requiredFixedLengthArray'
-      | 'obj.requiredFixedLengthArray[0]'
-      | 'obj.requiredFixedLengthArray[1]'
-      | 'obj.requiredFixedLengthArray[-1]'
-      | 'obj.requiredArrayOfObjects'
-      | `obj.requiredArrayOfObjects[${number}]`
-      | `obj.requiredArrayOfObjects[${number}].aop`
-      | `obj.optionalArray`
-      | `obj.optionalArray[${number}]`
-      | `obj.requiredFixedLengthArrayOfObjects`
-      | `obj.requiredFixedLengthArrayOfObjects[0]`
-      | `obj.requiredFixedLengthArrayOfObjects[1]`
-      | `obj.requiredFixedLengthArrayOfObjects[0].aop1`
-      | `obj.requiredFixedLengthArrayOfObjects[1].aop2`
-      | `obj.requiredFixedLengthArrayOfObjects[-1]`
-      | `obj.requiredFixedLengthArrayOfObjects[-1].aop2`
-      | `obj.mixed`
-      | `obj.mixed[${number}]`
-      | `obj.mixed.prop`
-    >();
-  });
-
-  it('should return index accessors for an array document', function () {
-    expectTypeOf<DocumentPath<string[]>>().toEqualTypeOf<`[${number}]`>();
-  });
-
-  it('should return never if the input type is not an object', function () {
-    expectTypeOf<DocumentPath<'stringDoc'>>().toBeNever();
-    expectTypeOf<DocumentPath<42>>().toBeNever();
-  });
-
-  it('should return `string` if the input type is `any` or `object`', function () {
-    expectTypeOf<DocumentPath<any>>().toEqualTypeOf<string>();
-    expectTypeOf<DocumentPath<object>>().toEqualTypeOf<string>();
-  });
-});
-
-describe('SubDocument', function () {
-  type Doc = {
-    rootProperty: number;
-    obj: {
-      requiredString: string;
-      requiredFixedLengthArray: [string, number];
-      requiredArrayOfObjects: Array<{ aop: string }>;
-      requiredFixedLengthArrayOfObjects: [{ aop1: string }, { aop2: number }];
-      mixed: { prop: string } | string[];
-      optionalArray?: string[];
-      nestedArray: string[][];
-    };
-  };
-
-  it('should return the type at the path', function () {
-    expectTypeOf<SubDocument<Doc, ''>>().toEqualTypeOf<Doc>();
-    expectTypeOf<SubDocument<Doc, 'rootProperty'>>().toEqualTypeOf<number>();
-    expectTypeOf<SubDocument<Doc, 'obj'>>().toEqualTypeOf<Doc['obj']>();
-    expectTypeOf<SubDocument<Doc, 'obj.requiredString'>>().toEqualTypeOf<string>();
-    expectTypeOf<SubDocument<Doc, 'obj.requiredFixedLengthArray'>>().toEqualTypeOf<
-      [string, number]
-    >();
-    expectTypeOf<
-      SubDocument<Doc, 'obj.requiredFixedLengthArray[0]'>
-    >().toEqualTypeOf<string>();
-    expectTypeOf<
-      SubDocument<Doc, 'obj.requiredFixedLengthArray[1]'>
-    >().toEqualTypeOf<number>();
-    expectTypeOf<SubDocument<Doc, 'obj.requiredArrayOfObjects'>>().toEqualTypeOf<
-      Array<{ aop: string }>
-    >();
-
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredArrayOfObjects[${number}]`>
-    >().toEqualTypeOf<{ aop: string } | undefined>();
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredArrayOfObjects[${number}].aop`>
-    >().toEqualTypeOf<string | undefined>();
-    expectTypeOf<SubDocument<Doc, `obj.optionalArray`>>().toEqualTypeOf<
-      string[] | undefined
-    >();
-    expectTypeOf<SubDocument<Doc, `obj.optionalArray[${number}]`>>().toEqualTypeOf<
-      string | undefined
-    >();
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredFixedLengthArrayOfObjects`>
-    >().toEqualTypeOf<[{ aop1: string }, { aop2: number }]>();
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredFixedLengthArrayOfObjects[0]`>
-    >().toEqualTypeOf<{ aop1: string }>();
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredFixedLengthArrayOfObjects[1]`>
-    >().toEqualTypeOf<{ aop2: number }>();
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredFixedLengthArrayOfObjects[0].aop1`>
-    >().toEqualTypeOf<string>();
-    expectTypeOf<
-      SubDocument<Doc, `obj.requiredFixedLengthArrayOfObjects[1].aop2`>
-    >().toEqualTypeOf<number>();
-    expectTypeOf<SubDocument<Doc, `obj.mixed`>>().toEqualTypeOf<
-      { prop: string } | string[]
-    >();
-    expectTypeOf<SubDocument<Doc, `obj.mixed[${number}]`>>().toEqualTypeOf<
-      string | undefined
-    >();
-
-    type T = SubDocument<Doc, `obj.mixed.prop`>;
-    //   ^?
-    expectTypeOf<SubDocument<Doc, `obj.mixed.prop`>>().toEqualTypeOf<string>();
-    expectTypeOf<SubDocument<Doc, `obj.nestedArray`>>().toEqualTypeOf<string[][]>();
-    expectTypeOf<SubDocument<Doc, `obj.nestedArray[0]`>>().toEqualTypeOf<
-      string[] | undefined
-    >();
-    expectTypeOf<SubDocument<Doc, `obj.nestedArray[0][0]`>>().toEqualTypeOf<
-      string | undefined
-    >();
-  });
-
-  it('should return the array indexes for an array document', function () {
-    expectTypeOf<SubDocument<string[], ''>>().toEqualTypeOf<string[]>();
-    expectTypeOf<SubDocument<string[], '[0]'>>().toEqualTypeOf<string | undefined>();
-    expectTypeOf<SubDocument<string[], `[${number}]`>>().toEqualTypeOf<
-      string | undefined
-    >();
-
-    expectTypeOf<SubDocument<[string], ''>>().toEqualTypeOf<[string]>();
-    expectTypeOf<SubDocument<[string], '[0]'>>().toEqualTypeOf<string>();
-  });
-
-  it('should not include undefined if DeepUndefined is false', () => {
-    type TestDoc = {
-      metadata?: { tags: string[] };
-    };
-
-    expectTypeOf<SubDocument<TestDoc, 'metadata.tags', false>>().toEqualTypeOf<
-      string[]
-    >();
-  });
-});
-
-describe('MaybeMissing', function () {
-  it('should return `true` if `T` is a union that includes `undefined`', function () {
-    expectTypeOf<MaybeMissing<string>>().toEqualTypeOf<false>();
-    expectTypeOf<MaybeMissing<string | undefined>>().toEqualTypeOf<true>();
-  });
-
-  it('should return `true` for all keys of a tuple', function () {
-    expectTypeOf<MaybeMissing<[string], 0>>().toEqualTypeOf<false>();
-    expectTypeOf<MaybeMissing<[string, number], 1>>().toEqualTypeOf<false>();
-    expectTypeOf<MaybeMissing<[string, number], 2>>().toEqualTypeOf<true>();
-    expectTypeOf<MaybeMissing<[string, number], -1>>().toEqualTypeOf<true>();
-  });
-
-  it('should return `true` for all the keys of the static part of an array', function () {
-    expectTypeOf<MaybeMissing<[string, ...string[]], 0>>().toEqualTypeOf<false>();
-    expectTypeOf<MaybeMissing<[string, string, ...string[]], 1>>().toEqualTypeOf<false>();
-    expectTypeOf<MaybeMissing<[...string[], string], 0>>().toEqualTypeOf<false>();
-    expectTypeOf<MaybeMissing<[...string[], string, string], 1>>().toEqualTypeOf<false>();
-
-    expectTypeOf<MaybeMissing<[string, ...string[]], 1>>().toEqualTypeOf<true>();
-    expectTypeOf<MaybeMissing<[...string[], string], 1>>().toEqualTypeOf<true>();
-  });
-
-  it('should return true/false regardless of the subdocument type', function () {
-    expectTypeOf<MaybeMissing<[string | undefined], 0>>().toEqualTypeOf<false>();
-  });
-});
-
-describe('PathToClosestProperty', function () {
-  it('should return the path to the closest property', function () {
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array'>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array[-1]'>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array[0]'>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array[+1]'>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToClosestProperty<`path.to.array[${number}]`>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToClosestProperty<`path.to.array[${number}].prop`>
-    >().toEqualTypeOf<`path.to.array[${number}].prop`>();
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array[42].prop'>
-    >().toEqualTypeOf<'path.to.array[42].prop'>();
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array[42].prop[1]'>
-    >().toEqualTypeOf<'path.to.array[42].prop'>();
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array[42].prop[13][37]'>
-    >().toEqualTypeOf<'path.to.array[42].prop'>();
-    expectTypeOf<PathToClosestProperty<`array[${number}]`>>().toEqualTypeOf<'array'>();
-    expectTypeOf<
-      PathToClosestProperty<`array[${number}].prop`>
-    >().toEqualTypeOf<`array[${number}].prop`>();
-    expectTypeOf<PathToClosestProperty<`array[0][${number}]`>>().toEqualTypeOf<'array'>();
-    expectTypeOf<PathToClosestProperty<'prop'>>().toEqualTypeOf<'prop'>();
-
-    expectTypeOf<
-      PathToClosestProperty<'path.to.array' | 'path.to.array[0].prop'>
-    >().toEqualTypeOf<'path.to.array' | 'path.to.array[0].prop'>();
-  });
-});
-
-describe('PathToClosestObjectProperty', () => {
-  // prettier-ignore
-  type Doc = {
-    title: string;
-    membership: Record<string, {
-      offers: Record<string, {
-        joinedAt: number;
-        leftAt?: number;
-      }>
-    }>;
-    persons?: Array<{
-      name: string;
-      surname?: string;
-    }>
-  };
-
-  // prettier-ignore
-  type DocOptionalRecordProperty = {
-    title: string;
-    membership: Record<string, {
-      offers?: Record<string, {
-        joinedAt: number;
-        leftAt?: number;
-      }>,
-      credits: string;
-    }>
-  };
-
-  expectTypeOf<PathToClosestObject<Doc, 'missing'>>().toBeNever();
-
-  // `offer` is required
-  expectTypeOf<PathToClosestObject<Doc, 'membership'>>().toEqualTypeOf<'membership'>();
-  expectTypeOf<
-    PathToClosestObject<Doc, 'membership.USER_ID'>
-  >().toEqualTypeOf<'membership.USER_ID'>();
-  expectTypeOf<
-    PathToClosestObject<Doc, 'membership.USER_ID.offers'>
-  >().toEqualTypeOf<'membership.USER_ID.offers'>();
-  expectTypeOf<
-    PathToClosestObject<Doc, 'membership.USER_ID.offers.OFFER_ID'>
-  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
-  expectTypeOf<
-    PathToClosestObject<Doc, 'membership.USER_ID.offers.OFFER_ID.joinedAt'>
-  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
-
-  expectTypeOf<
-    PathToClosestObject<Doc, 'persons[0].surname'>
-  >().toEqualTypeOf<'persons[0]'>();
-
-  // `offer` is optional
-  expectTypeOf<
-    PathToClosestObject<DocOptionalRecordProperty, 'membership'>
-  >().toEqualTypeOf<'membership'>();
-  expectTypeOf<
-    PathToClosestObject<DocOptionalRecordProperty, 'membership.USER_ID'>
-  >().toEqualTypeOf<'membership.USER_ID'>();
-  expectTypeOf<
-    PathToClosestObject<DocOptionalRecordProperty, 'membership.USER_ID.offers'>
-  >().toEqualTypeOf<'membership.USER_ID.offers'>();
-  expectTypeOf<
-    PathToClosestObject<DocOptionalRecordProperty, 'membership.USER_ID.offers.OFFER_ID'>
-  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
-  expectTypeOf<
-    PathToClosestObject<
-      DocOptionalRecordProperty,
-      'membership.USER_ID.offers.OFFER_ID.joinedAt'
-    >
-  >().toEqualTypeOf<'membership.USER_ID.offers.OFFER_ID'>();
-});
-
-describe('PathToParentProperty', function () {
-  it('should extract the path to the closest parent property', function () {
-    expectTypeOf<PathToParentProperty<'path'>>().toBeNever();
-    expectTypeOf<PathToParentProperty<'path.to.array'>>().toEqualTypeOf<'path.to'>();
-    expectTypeOf<PathToParentProperty<'path.to.array[-1]'>>().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentProperty<`path.to.array[${number}]`>
-    >().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentProperty<`path.to.array[0].prop[0].prop[1]`>
-    >().toEqualTypeOf<'path.to.array[0].prop'>();
-    expectTypeOf<
-      PathToParentProperty<`path.to.array[42][${number}]`>
-    >().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentProperty<'path.to.array[42].prop'>
-    >().toEqualTypeOf<'path.to.array'>();
-  });
-});
-
-describe('PathToParentPropertyOrSelf', function () {
-  it('should extract the path to the closest parent property or the same path if no parent exists', function () {
-    expectTypeOf<PathToParentPropertyOrSelf<'path'>>().toEqualTypeOf<'path'>();
-    expectTypeOf<
-      PathToParentPropertyOrSelf<'path.to.array'>
-    >().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentPropertyOrSelf<'path.to.array[-1]'>
-    >().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentPropertyOrSelf<`path.to.array[${number}]`>
-    >().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentPropertyOrSelf<'path.to.array[42].prop'>
-    >().toEqualTypeOf<'path.to.array'>();
-  });
-});
-
-describe('PathToParentAccessor', function () {
-  it('should extract the path to the closest parent property', function () {
-    expectTypeOf<PathToParentAccessor<'path'>>().toBeNever();
-    expectTypeOf<PathToParentAccessor<'path.to.array'>>().toEqualTypeOf<'path.to'>();
-    expectTypeOf<
-      PathToParentAccessor<'path.to.array[-1]'>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToParentAccessor<`path.to.array[${number}]`>
-    >().toEqualTypeOf<'path.to.array'>();
-    expectTypeOf<
-      PathToParentAccessor<`path.to.array[0].prop[0].prop[1]`>
-    >().toEqualTypeOf<'path.to.array[0].prop[0].prop'>();
-    expectTypeOf<
-      PathToParentAccessor<`path.to.array[42][${number}]`>
-    >().toEqualTypeOf<'path.to.array[42]'>();
-    expectTypeOf<
-      PathToParentAccessor<'path.to.array[42].prop'>
-    >().toEqualTypeOf<'path.to.array[42]'>();
-  });
-});
-
-describe('PathTargetExpression', function () {
-  it('should return the expression of the targeted property', function () {
-    expectTypeOf<PathTargetExpression<'path'>>().toEqualTypeOf<'path'>();
-    expectTypeOf<PathTargetExpression<'path.to.array'>>().toEqualTypeOf<'array'>();
-    expectTypeOf<
-      PathTargetExpression<'path.to.array[-1]'>
-    >().toEqualTypeOf<'array[-1]'>();
-    expectTypeOf<
-      PathTargetExpression<`path.to.array[${number}]`>
-    >().toEqualTypeOf<`array[${number}]`>();
-    expectTypeOf<
-      PathTargetExpression<`path.to.array[${number}][1]`>
-    >().toEqualTypeOf<`array[${number}][1]`>();
-    expectTypeOf<PathTargetExpression<'path.to.array[0].prop'>>().toEqualTypeOf<'prop'>();
-    expectTypeOf<
-      PathTargetExpression<'path.to.array[0][1].prop'>
-    >().toEqualTypeOf<'prop'>();
-  });
-});
-
-describe('TargetableArrayIndexes', function () {
-  it('should return a union of the keys of a fixed-length array and -1', function () {
-    expectTypeOf<TargetableArrayIndexes<[string, number]>>().toEqualTypeOf<0 | 1 | -1>();
-  });
-
-  it('should return a union of `number` and -1 for a variable-length array', function () {
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    expectTypeOf<TargetableArrayIndexes<string[]>>().toEqualTypeOf<number | -1>();
-    expectTypeOf<TargetableArrayIndexes<Array<{ foo: string }>>>().toEqualTypeOf<
-      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-      number | -1
-    >();
-  });
-});
-
-describe('SplitSegmentIntoAccessors', () => {
-  it('should turn an object key into a tuple of that key', () => {
-    expectTypeOf<SplitSegmentIntoAccessors<'foo'>>().toEqualTypeOf<['foo']>();
-  });
-
-  it('should turn an index access into a tuple with the object key and the index accessor', () => {
-    expectTypeOf<SplitSegmentIntoAccessors<'arr[0]'>>().toEqualTypeOf<['arr', '[0]']>();
-  });
-
-  it('should turn multiple index accesses into a tuple with the object key and the index accessors', () => {
-    expectTypeOf<SplitSegmentIntoAccessors<'arr[0][1][2]'>>().toEqualTypeOf<
-      ['arr', '[0]', '[1]', '[2]']
-    >();
-  });
-});
 
 describe('FriendlyPathToArrayIndex', () => {
   it('should not add a friendly path to path that do not point to array index', () => {
-    expectTypeOf<
-      FriendlyPathToArrayIndex<
-        DocumentPath<{ metadata: { tags: string[] } }> | LookupInMacroShape
-      >
-    >().toEqualTypeOf<
-      | 'metadata'
-      | 'metadata.tags'
-      | `metadata.tags[${number}]`
-      | 'metadata.tags[]'
-      | LookupInMacroShape
-    >();
+    // TODO
+    // expectTypeOf<
+    //   FriendlyPathToArrayIndex<
+    //     DocumentPath<{ metadata: { tags: string[] } }> | LookupInMacroShape
+    //   >
+    // >().toEqualTypeOf<
+    //   | 'metadata'
+    //   | 'metadata.tags'
+    //   | `metadata.tags[${number}]`
+    //   | 'metadata.tags[]'
+    //   | LookupInMacroShape
+    // >();
   });
 });
 
 describe('ArrayAppendCodeCompletion', () => {
   test('array', () => {
     type Test = ArrayAppendCodeCompletion<'arr', string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', string]>();
   });
 
   test('readonly array', () => {
     type Test = ArrayAppendCodeCompletion<'arr', readonly string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
     type Test = ArrayAppendCodeCompletion<'arr', [string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
     type Test = ArrayAppendCodeCompletion<'arr', [...number[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head same type', () => {
     type Test = ArrayAppendCodeCompletion<'arr', [...string[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', string]>();
   });
 
   test('tuple with variadic tail', () => {
     type Test = ArrayAppendCodeCompletion<'arr', [string, ...number[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', number]>();
   });
 
   test('tuple with variadic tail same type', () => {
     type Test = ArrayAppendCodeCompletion<'arr', [number, ...number[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', number]>();
   });
 
   test('tuple with optional element', () => {
     type Test = ArrayAppendCodeCompletion<'arr', [string, number?]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayAppend', 'arr', number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', number]>();
   });
 });
 
 describe('ArrayPrependCodeCompletion', () => {
   test('array', () => {
     type Test = ArrayPrependCodeCompletion<'arr', string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', string]>();
   });
 
   test('readonly array', () => {
     type Test = ArrayPrependCodeCompletion<'arr', readonly string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
     type Test = ArrayPrependCodeCompletion<'arr', [string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
     type Test = ArrayPrependCodeCompletion<'arr', [...number[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', number]>();
   });
 
   test('tuple with variadic head same type', () => {
     type Test = ArrayPrependCodeCompletion<'arr', [...string[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', string]>();
   });
 
   test('tuple with variadic tail', () => {
     type Test = ArrayPrependCodeCompletion<'arr', [string, ...number[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic tail same type', () => {
     type Test = ArrayPrependCodeCompletion<'arr', [string, ...string[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayPrepend', 'arr', string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', string]>();
   });
 
   test('tuple with optional element', () => {
     type Test = ArrayPrependCodeCompletion<'arr', [string, number?]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 });
 
 describe('ArrayInsertCodeCompletion', () => {
   test('array', () => {
     type Test = ArrayInsertCodeCompletion<'arr', string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, string]>();
   });
 
   test('readonly array', () => {
     type Test = ArrayInsertCodeCompletion<'arr', readonly string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
     type Test = ArrayInsertCodeCompletion<'arr', [string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
     type Test = ArrayInsertCodeCompletion<'arr', [...number[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, number]>();
   });
 
   test('tuple with variadic head same type', () => {
     type Test = ArrayInsertCodeCompletion<'arr', [...string[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, string]>();
   });
 
   test('tuple with variadic tail', () => {
     type Test = ArrayInsertCodeCompletion<'arr', [string, ...number[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, number]>();
   });
 
   test('tuple with variadic tail same type', () => {
     type Test = ArrayInsertCodeCompletion<'arr', [string, ...string[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', `arr[${number}]`, string]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, string]>();
   });
 
   test('tuple with optional element', () => {
     type Test = ArrayInsertCodeCompletion<'arr', [string, number?]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['arrayInsert', 'arr[1]', number]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', 'arr[1]', number]>();
   });
 });
 
 describe('RemoveCodeCompletion', () => {
   test('array', () => {
     type Test = RemoveCodeCompletion<'arr', string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+    >();
   });
 
   test('readonly array', () => {
     type Test = RemoveCodeCompletion<'arr', readonly string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
     type Test = RemoveCodeCompletion<'arr', [string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
     type Test = RemoveCodeCompletion<'arr', [...number[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+    expectTypeOf<Test>().toEqualTypeOf<['remove', `arr[${number}]`]>();
   });
 
   test('tuple with variadic head same type', () => {
     type Test = RemoveCodeCompletion<'arr', [...string[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+    >();
   });
 
   test('tuple with variadic tail', () => {
     type Test = RemoveCodeCompletion<'arr', [string, ...number[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+    >();
   });
 
   test('tuple with variadic tail same type', () => {
     type Test = RemoveCodeCompletion<'arr', [string, ...string[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<[['remove', `arr[${number}]`]]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+    >();
   });
 
   test('tuple with optional element', () => {
     type Test = RemoveCodeCompletion<'arr', [string, number?]>;
-    expectTypeOf<Test[number]>().toEqualTypeOf<
-      ['remove', 'arr[-1]'] | ['remove', 'arr[1]']
-    >();
+    expectTypeOf<Test>().toEqualTypeOf<['remove', 'arr[-1]'] | ['remove', 'arr[1]']>();
   });
 
   test('object with no optional property', () => {
-    type Test = RemoveCodeCompletion<'obj', { title: string }>;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    type Test = RemoveCodeCompletion<'obj.', { title: string }>;
+    expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('object with some optional properties', () => {
     type Test = RemoveCodeCompletion<
-      'obj',
+      'obj.',
       { title: string; description?: string; metadata?: { tags: string[] } }
     >;
-    expectTypeOf<Test[number]>().toEqualTypeOf<
+    expectTypeOf<Test>().toEqualTypeOf<
       ['remove', 'obj.description'] | ['remove', 'obj.metadata']
     >();
   });
 
   test('object with some properties that can be undefined', () => {
     type Test = RemoveCodeCompletion<
-      'obj',
+      'obj.',
       { title: string; description: string | undefined }
     >;
-    expectTypeOf<Test>().toEqualTypeOf<[]>();
+    expectTypeOf<Test>().toEqualTypeOf<never>();
+  });
+});
+
+describe('ReplaceCodeCompletion', () => {
+  test('array', () => {
+    type Test = ReplaceCodeCompletion<'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['replace', `arr[${number}]`, string] | ['replace', `arr[-1]`, string]
+    >();
+  });
+
+  test('readonly array', () => {
+    type Test = ReplaceCodeCompletion<'arr', readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<never>();
+  });
+
+  test('tuple', () => {
+    type Test = ReplaceCodeCompletion<'arr', [string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['replace', 'arr[0]', string] | ['replace', 'arr[-1]', string]
+    >();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = ReplaceCodeCompletion<'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['replace', `arr[${number}]`, number | string] | ['replace', 'arr[-1]', string]
+    >();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = ReplaceCodeCompletion<'arr', [...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['replace', `arr[${number}]`, string] | ['replace', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = ReplaceCodeCompletion<'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['replace', `arr[${number}]`, string | number]
+      | ['replace', `arr[-1]`, string | number]
+    >();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = ReplaceCodeCompletion<'arr', [string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['replace', `arr[${number}]`, string] | ['replace', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = ReplaceCodeCompletion<'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['replace', 'arr[0]', string]
+      | ['replace', 'arr[1]', number]
+      | ['replace', 'arr[-1]', string | number]
+    >();
+  });
+
+  test('object with no optional property', () => {
+    type Test = ReplaceCodeCompletion<'obj.', { title: string }>;
+    expectTypeOf<Test>().toEqualTypeOf<['replace', 'obj.title', string]>();
+  });
+
+  test('object with some optional properties', () => {
+    type Test = ReplaceCodeCompletion<
+      'obj.',
+      { title: string; description?: string; metadata?: { tags: string[] } }
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['replace', 'obj.title', string]
+      | ['replace', 'obj.description', string]
+      | ['replace', 'obj.metadata', { tags: string[] }]
+    >();
+  });
+
+  test('object with some properties that can be undefined', () => {
+    type Test = ReplaceCodeCompletion<
+      'obj.',
+      { title: string; description: string | undefined }
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['replace', 'obj.title', string] | ['replace', 'obj.description', string]
+    >();
+  });
+});
+
+describe('GetCodeCompletion', () => {
+  test('array', () => {
+    type Test = GetCodeCompletion<{}, 'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<{
+      get: {
+        [x: `arr[${number}]`]: string;
+      } & {
+        ['arr[-1]']: string;
+      };
+    }>();
+  });
+
+  test('readonly array', () => {
+    type Test = GetCodeCompletion<{}, 'arr', readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', `arr[${number}]`, string] | ['get', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple', () => {
+    type Test = GetCodeCompletion<'arr', [string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', `arr[0]`, string] | ['get', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = GetCodeCompletion<'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', `arr[${number}]`, string | number] | ['get', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = GetCodeCompletion<'arr', [...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', `arr[${number}]`, string] | ['get', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = GetCodeCompletion<'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', `arr[${number}]`, string | number] | ['get', `arr[-1]`, string | number]
+    >();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = GetCodeCompletion<'arr', [string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', `arr[${number}]`, string] | ['get', `arr[-1]`, string]
+    >();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = GetCodeCompletion<'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['get', `arr[0]`, string]
+      | ['get', `arr[1]`, number | undefined]
+      | ['get', `arr[-1]`, string | number | undefined]
+    >();
+  });
+
+  test('object with no optional property', () => {
+    type Test = GetCodeCompletion<'obj.', { title: string }>;
+    expectTypeOf<Test>().toEqualTypeOf<['get', `obj.title`, string]>();
+  });
+
+  test('object with some optional properties', () => {
+    type Test = GetCodeCompletion<
+      'obj.',
+      { title: string; description?: string; metadata?: { tags: string[] } }
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['get', 'obj.title', string]
+      | ['get', 'obj.description', string]
+      | ['get', 'obj.metadata', { tags: string[] }]
+    >();
+  });
+
+  test('object with some properties that can be undefined', () => {
+    type Test = GetCodeCompletion<
+      'obj.',
+      { title: string; description: string | undefined }
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', 'obj.title', string] | ['get', 'obj.description', string]
+    >();
+  });
+});
+
+describe('CountCodeCompletion', () => {
+  type Arr = string[];
+  type Obj = { title: string };
+
+  test('array', () => {
+    type Test = CountCodeCompletion<'arr', Arr[]>;
+    expectTypeOf<Test>().toEqualTypeOf<['count', `arr`]>();
+  });
+
+  test('object', () => {
+    type Test = CountCodeCompletion<'obj', Obj>;
+    expectTypeOf<Test>().toEqualTypeOf<['count', 'obj']>();
+  });
+
+  test('primitive', () => {
+    type Test = CountCodeCompletion<'prop', string>;
+    expectTypeOf<Test>().toEqualTypeOf<never>();
+  });
+});
+
+describe('DocumentCodeCompletion', () => {
+  test('root array', () => {
+    type Test = UnionToTree<DocumentCodeCompletion<KvOperation, string[]>>;
+
+    expectTypeOf<Test['get']>().toEqualTypeOf<
+      ['get', `[${number}]`, string] | ['get', `[-1]`, string]
+    >();
+
+    expectTypeOf<Test['count']>().toEqualTypeOf<['count', ``]>();
+
+    expectTypeOf<Test['exists']>().toEqualTypeOf<['exists', `[${number}]`]>();
+
+    expectTypeOf<Test['arrayAppend']>().toEqualTypeOf<['arrayAppend', '', string]>();
+
+    expectTypeOf<Test['arrayPrepend']>().toEqualTypeOf<['arrayPrepend', '', string]>();
+
+    expectTypeOf<Test['arrayInsert']>().toEqualTypeOf<
+      ['arrayInsert', `[${number}]`, string]
+    >();
+
+    expectTypeOf<Test['replace']>().toEqualTypeOf<
+      ['replace', `[${number}]`, string] | ['replace', `[-1]`, string]
+    >();
+
+    expectTypeOf<Test['remove']>().toEqualTypeOf<
+      ['remove', `[${number}]`] | ['remove', `[-1]`]
+    >();
+  });
+
+  test('root object', () => {
+    type TestDoc = { title: string };
+    type Test = OmitNeverValues<{
+      [Op in KvOperation]: DocumentCodeCompletion<Op, TestDoc>;
+    }>;
+
+    expectTypeOf<keyof Test>().toEqualTypeOf<
+      'get' | 'exists' | 'count' | 'upsert' | 'replace'
+    >();
+
+    expectTypeOf<Test['get']>().toEqualTypeOf<['get', `title`, string]>();
+    expectTypeOf<Test['count']>().toEqualTypeOf<['count', '']>();
+    expectTypeOf<Test['exists']>().toEqualTypeOf<['exists', 'title']>();
+    expectTypeOf<Test['replace']>().toEqualTypeOf<['replace', `title`, string]>();
+    expectTypeOf<Test['upsert']>().toEqualTypeOf<['upsert', `title`, string]>();
+  });
+
+  test('deep document', () => {
+    type TestDoc = {
+      title: string;
+      sales?: number;
+      metadata?: { tags: string[] };
+    };
+
+    type Test = OmitNeverValues<{
+      [Op in KvOperation]: DocumentCodeCompletion<Op, TestDoc>;
+    }>;
+
+    type KeyofTest = keyof Test;
+    expectTypeOf<KeyofTest>().toEqualTypeOf<
+      | 'get'
+      | 'count'
+      | 'exists'
+      | 'upsert'
+      | 'replace'
+      | 'remove'
+      | 'arrayAppend'
+      | 'arrayPrepend'
+      | 'arrayInsert'
+      | 'binary'
+    >();
+
+    expectTypeOf<Test['get']>().toEqualTypeOf<
+      | ['get', `title`, string]
+      | ['get', `sales`, number]
+      | ['get', `metadata`, { tags: string[] }]
+      | ['get', `metadata.tags`, string[]]
+      | ['get', `metadata.tags[${number}]`, string]
+      | ['get', `metadata.tags[-1]`, string]
+    >();
+
+    expectTypeOf<Test['count']>().toEqualTypeOf<
+      ['count', ''] | ['count', 'metadata'] | ['count', 'metadata.tags']
+    >();
+
+    expectTypeOf<Test['exists']>().toEqualTypeOf<
+      | ['exists', `title`]
+      | ['exists', `sales`]
+      | ['exists', `metadata`]
+      | ['exists', `metadata.tags`]
+      | ['exists', `metadata.tags[${number}]`]
+    >();
+
+    expectTypeOf<Test['upsert']>().toEqualTypeOf<
+      | ['upsert', `title`, string]
+      | ['upsert', `sales`, number]
+      | ['upsert', `metadata`, { tags: string[] }]
+      | ['upsert', `metadata.tags`, string[]]
+      | ['upsert', `metadata.tags[${number}]`, string]
+      | ['upsert', `metadata.tags[-1]`, string]
+    >();
+
+    expectTypeOf<Test['replace']>().toEqualTypeOf<
+      | ['replace', `title`, string]
+      | ['replace', `sales`, number]
+      | ['replace', `metadata`, { tags: string[] }]
+      | ['replace', `metadata.tags`, string[]]
+      | ['replace', `metadata.tags[${number}]`, string]
+      | ['replace', `metadata.tags[-1]`, string]
+    >();
+
+    expectTypeOf<Test['remove']>().toEqualTypeOf<
+      | ['remove', `sales`]
+      | ['remove', `metadata`]
+      | ['remove', `metadata.tags[${number}]`]
+      | ['remove', `metadata.tags[-1]`]
+    >();
+
+    expectTypeOf<Test['arrayAppend']>().toEqualTypeOf<
+      ['arrayAppend', `metadata.tags`, string]
+    >();
+    expectTypeOf<Test['arrayPrepend']>().toEqualTypeOf<
+      ['arrayPrepend', `metadata.tags`, string]
+    >();
+    expectTypeOf<Test['arrayInsert']>().toEqualTypeOf<
+      ['arrayInsert', `metadata.tags[${number}]`, string]
+    >();
+
+    expectTypeOf<Test['binary']>().toEqualTypeOf<['binary', `sales`]>();
   });
 });

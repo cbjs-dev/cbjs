@@ -52,5 +52,4 @@ export type {
   DocDef,
   CollectionName,
   ClusterTypesOptions,
-  DocumentPath,
 } from '@cbjsdev/shared';

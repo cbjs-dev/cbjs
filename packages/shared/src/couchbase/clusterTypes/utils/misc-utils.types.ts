@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {
-  If,
-  IsExactly,
-  IsNever,
-  Join,
-  Primitive,
-  TrySafe,
-  UnionToTuple,
-} from '../../../misc/index.js';
-import { ArrayEntries, TupleFilter } from './array-utils.types.js';
+import type { If, IsExactly, IsNever, Join, UnionToTuple } from '../../../misc/index.js';
+import { TupleFilter } from './array-utils.types.js';
 
 /**
  * Basic string description of a type.
@@ -101,8 +93,14 @@ export type OptionalKeys<T> = Exclude<keyof T, RequiredKeys<T>>;
 /**
  * Extract writable keys of an object.
  */
-export type WritableKeys<T extends object> = {
+export type WritableKeys<T> = {
   [K in keyof T]: IsExactly<Pick<T, K>, { readonly [RO in K]: T[K] }> extends false
     ? K
     : never;
 }[keyof T];
+
+// prettier-ignore
+export type OmitNeverValues<T> = {
+  [K in keyof T as IsNever<T[K]> extends true ? never : K]: T[K]
+}
+;

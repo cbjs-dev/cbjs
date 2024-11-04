@@ -15,12 +15,12 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import {
+import type {
   DefaultClusterTypes,
   DefaultKeyspaceOptions,
   GetKeyspaceOptions,
 } from './cluster.types.js';
-import {
+import type {
   DocDef,
   DocDefMatchingBody,
   DocDefMatchingKey,

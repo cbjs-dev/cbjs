@@ -33,11 +33,11 @@ import {
   IsAny,
   IsFuzzyDocument,
   IsNever,
+  JsonDocumentDef,
   JsonObject,
   keyspacePath,
   LookupInMacroResult,
   NoInfer,
-  ObjectDocumentDef,
   OneOf,
   ScopeName,
 } from '@cbjsdev/shared';
@@ -162,8 +162,8 @@ export interface GetOptions<
    */
   project?: Def['Body'] extends JsonObject
     ?
-        | LookupInGetPath<ObjectDocumentDef<Def>>
-        | ReadonlyArray<LookupInGetPath<ObjectDocumentDef<Def>>>
+        | LookupInGetPath<JsonDocumentDef<Def>>
+        | ReadonlyArray<LookupInGetPath<JsonDocumentDef<Def>>>
     : undefined;
 
   /**
@@ -709,9 +709,9 @@ export class Collection<
       paths = [''];
       specs.push(LookupInSpec.get(''));
     } else {
-      const projects: ReadonlyArray<LookupInGetPath<Def>> = Array.isArray(options.project)
-        ? (options.project as LookupInGetPath<Def>[])
-        : ([options.project] as LookupInGetPath<Def>[]);
+      const projects: string[] = Array.isArray(options.project)
+        ? (options.project as string[])
+        : ([options.project] as string[]);
 
       for (const projection of projects) {
         const specPath: string = isLookupInMacro(projection)

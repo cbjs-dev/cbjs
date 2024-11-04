@@ -14,56 +14,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AnyDocDef, LookupInMacroReturnType } from '@cbjsdev/shared';
+import {
+  AnyDocDef,
+  DocDef,
+  LookupInMacroReturnType,
+  MutateInMacroReturnType,
+} from '@cbjsdev/shared';
 
 import binding, { CppProtocolSubdocOpcode } from './binding.js';
 import { isLookupInMacro, isMutateInMacro } from './clusterTypes/guards.js';
-import {
-  DocDef,
-  MutateInArrayAddUniquePath,
-  type MutateInArrayAppendPath,
-  MutateInArrayInsertPath,
-  MutateInArrayPrependPath,
-  MutateInCounterPath,
-  MutateInInsertPath,
-  MutateInRemovePath,
-  MutateInReplacePath,
-  MutateInUpsertPath,
-} from './clusterTypes/index.js';
-import {
+import type {
   LookupInInternalPath,
   LookupInPath,
   LookupInSpecOpCode,
   MakeLookupInSpec,
 } from './clusterTypes/kv/lookup/lookupIn.types.js';
-import {
+import type {
   LookupInCountPath,
   LookupInExistsPath,
   LookupInGetPath,
 } from './clusterTypes/kv/lookup/lookupOperations.types.js';
-import {
+import type {
   MutateInSpecOpcode,
   MutateInValue,
 } from './clusterTypes/kv/mutation/mutateIn.types.js';
-import { MutateInMacroReturnType } from './clusterTypes/kv/mutation/mutateInMacro.types.js';
-import {
+import type {
   MutateInArrayAddUniqueOptions,
+  MutateInArrayAddUniquePath,
   MutateInArrayAddUniqueValue,
   MutateInArrayAppendOptions,
+  MutateInArrayAppendPath,
   MutateInArrayAppendValue,
   MutateInArrayInsertOptions,
+  MutateInArrayInsertPath,
   MutateInArrayInsertValue,
   MutateInArrayPrependOptions,
+  MutateInArrayPrependPath,
   MutateInArrayPrependValue,
   MutateInCounterOptions,
+  MutateInCounterPath,
   MutateInCounterValue,
   MutateInDecrementOptions,
   MutateInInsertOptions,
+  MutateInInsertPath,
   MutateInInsertValue,
   MutateInRemoveOptions,
+  MutateInRemovePath,
   MutateInReplaceOptions,
+  MutateInReplacePath,
   MutateInReplaceValue,
   MutateInUpsertOptions,
+  MutateInUpsertPath,
   MutateInUpsertValue,
 } from './clusterTypes/kv/mutation/mutationOperations.types.js';
 
@@ -191,7 +192,7 @@ export class MutateInMacro<
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class LookupInSpec<
-  Def extends AnyDocDef = DocDef,
+  Def extends AnyDocDef = AnyDocDef,
   Opcode extends LookupInSpecOpCode = LookupInSpecOpCode,
   InternalPath extends string = string,
 > {

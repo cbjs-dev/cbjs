@@ -83,11 +83,6 @@ export type TupleIndexes<T extends ReadonlyArray<unknown>> =
   never
 ;
 
-type TA = ArrayIndexes<[string, number]>;
-type TT = TupleIndexes<[string, number]>;
-type TTT = Partial<[string, number]>['length'];
-type AI = ArrayInfo<[string, number]>;
-
 /**
  * Extract all the possible keys of an array.
  */
@@ -121,7 +116,19 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
  * Return the type of the last element of the array.
  */
 // prettier-ignore
-export type ArrayLastElement<T extends ReadonlyArray<unknown>> = T[ArrayLastIndex<T>];
+export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsHeadStatic'] extends true ?
+      (Info['OptionalIndexes'] | ArrayInfo<Info['StaticSlice']>['LastIndex']) extends infer PossibleLastIndex ?
+        PossibleLastIndex extends number ?
+          T[PossibleLastIndex] :
+        never :
+      never :
+    Info['IsTailStatic'] extends true ?
+      Info['StaticSlice'][ArrayInfo<Info['StaticSlice']>['LastIndex']] :
+    Info['RestElement'] :
+  never
+;
 
 /**
  * Transform an array into a union of tuple representing its entries.

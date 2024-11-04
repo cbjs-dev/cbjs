@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocDefKeyBodyPathShape, IsArrayLengthKnown } from '@cbjsdev/shared';
+import { AnyDocDef, IsArrayLengthKnown } from '@cbjsdev/shared';
 import { ExtractCollectionJsonDocKey } from '../../../clusterTypes/clusterTypes.js';
 
 import { AnyCollection } from '../../../clusterTypes/index.js';
@@ -26,7 +26,7 @@ import { NodeCallback } from '../../../utilities.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 
 export type MutateInArgs<
-  Def extends DocDefKeyBodyPathShape,
+  Def extends AnyDocDef,
   SpecDefinitions,
 > =
   readonly [

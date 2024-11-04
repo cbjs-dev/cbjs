@@ -22,7 +22,6 @@ import { LookupInResult } from '../../../crudoptypes.js';
 import {
   connect,
   DocDef,
-  type LookupInGetPath,
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,

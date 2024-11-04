@@ -14,17 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocumentPath, ExtractPathToRecordEntry, SubDocument } from '@cbjsdev/shared';
-
 import {
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
   PathAutocomplete,
 } from '../../../clusterTypes/clusterTypes.js';
-import {
+import type {
   AnyCollection,
   MutateInArrayAddUniquePath,
-  type MutateInArrayAppendPath,
+  MutateInArrayAppendPath,
   MutateInArrayInsertPath,
   MutateInArrayPrependPath,
   MutateInCounterPath,
@@ -171,34 +169,7 @@ export class ChainableMutateIn<
     value: Value,
     options?: MutateInInsertOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.insert<Def, Path, Value>(path, value, options);
-    return this.push(spec);
-  }
-
-  /**
-   * Just like {@link ChainableMutateIn.insert}, it adds a property to a document.
-   * This method offers better type safety because it looks at optional properties from
-   * the standpoint of the record.
-   */
-  insertIntoRecord<
-    const PathToRecord extends ExtractPathToRecordEntry<Def['Body'], Def['Path']>,
-    const PathWithinRecord extends MutateInInsertPath<{
-      Body: RecordValue;
-      Path: DocumentPath<RecordValue>;
-    }>,
-    Value extends MutateInInsertValue<Def, `${PathToRecord}.${PathWithinRecord}`>,
-    RecordValue = Extract<SubDocument<Def['Body'], PathToRecord>, Record<any, any>>,
-  >(
-    pathToRecord: PathToRecord,
-    pathWithinRecord: PathWithinRecord,
-    value: Value,
-    options?: MutateInInsertOptions
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.insert(
-      (pathToRecord as string) + '.' + pathWithinRecord,
-      value,
-      options
-    );
+    const spec = MutateInSpec.insert(path, value, options);
     return this.push(spec);
   }
 
@@ -287,29 +258,6 @@ export class ChainableMutateIn<
    */
   remove(path: string, options?: MutateInRemoveOptions): any {
     const spec = MutateInSpec.remove(path as never, options);
-    return this.push(spec);
-  }
-
-  /**
-   * Just like {@link ChainableMutateIn.remove}, it removes a property from a document.
-   * This method offers better type safety because it looks at optional properties from
-   * the standpoint of the record.
-   *
-   * @param pathToRecord
-   * @param pathWithinRecord
-   */
-  removeFromRecord<
-    const PathToRecord extends ExtractPathToRecordEntry<Def['Body'], Def['Path']>,
-    const PathWithinRecord extends MutateInRemovePath<{
-      Body: RecordValue;
-      Path: DocumentPath<RecordValue>;
-    }>,
-    RecordValue = Extract<SubDocument<Def['Body'], PathToRecord>, Record<any, any>>,
-  >(
-    pathToRecord: PathToRecord,
-    pathWithinRecord: PathWithinRecord
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.remove((pathToRecord as string) + '.' + pathWithinRecord);
     return this.push(spec);
   }
 

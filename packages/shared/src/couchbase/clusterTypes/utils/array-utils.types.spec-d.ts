@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, it } from 'vitest';
+import { describe, expectTypeOf, it, test } from 'vitest';
 
-import {
+import type {
   ArrayAppendElement,
   ArrayEntries,
   ArrayIndexes,
   ArrayInfo,
+  ArrayLastElement,
   ArrayLastIndex,
   ArrayPrependElement,
   GuaranteedIndexes,
@@ -118,11 +119,12 @@ describe('TupleFilter', function () {
   });
 });
 
-describe('ResolveNegativeIndex', function () {
+describe('ResolveIndex', function () {
   it('should resolve the last element of a tuple', function () {
     expectTypeOf<ResolveIndex<[string], -1>>().toEqualTypeOf<0>();
     expectTypeOf<ResolveIndex<[string, number], -1>>().toEqualTypeOf<1>();
     expectTypeOf<ResolveIndex<readonly [string, number], -1>>().toEqualTypeOf<1>();
+    expectTypeOf<ResolveIndex<[string, number?], -1>>().toEqualTypeOf<1>();
   });
 });
 
@@ -302,6 +304,48 @@ describe('ArrayInfo', function () {
       LastIndex: number;
       OptionalIndexes: number;
     }>();
+  });
+});
+
+describe('ArrayLastElement', () => {
+  test('array', () => {
+    type Test = ArrayLastElement<string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<string>();
+  });
+
+  test('readonly array', () => {
+    type Test = ArrayLastElement<readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<string>();
+  });
+
+  test('tuple', () => {
+    type Test = ArrayLastElement<[string]>;
+    expectTypeOf<Test>().toEqualTypeOf<string>();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = ArrayLastElement<[...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<string>();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = ArrayLastElement<[...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<string>();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = ArrayLastElement<[string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<string | number>();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = ArrayLastElement<[string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<string>();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = ArrayLastElement<[string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<string | number | undefined>();
   });
 });
 

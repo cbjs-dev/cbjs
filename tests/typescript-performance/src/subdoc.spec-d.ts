@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SubDocument } from '@cbjsdev/shared';
-
-import { BookDocument } from './appTypes.js';
-
-type BookAuthors = SubDocument<BookDocument, 'authors'>;
-type BookFirstTag = SubDocument<BookDocument, 'tags[0]'>;
-type BookEditor = SubDocument<BookDocument, 'editors.editor::001'>;
-
-// type T = ObjectSubDocument<BookDocument, ['authors'], false>;
+// import { AppTypes } from './appTypes.js';
+//
+// type PickDef<
+//   T extends Record<string, any>,
+//   B extends keyof T,
+//   S extends keyof T[B],
+//   C extends keyof T[B][S],
+// > = T[B][S][C][number];
+//
+// type AuthorFirstname = SubDocument<
+//   PickDef<AppTypes, 'store', 'library', 'authors'>['Body'],
+//   'firstname'
+// >;
+// type AuthorLastname = SubDocument<
+//   PickDef<AppTypes, 'store', 'library', 'authors'>['Body'],
+//   'bookIds'
+// >;
+//
+// // type T = ObjectSubDocument<BookDocument, ['authors'], false>;

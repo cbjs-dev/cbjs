@@ -13,21 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { connect } from '@cbjsdev/cbjs';
+import { setup } from '@ark/attest';
 
-import { AppTypes } from './appTypes.js';
-
-const cluster = await connect<AppTypes>('');
-const library = cluster.bucket('store').scope('library');
-const books = library.collection('books');
-const authors = library.collection('authors');
-
-const r = await authors.mutateIn('author::001').upsert('bookIds', ['book::001']);
-
-const r2 = await books.mutateIn('book::001::sales').replace('perCountry.FR', {
-  total: 3038,
-  perYear: {
-    2024: 2300,
-    2023: 738,
-  },
-});
+export default () => setup({});

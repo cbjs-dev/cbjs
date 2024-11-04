@@ -105,23 +105,23 @@ type LastInUnion<U> =
  * UnionToTuple<1 | 2> = [1, 2].
  */
 export type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
-  ? readonly []
-  : readonly [...UnionToTuple<Exclude<U, Last>>, Last];
+  ? []
+  : [...UnionToTuple<Exclude<U, Last>>, Last];
 
 // prettier-ignore
-export type UnionToTupleCheap<U, E extends ReadonlyArray<unknown> = []> =
+export type UnionToTupleStable<U, E extends ReadonlyArray<unknown> = []> =
   SaveIdentity<U> extends [infer Union] ?
     U extends unknown ?
       IsNever<Exclude<Union, U | E[number]>> extends true ?
         [U, ...E] :
-      UnionToTupleCheap<Exclude<Union, U | E[number]>, [...E, U]> :
+      UnionToTupleStable<Exclude<Union, U | E[number]>, [...E, U]> :
     never :
   never
 ;
 
 // export type MergeTuples<>
 
-type T = UnionToTupleCheap<'a' | 'b' | 'c' | 'd'>;
+type T = UnionToTupleStable<'a' | 'b' | 'c' | 'd'>;
 
 /**
  * Extract the string up the delimiter.
