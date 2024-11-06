@@ -25,7 +25,7 @@ import type {
   MutateInArrayAppendPath,
   MutateInArrayInsertPath,
   MutateInArrayPrependPath,
-  MutateInCounterPath,
+  MutateInBinaryPath,
   MutateInInsertPath,
   MutateInRemovePath,
   MutateInReplacePath,
@@ -41,12 +41,12 @@ import {
   MutateInArrayInsertValue,
   MutateInArrayPrependOptions,
   MutateInArrayPrependValue,
-  MutateInCounterOptions,
-  MutateInCounterValue,
-  MutateInDecrementOptions,
+  MutateInBinaryOptions,
+  MutateInBinaryValue,
   MutateInInsertOptions,
   MutateInInsertValue,
   MutateInRemoveOptions,
+  MutateInReplaceOptions,
   MutateInReplaceValue,
   MutateInUpsertOptions,
   MutateInUpsertValue,
@@ -226,7 +226,7 @@ export class ChainableMutateIn<
   >(
     path: Path,
     value: Value,
-    options?: MutateInUpsertOptions
+    options?: MutateInReplaceOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.replace(path as never, value, options);
     return this.push(spec);
@@ -485,12 +485,12 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   increment<
-    Path extends PathAutocomplete<C, MutateInCounterPath<Def>>,
-    Value extends MutateInCounterValue,
+    Path extends PathAutocomplete<C, MutateInBinaryPath<Def>>,
+    Value extends MutateInBinaryValue,
   >(
     path: Path,
     incrementBy: Value,
-    options?: MutateInCounterOptions
+    options?: MutateInBinaryOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
     const spec = MutateInSpec.increment(path as never, incrementBy, options);
     return this.push(spec);
@@ -510,12 +510,12 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   decrement<
-    Path extends PathAutocomplete<C, MutateInCounterPath<Def>>,
-    Value extends MutateInCounterValue,
+    Path extends PathAutocomplete<C, MutateInBinaryPath<Def>>,
+    Value extends MutateInBinaryValue,
   >(
     path: Path,
     decrementBy: Value,
-    options?: MutateInDecrementOptions
+    options?: MutateInBinaryOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
     const spec = MutateInSpec.decrement(path as never, decrementBy, options);
     return this.push(spec);

@@ -51,10 +51,9 @@ import type {
   MutateInArrayPrependOptions,
   MutateInArrayPrependPath,
   MutateInArrayPrependValue,
-  MutateInCounterOptions,
-  MutateInCounterPath,
-  MutateInCounterValue,
-  MutateInDecrementOptions,
+  MutateInBinaryOptions,
+  MutateInBinaryPath,
+  MutateInBinaryValue,
   MutateInInsertOptions,
   MutateInInsertPath,
   MutateInInsertValue,
@@ -754,13 +753,13 @@ export class MutateInSpec<
    */
   static increment<
     Def extends AnyDocDef,
-    const Path extends MutateInCounterPath<Def>,
-    Value extends MutateInCounterValue,
+    const Path extends MutateInBinaryPath<Def>,
+    Value extends MutateInBinaryValue,
   >(
     this: void,
     path: Path,
     incrementBy: Value,
-    options?: MutateInCounterOptions
+    options?: MutateInBinaryOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, boolean, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,
@@ -785,13 +784,13 @@ export class MutateInSpec<
    */
   static decrement<
     Def extends AnyDocDef,
-    const Path extends MutateInCounterPath<Def>,
-    Value extends MutateInCounterValue,
+    const Path extends MutateInBinaryPath<Def>,
+    Value extends MutateInBinaryValue,
   >(
     this: void,
     path: Path,
     decrementBy: Value,
-    options?: MutateInDecrementOptions
+    options?: MutateInBinaryOptions
   ): MutateInSpec<Def, CppProtocolSubdocOpcode.counter, Path, false, Value> {
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,

@@ -25,6 +25,6 @@
     "importHelpers": true
   },
   "include": [
-    "src/sandbox.ts"
+    "src/bench.ts"
   ]
 }

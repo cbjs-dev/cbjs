@@ -15,18 +15,11 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import type { OmitNeverValues } from './misc-utils.types.js';
 import type {
-  ArrayAppendCodeCompletion,
-  ArrayInsertCodeCompletion,
-  ArrayPrependCodeCompletion,
-  CountCodeCompletion,
+  CodeCompletionSinglePass,
   DocumentCodeCompletion,
   FriendlyPathToArrayIndex,
-  GetCodeCompletion,
   KvOperation,
-  RemoveCodeCompletion,
-  ReplaceCodeCompletion,
   UnionToTree,
 } from './path-utils.types.js';
 
@@ -47,199 +40,222 @@ describe('FriendlyPathToArrayIndex', () => {
   });
 });
 
+type TestCC<Op extends KvOperation, Prefix extends string, T> = Extract<
+  CodeCompletionSinglePass<Prefix, T>,
+  [Op, string, unknown?]
+>;
+
 describe('ArrayAppendCodeCompletion', () => {
   test('array', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', string[]>;
+    type Test = TestCC<'arrayAppend', 'arr', string[]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', string]>();
   });
 
   test('readonly array', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', readonly string[]>;
+    type Test = TestCC<'arrayAppend', 'arr', readonly string[]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', [string]>;
+    type Test = TestCC<'arrayAppend', 'arr', [string]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', [...number[], string]>;
+    type Test = TestCC<'arrayAppend', 'arr', [...number[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head same type', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', [...string[], string]>;
+    type Test = TestCC<'arrayAppend', 'arr', [...string[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', string]>();
   });
 
   test('tuple with variadic tail', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', [string, ...number[]]>;
+    type Test = TestCC<'arrayAppend', 'arr', [string, ...number[]]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', number]>();
   });
 
   test('tuple with variadic tail same type', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', [number, ...number[]]>;
+    type Test = TestCC<'arrayAppend', 'arr', [number, ...number[]]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', number]>();
   });
 
   test('tuple with optional element', () => {
-    type Test = ArrayAppendCodeCompletion<'arr', [string, number?]>;
+    type Test = TestCC<'arrayAppend', 'arr', [string, number?]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayAppend', 'arr', number]>();
   });
 });
 
 describe('ArrayPrependCodeCompletion', () => {
   test('array', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', string[]>;
+    type Test = TestCC<'arrayPrepend', 'arr', string[]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', string]>();
   });
 
   test('readonly array', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', readonly string[]>;
+    type Test = TestCC<'arrayPrepend', 'arr', readonly string[]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', [string]>;
+    type Test = TestCC<'arrayPrepend', 'arr', [string]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', [...number[], string]>;
+    type Test = TestCC<'arrayPrepend', 'arr', [...number[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', number]>();
   });
 
   test('tuple with variadic head same type', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', [...string[], string]>;
+    type Test = TestCC<'arrayPrepend', 'arr', [...string[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', string]>();
   });
 
   test('tuple with variadic tail', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', [string, ...number[]]>;
+    type Test = TestCC<'arrayPrepend', 'arr', [string, ...number[]]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic tail same type', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', [string, ...string[]]>;
+    type Test = TestCC<'arrayPrepend', 'arr', [string, ...string[]]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayPrepend', 'arr', string]>();
   });
 
   test('tuple with optional element', () => {
-    type Test = ArrayPrependCodeCompletion<'arr', [string, number?]>;
+    type Test = TestCC<'arrayPrepend', 'arr', [string, number?]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 });
 
 describe('ArrayInsertCodeCompletion', () => {
   test('array', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', string[]>;
+    type Test = TestCC<'arrayInsert', 'arr', string[]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, string]>();
   });
 
   test('readonly array', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', readonly string[]>;
+    type Test = TestCC<'arrayInsert', 'arr', readonly string[]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', [string]>;
+    type Test = TestCC<'arrayInsert', 'arr', [string]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', [...number[], string]>;
+    type Test = TestCC<'arrayInsert', 'arr', [...number[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, number]>();
   });
 
   test('tuple with variadic head same type', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', [...string[], string]>;
+    type Test = TestCC<'arrayInsert', 'arr', [...string[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, string]>();
   });
 
   test('tuple with variadic tail', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', [string, ...number[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, number]>();
+    type Test = TestCC<'arrayInsert', 'arr', [string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['arrayInsert', `arr[0]`, never] | ['arrayInsert', `arr[${number}]`, number]
+    >();
   });
 
   test('tuple with variadic tail same type', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', [string, ...string[]]>;
-    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', `arr[${number}]`, string]>();
+    type Test = TestCC<'arrayInsert', 'arr', [string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['arrayInsert', `arr[0]`, string] | ['arrayInsert', `arr[${number}]`, string]
+    >();
   });
 
   test('tuple with optional element', () => {
-    type Test = ArrayInsertCodeCompletion<'arr', [string, number?]>;
-    expectTypeOf<Test>().toEqualTypeOf<['arrayInsert', 'arr[1]', number]>();
+    type Test = TestCC<'arrayInsert', 'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['arrayInsert', 'arr[0]', never] | ['arrayInsert', 'arr[1]', number]
+    >();
   });
 });
 
 describe('RemoveCodeCompletion', () => {
   test('array', () => {
-    type Test = RemoveCodeCompletion<'arr', string[]>;
+    type Test = TestCC<'remove', 'arr', string[]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+      ['remove', `arr[${number}]`, true] | ['remove', `arr[-1]`, true]
     >();
   });
 
   test('readonly array', () => {
-    type Test = RemoveCodeCompletion<'arr', readonly string[]>;
+    type Test = TestCC<'remove', 'arr', readonly string[]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
-    type Test = RemoveCodeCompletion<'arr', [string]>;
+    type Test = TestCC<'remove', 'arr', [string]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple with variadic head', () => {
-    type Test = RemoveCodeCompletion<'arr', [...number[], string]>;
-    expectTypeOf<Test>().toEqualTypeOf<['remove', `arr[${number}]`]>();
+    type Test = TestCC<'remove', 'arr', [...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['remove', `arr[-1]`, false] | ['remove', `arr[${number}]`, true]
+    >();
   });
 
   test('tuple with variadic head same type', () => {
-    type Test = RemoveCodeCompletion<'arr', [...string[], string]>;
+    type Test = TestCC<'remove', 'arr', [...string[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+      ['remove', `arr[${number}]`, true] | ['remove', `arr[-1]`, true]
     >();
   });
 
   test('tuple with variadic tail', () => {
-    type Test = RemoveCodeCompletion<'arr', [string, ...number[]]>;
+    type Test = TestCC<'remove', 'arr', [string, ...number[]]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+      | ['remove', `arr[${number}]`, true]
+      | ['remove', `arr[0]`, false]
+      | ['remove', `arr[-1]`, true]
     >();
   });
 
   test('tuple with variadic tail same type', () => {
-    type Test = RemoveCodeCompletion<'arr', [string, ...string[]]>;
+    type Test = TestCC<'remove', 'arr', [string, ...string[]]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['remove', `arr[${number}]`] | ['remove', `arr[-1]`]
+      | ['remove', `arr[${number}]`, true]
+      | ['remove', `arr[0]`, true]
+      | ['remove', `arr[-1]`, true]
     >();
   });
 
   test('tuple with optional element', () => {
-    type Test = RemoveCodeCompletion<'arr', [string, number?]>;
-    expectTypeOf<Test>().toEqualTypeOf<['remove', 'arr[-1]'] | ['remove', 'arr[1]']>();
+    type Test = TestCC<'remove', 'arr', [string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['remove', 'arr[0]', false]
+      | ['remove', 'arr[1]', true]
+      | ['remove', 'arr[-1]', true]
+    >();
   });
 
   test('object with no optional property', () => {
-    type Test = RemoveCodeCompletion<'obj.', { title: string }>;
+    type Test = TestCC<'remove', 'obj', { title: string }>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('object with some optional properties', () => {
-    type Test = RemoveCodeCompletion<
-      'obj.',
+    type Test = TestCC<
+      'remove',
+      'obj',
       { title: string; description?: string; metadata?: { tags: string[] } }
     >;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['remove', 'obj.description'] | ['remove', 'obj.metadata']
+      ['remove', 'obj.description', true] | ['remove', 'obj.metadata', true]
     >();
   });
 
   test('object with some properties that can be undefined', () => {
-    type Test = RemoveCodeCompletion<
-      'obj.',
+    type Test = TestCC<
+      'remove',
+      'obj',
       { title: string; description: string | undefined }
     >;
     expectTypeOf<Test>().toEqualTypeOf<never>();
@@ -248,55 +264,58 @@ describe('RemoveCodeCompletion', () => {
 
 describe('ReplaceCodeCompletion', () => {
   test('array', () => {
-    type Test = ReplaceCodeCompletion<'arr', string[]>;
+    type Test = TestCC<'replace', 'arr', string[]>;
     expectTypeOf<Test>().toEqualTypeOf<
       ['replace', `arr[${number}]`, string] | ['replace', `arr[-1]`, string]
     >();
   });
 
   test('readonly array', () => {
-    type Test = ReplaceCodeCompletion<'arr', readonly string[]>;
+    type Test = TestCC<'replace', 'arr', readonly string[]>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 
   test('tuple', () => {
-    type Test = ReplaceCodeCompletion<'arr', [string]>;
+    type Test = TestCC<'replace', 'arr', [string]>;
     expectTypeOf<Test>().toEqualTypeOf<
       ['replace', 'arr[0]', string] | ['replace', 'arr[-1]', string]
     >();
   });
 
   test('tuple with variadic head', () => {
-    type Test = ReplaceCodeCompletion<'arr', [...number[], string]>;
+    type Test = TestCC<'replace', 'arr', [...number[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<
       ['replace', `arr[${number}]`, number | string] | ['replace', 'arr[-1]', string]
     >();
   });
 
   test('tuple with variadic head same type', () => {
-    type Test = ReplaceCodeCompletion<'arr', [...string[], string]>;
+    type Test = TestCC<'replace', 'arr', [...string[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<
       ['replace', `arr[${number}]`, string] | ['replace', `arr[-1]`, string]
     >();
   });
 
   test('tuple with variadic tail', () => {
-    type Test = ReplaceCodeCompletion<'arr', [string, ...number[]]>;
+    type Test = TestCC<'replace', 'arr', [string, ...number[]]>;
     expectTypeOf<Test>().toEqualTypeOf<
       | ['replace', `arr[${number}]`, string | number]
+      | ['replace', `arr[0]`, string]
       | ['replace', `arr[-1]`, string | number]
     >();
   });
 
   test('tuple with variadic tail same type', () => {
-    type Test = ReplaceCodeCompletion<'arr', [string, ...string[]]>;
+    type Test = TestCC<'replace', 'arr', [string, ...string[]]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['replace', `arr[${number}]`, string] | ['replace', `arr[-1]`, string]
+      | ['replace', `arr[${number}]`, string]
+      | ['replace', `arr[0]`, string]
+      | ['replace', `arr[-1]`, string]
     >();
   });
 
   test('tuple with optional element', () => {
-    type Test = ReplaceCodeCompletion<'arr', [string, number?]>;
+    type Test = TestCC<'replace', 'arr', [string, number?]>;
     expectTypeOf<Test>().toEqualTypeOf<
       | ['replace', 'arr[0]', string]
       | ['replace', 'arr[1]', number]
@@ -305,13 +324,14 @@ describe('ReplaceCodeCompletion', () => {
   });
 
   test('object with no optional property', () => {
-    type Test = ReplaceCodeCompletion<'obj.', { title: string }>;
+    type Test = TestCC<'replace', 'obj', { title: string }>;
     expectTypeOf<Test>().toEqualTypeOf<['replace', 'obj.title', string]>();
   });
 
   test('object with some optional properties', () => {
-    type Test = ReplaceCodeCompletion<
-      'obj.',
+    type Test = TestCC<
+      'replace',
+      'obj',
       { title: string; description?: string; metadata?: { tags: string[] } }
     >;
     expectTypeOf<Test>().toEqualTypeOf<
@@ -322,8 +342,9 @@ describe('ReplaceCodeCompletion', () => {
   });
 
   test('object with some properties that can be undefined', () => {
-    type Test = ReplaceCodeCompletion<
-      'obj.',
+    type Test = TestCC<
+      'replace',
+      'obj',
       { title: string; description: string | undefined }
     >;
     expectTypeOf<Test>().toEqualTypeOf<
@@ -334,78 +355,91 @@ describe('ReplaceCodeCompletion', () => {
 
 describe('GetCodeCompletion', () => {
   test('array', () => {
-    type Test = GetCodeCompletion<{}, 'arr', string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<{
-      get: {
-        [x: `arr[${number}]`]: string;
-      } & {
-        ['arr[-1]']: string;
-      };
-    }>();
+    type Test = TestCC<'get', 'arr', string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      | ['get', 'arr', string[]]
+      | ['get', `arr[${number}]`, string]
+      | ['get', `arr[-1]`, string]
+    >();
   });
 
   test('readonly array', () => {
-    type Test = GetCodeCompletion<{}, 'arr', readonly string[]>;
+    type Test = TestCC<'get', 'arr', readonly string[]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', `arr[${number}]`, string] | ['get', `arr[-1]`, string]
+      | ['get', 'arr', readonly string[]]
+      | ['get', `arr[${number}]`, string]
+      | ['get', `arr[-1]`, string]
     >();
   });
 
   test('tuple', () => {
-    type Test = GetCodeCompletion<'arr', [string]>;
+    type Test = TestCC<'get', 'arr', [string]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', `arr[0]`, string] | ['get', `arr[-1]`, string]
+      ['get', 'arr', [string]] | ['get', `arr[0]`, string] | ['get', `arr[-1]`, string]
     >();
   });
 
   test('tuple with variadic head', () => {
-    type Test = GetCodeCompletion<'arr', [...number[], string]>;
+    type Test = TestCC<'get', 'arr', [...number[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', `arr[${number}]`, string | number] | ['get', `arr[-1]`, string]
+      | ['get', 'arr', [...number[], string]]
+      | ['get', `arr[${number}]`, string | number]
+      | ['get', `arr[-1]`, string] // TODO test is correct, fix impl
     >();
   });
 
   test('tuple with variadic head same type', () => {
-    type Test = GetCodeCompletion<'arr', [...string[], string]>;
+    type Test = TestCC<'get', 'arr', [...string[], string]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', `arr[${number}]`, string] | ['get', `arr[-1]`, string]
+      | ['get', 'arr', [...string[], string]]
+      | ['get', `arr[${number}]`, string]
+      | ['get', `arr[-1]`, string]
     >();
   });
 
   test('tuple with variadic tail', () => {
-    type Test = GetCodeCompletion<'arr', [string, ...number[]]>;
+    type Test = TestCC<'get', 'arr', [string, ...number[]]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', `arr[${number}]`, string | number] | ['get', `arr[-1]`, string | number]
+      | ['get', 'arr', [string, ...number[]]]
+      | ['get', `arr[${number}]`, string | number]
+      | ['get', `arr[0]`, string]
+      | ['get', `arr[-1]`, string | number]
     >();
   });
 
   test('tuple with variadic tail same type', () => {
-    type Test = GetCodeCompletion<'arr', [string, ...string[]]>;
+    type Test = TestCC<'get', 'arr', [string, ...string[]]>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', `arr[${number}]`, string] | ['get', `arr[-1]`, string]
+      | ['get', 'arr', [string, ...string[]]]
+      | ['get', `arr[${number}]`, string]
+      | ['get', `arr[0]`, string]
+      | ['get', `arr[-1]`, string]
     >();
   });
 
   test('tuple with optional element', () => {
-    type Test = GetCodeCompletion<'arr', [string, number?]>;
+    type Test = TestCC<'get', 'arr', [string, number?]>;
     expectTypeOf<Test>().toEqualTypeOf<
+      | ['get', `arr`, [string, number?]]
       | ['get', `arr[0]`, string]
-      | ['get', `arr[1]`, number | undefined]
-      | ['get', `arr[-1]`, string | number | undefined]
+      | ['get', `arr[1]`, number] // TODO test is correct, fix impl exclude undefined
+      | ['get', `arr[-1]`, string | number]
     >();
   });
 
   test('object with no optional property', () => {
-    type Test = GetCodeCompletion<'obj.', { title: string }>;
-    expectTypeOf<Test>().toEqualTypeOf<['get', `obj.title`, string]>();
+    type Test = TestCC<'get', 'obj', { title: string }>;
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['get', 'obj', { title: string }] | ['get', `obj.title`, string]
+    >();
   });
 
   test('object with some optional properties', () => {
-    type Test = GetCodeCompletion<
-      'obj.',
-      { title: string; description?: string; metadata?: { tags: string[] } }
-    >;
+    type TestDoc = { title: string; description?: string; metadata?: { tags: string[] } };
+    type Test = TestCC<'get', 'obj', TestDoc>;
+
     expectTypeOf<Test>().toEqualTypeOf<
+      | ['get', 'obj', TestDoc]
       | ['get', 'obj.title', string]
       | ['get', 'obj.description', string]
       | ['get', 'obj.metadata', { tags: string[] }]
@@ -413,12 +447,12 @@ describe('GetCodeCompletion', () => {
   });
 
   test('object with some properties that can be undefined', () => {
-    type Test = GetCodeCompletion<
-      'obj.',
-      { title: string; description: string | undefined }
-    >;
+    type TestDoc = { title: string; description: string | undefined };
+    type Test = TestCC<'get', 'obj', TestDoc>;
     expectTypeOf<Test>().toEqualTypeOf<
-      ['get', 'obj.title', string] | ['get', 'obj.description', string]
+      | ['get', 'obj', TestDoc]
+      | ['get', 'obj.title', string]
+      | ['get', 'obj.description', string]
     >();
   });
 });
@@ -428,17 +462,17 @@ describe('CountCodeCompletion', () => {
   type Obj = { title: string };
 
   test('array', () => {
-    type Test = CountCodeCompletion<'arr', Arr[]>;
+    type Test = TestCC<'count', 'arr', Arr[]>;
     expectTypeOf<Test>().toEqualTypeOf<['count', `arr`]>();
   });
 
   test('object', () => {
-    type Test = CountCodeCompletion<'obj', Obj>;
+    type Test = TestCC<'count', 'obj', Obj>;
     expectTypeOf<Test>().toEqualTypeOf<['count', 'obj']>();
   });
 
   test('primitive', () => {
-    type Test = CountCodeCompletion<'prop', string>;
+    type Test = TestCC<'count', 'prop', string>;
     expectTypeOf<Test>().toEqualTypeOf<never>();
   });
 });
@@ -448,12 +482,22 @@ describe('DocumentCodeCompletion', () => {
     type Test = UnionToTree<DocumentCodeCompletion<KvOperation, string[]>>;
 
     expectTypeOf<Test['get']>().toEqualTypeOf<
-      ['get', `[${number}]`, string] | ['get', `[-1]`, string]
+      ['get', '', string[]] | ['get', `[${number}]`, string] | ['get', `[-1]`, string]
     >();
+
+    expectTypeOf<Test['exists']>().toEqualTypeOf<['exists', `[${number}]`]>();
 
     expectTypeOf<Test['count']>().toEqualTypeOf<['count', ``]>();
 
-    expectTypeOf<Test['exists']>().toEqualTypeOf<['exists', `[${number}]`]>();
+    expectTypeOf<Test['upsert']>().toEqualTypeOf<['upsert', '', string[]]>();
+
+    expectTypeOf<Test['replace']>().toEqualTypeOf<
+      ['replace', `[${number}]`, string] | ['replace', `[-1]`, string]
+    >();
+
+    expectTypeOf<Test['remove']>().toEqualTypeOf<
+      ['remove', `[${number}]`, true] | ['remove', `[-1]`, true]
+    >();
 
     expectTypeOf<Test['arrayAppend']>().toEqualTypeOf<['arrayAppend', '', string]>();
 
@@ -462,49 +506,46 @@ describe('DocumentCodeCompletion', () => {
     expectTypeOf<Test['arrayInsert']>().toEqualTypeOf<
       ['arrayInsert', `[${number}]`, string]
     >();
-
-    expectTypeOf<Test['replace']>().toEqualTypeOf<
-      ['replace', `[${number}]`, string] | ['replace', `[-1]`, string]
-    >();
-
-    expectTypeOf<Test['remove']>().toEqualTypeOf<
-      ['remove', `[${number}]`] | ['remove', `[-1]`]
-    >();
   });
 
   test('root object', () => {
     type TestDoc = { title: string };
-    type Test = OmitNeverValues<{
-      [Op in KvOperation]: DocumentCodeCompletion<Op, TestDoc>;
-    }>;
+    type Test = UnionToTree<DocumentCodeCompletion<KvOperation, TestDoc>>;
 
     expectTypeOf<keyof Test>().toEqualTypeOf<
       'get' | 'exists' | 'count' | 'upsert' | 'replace'
     >();
 
-    expectTypeOf<Test['get']>().toEqualTypeOf<['get', `title`, string]>();
+    expectTypeOf<Test['get']>().toEqualTypeOf<
+      ['get', '', TestDoc] | ['get', `title`, string]
+    >();
     expectTypeOf<Test['count']>().toEqualTypeOf<['count', '']>();
     expectTypeOf<Test['exists']>().toEqualTypeOf<['exists', 'title']>();
     expectTypeOf<Test['replace']>().toEqualTypeOf<['replace', `title`, string]>();
-    expectTypeOf<Test['upsert']>().toEqualTypeOf<['upsert', `title`, string]>();
+    expectTypeOf<Test['upsert']>().toEqualTypeOf<
+      ['upsert', '', TestDoc] | ['upsert', `title`, string]
+    >();
   });
 
   test('deep document', () => {
     type TestDoc = {
       title: string;
       sales?: number;
+      authors: string[];
+      audit: {
+        readonly createdAt: number;
+      };
       metadata?: { tags: string[] };
     };
 
-    type Test = OmitNeverValues<{
-      [Op in KvOperation]: DocumentCodeCompletion<Op, TestDoc>;
-    }>;
+    type Test = UnionToTree<DocumentCodeCompletion<KvOperation, TestDoc>>;
 
     type KeyofTest = keyof Test;
     expectTypeOf<KeyofTest>().toEqualTypeOf<
       | 'get'
       | 'count'
       | 'exists'
+      // | 'insert' TODO
       | 'upsert'
       | 'replace'
       | 'remove'
@@ -514,62 +555,106 @@ describe('DocumentCodeCompletion', () => {
       | 'binary'
     >();
 
-    expectTypeOf<Test['get']>().toEqualTypeOf<
+    type TestGet = DocumentCodeCompletion<'get', TestDoc>;
+
+    expectTypeOf<TestGet>().toEqualTypeOf<
+      | ['get', ``, TestDoc]
       | ['get', `title`, string]
       | ['get', `sales`, number]
+      | ['get', `authors`, string[]]
+      | ['get', `authors[${number}]`, string]
+      | ['get', `authors[-1]`, string]
       | ['get', `metadata`, { tags: string[] }]
       | ['get', `metadata.tags`, string[]]
       | ['get', `metadata.tags[${number}]`, string]
       | ['get', `metadata.tags[-1]`, string]
+      | ['get', `audit`, { readonly createdAt: number }]
+      | ['get', `audit.createdAt`, number]
     >();
 
-    expectTypeOf<Test['count']>().toEqualTypeOf<
-      ['count', ''] | ['count', 'metadata'] | ['count', 'metadata.tags']
+    type TestCount = DocumentCodeCompletion<'count', TestDoc>;
+    expectTypeOf<TestCount>().toEqualTypeOf<
+      | ['count', '']
+      | ['count', 'metadata']
+      | ['count', 'metadata.tags']
+      | ['count', 'authors']
+      | ['count', 'audit']
     >();
 
-    expectTypeOf<Test['exists']>().toEqualTypeOf<
+    type TestExists = DocumentCodeCompletion<'exists', TestDoc>;
+    expectTypeOf<TestExists>().toEqualTypeOf<
       | ['exists', `title`]
       | ['exists', `sales`]
+      | ['exists', `authors`]
+      | ['exists', `authors[${number}]`]
       | ['exists', `metadata`]
       | ['exists', `metadata.tags`]
       | ['exists', `metadata.tags[${number}]`]
+      | ['exists', `audit`]
+      | ['exists', `audit.createdAt`]
     >();
 
-    expectTypeOf<Test['upsert']>().toEqualTypeOf<
+    type TestUpsert = DocumentCodeCompletion<'upsert', TestDoc>;
+
+    expectTypeOf<TestUpsert>().toEqualTypeOf<
+      | ['upsert', ``, TestDoc]
       | ['upsert', `title`, string]
       | ['upsert', `sales`, number]
+      | ['upsert', `authors`, string[]]
       | ['upsert', `metadata`, { tags: string[] }]
       | ['upsert', `metadata.tags`, string[]]
-      | ['upsert', `metadata.tags[${number}]`, string]
-      | ['upsert', `metadata.tags[-1]`, string]
+      | ['upsert', `audit`, { readonly createdAt: number }]
     >();
 
-    expectTypeOf<Test['replace']>().toEqualTypeOf<
+    type TestReplace = DocumentCodeCompletion<'replace', TestDoc>;
+    expectTypeOf<TestReplace>().toEqualTypeOf<
       | ['replace', `title`, string]
       | ['replace', `sales`, number]
+      | ['replace', `authors`, string[]]
+      | ['replace', `authors[${number}]`, string]
+      | ['replace', `authors[-1]`, string]
       | ['replace', `metadata`, { tags: string[] }]
       | ['replace', `metadata.tags`, string[]]
       | ['replace', `metadata.tags[${number}]`, string]
       | ['replace', `metadata.tags[-1]`, string]
+      | ['replace', `audit`, { readonly createdAt: number }]
     >();
 
-    expectTypeOf<Test['remove']>().toEqualTypeOf<
-      | ['remove', `sales`]
-      | ['remove', `metadata`]
-      | ['remove', `metadata.tags[${number}]`]
-      | ['remove', `metadata.tags[-1]`]
+    type TestRemove = DocumentCodeCompletion<'remove', TestDoc>;
+    expectTypeOf<TestRemove>().toEqualTypeOf<
+      | ['remove', `sales`, true]
+      | ['remove', `metadata`, true]
+      | ['remove', `authors[${number}]`, true]
+      | ['remove', `authors[-1]`, true]
+      | ['remove', `metadata.tags[${number}]`, true]
+      | ['remove', `metadata.tags[-1]`, true]
     >();
 
-    expectTypeOf<Test['arrayAppend']>().toEqualTypeOf<
-      ['arrayAppend', `metadata.tags`, string]
-    >();
-    expectTypeOf<Test['arrayPrepend']>().toEqualTypeOf<
-      ['arrayPrepend', `metadata.tags`, string]
-    >();
-    expectTypeOf<Test['arrayInsert']>().toEqualTypeOf<
-      ['arrayInsert', `metadata.tags[${number}]`, string]
+    type TestArrayAppend = DocumentCodeCompletion<'arrayAppend', TestDoc>;
+    expectTypeOf<TestArrayAppend>().toEqualTypeOf<
+      ['arrayAppend', `metadata.tags`, string] | ['arrayAppend', `authors`, string]
     >();
 
-    expectTypeOf<Test['binary']>().toEqualTypeOf<['binary', `sales`]>();
+    type TestArrayPrepend = DocumentCodeCompletion<'arrayPrepend', TestDoc>;
+    expectTypeOf<TestArrayPrepend>().toEqualTypeOf<
+      ['arrayPrepend', `metadata.tags`, string] | ['arrayPrepend', `authors`, string]
+    >();
+
+    type TestArrayInsert = DocumentCodeCompletion<'arrayInsert', TestDoc>;
+    expectTypeOf<TestArrayInsert>().toEqualTypeOf<
+      | ['arrayInsert', `metadata.tags[${number}]`, string]
+      | ['arrayInsert', `authors[${number}]`, string]
+    >();
+
+    type TestBinary = DocumentCodeCompletion<'binary', TestDoc>;
+    expectTypeOf<TestBinary>().toEqualTypeOf<['binary', 'sales']>();
+
+    type TestBinary2 = DocumentCodeCompletion<'binary', { sales: [string, number] }>;
+    expectTypeOf<TestBinary2>().toEqualTypeOf<
+      ['binary', `sales[-1]`] | ['binary', `sales[1]`]
+    >();
+
+    type TestBinary3 = DocumentCodeCompletion<'binary', { sales: [number, string] }>;
+    expectTypeOf<TestBinary3>().toEqualTypeOf<['binary', `sales[0]`]>();
   });
 });

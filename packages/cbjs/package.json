@@ -62,7 +62,6 @@
     "tar": "^6.2.0"
   },
   "devDependencies": {
-    "@ark/attest": "^0.25.0",
     "@types/node": "^20.14.5",
     "typescript": "5.4.5",
     "vitest": "1.5.2"

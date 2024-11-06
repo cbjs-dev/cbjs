@@ -74,7 +74,7 @@ export type MutateInInsertOptions = { createPath?: boolean; xattr?: boolean };
  * Valid mutation path for an `upsert` operation.
  */
 export type MutateInUpsertPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'upsert', Def['Body']> | ''>
+  OperationPath<Def['Body'], OpCodeCompletionPath<'upsert', Def['Body']>>
 ;
 
 /**
@@ -128,7 +128,7 @@ export type MutateInRemoveOptions = { xattr?: boolean };
  * Valid mutation path for an `arrayAppend` operation.
  */
 export type MutateInArrayAppendPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend', Def['Body']> | ''>
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend', Def['Body']>>
 ;
 
 /**
@@ -139,7 +139,7 @@ export type MutateInArrayAppendValue<
   Path extends string,
   Multi extends boolean,
 > =
-  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'upsert', Def['Body'], Path>>
+  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayAppend', Def['Body'], Path>>
 ;
 
 /**
@@ -151,7 +151,7 @@ export type MutateInArrayAppendOptions<Multi extends boolean> = { createPath?: b
  * Valid mutation path for an `arrayPrepend` operation.
  */
 export type MutateInArrayPrependPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayPrepend', Def['Body']> | ''>
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayPrepend', Def['Body']>>
 ;
 
 /**
@@ -173,7 +173,7 @@ export type MutateInArrayPrependOptions<Multi extends boolean> = { createPath?: 
  * Valid mutation path for an `arrayInsert` operation.
  */
 export type MutateInArrayInsertPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayInsert', Def['Body']> | ''>
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayInsert', Def['Body']>>
 ;
 
 /**
@@ -189,14 +189,14 @@ export type MutateInArrayInsertValue<
 /**
  * Mutation options for an `arrayInsert` operation.
  */
-export type MutateInArrayInsertOptions<Multi extends boolean> = { createPath?: boolean; xattr?: boolean, multi?: Multi };
+export type MutateInArrayInsertOptions<Multi extends boolean> = { xattr?: boolean, multi?: Multi };
 
 
 /**
  * Valid mutation path for an `arrayAddUnique` operation.
  */
 export type MutateInArrayAddUniquePath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'],  OpCodeCompletionPath<'arrayAppend', Def['Body']> | ''>
+  OperationPath<Def['Body'],  OpCodeCompletionPath<'arrayAppend', Def['Body']>>
 ;
 
 /**
@@ -217,20 +217,15 @@ export type MutateInArrayAddUniqueOptions = { createPath?: boolean; xattr?: bool
 /**
  * Valid mutation path for an `increment` or `decrement` operation.
  */
-export type MutateInCounterPath<Def extends DocDefBodyShape> =
+export type MutateInBinaryPath<Def extends DocDefBodyShape> =
   OperationPath<Def['Body'], OpCodeCompletionPath<'binary', Def['Body']>>;
 
 /**
  * Valid mutation value for an `increment` or `decrement` operation.
  */
-export type MutateInCounterValue = number;
+export type MutateInBinaryValue = number;
 
 /**
  * Mutation options for an `increment` operation.
  */
-export type MutateInCounterOptions = { createPath?: boolean; xattr?: boolean };
-
-/**
- * Mutation options for a `decrement` operation.
- */
-export type MutateInDecrementOptions = { createPath?: boolean; xattr?: boolean };
+export type MutateInBinaryOptions = { createPath?: boolean; xattr?: boolean };

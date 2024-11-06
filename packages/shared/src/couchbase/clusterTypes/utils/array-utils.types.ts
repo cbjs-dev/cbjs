@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { If, IsExactly, IsNever, IsUnion, Or } from '../../../misc/index.js';
+import { IsExactly, IsNever, Not } from '../../../misc/index.js';
 
 /**
  * A union of all the possible types in the array.
  */
 export type ArrayElement<T> = T extends ReadonlyArray<infer E> ? E : never;
+
+/**
+ * Return `true` if T is a readonly array.
+ * {@link IsReadonly} will yield the same result, but `IsReadonlyArray` is cheaper.
+ */
+export type IsReadonlyArray<T> = T extends unknown[] ? false : true;
+
+// prettier-ignore
+type ArrayHasOptionalElement<T extends ReadonlyArray<unknown>> =
+  number extends T['length'] ?
+    false :
+  Not<IsNever<Exclude<T[T['length']], undefined>>>
+;
 
 /**
  * Return true if the length of `T` cannot be changed.
@@ -34,25 +47,21 @@ export type ArrayElement<T> = T extends ReadonlyArray<infer E> ? E : never;
 // prettier-ignore
 export type IsArrayLengthFixed<T> =
   T extends ReadonlyArray<unknown> ?
-    IsExactly<Readonly<T>, T> extends true ?
+    IsReadonlyArray<T> extends true ?
       true :
-    number extends T['length'] ?
-      false :
-    IsUnion<T['length']> extends true ?
+    IsVariadicArray<T> extends true ?
       false :
     true :
   never
 ;
 
 // prettier-ignore
-export type IsVariadicArray<T> =
-  T extends ReadonlyArray<unknown> ?
-    number extends T['length'] ?
-      true :
-    IsUnion<T['length']> extends true ?
-      true :
-    false :
-  never
+export type IsVariadicArray<T extends ReadonlyArray<unknown>> =
+  number extends T['length'] ?
+    true :
+  ArrayHasOptionalElement<T> extends true ?
+    true :
+  false
 ;
 
 /**
@@ -65,10 +74,8 @@ export type IsVariadicArray<T> =
  * IsArrayLengthKnown<[string, string]> // true - length is `1 | 2`
  */
 // prettier-ignore
-export type IsArrayLengthKnown<T> =
-  T extends ReadonlyArray<unknown> ?
-    number extends T['length'] ? false : true :
-  never
+export type IsArrayLengthKnown<T extends ReadonlyArray<unknown>> =
+  number extends T['length'] ? false : true
 ;
 
 /**
@@ -83,6 +90,9 @@ export type TupleIndexes<T extends ReadonlyArray<unknown>> =
   never
 ;
 
+type TTI = TupleIndexes<[string, string?]>;
+type TTI2 = ArrayIndexes<[string, ...string[]]>;
+
 /**
  * Extract all the possible keys of an array.
  */
@@ -90,15 +100,51 @@ export type ArrayIndexes<T extends ReadonlyArray<unknown>> =
   IsArrayLengthKnown<T> extends false ? number : TupleIndexes<T>;
 
 /**
+ * Extract all the known array's keys, wrapping each of them in a tuple, effectively preventing the merge of the union.
+ *
+ * ArrayKnownIndexes<string[]> // [number]
+ * ArrayKnownIndexes<string, string, string[]> // [number] | [0] | [1]
+ * ArrayKnownIndexes<string, number?> // [0] | [1]
+ */
+// prettier-ignore
+export type ArrayKnownIndexes<T extends ReadonlyArray<unknown>> =
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsFullyStatic'] extends true ?
+      TupleIndexes<Info['StaticSlice']> extends infer Index ?
+        Index extends number ?
+          [Index] :
+        never :
+      never :
+    Info['IsHeadStatic'] extends true ?
+      number extends Info['OptionalIndexes'] ?
+        | [number]
+        | (TupleIndexes<Info['StaticSlice']> extends infer Index ?
+            Index extends number ? [Index] : never :
+          never
+          )
+      :
+        ((TupleIndexes<Info['StaticSlice']> | Info['OptionalIndexes']) extends infer Index ?
+          Index extends number ? [Index] : never :
+        never
+        )
+      :
+    Info['OptionalIndexes'] extends infer Index ?
+      [Index] :
+    [number] :
+  never
+;
+
+/**
  * Return the array keys that are guaranteed to be present.
  */
+// prettier-ignore
 export type GuaranteedIndexes<T extends ReadonlyArray<unknown>> =
-  ArrayInfo<T> extends infer Info extends ArrayInfoShape
-    ? If<
-        Or<[Info['IsHeadStatic'], Info['IsTailStatic']]>,
-        TupleIndexes<Info['StaticSlice']>
-      >
-    : never;
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsHeadStatic'] extends true ?
+      TupleIndexes<Info['StaticSlice']> :
+    never :
+  never
+;
 
 /**
  * Return the type of the last index of the array.
@@ -118,6 +164,8 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
 // prettier-ignore
 export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
   ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsFullyStatic'] extends true ?
+      T[Info['LastIndex']] :
     Info['IsHeadStatic'] extends true ?
       (Info['OptionalIndexes'] | ArrayInfo<Info['StaticSlice']>['LastIndex']) extends infer PossibleLastIndex ?
         PossibleLastIndex extends number ?
@@ -179,13 +227,6 @@ export type TupleFilter<
   Filtered
 ;
 
-// prettier-ignore
-export type ArrayExclude<T extends ReadonlyArray<unknown>, U> =
-  T extends readonly [infer Head, ...infer Rest] ?
-    [Exclude<Head, U>, ...ArrayExclude<Rest, U>] :
-  []
-;
-
 /**
  * Information about an array.
  *
@@ -234,7 +275,7 @@ export type ArrayInfo<
       IsHeadStatic: true;
       IsTailStatic: true;
       RestElement: never;
-      StaticSlice: Readonly<T>;
+      StaticSlice: T;
       MinLength: T['length'];
       MaxLength: T['length'];
       LastIndex: T extends readonly [unknown, ...infer Rest] ? Rest['length'] : never;
@@ -249,7 +290,7 @@ export type ArrayInfo<
     IsHeadStatic: IsExactly<StaticEnd, 'head'>;
     IsTailStatic: IsExactly<StaticEnd, 'tail'>;
     RestElement: Exclude<ArrayElement<T>, undefined>;
-    StaticSlice: Readonly<StaticSlice>;
+    StaticSlice: StaticSlice;
     MinLength: StaticSlice['length'];
     MaxLength: [...T, ...StaticSlice]['length'];
     LastIndex: [...T, ...StaticSlice] extends readonly [unknown?, ...infer Rest] ? Rest['length'] : number;
@@ -260,6 +301,20 @@ export type ArrayInfo<
         Exclude<Partial<Rest>['length'], Exclude<Partial<StaticSlice>['length'], StaticSlice['length']>> :
       number
   }
+;
+
+// prettier-ignore
+export type IsHeadStatic<T extends ReadonlyArray<unknown>> =
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsHeadStatic'] :
+  never
+;
+
+// prettier-ignore
+export type IsTailStatic<T extends ReadonlyArray<unknown>> =
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsTailStatic'] :
+  never
 ;
 
 /**
@@ -273,55 +328,30 @@ export type ResolveIndex<T, K> =
         Info['LastIndex'] :
       never :
     K :
-  K
+  T extends object ?
+    K :
+  never
 ;
-
-/**
- * Return `true` if we know for sure cannot be removed.
- * `false` does NOT mean that removing the element is 100% safe, it just means it can
- * only be determined at runtime.
- */
-export type IsIndexRemovalStrictlyForbidden<
-  T extends ReadonlyArray<unknown>,
-  K extends number,
-> =
-  IsArrayLengthFixed<T> extends true
-    ? true
-    : ArrayInfo<T> extends infer SliceInfo extends ArrayInfoShape
-      ? SliceInfo['IsFullyStatic'] extends true
-        ? true
-        : SliceInfo['IsHeadStatic'] extends true
-          ? K extends TupleIndexes<SliceInfo['StaticSlice']>
-            ? [SliceInfo['RestElement']] extends [ArrayElement<SliceInfo['StaticSlice']>]
-              ? false
-              : true
-            : false
-          : SliceInfo['IsTailStatic'] extends true
-            ? K extends -1
-              ? [SliceInfo['RestElement']] extends [
-                  ArrayElement<SliceInfo['StaticSlice']>,
-                ]
-                ? false
-                : true
-              : false
-            : false
-      : false;
 
 /**
  * Return the type of an element you can prepend to the array.
  */
+// prettier-ignore
 export type ArrayPrependElement<T extends ReadonlyArray<unknown>> =
-  IsArrayLengthFixed<T> extends true
-    ? never
-    : ArrayInfo<T> extends infer Info extends ArrayInfoShape
-      ? Info['IsTailStatic'] extends true
-        ? Info['RestElement']
-        : Info['IsHeadStatic'] extends true
-          ? [ArrayElement<Info['StaticSlice']>] extends [Info['RestElement']]
-            ? Info['RestElement']
-            : never
-          : Info['RestElement']
-      : never;
+  IsArrayLengthFixed<T> extends true ?
+    never :
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsTailStatic'] extends true ?
+      Info['RestElement'] :
+    Info['IsHeadStatic'] extends true ?
+      TupleHasAscendingInheritance<T> extends true ?
+        ArrayLastElement<Info['StaticSlice']> extends Info['RestElement'] ?
+          Info['StaticSlice'][0] :
+        never :
+      never :
+    Info['RestElement'] :
+  never
+;
 
 /**
  * Return the type of an element you can append to the array.
@@ -334,51 +364,72 @@ export type ArrayAppendElement<T extends ReadonlyArray<unknown>> =
     Info['IsHeadStatic'] extends true ?
       Info['RestElement'] :
     Info['IsTailStatic'] extends true ?
-      [ArrayElement<Info['StaticSlice']>] extends [Info['RestElement']] ?
-        ArrayElement<Info['StaticSlice']> :
+      TupleHasDescendingInheritance<T> extends true ?
+        Info['StaticSlice'][0] extends Info['RestElement'] ?
+          ArrayLastElement<T> :
+        never :
       never :
     Info['RestElement'] :
   never
 ;
 
 /**
- * Extract arrays to which you can prepend an element out of the union.
+ * Returns `true` if every element type can be assigned to the next one.
  */
-export type ExtractPrependableArray<T extends ReadonlyArray<unknown>> = T extends unknown
-  ? [ArrayPrependElement<T>] extends [never]
-    ? never
-    : T
-  : never;
+// prettier-ignore
+export type ArrayHasAscendingInheritance<T extends ReadonlyArray<unknown>> =
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsFullyStatic'] extends true ?
+      TupleHasAscendingInheritance<T> :
+    Info['IsHeadStatic'] extends true ?
+      TupleHasAscendingInheritance<[...Info['StaticSlice'], Info['RestElement']]> :
+    Info['IsTailStatic'] extends true ?
+      TupleHasAscendingInheritance<[Info['RestElement'], ...Info['StaticSlice']]> :
+    true :
+  never
+;
 
 /**
- * Extract arrays to which you can append an element out of the union.
+ * Returns `true` if every element type can be assigned to the previous one.
  */
-export type ExtractAppendableArray<T extends ReadonlyArray<unknown>> = T extends unknown
-  ? [ArrayAppendElement<T>] extends [never]
-    ? never
-    : T
-  : never;
+// prettier-ignore
+export type ArrayHasDescendingInheritance<T extends ReadonlyArray<unknown>> =
+  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+    Info['IsFullyStatic'] extends true ?
+      TupleHasDescendingInheritance<T> :
+    Info['IsHeadStatic'] extends true ?
+      TupleHasDescendingInheritance<[...Info['StaticSlice'], Info['RestElement']]> :
+    Info['IsTailStatic'] extends true ?
+      TupleHasDescendingInheritance<[Info['RestElement'], ...Info['StaticSlice']]> :
+    true :
+  never
+;
 
-export type DropTupleHead<T extends ReadonlyArray<unknown>> = T extends [
-  unknown,
-  ...infer Rest,
-]
-  ? Rest
-  : [];
+/**
+ * Returns `true` if every element type can be assigned to the next one.
+ * ! Does not handle variadic arrays
+ */
+// prettier-ignore
+export type TupleHasAscendingInheritance<T> =
+  T extends readonly [infer H0, infer H1, ...infer Rest] ?
+    [H0] extends [H1] ?
+      TupleHasAscendingInheritance<[H1, ...Rest]> :
+    false :
+  true
+;
 
-export type DropTupleTail<T extends ReadonlyArray<unknown>> = T extends [
-  ...infer Rest,
-  unknown,
-]
-  ? Rest
-  : [];
-
-export type TupleTail<T extends ReadonlyArray<unknown>> = T extends [
-  ...ReadonlyArray<unknown>,
-  infer Tail,
-]
-  ? Tail
-  : never;
+/**
+ * Returns `true` if every element type can be assigned to the previous one.
+ * ! Does not handle variadic arrays
+ */
+// prettier-ignore
+export type TupleHasDescendingInheritance<T> =
+  T extends readonly [...infer Rest, infer T1, infer T0] ?
+    [T0] extends [T1] ?
+      TupleHasDescendingInheritance<[...Rest, T1]> :
+    false :
+  true
+;
 
 // prettier-ignore
 export type ArrayMap<T extends ReadonlyArray<unknown>, Prop extends keyof ArrayElement<T>> =
@@ -389,4 +440,39 @@ export type ArrayMap<T extends ReadonlyArray<unknown>, Prop extends keyof ArrayE
       never:
     never:
   []
+;
+
+/**
+ * Return a slice of an array, starting at the given index `Start` (included), up to the end of the array.
+ */
+// prettier-ignore
+export type ArraySlice<T extends ReadonlyArray<unknown>, Start extends number> =
+  ArraySliceTRE<T, Start, []>
+;
+
+// prettier-ignore
+type ArraySliceTRE<T extends ReadonlyArray<unknown>, Start extends number, Drop extends ReadonlyArray<unknown>> =
+  Drop['length'] extends Start ?
+    T :
+  T extends [unknown, ...infer Rest] ?
+    ArraySliceTRE<Rest, Start, [...Drop, unknown]> :
+  []
+;
+
+// prettier-ignore
+export type IsFirstElementRemovable<T extends ReadonlyArray<unknown>> =
+  IsHeadStatic<T> extends true ?
+    ArrayHasDescendingInheritance<T> extends true ?
+      true :
+    false :
+  true
+;
+
+// prettier-ignore
+export type IsLastElementRemovable<T extends ReadonlyArray<unknown>> =
+  IsTailStatic<T> extends true ?
+    ArrayHasAscendingInheritance<T> extends true ?
+      true :
+    false :
+  true
 ;

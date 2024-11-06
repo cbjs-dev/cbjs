@@ -49,7 +49,7 @@ describe('mutateIn remove', async () => {
       type Test = TestPaths<
         TestDocDef,
         {
-          '': true;
+          '': false;
           'String': false;
           'Number': false;
           'NonMatchingTuple': false;
@@ -241,11 +241,6 @@ describe('mutateIn remove', async () => {
         .mutateIn('monument::001')
         // @ts-expect-error invalid path - cannot remove a required property
         .remove('visitors')
-
-        // @ts-expect-error invalid path - cannot remove a required property within a record
-        .removeFromRecord('visitors.visitor::001', 'enteredAt')
-
-        .removeFromRecord('visitors.visitor::001', 'leftAt')
 
         // @ts-expect-error invalid path - cannot remove a required property within an array
         .remove('historicalReferences.persons[0].name')

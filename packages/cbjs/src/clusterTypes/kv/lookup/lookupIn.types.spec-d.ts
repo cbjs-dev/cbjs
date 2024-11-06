@@ -343,17 +343,17 @@ describe('LookupInSpecs', () => {
 
   describe('LookupInSpecResults', () => {
     it('should infer the correct result when using user defined document', () => {
-      expectTypeOf<
-        LookupInSpecResults<
-          [
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
-          ],
-          TestDocDef
-        >
-      >().toEqualTypeOf<[string, boolean, number, string | undefined]>();
+      type Test = LookupInSpecResults<
+        [
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'title'>,
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
+        ],
+        TestDocDef
+      >;
+
+      expectTypeOf<Test>().toEqualTypeOf<[string, boolean, number, string]>();
     });
 
     it('should provide best-effort when using collection documents', () => {

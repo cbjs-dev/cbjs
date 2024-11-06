@@ -15,70 +15,103 @@
  */
 import { describe, expectTypeOf, it, test } from 'vitest';
 
-import type {
+import {
   ArrayAppendElement,
   ArrayEntries,
   ArrayIndexes,
   ArrayInfo,
+  ArrayKnownIndexes,
   ArrayLastElement,
   ArrayLastIndex,
   ArrayPrependElement,
   GuaranteedIndexes,
-  IsIndexRemovalStrictlyForbidden,
+  IsArrayLengthFixed,
   ResolveIndex,
   TupleFilter,
+  TupleHasAscendingInheritance,
+  TupleHasDescendingInheritance,
   TupleIndexes,
 } from './array-utils.types.js';
 
-describe('ArrayIndexes', function () {
-  it('should return all the keys of a tuple', function () {
+describe('ArrayIndexes', () => {
+  it('should return all the keys of a tuple', () => {
     type Test = ArrayIndexes<[string, number]>;
     expectTypeOf<Test>().toEqualTypeOf<0 | 1>();
   });
 
-  it('should return `number` for a variable-length array', function () {
+  it('should return `number` for a variadic array', () => {
     expectTypeOf<ArrayIndexes<string[]>>().toEqualTypeOf<number>();
     expectTypeOf<ArrayIndexes<Array<{ foo: string }>>>().toEqualTypeOf<number>();
   });
+
+  it('should return 0 | 1 |`number` for a variadic array with min length', () => {
+    expectTypeOf<ArrayIndexes<[string, string, ...string[]]>>().toEqualTypeOf<number>();
+  });
 });
 
-describe('TupleIndexes', function () {
-  it('should return all the keys of a tuple', function () {
+describe('ArrayKnownIndexes', () => {
+  test('array', () => {
+    expectTypeOf<ArrayKnownIndexes<string[]>>().toEqualTypeOf<[number]>();
+  });
+
+  test('static array', () => {
+    expectTypeOf<ArrayKnownIndexes<[string, string]>>().toEqualTypeOf<[0] | [1]>();
+  });
+
+  test('array with optional element', () => {
+    expectTypeOf<ArrayKnownIndexes<[string, string?]>>().toEqualTypeOf<[0] | [1]>();
+  });
+
+  test('variadic array static head', () => {
+    expectTypeOf<ArrayKnownIndexes<[string, string, ...string[]]>>().toEqualTypeOf<
+      [0] | [1] | [number]
+    >();
+  });
+
+  test('variadic array static tail', () => {
+    expectTypeOf<ArrayKnownIndexes<[...string[], string, string]>>().toEqualTypeOf<
+      [number]
+    >();
+  });
+});
+
+describe('TupleIndexes', () => {
+  it('should return all the keys of a tuple', () => {
     expectTypeOf<TupleIndexes<[string, number]>>().toEqualTypeOf<0 | 1>();
   });
 
-  it('should return `never` for a variable-length array', function () {
+  it('should return `never` for a variable-length array', () => {
     expectTypeOf<TupleIndexes<[string, ...string[]]>>().toBeNever();
     expectTypeOf<TupleIndexes<string[]>>().toBeNever();
   });
 });
 
-describe('GuaranteedIndexes', function () {
-  it('should return all the keys of a tuple', function () {
+describe('GuaranteedIndexes', () => {
+  it('should return all the keys of a tuple', () => {
     expectTypeOf<GuaranteedIndexes<[]>>().toBeNever();
     expectTypeOf<GuaranteedIndexes<[string]>>().toEqualTypeOf<0>();
     expectTypeOf<GuaranteedIndexes<[string, number]>>().toEqualTypeOf<0 | 1>();
   });
 
-  it('should return the keys of the static part if the array have a minimum length', function () {
+  it('should return the keys of the static part if the array have a minimum length', () => {
     expectTypeOf<GuaranteedIndexes<[string, string, ...string[]]>>().toEqualTypeOf<
       0 | 1
     >();
   });
 
-  it('should return `never` for an array with no minimum length', function () {
+  it('should return `never` for an array with no minimum length', () => {
     expectTypeOf<GuaranteedIndexes<string[]>>().toBeNever();
   });
 });
 
-describe('ArrayEntries', function () {
-  it('should return a union of entries', function () {
+describe('ArrayEntries', () => {
+  it('should return a union of entries', () => {
     expectTypeOf<ArrayEntries<[string, number]>>().toEqualTypeOf<
       [0, string] | [1, number]
     >();
   });
 
-  it('should return a union of entries to which you can assign the given type', function () {
+  it('should return a union of entries to which you can assign the given type', () => {
     expectTypeOf<ArrayEntries<[string, number], number>>().toEqualTypeOf<[1, number]>();
 
     expectTypeOf<ArrayEntries<number[], number>>().toEqualTypeOf<[number, number]>();
@@ -89,8 +122,8 @@ describe('ArrayEntries', function () {
   });
 });
 
-describe('TupleFilter', function () {
-  it('should retain tuple entries to which you can assign the given type', function () {
+describe('TupleFilter', () => {
+  it('should retain tuple entries to which you can assign the given type', () => {
     expectTypeOf<TupleFilter<[string, number], number>>().toEqualTypeOf<[number]>();
     expectTypeOf<TupleFilter<[number, number], number>>().toEqualTypeOf<
       [number, number]
@@ -104,7 +137,7 @@ describe('TupleFilter', function () {
     expectTypeOf<TupleFilter<['title', 0], number>>().toEqualTypeOf<[]>();
   });
 
-  it('should retain tuple entries to which the given type can be assigned', function () {
+  it('should retain tuple entries to which the given type can be assigned', () => {
     expectTypeOf<TupleFilter<[string, number], number, true>>().toEqualTypeOf<[number]>();
     expectTypeOf<TupleFilter<[number, number], number, true>>().toEqualTypeOf<
       [number, number]
@@ -119,8 +152,8 @@ describe('TupleFilter', function () {
   });
 });
 
-describe('ResolveIndex', function () {
-  it('should resolve the last element of a tuple', function () {
+describe('ResolveIndex', () => {
+  it('should resolve the last element of a tuple', () => {
     expectTypeOf<ResolveIndex<[string], -1>>().toEqualTypeOf<0>();
     expectTypeOf<ResolveIndex<[string, number], -1>>().toEqualTypeOf<1>();
     expectTypeOf<ResolveIndex<readonly [string, number], -1>>().toEqualTypeOf<1>();
@@ -128,8 +161,8 @@ describe('ResolveIndex', function () {
   });
 });
 
-describe('ArrayLastIndex', function () {
-  it('should return the last key of the array', function () {
+describe('ArrayLastIndex', () => {
+  it('should return the last key of the array', () => {
     expectTypeOf<ArrayLastIndex<string[]>>().toEqualTypeOf<number>();
     expectTypeOf<ArrayLastIndex<[string]>>().toEqualTypeOf<0>();
     expectTypeOf<ArrayLastIndex<[string, string]>>().toEqualTypeOf<1>();
@@ -141,8 +174,8 @@ describe('ArrayLastIndex', function () {
   });
 });
 
-describe('ArrayPrependElement', function () {
-  it('should return the type of element you can prepend', function () {
+describe('ArrayPrependElement', () => {
+  it('should return the type of element you can prepend', () => {
     expectTypeOf<ArrayPrependElement<[string]>>().toBeNever();
     expectTypeOf<ArrayPrependElement<[...string[], string]>>().toEqualTypeOf<string>();
     expectTypeOf<
@@ -165,8 +198,70 @@ describe('ArrayPrependElement', function () {
   });
 });
 
-describe('ArrayAppendElement', function () {
-  it('should return the type of element you can append', function () {
+// TODO actually test all forms on array
+describe('TupleHasMoonwalkingInheritance', () => {
+  test('array', () => {
+    type Test = TupleHasDescendingInheritance<string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('array of union', () => {
+    type Test = TupleHasDescendingInheritance<(string | number)[]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('same type tuple', () => {
+    type Test = TupleHasDescendingInheritance<[string, string]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('non-matching type tuple', () => {
+    type Test = TupleHasDescendingInheritance<[string, number]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
+
+  test('moonwalking inheritance tuple', () => {
+    type Test = TupleHasDescendingInheritance<[string | number, number]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+});
+
+describe('TupleHasAscendingInheritance', () => {
+  test('array', () => {
+    type Test = TupleHasAscendingInheritance<string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('array of union', () => {
+    type Test = TupleHasAscendingInheritance<(string | number)[]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('same type tuple', () => {
+    type Test = TupleHasAscendingInheritance<[string, string]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('non-matching type tuple', () => {
+    type Test = TupleHasAscendingInheritance<[string, number]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
+
+  test('ascending inheritance tuple', () => {
+    type Test = TupleHasAscendingInheritance<[number, string | number]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+
+  test('ascending inheritance variadic array', () => {
+    type Test = TupleHasAscendingInheritance<
+      [number, string | number, string | number | symbol]
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
+});
+
+describe('ArrayAppendElement', () => {
+  it('should return the type of element you can append', () => {
     expectTypeOf<ArrayAppendElement<[string]>>().toBeNever();
     expectTypeOf<ArrayAppendElement<[...string[], string]>>().toEqualTypeOf<string>();
     expectTypeOf<
@@ -184,6 +279,14 @@ describe('ArrayAppendElement', function () {
     >().toEqualTypeOf<number>();
     expectTypeOf<ArrayAppendElement<string[]>>().toEqualTypeOf<string>();
 
+    expectTypeOf<
+      ArrayAppendElement<[...('a' | 'b' | 'c')[], 'a', 'b', 'c']>
+    >().toBeNever();
+
+    expectTypeOf<
+      ArrayAppendElement<['a', 'b', 'c', ...('a' | 'b' | 'c')[]]>
+    >().toEqualTypeOf<'a' | 'b' | 'c'>();
+
     expectTypeOf<ArrayAppendElement<readonly [string]>>().toBeNever();
     expectTypeOf<ArrayAppendElement<readonly [...string[], string]>>().toBeNever();
     expectTypeOf<ArrayAppendElement<readonly [...number[], string]>>().toBeNever();
@@ -193,14 +296,14 @@ describe('ArrayAppendElement', function () {
   });
 });
 
-describe('ArrayInfo', function () {
-  it('should return information about the static portion of the array', function () {
+describe('ArrayInfo', () => {
+  it('should return information about the static portion of the array', () => {
     expectTypeOf<ArrayInfo<[string, string]>>().toEqualTypeOf<{
       IsHeadStatic: true;
       IsTailStatic: true;
       IsFullyStatic: true;
       RestElement: never;
-      StaticSlice: readonly [string, string];
+      StaticSlice: [string, string];
       MinLength: 2;
       MaxLength: 2;
       LastIndex: 1;
@@ -212,7 +315,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: true;
       IsFullyStatic: false;
       RestElement: string;
-      StaticSlice: readonly [number, object];
+      StaticSlice: [number, object];
       MinLength: 2;
       MaxLength: number;
       LastIndex: number;
@@ -224,7 +327,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: object;
-      StaticSlice: readonly [string, number];
+      StaticSlice: [string, number];
       MinLength: 2;
       MaxLength: number;
       LastIndex: number;
@@ -236,7 +339,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: number;
-      StaticSlice: readonly [string];
+      StaticSlice: [string];
       MinLength: 1;
       MaxLength: 3;
       LastIndex: 2;
@@ -248,7 +351,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: string;
-      StaticSlice: readonly [];
+      StaticSlice: [];
       MinLength: 0;
       MaxLength: number;
       LastIndex: number;
@@ -274,7 +377,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: true;
       IsFullyStatic: false;
       RestElement: string;
-      StaticSlice: readonly [number, object];
+      StaticSlice: [number, object];
       MinLength: 2;
       MaxLength: number;
       LastIndex: number;
@@ -286,7 +389,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: object;
-      StaticSlice: readonly [string, number];
+      StaticSlice: [string, number];
       MinLength: 2;
       MaxLength: number;
       LastIndex: number;
@@ -298,7 +401,7 @@ describe('ArrayInfo', function () {
       IsTailStatic: false;
       IsFullyStatic: false;
       RestElement: string;
-      StaticSlice: readonly [];
+      StaticSlice: [];
       MinLength: 0;
       MaxLength: number;
       LastIndex: number;
@@ -349,152 +452,44 @@ describe('ArrayLastElement', () => {
   });
 });
 
-describe('IsIndexRemovalStrictlyForbidden', function () {
-  it('should return true if the index not removable', function () {
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<IsIndexRemovalStrictlyForbidden<[string], 0>>().toEqualTypeOf<true>();
-    expectTypeOf<IsIndexRemovalStrictlyForbidden<[string], 1>>().toEqualTypeOf<true>();
-    expectTypeOf<IsIndexRemovalStrictlyForbidden<[string], -1>>().toEqualTypeOf<true>();
+describe('IsArrayLengthFixed', () => {
+  test('array', () => {
+    type Test = IsArrayLengthFixed<string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
 
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], string], number>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], string], 0>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], string], 1>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], string], -1>
-    >().toEqualTypeOf<false>();
+  test('readonly array', () => {
+    type Test = IsArrayLengthFixed<readonly string[]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
 
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], number], number>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], number], 0>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], number], 1>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[...string[], number], -1>
-    >().toEqualTypeOf<true>();
+  test('tuple', () => {
+    type Test = IsArrayLengthFixed<[string]>;
+    expectTypeOf<Test>().toEqualTypeOf<true>();
+  });
 
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, ...string[]], number>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, ...string[]], 0>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, ...string[]], 1>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, ...string[]], -1>
-    >().toEqualTypeOf<false>();
+  test('tuple with variadic head', () => {
+    type Test = IsArrayLengthFixed<[...number[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
 
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, object, ...number[]], number>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, object, ...number[]], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, object, ...number[]], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<[string, object, ...number[]], 2>
-    >().toEqualTypeOf<false>();
+  test('tuple with variadic head same type', () => {
+    type Test = IsArrayLengthFixed<[...string[], string]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
 
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<string[], number>
-    >().toEqualTypeOf<false>();
-    expectTypeOf<IsIndexRemovalStrictlyForbidden<string[], 0>>().toEqualTypeOf<false>();
-    expectTypeOf<IsIndexRemovalStrictlyForbidden<string[], 1>>().toEqualTypeOf<false>();
-    expectTypeOf<IsIndexRemovalStrictlyForbidden<string[], -1>>().toEqualTypeOf<false>();
+  test('tuple with variadic tail', () => {
+    type Test = IsArrayLengthFixed<[string, ...number[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
 
-    // RO input
+  test('tuple with variadic tail same type', () => {
+    type Test = IsArrayLengthFixed<[string, ...string[]]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
 
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string], -1>
-    >().toEqualTypeOf<true>();
-
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], string], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], string], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], string], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], string], -1>
-    >().toEqualTypeOf<true>();
-
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], number], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], number], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], number], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [...string[], number], -1>
-    >().toEqualTypeOf<true>();
-
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, ...string[]], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, ...string[]], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, ...string[]], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, ...string[]], -1>
-    >().toEqualTypeOf<true>();
-
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, object, ...number[]], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, object, ...number[]], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, object, ...number[]], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly [string, object, ...number[]], 2>
-    >().toEqualTypeOf<true>();
-
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly string[], number>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly string[], 0>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly string[], 1>
-    >().toEqualTypeOf<true>();
-    expectTypeOf<
-      IsIndexRemovalStrictlyForbidden<readonly string[], -1>
-    >().toEqualTypeOf<true>();
+  test('tuple with optional element', () => {
+    type Test = IsArrayLengthFixed<[string, number?]>;
+    expectTypeOf<Test>().toEqualTypeOf<false>();
   });
 });

@@ -120,9 +120,6 @@ importers:
         specifier: ^6.2.0
         version: 6.2.1
     devDependencies:
-      '@ark/attest':
-        specifier: ^0.25.0
-        version: 0.25.0(typescript@5.4.5)
       '@types/node':
         specifier: ^20.14.5
         version: 20.14.9
@@ -407,6 +404,9 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
     devDependencies:
+      '@ark/attest':
+        specifier: ^0.25.0
+        version: 0.25.0(typescript@5.4.5)
       '@types/node':
         specifier: ^20.14.2
         version: 20.14.9
@@ -6671,7 +6671,7 @@ snapshots:
       fflate: 0.8.2
       flatted: 3.3.1
       pathe: 1.1.2
-      picocolors: 1.0.0
+      picocolors: 1.1.1
       sirv: 2.0.4
       vitest: 1.5.2(@types/node@20.14.9)(@vitest/ui@1.5.2)
 
@@ -9604,8 +9604,7 @@ snapshots:
 
   picocolors@1.0.0: {}
 
-  picocolors@1.1.1:
-    optional: true
+  picocolors@1.1.1: {}
 
   picomatch@2.3.1: {}
 

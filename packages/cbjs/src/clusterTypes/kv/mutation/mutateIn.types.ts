@@ -30,8 +30,8 @@ import type {
   MutateInArrayInsertValue,
   MutateInArrayPrependPath,
   MutateInArrayPrependValue,
-  MutateInCounterPath,
-  MutateInCounterValue,
+  MutateInBinaryPath,
+  MutateInBinaryValue,
   MutateInInsertPath,
   MutateInInsertValue,
   MutateInRemovePath,
@@ -98,7 +98,7 @@ export type MutateInPath<Def extends DocDefKeyBodyShape, Opcode extends MutateIn
   Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependPath<Def> :
   Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertPath<Def> :
   Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniquePath<Def> :
-  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInBinaryPath<Def> :
   never
 ;
 
@@ -135,7 +135,7 @@ export type MutateInValue<
   Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependValue<Def, Path, Multi> :
   Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertValue<Def, Path, Multi> :
   Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniqueValue<Def, Path> :
-  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterValue :
+  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInBinaryValue :
   never
 ;
 

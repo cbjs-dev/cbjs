@@ -61,16 +61,16 @@ export type LookupInSpecResults<Specs, Defs> =
  */
 export type LookupInSpecResult<Spec, Def> =
   Def extends DocDefBodyShape ?
-    Spec extends LookupInSpec<infer LookupDef> ?
-      Spec['_op'] extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
-        Spec['_path'] extends keyof LookupInMacroReturnType ?
-          LookupInMacroReturnType[Spec['_path']] :
+    Spec extends LookupInSpec<infer LookupDef, infer Op, infer Path> ?
+      Op extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
+        Path extends keyof LookupInMacroReturnType ?
+          LookupInMacroReturnType[Path] :
         IsFuzzyDocument<LookupDef['Body']> extends true ?
-          OpCodeCompletionValue<'get', Def['Body'], Spec['_path']> :
-        OpCodeCompletionValue<'get', LookupDef['Body'], Spec['_path']> :
-      Spec['_op'] extends CppProtocolSubdocOpcode.get_count ?
+          OpCodeCompletionValue<'get', Def['Body'], Path> :
+        OpCodeCompletionValue<'get', LookupDef['Body'], Path> :
+      Op extends CppProtocolSubdocOpcode.get_count ?
         number :
-      Spec['_op'] extends CppProtocolSubdocOpcode.exists ?
+      Op extends CppProtocolSubdocOpcode.exists ?
         boolean :
       never :
     never :

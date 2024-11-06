@@ -47,7 +47,6 @@ export type SearchIndexCommonConfig = {
    * Plan properties such as the number of replicas and number of partitions.
    */
   planParams?: {
-    hierarchyRules?: unknown;
     maxPartitionsPerPIndex?: number;
     nodePlanParams?: unknown;
     numReplicas?: number;

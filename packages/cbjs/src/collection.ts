@@ -160,11 +160,8 @@ export interface GetOptions<
    * This allows for easy retrieval of select fields without incurring the
    * overhead of fetching the whole document.
    */
-  project?: Def['Body'] extends JsonObject
-    ?
-        | LookupInGetPath<JsonDocumentDef<Def>>
-        | ReadonlyArray<LookupInGetPath<JsonDocumentDef<Def>>>
-    : undefined;
+  // TODO
+  project?: string | string[];
 
   /**
    * Indicates that the expiry of the document should be fetched alongside
@@ -2092,10 +2089,7 @@ export class Collection<
         callback(null, result as never);
       }
 
-      return result as LookupInResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
-        ThrowOnSpecError
-      >;
+      return result as never;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 

@@ -21,12 +21,13 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
+  FilterCC,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
 import { DocDef } from '../../clusterTypes.js';
-import type { MutateInCounterPath } from './mutationOperations.types.js';
+import type { MutateInBinaryPath } from './mutationOperations.types.js';
 
 describe('mutateIn counter', async () => {
   type TestDoc = TestDocRequiredProperties &
@@ -40,8 +41,11 @@ describe('mutateIn counter', async () => {
     Def extends AnyDocDef,
     T extends Record<MakeTestPaths<Def['Body']>, boolean>,
   > = {
-    [Path in keyof T]: [T[Path], Path extends MutateInCounterPath<Def> ? true : false];
+    [Path in keyof T]: [T[Path], Path extends MutateInBinaryPath<Def> ? true : false];
   };
+
+  type CC = MutateInBinaryPath<{ Body: TestDoc }>;
+  type CCF = FilterCC<CC, 'Non'>;
 
   describe('increment', () => {
     it('should allow to increment a path to a non-readonly target assignable to number', () => {

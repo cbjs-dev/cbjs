@@ -41,7 +41,7 @@ export type {
   MutateInArrayPrependPath,
   MutateInArrayAddUniquePath,
   MutateInArrayInsertPath,
-  MutateInCounterPath,
+  MutateInBinaryPath,
 } from './kv/mutation/mutationOperations.types.js';
 
 export type {

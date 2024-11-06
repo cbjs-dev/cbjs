@@ -48,7 +48,7 @@ export type Not<T extends boolean> = T extends true ? false : true;
 /**
  * Return `Then` if `Case` if true, false otherwise.
  */
-export type If<Case extends boolean, Then, Else = never> = Case extends true
+export type If<Case extends boolean, Then, Else = never> = [Case] extends [true]
   ? Then
   : Else;
 
@@ -207,3 +207,8 @@ export type PromiseValue<T> = T extends Promise<infer V> ? V : T;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type NoInfer<T> = [T][T extends any ? 0 : never];
+
+/**
+ * Return `true` if T is readonly.
+ */
+export type IsReadonly<T> = T extends Primitive ? false : IsExactly<Readonly<T>, T>;
