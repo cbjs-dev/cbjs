@@ -15,7 +15,6 @@
  */
 
 export type * from './array-utils.types.js';
-export type * from './document-path.types.js';
 export type * from './misc-utils.types.js';
 export type * from './path-utils.types.js';
 export type * from './string-utils.types.js';

@@ -14,20 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocumentPath, ExtractPathToRecordEntry, SubDocument } from '@cbjsdev/shared';
+import { IsLegalPath } from '@cbjsdev/shared';
 
 import {
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
   PathAutocomplete,
 } from '../../../clusterTypes/clusterTypes.js';
-import {
+import type {
   AnyCollection,
   MutateInArrayAddUniquePath,
-  type MutateInArrayAppendPath,
+  MutateInArrayAppendPath,
   MutateInArrayInsertPath,
   MutateInArrayPrependPath,
-  MutateInCounterPath,
+  MutateInBinaryPath,
   MutateInInsertPath,
   MutateInRemovePath,
   MutateInReplacePath,
@@ -35,6 +35,7 @@ import {
 } from '../../../clusterTypes/index.js';
 import { MutateInSpecResult } from '../../../clusterTypes/kv/mutation/mutateIn.types.js';
 import {
+  IllegalPathErrorMessage,
   MutateInArrayAddUniqueOptions,
   MutateInArrayAddUniqueValue,
   MutateInArrayAppendOptions,
@@ -43,12 +44,12 @@ import {
   MutateInArrayInsertValue,
   MutateInArrayPrependOptions,
   MutateInArrayPrependValue,
-  MutateInCounterOptions,
-  MutateInCounterValue,
-  MutateInDecrementOptions,
+  MutateInBinaryOptions,
+  MutateInBinaryValue,
   MutateInInsertOptions,
   MutateInInsertValue,
   MutateInRemoveOptions,
+  MutateInReplaceOptions,
   MutateInReplaceValue,
   MutateInUpsertOptions,
   MutateInUpsertValue,
@@ -68,15 +69,18 @@ type ArrayAddUniqueSpecs<Values extends ReadonlyArray<unknown>> =
 ;
 
 export class ChainableMutateIn<
-  C extends AnyCollection,
-  Key extends ExtractCollectionJsonDocKey<C>,
-  SpecResults extends ReadonlyArray<undefined | number>,
-  Def extends ExtractCollectionJsonDocDef<C, Key> = ExtractCollectionJsonDocDef<C, Key>,
+  out C extends AnyCollection,
+  out Key extends ExtractCollectionJsonDocKey<C>,
+  in out SpecResults extends ReadonlyArray<undefined | number>,
+  in out Def extends ExtractCollectionJsonDocDef<C, Key> = ExtractCollectionJsonDocDef<
+    C,
+    Key
+  >,
 > implements Promise<MutateInResult<SpecResults>>
 {
   // Promise stuff
 
-  [Symbol.toStringTag] = 'ChainableMutateInSpecs';
+  [Symbol.toStringTag] = 'ChainableMutateIn';
 
   then<TResult1 = MutateInResult<SpecResults>, TResult2 = never>(
     onFulfilled?:
@@ -162,57 +166,15 @@ export class ChainableMutateIn<
    */
   insert<
     const Path extends MutateInInsertPath<Def>,
-    Value extends MutateInInsertValue<Def, Path>,
+    Value extends MutateInInsertValue<Def, NoInfer<Path>>,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: MutateInInsertOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.insert<Def, Path, Value>(path, value, options);
+    const spec = MutateInSpec.insert(path, value, options);
     return this.push(spec);
   }
-
-  /**
-   * Just like {@link ChainableMutateIn.insert}, it adds a property to a document.
-   * This method offers better type safety because it looks at optional properties from
-   * the standpoint of the record.
-   */
-  insertIntoRecord<
-    const PathToRecord extends ExtractPathToRecordEntry<Def['Body'], Def['Path']>,
-    const PathWithinRecord extends MutateInInsertPath<{
-      Body: RecordValue;
-      Path: DocumentPath<RecordValue>;
-    }>,
-    Value extends MutateInInsertValue<Def, `${PathToRecord}.${PathWithinRecord}`>,
-    RecordValue = Extract<SubDocument<Def['Body'], PathToRecord>, Record<any, any>>,
-  >(
-    pathToRecord: PathToRecord,
-    pathWithinRecord: PathWithinRecord,
-    value: Value,
-    options?: MutateInInsertOptions
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.insert(
-      (pathToRecord as string) + '.' + pathWithinRecord,
-      value,
-      options
-    );
-    return this.push(spec);
-  }
-
-  upsert<Value extends Def['Body']>(
-    path: '',
-    value: Value,
-    options?: MutateInUpsertOptions
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]>;
-
-  upsert<
-    Path extends MutateInUpsertPath<Def>,
-    Value extends MutateInUpsertValue<Def, Path>,
-  >(
-    path: Path,
-    value: Value,
-    options?: MutateInUpsertOptions
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]>;
 
   /**
    * Set the value of a property. If the property does not exist, it is created.
@@ -228,7 +190,14 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  upsert(path: string, value: unknown, options?: MutateInUpsertOptions): any {
+  upsert<
+    Path extends MutateInUpsertPath<Def>,
+    Value extends MutateInUpsertValue<Def, Path>,
+  >(
+    path: Path,
+    value: Value,
+    options?: MutateInUpsertOptions
+  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.upsert(path, value, options);
     return this.push(spec);
   }
@@ -248,30 +217,18 @@ export class ChainableMutateIn<
    */
   replace<
     Path extends PathAutocomplete<C, MutateInReplacePath<Def>>,
-    Value extends MutateInReplaceValue<Def, Extract<Path, MutateInReplacePath<Def>>>,
+    Value extends MutateInReplaceValue<Def, NoInfer<Path>>,
   >(
     path: Path,
-    value: Value,
-    options?: MutateInUpsertOptions
+    value: NoInfer<Value>,
+    options?: MutateInReplaceOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.replace(path as never, value, options);
+    const spec = MutateInSpec.replace(path, value, options);
     return this.push(spec);
   }
 
-  remove(
-    path: '',
-    options?: MutateInRemoveOptions
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]>;
-
-  remove<Path extends PathAutocomplete<C, MutateInRemovePath<Def>>>(
-    path: Path,
-    options?: MutateInRemoveOptions
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]>;
-
   /**
    * Remove a property from the document.
-   * If you remove a property from `MyRecord` in `Record<DocKey, MyRecord>`,
-   * you will should use {@link ChainableMutateIn.removeFromRecord} to have better type safety.
    *
    * Fails if the property does not exist.
    *
@@ -282,32 +239,14 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  remove(path: string, options?: MutateInRemoveOptions): any {
-    const spec = MutateInSpec.remove(path as never, options);
-    return this.push(spec);
-  }
-
-  /**
-   * Just like {@link ChainableMutateIn.remove}, it removes a property from a document.
-   * This method offers better type safety because it looks at optional properties from
-   * the standpoint of the record.
-   *
-   * @param pathToRecord
-   * @param pathWithinRecord
-   */
-  removeFromRecord<
-    const PathToRecord extends ExtractPathToRecordEntry<Def['Body'], Def['Path']>,
-    const PathWithinRecord extends MutateInRemovePath<{
-      Body: RecordValue;
-      Path: DocumentPath<RecordValue>;
-    }>,
-    RecordValue = Extract<SubDocument<Def['Body'], PathToRecord>, Record<any, any>>,
-  >(
-    pathToRecord: PathToRecord,
-    pathWithinRecord: PathWithinRecord
-  ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.remove((pathToRecord as string) + '.' + pathWithinRecord);
-    return this.push(spec);
+  remove<const Path extends PathAutocomplete<C, MutateInRemovePath<Def>>>(
+    path: Path,
+    options?: MutateInRemoveOptions
+  ): IsLegalPath<'remove', Def['Body'], Path> extends true
+    ? ChainableMutateIn<C, Key, [...SpecResults, undefined]>
+    : IllegalPathErrorMessage<'remove', Path> {
+    const spec = MutateInSpec.remove(path, options);
+    return this.push(spec) as never;
   }
 
   /**
@@ -332,11 +271,11 @@ export class ChainableMutateIn<
    */
   arrayAppend<
     Path extends MutateInArrayAppendPath<Def>,
-    Value extends MutateInArrayAppendValue<Def, Path, Multi>,
+    Value extends MutateInArrayAppendValue<Def, NoInfer<Path>, Multi>,
     Multi extends boolean = false,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: MutateInArrayAppendOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayAppend<Def, Path, Value, Multi>(path, value, options);
@@ -345,10 +284,10 @@ export class ChainableMutateIn<
 
   arrayAppendMultiple<
     Path extends MutateInArrayAppendPath<Def>,
-    Value extends MutateInArrayAppendValue<Def, Path, true>,
+    Value extends MutateInArrayAppendValue<Def, NoInfer<Path>, true>,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: Omit<MutateInArrayAppendOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayAppend<Def, Path, Value, true>(path, value, {
@@ -380,11 +319,11 @@ export class ChainableMutateIn<
    */
   arrayPrepend<
     Path extends MutateInArrayPrependPath<Def>,
-    Value extends MutateInArrayPrependValue<Def, Path, Multi>,
+    Value extends MutateInArrayPrependValue<Def, NoInfer<Path>, Multi>,
     Multi extends boolean = false,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: MutateInArrayPrependOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayPrepend<Def, Path, Value, Multi>(path, value, options);
@@ -393,10 +332,10 @@ export class ChainableMutateIn<
 
   arrayPrependMultiple<
     Path extends MutateInArrayPrependPath<Def>,
-    Value extends MutateInArrayPrependValue<Def, Path, true>,
+    Value extends MutateInArrayPrependValue<Def, NoInfer<Path>, true>,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: Omit<MutateInArrayPrependOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayPrepend<Def, Path, Value, true>(path, value, {
@@ -431,16 +370,16 @@ export class ChainableMutateIn<
     Path extends PathAutocomplete<C, MutateInArrayInsertPath<Def>>,
     Value extends MutateInArrayInsertValue<
       Def,
-      Extract<Path, MutateInArrayInsertPath<Def>>,
+      Extract<NoInfer<Path>, MutateInArrayInsertPath<Def>>,
       Multi
     >,
     Multi extends boolean = false,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: MutateInArrayInsertOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayInsert(path as never, value, options);
+    const spec = MutateInSpec.arrayInsert(path as never, value as never, options);
     return this.push(spec);
   }
 
@@ -448,15 +387,15 @@ export class ChainableMutateIn<
     Path extends PathAutocomplete<C, MutateInArrayInsertPath<Def>>,
     Value extends MutateInArrayInsertValue<
       Def,
-      Extract<Path, MutateInArrayInsertPath<Def>>,
+      Extract<NoInfer<Path>, MutateInArrayInsertPath<Def>>,
       true
     >,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: Omit<MutateInArrayInsertOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayInsert(path as never, value, {
+    const spec = MutateInSpec.arrayInsert(path, value as never, {
       ...options,
       multi: true,
     });
@@ -481,10 +420,10 @@ export class ChainableMutateIn<
    */
   arrayAddUnique<
     Path extends MutateInArrayAddUniquePath<Def>,
-    Value extends MutateInArrayAddUniqueValue<Def, Path>,
+    Value extends MutateInArrayAddUniqueValue<Def, NoInfer<Path>>,
   >(
     path: Path,
-    value: Value,
+    value: NoInfer<Value>,
     options?: MutateInArrayAddUniqueOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayAddUnique<Def, Path, Value>(path, value, options);
@@ -501,11 +440,11 @@ export class ChainableMutateIn<
    */
   arrayAddUniqueMultiple<
     Path extends MutateInArrayAddUniquePath<Def>,
-    Value extends MutateInArrayAddUniqueValue<Def, Path>,
+    Value extends MutateInArrayAddUniqueValue<Def, NoInfer<Path>>,
     Values extends ReadonlyArray<Value>,
   >(
     path: Path,
-    values: Values,
+    values: NoInfer<Values>,
     options?: MutateInArrayAddUniqueOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, ...ArrayAddUniqueSpecs<Values>]> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -534,14 +473,17 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   increment<
-    Path extends PathAutocomplete<C, MutateInCounterPath<Def>>,
-    Value extends MutateInCounterValue,
+    Path extends PathAutocomplete<C, MutateInBinaryPath<Def>>,
+    Value extends MutateInBinaryValue<
+      Def,
+      Extract<NoInfer<Path>, MutateInBinaryPath<Def>>
+    >,
   >(
     path: Path,
     incrementBy: Value,
-    options?: MutateInCounterOptions
+    options?: MutateInBinaryOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
-    const spec = MutateInSpec.increment(path as never, incrementBy, options);
+    const spec = MutateInSpec.increment(path, incrementBy, options);
     return this.push(spec);
   }
 
@@ -559,14 +501,17 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   decrement<
-    Path extends PathAutocomplete<C, MutateInCounterPath<Def>>,
-    Value extends MutateInCounterValue,
+    Path extends PathAutocomplete<C, MutateInBinaryPath<Def>>,
+    Value extends MutateInBinaryValue<
+      Def,
+      Extract<NoInfer<Path>, MutateInBinaryPath<Def>>
+    >,
   >(
     path: Path,
     decrementBy: Value,
-    options?: MutateInDecrementOptions
+    options?: MutateInBinaryOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
-    const spec = MutateInSpec.decrement(path as never, decrementBy, options);
+    const spec = MutateInSpec.decrement(path, decrementBy, options);
     return this.push(spec);
   }
 

@@ -40,9 +40,12 @@ describe('mutateIn upsert', async () => {
   type TestPaths<
     Def extends AnyDocDef,
     T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+    ActualPath = MutateInUpsertPath<Def>,
   > = {
-    [Path in keyof T]: [T[Path], Path extends MutateInUpsertPath<Def> ? true : false];
+    [Path in keyof T]: [T[Path], Path extends ActualPath ? true : false];
   };
+
+  type CC = MutateInUpsertPath<TestDocDef>;
 
   it('should only accept upsertable paths', () => {
     type Test = TestPaths<
@@ -123,39 +126,39 @@ describe('mutateIn upsert', async () => {
         'OptionalArrayTailRestIncompatibleHead[1]': false;
         'OptionalArrayTailRestIncompatibleHead[2]': false;
         'OptionalArrayTailRestIncompatibleHead[-1]': false;
-        'ReadonlyPropertyString': false;
-        'ReadonlyPropertyNumber': false;
-        'ReadonlyPropertyNonMatchingTuple': false;
+        'ReadonlyPropertyString': true;
+        'ReadonlyPropertyNumber': true;
+        'ReadonlyPropertyNonMatchingTuple': true;
         'ReadonlyPropertyNonMatchingTuple[0]': false;
         'ReadonlyPropertyNonMatchingTuple[1]': false;
         'ReadonlyPropertyNonMatchingTuple[2]': false;
         'ReadonlyPropertyNonMatchingTuple[-1]': false;
-        'ReadonlyPropertyArrayKnownLength': false;
+        'ReadonlyPropertyArrayKnownLength': true;
         'ReadonlyPropertyArrayKnownLength[0]': false;
         'ReadonlyPropertyArrayKnownLength[1]': false;
         'ReadonlyPropertyArrayKnownLength[2]': false;
         'ReadonlyPropertyArrayKnownLength[-1]': false;
-        'ReadonlyPropertyArrayUnknownLength': false;
+        'ReadonlyPropertyArrayUnknownLength': true;
         'ReadonlyPropertyArrayUnknownLength[0]': false;
         'ReadonlyPropertyArrayUnknownLength[1]': false;
         'ReadonlyPropertyArrayUnknownLength[2]': false;
         'ReadonlyPropertyArrayUnknownLength[-1]': false;
-        'ReadonlyPropertyArrayHeadRest': false;
+        'ReadonlyPropertyArrayHeadRest': true;
         'ReadonlyPropertyArrayHeadRest[0]': false;
         'ReadonlyPropertyArrayHeadRest[1]': false;
         'ReadonlyPropertyArrayHeadRest[2]': false;
         'ReadonlyPropertyArrayHeadRest[-1]': false;
-        'ReadonlyPropertyArrayHeadRestIncompatibleTail': false;
+        'ReadonlyPropertyArrayHeadRestIncompatibleTail': true;
         'ReadonlyPropertyArrayHeadRestIncompatibleTail[0]': false;
         'ReadonlyPropertyArrayHeadRestIncompatibleTail[1]': false;
         'ReadonlyPropertyArrayHeadRestIncompatibleTail[2]': false;
         'ReadonlyPropertyArrayHeadRestIncompatibleTail[-1]': false;
-        'ReadonlyPropertyArrayTailRest': false;
+        'ReadonlyPropertyArrayTailRest': true;
         'ReadonlyPropertyArrayTailRest[0]': false;
         'ReadonlyPropertyArrayTailRest[1]': false;
         'ReadonlyPropertyArrayTailRest[2]': false;
         'ReadonlyPropertyArrayTailRest[-1]': false;
-        'ReadonlyPropertyArrayTailRestIncompatibleHead': false;
+        'ReadonlyPropertyArrayTailRestIncompatibleHead': true;
         'ReadonlyPropertyArrayTailRestIncompatibleHead[0]': false;
         'ReadonlyPropertyArrayTailRestIncompatibleHead[1]': false;
         'ReadonlyPropertyArrayTailRestIncompatibleHead[2]': false;

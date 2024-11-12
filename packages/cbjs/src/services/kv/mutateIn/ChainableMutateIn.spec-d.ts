@@ -74,23 +74,19 @@ type UserClusterTypes = {
 };
 
 describe('ChainableMutateIn', function () {
-  it('should return all the specs, in order, when the getter is called', ({ expect }) => {
+  it('should accept any member of a union as a value', ({ expect }) => {
     const collection: CollectionContainingDocDef<
       UserClusterTypes,
-      DocDef<BookId, Book>
+      DocDef<EventId, Event>
     > = true as any;
-    const specs = ChainableMutateIn.for(collection, 'book::001', {})
-      .arrayAppend('authors', 'Jonathan')
-      .replace('title', 'Hello')
-      .getSpecs();
 
-    expect(specs).toStrictEqual([
-      MutateInSpec.arrayAppend('authors', 'Jonathan'),
-      MutateInSpec.replace('title', 'Hello'),
-    ]);
+    void ChainableMutateIn.for(collection, 'event::001', {}).upsert('body', {
+      type: 'a',
+      payload: 'pa',
+    });
   });
 
-  it('should be able to store the instance in a variable and add add more spec later', ({
+  it('should raise a ts error when a non-array value is given with multi=true', ({
     expect,
   }) => {
     const collection: CollectionContainingDocDef<
@@ -98,17 +94,22 @@ describe('ChainableMutateIn', function () {
       DocDef<BookId, Book>
     > = true as any;
 
-    const chainableMutate = ChainableMutateIn.for(
-      collection,
-      'book::001',
-      {}
-    ).arrayAppend('authors', 'Jonathan');
+    void ChainableMutateIn.for(collection, 'book::001', {})
+      // @ts-expect-error the value MUST be an array
+      .arrayAppend('authors', 'Jonathan', { multi: true });
+  });
 
-    void chainableMutate.replace('title', 'Hello');
+  it('should throw TS error when the path is illegal', () => {
+    type Doc = { releases: [string, ...number[]] };
+    type CT = {
+      store: { library: { books: [DocDef<BookId, Doc>] } };
+    };
 
-    expect(chainableMutate.getSpecs()).toStrictEqual([
-      MutateInSpec.arrayAppend('authors', 'Jonathan'),
-      MutateInSpec.replace('title', 'Hello'),
-    ]);
+    const collection: CollectionContainingDocDef<CT, DocDef<BookId, Doc>> = true as any;
+
+    const specs = ChainableMutateIn.for(collection, 'book::001', {})
+      // @ts-expect-error cannot insert at this path
+      .arrayInsert('releases[0]', 0)
+      .getSpecs();
   });
 });

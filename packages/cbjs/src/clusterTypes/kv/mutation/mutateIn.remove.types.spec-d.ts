@@ -49,7 +49,7 @@ describe('mutateIn remove', async () => {
       type Test = TestPaths<
         TestDocDef,
         {
-          '': true;
+          '': false;
           'String': false;
           'Number': false;
           'NonMatchingTuple': false;
@@ -239,25 +239,27 @@ describe('mutateIn remove', async () => {
 
       void collection
         .mutateIn('monument::001')
-        // @ts-expect-error invalid path - cannot remove a required property
-        .remove('visitors')
-
-        // @ts-expect-error invalid path - cannot remove a required property within a record
-        .removeFromRecord('visitors.visitor::001', 'enteredAt')
-
-        .removeFromRecord('visitors.visitor::001', 'leftAt')
-
-        // @ts-expect-error invalid path - cannot remove a required property within an array
-        .remove('historicalReferences.persons[0].name')
-        // @ts-expect-error invalid path - cannot remove a required property within a dictionary
-        .remove('openings.periods')
-
         .remove('openings')
         .remove('openings.periods.summer')
         .remove('visitors.visitor::001')
         .remove('visitors.visitor::001.leftAt')
         .remove('historicalReferences.persons[0]')
         .remove('historicalReferences.persons[0].surname');
+
+      void collection
+        .mutateIn('monument::001')
+        // @ts-expect-error invalid path - cannot remove a required property
+        .remove('visitors');
+
+      void collection
+        .mutateIn('monument::001')
+        // @ts-expect-error invalid path - cannot remove a required property within a dictionary
+        .remove('historicalReferences.persons[0].name');
+
+      void collection
+        .mutateIn('monument::001')
+        // @ts-expect-error invalid path - cannot remove a required property within a dictionary
+        .remove('openings.periods');
     });
   });
 });

@@ -33,11 +33,8 @@ import {
   IsAny,
   IsFuzzyDocument,
   IsNever,
-  JsonObject,
   keyspacePath,
   LookupInMacroResult,
-  NoInfer,
-  ObjectDocumentDef,
   OneOf,
   ScopeName,
 } from '@cbjsdev/shared';
@@ -91,7 +88,6 @@ import type {
   LookupInSpecResults,
   NarrowLookupSpecs,
 } from './clusterTypes/kv/lookup/lookupIn.types.js';
-import type { LookupInGetPath } from './clusterTypes/kv/lookup/lookupOperations.types.js';
 import {
   MutateInResultEntries,
   MutateInSpecResults,
@@ -160,11 +156,8 @@ export interface GetOptions<
    * This allows for easy retrieval of select fields without incurring the
    * overhead of fetching the whole document.
    */
-  project?: Def['Body'] extends JsonObject
-    ?
-        | LookupInGetPath<ObjectDocumentDef<Def>>
-        | ReadonlyArray<LookupInGetPath<ObjectDocumentDef<Def>>>
-    : undefined;
+  // TODO
+  project?: string | string[];
 
   /**
    * Indicates that the expiry of the document should be fetched alongside
@@ -709,14 +702,14 @@ export class Collection<
       paths = [''];
       specs.push(LookupInSpec.get(''));
     } else {
-      const projects: ReadonlyArray<LookupInGetPath<Def>> = Array.isArray(options.project)
-        ? (options.project as LookupInGetPath<Def>[])
-        : ([options.project] as LookupInGetPath<Def>[]);
+      const projects: string[] = Array.isArray(options.project)
+        ? options.project
+        : [options.project];
 
       for (const projection of projects) {
         const specPath: string = isLookupInMacro(projection)
           ? projection._value
-          : (projection as string);
+          : projection;
 
         paths.push(specPath);
         specs.push(LookupInSpec.get(projection));
@@ -773,7 +766,7 @@ export class Collection<
       const result = new GetResult({
         content: content,
         cas: res.cas,
-        expiryTime: expiry,
+        expiryTime: expiry as never,
       });
 
       if (callback) {
@@ -2092,10 +2085,7 @@ export class Collection<
         callback(null, result as never);
       }
 
-      return result as LookupInResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
-        ThrowOnSpecError
-      >;
+      return result as never;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
 
@@ -2395,7 +2385,7 @@ export class Collection<
   }
 
   mutateIn<
-    Key extends ExtractCollectionJsonDocKey<this>,
+    const Key extends ExtractCollectionJsonDocKey<this>,
     Def extends DocDefMatchingKey<Key, T, B, S, C>,
     SpecDefinitions extends ReadonlyArray<MutateInSpec>,
   >(

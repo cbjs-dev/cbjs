@@ -83,4 +83,31 @@ describe('ChainableLookupIn', function () {
       >
     >();
   });
+
+  it.skip('should match string template path', ({ expect }) => {
+    type BookDocDef = DocDef<`book::${string}`, { title: string }>;
+    type UserClusterTypes = {
+      store: {
+        library: {
+          books: [BookDocDef];
+        };
+      };
+    };
+
+    const collection: Collection<UserClusterTypes, 'store', 'library', 'books'> =
+      true as any;
+
+    expectTypeOf(
+      ChainableLookupIn.for(collection, 'lookupIn', 'book::001', {})
+    ).toEqualTypeOf<
+      ChainableLookupIn<
+        Collection<UserClusterTypes, 'store', 'library', 'books'>,
+        'lookupIn',
+        `book::001`,
+        [],
+        boolean,
+        BookDocDef
+      >
+    >();
+  });
 });

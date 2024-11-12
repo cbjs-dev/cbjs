@@ -15,96 +15,23 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import type { And, IsNever, Join, Split } from '../../../misc/index.js';
+import { Extends, If, IfStrict, IsNever, Not, Split } from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
-  GuaranteedIndexes,
-  IsArrayLengthKnown,
-  ResolveNegativeIndex,
-  TupleIndexes,
+  ArrayAppendElement,
+  ArrayHasAscendingInheritance,
+  ArrayHasDescendingInheritance,
+  ArrayInfo,
+  ArrayInfoShape,
+  ArrayKnownIndexes,
+  ArrayLastElement,
+  ArrayPrependElement,
+  ArraySlice,
+  IsLastElementRemovable,
+  IsReadonlyArray,
+  IsVariadicArray,
 } from './array-utils.types.js';
-import type { OptionalKeys } from './misc-utils.types.js';
-
-/**
- * Key types you can access using {@link DocumentPath}.
- */
-type AccessibleKey = string | number;
-
-/**
- * Extract all the possible keys of an array.
- */
-export type TargetableArrayIndexes<T extends ReadonlyArray<unknown>> =
-  IsArrayLengthKnown<T> extends false
-    ? -1 | (number & unknown)
-    : 0 extends TupleIndexes<T>
-      ? -1 | TupleIndexes<T>
-      : never;
-
-/**
- * String literal to access an array index.
- */
-type ArrayAccessor<T extends readonly unknown[], K> =
-  K extends TargetableArrayIndexes<T> ? `[${K}]` : never;
-
-/**
- * String literal to access a property.
- */
-type ObjectAccessor<K, Depth extends number> = Depth extends 0
-  ? `${Extract<K, string>}`
-  : `.${K & string}`;
-
-/**
- * Extract array index accessor from a union of segment.
- */
-export type ExtractArrayIndexAccessor<T> = T extends `[${number}]` ? T : never;
-
-/**
- * Return `true` if T is an array index accessor, `false` otherwise.
- */
-export type IsArrayIndexAccessor<T> = T extends `[${number}]` ? true : false;
-
-/**
- * String literal to access the next element.
- */
-export type Accessor<T, K, Depth extends number> = T extends readonly unknown[]
-  ? `${ArrayAccessor<T, K>}`
-  : `${ObjectAccessor<K, Depth>}`;
-
-type NextDepth<N extends number> = [
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9,
-  10,
-  11,
-  12,
-  13,
-  14,
-  15,
-  16,
-  17,
-  18,
-  19,
-  20,
-  21,
-  22,
-  23,
-  24,
-  25,
-  26,
-  27,
-  28,
-  29,
-  30,
-  31,
-  32,
-  33,
-][N];
+import { OptionalKeys } from './misc-utils.types.js';
 
 // prettier-ignore
 export type FriendlyPathToArrayIndex<Path> =
@@ -117,361 +44,362 @@ export type FriendlyPathToArrayIndex<Path> =
     never
 ;
 
-/**
- * Union of all paths to all elements of the object. Distributive.
- *
- * Note: does not include the root path '' by design.
- */
-// prettier-ignore
-export type DocumentPath<T> =
-  T extends object ?
-    IsFuzzyDocument<T> extends false ?
-      BuildPath<T, Extract<keyof T, AccessibleKey>> :
-    string :
-  never
-;
+// There is no 'arrayAddUnique' because it's the same as 'arrayAppend'.
+export type KvOperation =
+  // LookupIn
+  | 'get'
+  | 'exists'
+  | 'count'
+  // MutateIn
+  | 'insert'
+  | 'upsert'
+  | 'replace'
+  | 'remove'
+  | 'arrayAppend'
+  | 'arrayPrepend'
+  | 'arrayInsert'
+  | 'binary';
 
-/**
- * Build the paths in a branch of the document.
- * Distributed against `T` and `Key`.
- */
-// prettier-ignore
-type BuildPath<T extends object, Key> =
-  Key extends unknown ?
-    PathAhead<T, Key, 1, Accessor<T, Key, 0>, Accessor<T, Key, 0>> :
-  never
-;
+type FuzzyCC = [any, any];
 
-/**
- * Return the sub-path for the given type and keys.
- */
+type CodeCompletionOptions = {
+  friendlyArray: boolean;
+  friendlyRecord: boolean;
+};
+
 // prettier-ignore
-type PathAhead<
-  T extends object,
-  Key,
-  Depth extends number,
-  ParentPath extends string,
-  Acc
-> =
-  Depth extends 32 ?
-    ParentPath :
-  ResolveNegativeIndex<T, Key> extends infer Index extends keyof T & AccessibleKey ?
-    T[Index] extends infer Doc ?
-      Doc extends unknown ?
-        Doc extends readonly unknown[] ?
-          ArrayPath<Doc, Depth, ParentPath, Acc> :
-        Doc extends object ?
-          ObjectPath<Doc, Depth, ParentPath, Acc> :
-        Acc | ParentPath :
+export type DiscardCC<Op extends KvOperation, CC> =
+  Op extends 'binary' | 'remove' ?
+    CC extends [string, true] ?
+      CC :
+    never :
+  Op extends 'arrayInsert' ?
+    CC extends [string, never] ?
       never :
-    never :
-  never
-;
-
-/**
- * Build the paths to an array's elements.
- */
-// prettier-ignore
-type ArrayPath<
-  Doc extends ReadonlyArray<unknown>,
-  Depth extends number,
-  ParentPath extends string,
-  Acc
-> =
-  TargetableArrayIndexes<Doc> extends infer Index ?
-    Index extends keyof Doc & AccessibleKey ?
-      PathAhead<
-        Doc,
-        Index,
-        NextDepth<Depth>,
-        `${ParentPath}${ArrayAccessor<Doc, Index>}`,
-        Acc | ParentPath
-      > :
-    never:
-  never
-;
-
-/**
- * Build the paths to an object's properties.
- */
-// prettier-ignore
-type ObjectPath<
-  Doc extends object,
-  Depth extends number,
-  ParentPath extends string,
-  Acc
-> =
-  keyof Doc & AccessibleKey extends infer Key ?
-    Key extends keyof Doc & AccessibleKey ?
-      PathAhead<
-        Doc,
-        Key,
-        NextDepth<Depth>,
-        `${ParentPath}${ObjectAccessor<keyof Doc & AccessibleKey, Depth>}`,
-        Acc | ParentPath
-      > :
-    never :
-  never
-;
-
-/**
- * Split a path into segments, if required.
- */
-export type SplitIntoSegments<T extends string> = T extends string
-  ? Split<T, '.', '`'> extends infer Segments extends readonly string[]
-    ? SplitSegmentsAccessors<Segments>
-    : never
-  : T;
-
-/**
- * Split a single segment into an ordered tuple of prop and array accessors.
- */
-// prettier-ignore
-export type SplitSegmentIntoAccessors<T extends string> =
-  SplitSegmentIntoAccessorsTRE<T, [], `${string}`>
+    CC :
+  CC
 ;
 
 // prettier-ignore
-export type SplitSegmentIntoAccessorsTRE<
-  T extends string,
-  Acc extends ReadonlyArray<string>,
-  AccTemplate extends string,
-> =
-  T extends `${AccTemplate}[${infer Index extends number}][${string}]` ?
-    SplitSegmentIntoAccessorsTRE<T, [...Acc, `[${Index}]`], `${AccTemplate}[${Index}]`> :
-  T extends `${AccTemplate}[${infer Index extends number}]` ?
-    T extends `${infer Prop}[${string}` ?
-      Prop extends '' ?
-        [...Acc, `[${Index}]`] :
-      [Prop, ...Acc, `[${Index}]`] :
-    never :
-  [T]
-;
-
-/**
- * Join segments to form a path.
- */
-export type JoinSegments<
-  T extends readonly string[],
-  InitialString extends string = '',
-> = T extends [infer Head extends string, ...infer Rest extends string[]]
-  ? IsArrayIndexAccessor<Head> extends true
-    ? JoinSegments<Rest, `${InitialString}${Head}`>
-    : InitialString extends ''
-      ? JoinSegments<Rest, `${Head}`>
-      : JoinSegments<Rest, `${InitialString}.${Head}`>
-  : InitialString;
-
-/**
- * Split each segment into its accessors and return a flatten tuple.
- */
-type SplitSegmentsAccessors<Segments extends readonly string[]> =
-  SplitSegmentsAccessorsTRE<Segments, []>;
+export type OpCodeCompletionPath<Op extends KvOperation, Doc> =
+  DocumentCodeCompletion<Op, Doc>[0];
 
 // prettier-ignore
-type SplitSegmentsAccessorsTRE<
-  Segments extends readonly string[],
-  Acc extends ReadonlyArray<string>,
-> =
-  Segments extends [infer Segment extends string, ...infer Rest extends readonly string[]] ?
-    SplitSegmentsAccessorsTRE<Rest, [...Acc, ...SplitSegmentIntoAccessors<Segment>]> :
-  Acc
-;
-
-/**
- * Pop element from Tuple until it finds a property accessor.
- */
-export type PopUntilProperty<Tuple extends readonly string[]> = Tuple extends [
-  ...infer Rest extends readonly string[],
-  infer Tail,
-]
-  ? IsArrayIndexAccessor<Tail> extends true
-    ? PopUntilProperty<Rest>
-    : Tuple
-  : [];
-
-/**
- * Return `true` if `T[K]` may be undefined.
- */
-// prettier-ignore
-export type MaybeMissing<T, K = never> =
-  undefined extends T ?
+export type IsLegalPath<Op extends KvOperation, Doc, Path> =
+  IsFuzzyDocument<Doc> extends true ?
     true :
-  IsNever<K> extends true ?
-    false :
-  T extends ReadonlyArray<unknown> ?
-    K extends GuaranteedIndexes<T> ?
-      false :
-    true :
-  K extends OptionalKeys<T> ?
+  Path extends ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[0] ?
     true :
   false
 ;
 
-/**
- * Return <subdoc> | undefined if the subdoc may be undefined.
- */
 // prettier-ignore
-type SubDocumentMaybeUndefined<T, Segment extends keyof T, OrUndefined extends boolean> =
-  OrUndefined extends true ?
-    T[Segment] | undefined :
-  MaybeMissing<T, Segment> extends true ?
-    T[Segment] | undefined :
-  T[Segment]
+export type OpCodeCompletionValue<Op extends KvOperation, Doc, Path> =
+  Op extends 'get' | 'upsert' | 'insert' ?
+    Path extends '' ?
+      Doc :
+    Path extends string ?
+      ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[1] :
+    never :
+  Path extends string ?
+    Op extends 'binary' ?
+      ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[1] extends true ?
+        number :
+      never :
+    ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[1] :
+  never
 ;
 
-/**
- * Return the sub-document type from path segments.
- * Non-Distributive.
- */
 // prettier-ignore
-export type SubDocumentFromPathSegments<
-  T,
-  Segments extends ReadonlyArray<string>,
-  OrUndefined extends boolean,
-  DeepUndefined extends boolean
-> =
-  Segments extends [infer Segment, ...infer RestSegments extends string[]] ?
-    // Object access
-    Segment extends keyof T ?
-      RestSegments['length'] extends 0 ?
-        SubDocumentMaybeUndefined<T, Segment, And<[DeepUndefined, OrUndefined]>> :
-      T[Segment] extends infer NextDoc ?
-        NextDoc extends unknown ?
-          SubDocumentFromPathSegments<NextDoc, RestSegments, MaybeMissing<T, Segment>, DeepUndefined> :
+type ExtractMatchingCC<Op extends KvOperation, CC, UserPath> =
+  IsNever<CCPerfectMatchPath<CC, UserPath>> extends false ?
+    DiscardCC<Op, CCPerfectMatchPath<CC, UserPath>> :
+  CC extends [infer Path extends string, unknown?] ?
+    Split<UserPath, '.', '`'> extends Split<Path, '.', '`'> ?
+      DiscardCC<Op, CC> :
+    never :
+  never
+;
+
+// prettier-ignore
+type CCPerfectMatchPath<CC, UserPath> =
+  CC extends [infer Path extends string, unknown] ?
+    Split<Path, '.', '`'> extends Split<UserPath, '.', '`'> ?
+      CC :
+    never :
+  never
+;
+
+// prettier-ignore
+export type DocumentCodeCompletion<Op extends KvOperation, T> =
+  T extends object ?
+    IsFuzzyDocument<T> extends false ?
+      BuildBag<Op, '', T, [CodeCompletionSinglePass<Op, '', T>]>[number] :
+    FuzzyCC :
+  never
+;
+
+// prettier-ignore
+type BuildBag<Op extends KvOperation, PathToT, T, UnionStack extends ReadonlyArray<unknown>> =
+  PathToT extends string ?
+    T extends ReadonlyArray<unknown> ?
+      keyof T extends infer Index ?
+        Index extends keyof T & number ?
+          Exclude<T[Index], undefined> extends infer SubDoc ?
+            BuildBag<Op, `${PathToT}[${Index}]`, SubDoc, [...UnionStack, CodeCompletionSinglePass<Op, `${PathToT}[${Index}]`, SubDoc>]> :
+          never :
         never :
       never :
 
-    // Array access
-    Segment extends `[${infer Index extends number}]` ?
-      ResolveNegativeIndex<T, Index> extends infer ResolvedIndex extends keyof T ?
-        RestSegments['length'] extends 0 ?
-          SubDocumentMaybeUndefined<T, ResolvedIndex, And<[DeepUndefined, OrUndefined]>> :
-        SubDocumentFromPathSegments<
-          T[ResolvedIndex],
-          RestSegments,
-          MaybeMissing<T, ResolvedIndex>,
-          DeepUndefined
-        > :
+    T extends Record<string, unknown> ?
+      keyof T extends infer Key ?
+        Key extends keyof T & string ?
+          Exclude<T[Key], undefined> extends infer SubDoc ?
+            BuildBag<Op, ConcatPath<PathToT, Key>, SubDoc, [...UnionStack, CodeCompletionSinglePass<Op, ConcatPath<PathToT, Key>, SubDoc>]> :
+          never :
+        never :
       never :
-    Segment extends '' ? // Root
-      T :
+
+    [...UnionStack, CodeCompletionSinglePass<Op, PathToT, T>] :
+  never
+;
+
+// prettier-ignore
+export type CodeCompletionSinglePass<Op extends KvOperation, Path, T> =
+  | (Op extends 'get' ? [Path, T] : never)
+  | (Op extends 'upsert' ? Path extends '' ? ['', T] : never : never)
+  | CCArray<Op, Path, T>
+
+  // # Object
+  | (T extends Record<string, unknown> ?
+      keyof T extends infer Key ?
+        Key extends keyof T ?
+          (
+          | (Op extends 'get' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
+          | (Op extends 'exists' ? [ConcatPath<Path, Key>] : never)
+          | (Op extends 'count' ? [Path] : never)
+          | (Op extends 'upsert' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
+          | (Op extends 'replace' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
+          | (Op extends 'binary' ? Exclude<T[Key], undefined> extends number ? [ConcatPath<Path, Key>, true] : never : never)
+          | (undefined extends T[Key] ?
+              | (Op extends 'insert' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
+              | (Op extends 'remove' ? [ConcatPath<Path, Key>, true] : never)
+              :
+            Key extends OptionalKeys<T> ?
+              (
+                | (Op extends 'insert' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
+                | (Op extends 'remove' ? [ConcatPath<Path, Key>, true] : never)
+                ) :
+              never
+            )
+          ) :
+      never :
+    never :
+  never)
+;
+
+// prettier-ignore
+type CCArray<Op extends KvOperation, Path, T> =
+  T extends ReadonlyArray<unknown> ?
+    IsReadonlyArray<T> extends true ?
+      CCReadArray<Op, Path, T> :
+    (
+    | CCReadArray<Op, Path, T>
+    | CCArrayNonVariadic<Op, Path, T>
+    | CCArrayVariadic<Op, Path, T>
+    | (Op extends 'upsert' ? [Path, T] : never)
+    )
+    :
+  never
+;
+
+// prettier-ignore
+type CCReadArray<Op extends KvOperation, Path, T extends ReadonlyArray<unknown>> =
+  Path extends string ?
+  | (Op extends 'count' ? [`${Path}`] : never)
+  | (Op extends 'get' ? [`${Path}[-1]`, Exclude<ArrayLastElement<T>, undefined>] : never)
+  | (
+    Op extends 'get' | 'exists' ?
+      ArrayKnownIndexes<T> extends infer IndexTuple ?
+        IndexTuple extends [infer Index extends number] ?
+          | (Op extends 'get' ? [`${Path}[${Index}]`, Exclude<T[Index], undefined>] : never)
+          | (Op extends 'exists' ? [`${Path}[${Index}]`] : never)
+          :
+        never :
+      never :
+    never
+    )
+    :
+  never
+;
+
+// prettier-ignore
+type CCArrayNonVariadic<Op extends KvOperation, Path, T extends ReadonlyArray<unknown>> =
+  Path extends string ?
+    IsVariadicArray<T> extends false ?
+      | (Op extends 'replace' ? [`${Path}[-1]`, ArrayLastElement<T>] : never)
+      | (Op extends 'binary' ? CCArrayBinary<Path, T> : never)
+      | (
+        Op extends 'replace' ?
+          ArrayKnownIndexes<T> extends infer IndexTuple ?
+            IndexTuple extends [infer Index extends keyof T & number] ?
+              [`${Path}[${Index}]`, T[Index]] :
+            never :
+          never :
+        never
+        ) :
     never :
   never
 ;
 
-/**
- * Return the type of an element at a specific path.
- *
- * `DeepUndefined` toggles if `undefined` should be included in the result type when
- * a parent property is optional.
- *
- * @example
- *
- * ```ts
- * type TestDoc = {
- *   metadata?: { tags: string[] };
- * };
- *
- * SubDocument<TestDoc, 'metadata.tags'>        // string[] | undefined
- * SubDocument<TestDoc, 'metadata.tags', false> // string[]
- * ```
- */
 // prettier-ignore
-export type SubDocument<T, P extends string, DeepUndefined extends boolean = true> =
-  IsFuzzyDocument<T> extends true ?
-    any :
-  SubDocumentFromPathSegments<T, SplitIntoSegments<P>, false, DeepUndefined>
-;
-
-/**
- * Return the {@link SubDocument} at the parent accessor or the document itself if there is no parent accessor.
- */
-// prettier-ignore
-export type ParentDocument<Doc, DocPath extends string> =
-  PathToParentAccessor<DocPath> extends infer ParentAccessor extends string ?
-    [ParentAccessor] extends [never] ?
-      Doc :
-    SubDocument<Doc, ParentAccessor> :
+type CCArrayVariadic<Op extends KvOperation, Path, T extends ReadonlyArray<unknown>> =
+  IsVariadicArray<T> extends true ?
+    | (Op extends 'binary' ? CCArrayBinary<Path, T> : never)
+    | (Op extends 'replace' ? CCArrayReplace<Path, T> : never)
+    | (Op extends 'remove' ? CCArrayRemove<Path, T> : never)
+    | (Op extends 'arrayAppend' ? CCArrayAppend<Path, T> : never)
+    | (Op extends 'arrayPrepend' ? CCArrayPrepend<Path, T> : never)
+    | (Op extends 'arrayInsert' ? CCArrayInsert<Path, T> : never)
+    :
   never
 ;
 
-/**
- * Return the path to the closest property.
- */
-export type PathToClosestProperty<T extends string> = T extends unknown
-  ? JoinSegments<PopUntilProperty<SplitIntoSegments<T>>>
-  : never;
+type CanBeNumber<T> = Not<IsNever<Extract<T, number>>>;
 
-/**
- * Return the path to the closest property that is required and possibly an object.
- */
 // prettier-ignore
-export type PathToClosestObject<Doc extends object, UserPath extends string> =
-  IsNever<UserPath> extends true ?
-    never :
-  [Exclude<SubDocument<Doc, UserPath>, undefined>] extends [infer SubDoc] ?
-    IsNever<SubDoc> extends true ?
+type CCArrayBinary<Path, T extends ReadonlyArray<unknown>> =
+  Path extends string ?
+    ArrayKnownIndexes<T> extends infer IndexTuple ?
+      Extends<[number], IndexTuple> extends infer HasRest ?
+        HasRest extends true ?
+          CCArrayBinary_Rest<Path, T, IndexTuple> :
+        IndexTuple extends [infer Index extends number] ?
+          | If<CanBeNumber<T[Index]>, [`${Path}[${Index}]`, true]>
+          | If<CanBeNumber<ArrayLastElement<T>>, [`${Path}[-1]`, true]>
+          :
+        never :
       never :
-    SubDoc extends Record<string | number, any> ?
-      UserPath :
-    PathToClosestObject<Doc, PathToParentAccessor<UserPath>> :
+    never :
   never
 ;
 
+// prettier-ignore
+type CCArrayBinary_Rest<Path, T extends ReadonlyArray<unknown>, IndexTuple> =
+  Path extends string ?
+    IndexTuple extends [infer Index extends number] ?
+      number extends Index ?
+        ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+          CanBeNumber<Info['RestElement']> extends true ?
+            [`${Path}[${number}]`, true] | [`${Path}[-1]`, CanBeNumber<ArrayLastElement<T>>] :
+          Info['IsTailStatic'] extends true ?
+            [`${Path}[-1]`, CanBeNumber<ArrayLastElement<T>>] :
+          never :
+        never :
+      [`${Path}[${Index}]`, CanBeNumber<T[Index]>] :
+    never :
+  never
+;
+
+// prettier-ignore
+type CCArrayReplace<Path, T extends ReadonlyArray<unknown>> =
+  Path extends string ?
+    | [`${Path}[-1]`, Exclude<ArrayLastElement<T>, undefined>]
+    | (ArrayKnownIndexes<T> extends infer IndexTuple ?
+        IndexTuple extends [infer Index extends number] ?
+          [`${Path}[${Index}]`, Exclude<T[Index], undefined>] :
+        never :
+      never
+      )
+    :
+  never
+;
+
+// prettier-ignore
+type CCArrayRemove<Path, T extends ReadonlyArray<unknown>> =
+  Path extends string ?
+    | [`${Path}[-1]`, IsLastElementRemovable<T>]
+    | CCArrayRemove_KnownIndexes<Path, T>
+    :
+  never
+;
+
+// prettier-ignore
+type CCArrayRemove_KnownIndexes<Path, T extends ReadonlyArray<unknown>> =
+  Path extends string ?
+    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+      Info['IsFullyStatic'] extends true ?
+        never :
+      ArrayKnownIndexes<T> extends infer IndexTuple ?
+        IndexTuple extends [infer Index extends number] ?
+          number extends Index ?
+            [`${Path}[${Index}]`, true] :
+          [`${Path}[${Index}]`, IfStrict<ArrayHasDescendingInheritance<ArraySlice<T, Index>>, true, false>] :
+        never :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
+type CCArrayAppend<Path, T extends ReadonlyArray<unknown>> =
+  ArrayAppendElement<T> extends infer E ?
+    IsNever<E> extends true ?
+      never :
+    [Path, E] :
+  never
+;
+
+// prettier-ignore
+type CCArrayPrepend<Path, T extends ReadonlyArray<unknown>> =
+  ArrayPrependElement<T> extends infer E ?
+    IsNever<E> extends true ?
+      never :
+    [Path, E] :
+  never
+;
+
+// prettier-ignore
+type CCArrayInsert<Path, T> =
+  T extends ReadonlyArray<unknown> ?
+    Path extends string ?
+      ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+        Info['IsFullyStatic'] extends true ?
+          never :
+        ArrayKnownIndexes<T> extends infer IndexTuple ?
+          IndexTuple extends [infer Index extends number] ?
+            number extends Index ?
+              [`${Path}[${Index}]`, Info['RestElement']] :
+            [`${Path}[${Index}]`, IfStrict<ArrayHasAscendingInheritance<ArraySlice<T, Index>>, Exclude<T[Index], undefined>>] :
+          never :
+        never :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
+type ConcatPath<Path, Key> =
+  Key extends string ?
+    Path extends '' ?
+      Key :
+    Path extends string ?
+      `${Path}.${Key}` :
+    never :
+  never
+;
+
+///////////////////////
+// Dev utility types //
+///////////////////////
+
 /**
- * Return the closest ancestor property.
- *
- * @example
- * PathToParentProperty<'path.to.array'> = 'path.to'
- * PathToParentProperty<'path.to.array[-1]'> = 'path.to'
- * PathToParentProperty<`path.to.array[${number}]`> = 'path.to'
- * PathToParentProperty<`path.to.array[42][${number}]`> = 'path.to'
- * PathToParentProperty<'path.to.array[42].prop'> = 'path.to.array'
+ * @internal
  */
-export type PathToParentProperty<T extends string> =
-  Split<T, '.', '`'> extends [...infer Rest extends string[], unknown]
-    ? 1 extends Partial<Rest>['length']
-      ? PathToClosestProperty<Join<Rest, '.'>>
+export type FilterCC<CC, PathPrefix extends string> = CC extends infer Tuple
+  ? Tuple extends [infer Op, infer Path, (infer Value)?]
+    ? Path extends `${PathPrefix}${string}`
+      ? [Op, Path, Value]
       : never
-    : never;
-
-/**
- * Just like {@link PathToParentProperty} but return `T` instead of `never` if `T` doesn't have a parent property.
- */
-export type PathToParentPropertyOrSelf<T extends string> =
-  PathToParentProperty<T> extends infer ParentProp
-    ? [ParentProp] extends [never]
-      ? T
-      : ParentProp
-    : never;
-
-/**
- * Return the closest ancestor expression.
- *
- * @example
- * PathToParentProperty<'path.to.array'> = 'path.to'
- * PathToParentProperty<'path.to.array[-1]'> = 'path.to.array'
- * PathToParentProperty<`path.to.array[${number}]`> = 'path.to.array'
- * PathToParentProperty<`path.to.array[42][${number}]`> = 'path.to.array[42]'
- * PathToParentProperty<'path.to.array[42].prop'> = 'path.to.array[42]'
- */
-// prettier-ignore
-export type PathToParentAccessor<T extends string> =
-  SplitIntoSegments<T> extends [...infer Rest extends string[], unknown] ?
-    Rest['length'] extends 0 ?
-      never :
-    JoinSegments<Rest> :
-  never
-;
-
-/**
- * Return the property name or the array expression of the path.
- *
- * @example
- * PathTargetExpression<'path.to.property'> = 'property'
- * PathTargetExpression<'path.to.array'> = 'array'
- * PathTargetExpression<'path.to.array[1]'> = 'array[1]'
- */
-export type PathTargetExpression<T extends string> =
-  Split<T, '.', '`'> extends [...string[], infer Tail] ? Tail : never;
+    : never
+  : never;

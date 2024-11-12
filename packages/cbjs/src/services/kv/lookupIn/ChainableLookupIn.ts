@@ -89,7 +89,7 @@ export class ChainableLookupIn<
 {
   // Promise stuff
 
-  [Symbol.toStringTag] = 'ChainableLookupInSpecs';
+  [Symbol.toStringTag] = 'ChainableLookupIn';
 
   then<TResult1 = LookupResult<Method, SpecResults, ThrowOnSpecError>, TResult2 = never>(
     onFulfilled?:
@@ -163,12 +163,7 @@ export class ChainableLookupIn<
     return lookup(this.key, this.getSpecs(), this.options);
   }
 
-  get(
-    path: '',
-    options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_doc, ''>>;
-
-  get<Path extends PathAutocomplete<C, Exclude<LookupInGetPath<Def>, ''>>>(
+  get<Path extends PathAutocomplete<C, LookupInGetPath<Def>>>(
     path: Path,
     options?: { xattr?: boolean }
   ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>>;

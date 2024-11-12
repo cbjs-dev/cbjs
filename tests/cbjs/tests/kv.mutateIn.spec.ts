@@ -227,20 +227,15 @@ describe.shuffle('kv mutateIn', async () => {
 
     await serverTestContext.collection
       .mutateIn(testDocKey)
-      .insertIntoRecord(
-        'users',
-        'user::001',
-        { name: 'me', createdAt: 1 },
-        { createPath: true }
-      );
+      .insert('users.user::001', { name: 'me', createdAt: 1 }, { createPath: true });
 
     const result = await serverTestContext.collection
       .mutateIn(testDocKey)
       .increment('int', 3)
       .upsert('str', 'newStr')
       .insert('newProp', 'newPropValue')
-      .removeFromRecord('users.user::001', 'createdAt')
-      .insertIntoRecord('users.user::001', 'description', 'me again')
+      .remove('users.user::001.createdAt')
+      .insert('users.user::001.description', 'me again')
       .arrayAppend('arr', 4)
       .arrayAppend('arr', [5, 6], { multi: true });
 

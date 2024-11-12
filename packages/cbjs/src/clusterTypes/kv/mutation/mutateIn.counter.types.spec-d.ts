@@ -21,12 +21,13 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
+  FilterCC,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
 import { DocDef } from '../../clusterTypes.js';
-import type { MutateInCounterPath } from './mutationOperations.types.js';
+import type { MutateInBinaryPath } from './mutationOperations.types.js';
 
 describe('mutateIn counter', async () => {
   type TestDoc = TestDocRequiredProperties &
@@ -39,9 +40,13 @@ describe('mutateIn counter', async () => {
   type TestPaths<
     Def extends AnyDocDef,
     T extends Record<MakeTestPaths<Def['Body']>, boolean>,
+    ActualPath = MutateInBinaryPath<Def>,
   > = {
-    [Path in keyof T]: [T[Path], Path extends MutateInCounterPath<Def> ? true : false];
+    [Path in keyof T]: [T[Path], Path extends ActualPath ? true : false];
   };
+
+  type CC = MutateInBinaryPath<TestDocDef>;
+  type CCF = FilterCC<CC, 'Non'>;
 
   describe('increment', () => {
     it('should allow to increment a path to a non-readonly target assignable to number', () => {
@@ -85,7 +90,7 @@ describe('mutateIn counter', async () => {
           'ArrayTailRestIncompatibleHead[0]': true;
           'ArrayTailRestIncompatibleHead[1]': false;
           'ArrayTailRestIncompatibleHead[2]': false;
-          'ArrayTailRestIncompatibleHead[-1]': true;
+          'ArrayTailRestIncompatibleHead[-1]': false;
           'OptionalString': false;
           'OptionalNumber': true;
           'OptionalNonMatchingTuple': false;
@@ -122,9 +127,9 @@ describe('mutateIn counter', async () => {
           'OptionalArrayTailRestIncompatibleHead[0]': true;
           'OptionalArrayTailRestIncompatibleHead[1]': false;
           'OptionalArrayTailRestIncompatibleHead[2]': false;
-          'OptionalArrayTailRestIncompatibleHead[-1]': true;
+          'OptionalArrayTailRestIncompatibleHead[-1]': false;
           'ReadonlyPropertyString': false;
-          'ReadonlyPropertyNumber': false;
+          'ReadonlyPropertyNumber': true;
           'ReadonlyPropertyNonMatchingTuple': false;
           'ReadonlyPropertyNonMatchingTuple[0]': true;
           'ReadonlyPropertyNonMatchingTuple[1]': false;
@@ -159,7 +164,7 @@ describe('mutateIn counter', async () => {
           'ReadonlyPropertyArrayTailRestIncompatibleHead[0]': true;
           'ReadonlyPropertyArrayTailRestIncompatibleHead[1]': false;
           'ReadonlyPropertyArrayTailRestIncompatibleHead[2]': false;
-          'ReadonlyPropertyArrayTailRestIncompatibleHead[-1]': true;
+          'ReadonlyPropertyArrayTailRestIncompatibleHead[-1]': false;
           'ReadonlyNonMatchingTuple': false;
           'ReadonlyNonMatchingTuple[0]': false;
           'ReadonlyNonMatchingTuple[1]': false;
@@ -245,7 +250,7 @@ describe('mutateIn counter', async () => {
           'ArrayTailRestIncompatibleHead[0]': true;
           'ArrayTailRestIncompatibleHead[1]': false;
           'ArrayTailRestIncompatibleHead[2]': false;
-          'ArrayTailRestIncompatibleHead[-1]': true;
+          'ArrayTailRestIncompatibleHead[-1]': false;
           'OptionalString': false;
           'OptionalNumber': true;
           'OptionalNonMatchingTuple': false;
@@ -282,9 +287,9 @@ describe('mutateIn counter', async () => {
           'OptionalArrayTailRestIncompatibleHead[0]': true;
           'OptionalArrayTailRestIncompatibleHead[1]': false;
           'OptionalArrayTailRestIncompatibleHead[2]': false;
-          'OptionalArrayTailRestIncompatibleHead[-1]': true;
+          'OptionalArrayTailRestIncompatibleHead[-1]': false;
           'ReadonlyPropertyString': false;
-          'ReadonlyPropertyNumber': false;
+          'ReadonlyPropertyNumber': true;
           'ReadonlyPropertyNonMatchingTuple': false;
           'ReadonlyPropertyNonMatchingTuple[0]': true;
           'ReadonlyPropertyNonMatchingTuple[1]': false;
@@ -319,7 +324,7 @@ describe('mutateIn counter', async () => {
           'ReadonlyPropertyArrayTailRestIncompatibleHead[0]': true;
           'ReadonlyPropertyArrayTailRestIncompatibleHead[1]': false;
           'ReadonlyPropertyArrayTailRestIncompatibleHead[2]': false;
-          'ReadonlyPropertyArrayTailRestIncompatibleHead[-1]': true;
+          'ReadonlyPropertyArrayTailRestIncompatibleHead[-1]': false;
           'ReadonlyNonMatchingTuple': false;
           'ReadonlyNonMatchingTuple[0]': false;
           'ReadonlyNonMatchingTuple[1]': false;

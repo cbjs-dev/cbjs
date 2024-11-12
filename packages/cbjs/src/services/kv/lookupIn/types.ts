@@ -51,7 +51,7 @@ export type LookupInReturnType<
   C extends AnyCollection,
   Method extends LookupMethodName,
   Key extends ExtractCollectionJsonDocKey<C>,
-  SpecDefinitions,
+  SpecDefinitions extends ReadonlyArray<unknown>,
   ThrowOnSpecError extends boolean
 > =
   IsNever<SpecDefinitions> extends true ?

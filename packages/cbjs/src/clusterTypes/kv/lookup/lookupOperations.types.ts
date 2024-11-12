@@ -15,11 +15,9 @@
  */
 
 import {
-  DocDefBodyPathShape,
-  ExtractPathToArray,
-  ExtractPathToObject,
+  DocDefBodyShape,
   If,
-  IsFuzzyDocument, LookupInMacroShape,
+  IsFuzzyDocument, LookupInMacroShape, OpCodeCompletionPath,
 } from '@cbjsdev/shared';
 import type { LookupInMacro } from '../../../sdspecs.js';
 
@@ -40,8 +38,10 @@ export type OperationPath<Doc, Path> =
  */
 // prettier-ignore
 export type LookupInGetPath<Def> =
-  Def extends DocDefBodyPathShape ?
-    OperationPath<Def['Body'], Def['Path'] | LookupInMacroShape | ''> :
+  Def extends DocDefBodyShape ?
+    IsFuzzyDocument<Def['Body']> extends true ?
+      string | LookupInMacro :
+    OpCodeCompletionPath<'get', Def['Body']> | LookupInMacroShape :
   never
 ;
 
@@ -49,8 +49,8 @@ export type LookupInGetPath<Def> =
  * Valid lookup path for an `exists` operation.
  */
 export type LookupInExistsPath<Def> =
-  Def extends DocDefBodyPathShape ?
-    OperationPath<Def['Body'], Def['Path'] | LookupInMacro> :
+  Def extends DocDefBodyShape ?
+    OperationPath<Def['Body'], OpCodeCompletionPath<'exists', Def['Body']> | LookupInMacro> :
   never
 ;
 
@@ -59,12 +59,11 @@ export type LookupInExistsPath<Def> =
  */
 // prettier-ignore
 export type LookupInCountPath<Def> =
-  Def extends DocDefBodyPathShape ?
+  Def extends DocDefBodyShape ?
     If<
       IsFuzzyDocument<Def['Body']>,
       string | LookupInMacro<'$document'>,
-      | ExtractPathToObject<Def['Body'], Def['Path'] | ''>
-      | ExtractPathToArray<Def['Body'], Def['Path'] | ''>
+      | OpCodeCompletionPath<'count', Def['Body']>
       | LookupInMacro<'$document'>
     > :
   never

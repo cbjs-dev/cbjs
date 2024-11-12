@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SaveIdentity } from '../../couchbase/index.js';
 
 export type IsUnion<T> = [T] extends [UnionToIntersection<T>] ? false : true;
 
@@ -45,9 +46,16 @@ export type And<T extends boolean[]> = T[number] extends true ? true : false;
 export type Not<T extends boolean> = T extends true ? false : true;
 
 /**
- * Return `Then` if `Case` if true, false otherwise.
+ * Return `Then` if `Case` is true, false otherwise.
  */
 export type If<Case extends boolean, Then, Else = never> = Case extends true
+  ? Then
+  : Else;
+
+/**
+ * Distribute `Case` and return `Then` if `Case` is true, false otherwise.
+ */
+export type IfStrict<Case extends boolean, Then, Else = never> = [Case] extends [true]
   ? Then
   : Else;
 
@@ -104,8 +112,8 @@ type LastInUnion<U> =
  * UnionToTuple<1 | 2> = [1, 2].
  */
 export type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
-  ? readonly []
-  : readonly [...UnionToTuple<Exclude<U, Last>>, Last];
+  ? []
+  : [...UnionToTuple<Exclude<U, Last>>, Last];
 
 /**
  * Extract the string up the delimiter.
@@ -113,7 +121,7 @@ export type UnionToTuple<U, Last = LastInUnion<U>> = [U] extends [never]
  */
 // prettier-ignore
 export type CaptureUntil<
-  T extends string,
+  T,
   Delimiter extends string,
   LiteralWrapper extends string,
 > =
@@ -134,15 +142,16 @@ export type CaptureUntil<
  * Split a string into a tuple using `Delimiter`.
  * The delimiter can be escaped if surrounded by `LiteralWrapper`.
  */
-export type Split<
-  T extends string,
-  Delimiter extends string,
-  LiteralWrapper extends string,
-> = SplitTRE<T, Delimiter, LiteralWrapper, []>;
+export type Split<T, Delimiter extends string, LiteralWrapper extends string> = SplitTRE<
+  T,
+  Delimiter,
+  LiteralWrapper,
+  []
+>;
 
 // prettier-ignore
 export type SplitTRE<
-  T extends string,
+  T,
   Delimiter extends string,
   LiteralWrapper extends string,
   Acc extends ReadonlyArray<string>
@@ -190,4 +199,9 @@ export type PromiseValue<T> = T extends Promise<infer V> ? V : T;
  * Artificially block TS from inferring the given type parameter, stopping union creation
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type NoInfer<T> = [T][T extends any ? 0 : never];
+// export type NoInfer<T> = [T][T extends any ? 0 : never];
+
+/**
+ * Return `true` if T is readonly.
+ */
+export type IsReadonly<T> = T extends Primitive ? false : IsExactly<Readonly<T>, T>;
