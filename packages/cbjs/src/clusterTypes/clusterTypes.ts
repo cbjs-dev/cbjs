@@ -29,11 +29,11 @@ import {
   FriendlyPathToArrayIndex,
   GetKeyspaceOptions,
   IsNever,
+  JsonDocumentDef,
   Keyspace,
   KeyspaceDocDef,
   MissingDefaultCollection,
   MissingDefaultScope,
-  ObjectDocumentDef,
   ScopeName,
   WildcardFallback,
 } from '@cbjsdev/shared';
@@ -46,6 +46,7 @@ export type { DocDef };
 
 /**
  * Add friendly paths that are autocomplete friendly, is configured that way.
+ * TODO incorporate this into the DocumentCodeCompletion
  */
 // prettier-ignore
 export type PathAutocomplete<Instance, Path> =
@@ -103,7 +104,7 @@ export type CollectionKeyspace<Instance> =
 ;
 
 // prettier-ignore
-export type CollectionJsonDocDef<Instance> = ObjectDocumentDef<CollectionDocDef<Instance>>;
+export type CollectionJsonDocDef<Instance> = JsonDocumentDef<CollectionDocDef<Instance>>;
 
 /**
  * Extract the DocDef in a given collection that match the given key.
@@ -111,18 +112,18 @@ export type CollectionJsonDocDef<Instance> = ObjectDocumentDef<CollectionDocDef<
 // prettier-ignore
 export type ExtractCollectionJsonDocDef<Instance, Key extends string> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
-    ObjectDocumentDef<DocDefMatchingKey<Key, T, B, S, C>> :
+    JsonDocumentDef<DocDefMatchingKey<Key, T, B, S, C>> :
   never
 ;
 
 // prettier-ignore
 export type ExtractCollectionJsonDocBody<Instance, Key extends string> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
-    ObjectDocumentDef<DocDefMatchingKey<Key, T, B, S, C>>['Body'] :
+    JsonDocumentDef<DocDefMatchingKey<Key, T, B, S, C>>['Body'] :
   never
 ;
 
-export type ExtractCollectionJsonDocKey<Instance> = ObjectDocumentDef<
+export type ExtractCollectionJsonDocKey<Instance> = JsonDocumentDef<
   CollectionDocDef<Instance>
 >['Key'];
 

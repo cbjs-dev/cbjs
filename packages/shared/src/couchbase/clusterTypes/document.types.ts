@@ -13,41 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsNever, Primitive } from '../../misc/index.js';
-import { Keyspace } from '../utils/index.js';
-import {
+import type { IsAny, IsNever } from '../../misc/index.js';
+import type { Keyspace } from '../utils/index.js';
+import type {
   ClusterTypesOptions,
   CouchbaseClusterTypes,
   DefaultClusterTypes,
   GetKeyspaceOptions,
   IsDefaultClusterTypes,
 } from './cluster.types.js';
-import { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
-import { LookupInMacroShape } from './lookupInMacro.types.js';
-import { DocumentPath } from './utils/index.js';
+import type { BucketName, CollectionName, ScopeName } from './keyspace.types.js';
 
-export type DocDef<
-  Key extends string = string,
-  Body = any,
-  Path extends string = DocumentPath<Body>,
-> = Key extends unknown
-  ? {
-      Key: Key;
-      Body: Body;
-      Path: Path;
-    }
-  : never;
+export type DocDef<Key extends string = string, Body = any> = {
+  Key: Key;
+  Body: Body;
+};
 
-export type AnyDocDef = { Key: string; Body: any; Path: string };
+export type AnyDocDef = { Key: string; Body: any };
 export type DocDefKeyShape = { Key: string };
 export type DocDefBodyShape = { Body: any };
-export type DocDefPathShape = { Path: string };
-export type DocDefBodyPathShape = { Path: string; Body: any };
 export type DocDefKeyBodyShape = { Key: string; Body: any };
-export type DocDefKeyBodyPathShape = { Key: string; Path: string; Body: any };
-export type DocDefLookupGetPathShape = {
-  LookupPath: { get: string | LookupInMacroShape };
-};
 
 /**
  * Union of DocDef declarations (arrays) in a collection. Distributive.
@@ -121,15 +106,15 @@ export type Json =
 /**
  * Subset of Json types that extend `object`.
  */
-export type JsonObject = Exclude<Json, Primitive>;
+export type JsonObject = ReadonlyArray<unknown> | Record<string, unknown>;
 
 /**
  * Extract definitions of documents on which you can perform sub-document operations.
  */
 // prettier-ignore
-export type ObjectDocumentDef<Def extends DocDefBodyShape> =
+export type JsonDocumentDef<Def extends DocDefBodyShape> =
   Def extends unknown ?
-    Def['Body'] extends object ?
+    Def['Body'] extends JsonObject ?
       Def :
     never :
   never
@@ -139,6 +124,7 @@ export type ObjectDocumentDef<Def extends DocDefBodyShape> =
  * Return all the DocDef of a keyspace that matches the given key accounting for
  * the keyMatchingStrategy of the given keyspace
  */
+// TODO reuse that to match Path in OpCodeCompletionValue
 // prettier-ignore
 export type DocDefMatchingKey<
   Key extends string,

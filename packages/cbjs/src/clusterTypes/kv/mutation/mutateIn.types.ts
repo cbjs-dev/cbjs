@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { DocDefBodyPathShape, DocDefKeyBodyPathShape, IsFuzzyDocument, Try } from '@cbjsdev/shared';
+import { DocDefKeyBodyShape, IsFuzzyDocument, Try } from '@cbjsdev/shared';
+import { MutateInMacroReturnType } from '@cbjsdev/shared/dist/src/couchbase/clusterTypes/mutateInMacro.types.js';
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import { Collection } from '../../../collection.js';
 import { MutateInResultEntry } from '../../../crudoptypes.js';
 import { MutateInMacro, MutateInSpec } from '../../../sdspecs.js';
 import { DocDef } from '../../clusterTypes.js';
-import type { MutateInMacroReturnType } from './mutateInMacro.types.js';
 import type {
   MutateInArrayAddUniquePath,
   MutateInArrayAddUniqueValue,
@@ -30,8 +30,8 @@ import type {
   MutateInArrayInsertValue,
   MutateInArrayPrependPath,
   MutateInArrayPrependValue,
-  MutateInCounterPath,
-  MutateInCounterValue,
+  MutateInBinaryPath,
+  MutateInBinaryValue,
   MutateInInsertPath,
   MutateInInsertValue,
   MutateInRemovePath,
@@ -75,7 +75,7 @@ export type MutateInResultEntries<Results> =
 /**
  * All possible mutation paths. Distributive.
  */
-export type AnyMutateInPath<Def extends DocDefBodyPathShape, Opcode extends MutateInSpecOpcode = MutateInSpecOpcode> =
+export type AnyMutateInPath<Def extends DocDefKeyBodyShape, Opcode extends MutateInSpecOpcode = MutateInSpecOpcode> =
   Def extends unknown ?
     Opcode extends unknown ?
       MutateInPath<Def, Opcode> :
@@ -86,7 +86,7 @@ export type AnyMutateInPath<Def extends DocDefBodyPathShape, Opcode extends Muta
 /**
  * Mutation paths - Non-distributive.
  */
-export type MutateInPath<Def extends DocDefBodyPathShape, Opcode extends MutateInSpecOpcode> =
+export type MutateInPath<Def extends DocDefKeyBodyShape, Opcode extends MutateInSpecOpcode> =
   Opcode extends CppProtocolSubdocOpcode.set_doc ? '' :
   Opcode extends CppProtocolSubdocOpcode.remove_doc ? '' :
   IsFuzzyDocument<Def['Body']> extends true ? string :
@@ -98,7 +98,7 @@ export type MutateInPath<Def extends DocDefBodyPathShape, Opcode extends MutateI
   Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependPath<Def> :
   Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertPath<Def> :
   Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniquePath<Def> :
-  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInBinaryPath<Def> :
   never
 ;
 
@@ -107,7 +107,7 @@ export type MutateInPath<Def extends DocDefBodyPathShape, Opcode extends MutateI
  * Distributive over `Doc` only.
  */
 export type AnyMutateInValue<
-  Def extends DocDefBodyPathShape,
+  Def extends DocDefKeyBodyShape,
   Opcode extends MutateInSpecOpcode,
   Path extends AnyMutateInPath<Def, Opcode>,
   Multi extends boolean = boolean,
@@ -121,7 +121,7 @@ export type AnyMutateInValue<
  * Mutation values - Non-distributive.
  */
 export type MutateInValue<
-  Def extends DocDefBodyPathShape,
+  Def extends DocDefKeyBodyShape,
   Opcode extends MutateInSpecOpcode,
   Path extends string,
   Multi extends boolean = boolean,
@@ -135,7 +135,7 @@ export type MutateInValue<
   Opcode extends CppProtocolSubdocOpcode.array_push_first ? MutateInArrayPrependValue<Def, Path, Multi> :
   Opcode extends CppProtocolSubdocOpcode.array_insert ? MutateInArrayInsertValue<Def, Path, Multi> :
   Opcode extends CppProtocolSubdocOpcode.array_add_unique ? MutateInArrayAddUniqueValue<Def, Path> :
-  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInCounterValue :
+  Opcode extends CppProtocolSubdocOpcode.counter ? MutateInBinaryValue<Def, Path> :
   never
 ;
 
@@ -143,7 +143,7 @@ export type MutateInValue<
  * Validate the `MutateInSpec` consistency.
  * Returns an error message if the path or the value is inconsistency, `T` if everything looks good.
  */
-export type ValidateMutateInSpec<Defs extends DocDefKeyBodyPathShape, Specs> =
+export type ValidateMutateInSpec<Defs extends DocDefKeyBodyShape, Specs> =
   Defs extends unknown ?
     Specs extends MutateInSpec<any, infer Opcode, infer Path, infer Multi, infer Value> ?
       Path extends AnyMutateInPath<Defs, Opcode> ?
@@ -162,7 +162,7 @@ export type ValidateMutateInSpec<Defs extends DocDefKeyBodyPathShape, Specs> =
  *
  * @see ValidateMutateInSpec
  */
-export type ValidateMutateInSpecs<Defs extends DocDefKeyBodyPathShape, Specs> =
+export type ValidateMutateInSpecs<Defs extends DocDefKeyBodyShape, Specs> =
   Specs extends readonly [infer Spec, ...infer Rest] ?
     readonly [ValidateMutateInSpec<Defs, Spec>, ...ValidateMutateInSpecs<Defs, Rest>] :
   Specs extends ReadonlyArray<MutateInSpec> ?
@@ -173,7 +173,7 @@ export type ValidateMutateInSpecs<Defs extends DocDefKeyBodyPathShape, Specs> =
 /**
  * Validate and narrow down an array of `MutateInSpec`.
  */
-export type NarrowMutationSpecs<Defs extends DocDefKeyBodyPathShape, Specs> = Try<Specs, [], ValidateMutateInSpecs<Defs, Specs>>;
+export type NarrowMutationSpecs<Defs extends DocDefKeyBodyShape, Specs> = Try<Specs, [], ValidateMutateInSpecs<Defs, Specs>>;
 
 /**
  *  Return the MutateInMacro instance type that are compatible with the given type.

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsAny, IsNever, Or, Pretty, Try } from '../../misc/index.js';
-import { AnyDocDef } from './document.types.js';
-import {
+import type { IsAny, IsNever, Or, Pretty } from '../../misc/index.js';
+import type { AnyDocDef } from './document.types.js';
+import type {
   BucketName,
   CollectionName,
   DefaultCollectionName,

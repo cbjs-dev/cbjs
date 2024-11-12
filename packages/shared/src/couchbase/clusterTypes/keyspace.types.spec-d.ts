@@ -15,9 +15,14 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { CouchbaseClusterTypes, DefaultClusterTypes } from './cluster.types.js';
-import { DocDef } from './document.types.js';
-import { BucketName, CollectionName, QueryContext, ScopeName } from './keyspace.types.js';
+import type { CouchbaseClusterTypes, DefaultClusterTypes } from './cluster.types.js';
+import type { DocDef } from './document.types.js';
+import type {
+  BucketName,
+  CollectionName,
+  QueryContext,
+  ScopeName,
+} from './keyspace.types.js';
 
 type Doc<T extends string> = { [K in T]: string };
 
