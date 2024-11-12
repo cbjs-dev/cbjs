@@ -41,7 +41,7 @@ export type {
   MutateInArrayPrependPath,
   MutateInArrayAddUniquePath,
   MutateInArrayInsertPath,
-  MutateInCounterPath,
+  MutateInBinaryPath,
 } from './kv/mutation/mutationOperations.types.js';
 
 export type {
@@ -52,5 +52,4 @@ export type {
   DocDef,
   CollectionName,
   ClusterTypesOptions,
-  DocumentPath,
 } from '@cbjsdev/shared';

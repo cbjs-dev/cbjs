@@ -22,7 +22,6 @@ import { LookupInResult } from '../../../crudoptypes.js';
 import {
   connect,
   DocDef,
-  type LookupInGetPath,
   LookupInMacro,
   LookupInReplicaResult,
   LookupInResultEntry,
@@ -79,9 +78,7 @@ describe('LookupInSpecs', () => {
           LookupInSpec.exists('metadata.tags[0]'),
         ]);
 
-        expectTypeOf(result).toEqualTypeOf<
-          LookupInResult<readonly [any, any, number, boolean]>
-        >();
+        expectTypeOf(result).toEqualTypeOf<LookupInResult<[any, any, number, boolean]>>();
 
         await collection.lookupIn(
           'test__document',
@@ -135,7 +132,7 @@ describe('LookupInSpecs', () => {
         ]);
 
         expectTypeOf(resultInAnyReplica).toEqualTypeOf<
-          LookupInReplicaResult<readonly [any, any, number, boolean]>
+          LookupInReplicaResult<[any, any, number, boolean]>
         >();
 
         const resultInAllReplica = await collection.lookupInAllReplicas(
@@ -149,7 +146,7 @@ describe('LookupInSpecs', () => {
         );
 
         expectTypeOf(resultInAllReplica).toEqualTypeOf<
-          Array<LookupInReplicaResult<readonly [any, any, number, boolean]>>
+          Array<LookupInReplicaResult<[any, any, number, boolean]>>
         >();
       });
 
@@ -165,7 +162,7 @@ describe('LookupInSpecs', () => {
         ]);
 
         expectTypeOf(result).toEqualTypeOf<
-          LookupInResult<readonly [string, any, number, boolean]>
+          LookupInResult<[string, any, number, boolean]>
         >();
 
         const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
@@ -176,7 +173,7 @@ describe('LookupInSpecs', () => {
         ]);
 
         expectTypeOf(resultInAnyReplica).toEqualTypeOf<
-          LookupInReplicaResult<readonly [string, any, number, boolean]>
+          LookupInReplicaResult<[string, any, number, boolean]>
         >();
 
         const resultInAllReplica = await collection.lookupInAllReplicas(
@@ -190,7 +187,7 @@ describe('LookupInSpecs', () => {
         );
 
         expectTypeOf(resultInAllReplica).toEqualTypeOf<
-          Array<LookupInReplicaResult<readonly [string, any, number, boolean]>>
+          Array<LookupInReplicaResult<[string, any, number, boolean]>>
         >();
       });
     });
@@ -279,7 +276,7 @@ describe('LookupInSpecs', () => {
         ]);
 
         expectTypeOf(result).toEqualTypeOf<
-          LookupInResult<readonly [string | number, number, boolean]>
+          LookupInResult<[string | number, number, boolean]>
         >();
 
         const resultInAnyReplica = await collection.lookupInAnyReplica('test__document', [
@@ -289,7 +286,7 @@ describe('LookupInSpecs', () => {
         ]);
 
         expectTypeOf(resultInAnyReplica).toEqualTypeOf<
-          LookupInReplicaResult<readonly [string | number, number, boolean]>
+          LookupInReplicaResult<[string | number, number, boolean]>
         >();
 
         const resultInAllReplica = await collection.lookupInAllReplicas(
@@ -302,7 +299,7 @@ describe('LookupInSpecs', () => {
         );
 
         expectTypeOf(resultInAllReplica).toEqualTypeOf<
-          Array<LookupInReplicaResult<readonly [string | number, number, boolean]>>
+          Array<LookupInReplicaResult<[string | number, number, boolean]>>
         >();
       });
     });
@@ -344,17 +341,17 @@ describe('LookupInSpecs', () => {
 
   describe('LookupInSpecResults', () => {
     it('should infer the correct result when using user defined document', () => {
-      expectTypeOf<
-        LookupInSpecResults<
-          [
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'title'>,
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
-            LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
-          ],
-          TestDocDef
-        >
-      >().toEqualTypeOf<[string, boolean, number, string | undefined]>();
+      type Test = LookupInSpecResults<
+        [
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'title'>,
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get_count, 'metadata'>,
+          LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'metadata.tags[99]'>,
+        ],
+        TestDocDef
+      >;
+
+      expectTypeOf<Test>().toEqualTypeOf<[string, boolean, number, string]>();
     });
 
     it('should provide best-effort when using collection documents', () => {

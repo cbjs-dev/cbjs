@@ -15,22 +15,57 @@
  */
 import { connect } from '@cbjsdev/cbjs';
 
-import { AppTypes } from './appTypes.js';
+import {
+  arkGraphPendingOperationAddManageable,
+  GraphPendingOperationAddManageable,
+} from './types/database/models/graph.js';
+import {
+  arkGraphId,
+  arkGraphPendingOperationId,
+  type ManageableBudgetId,
+} from './types/database/models/ids.js';
+import { ManageableDocument } from './types/database/models/manageable/manageable.js';
+import type { PragmaClusterTypes } from './types/database/PragmaClusterTypes.js';
 
-const cluster = await connect<AppTypes>('');
-const library = cluster.bucket('store').scope('library');
-const books = library.collection('books');
-const authors = library.collection('authors');
+const cluster = await connect<PragmaClusterTypes>('');
+const cb = cluster.bucket('pragma').scope('userland');
 
-const { content: bookData } = await books
-  .lookupIn('book::001')
-  .get('title')
-  .get('tags[0]')
-  .get('authors')
-  .get('editors.editor::001')
-  .get('editors.editor::002');
+const manageableId: ManageableBudgetId = 'manageable_budget__001';
 
-const { content: bookSalesData } = await books
-  .lookupInAnyReplica('book::001::sales', { throwOnSpecError: true })
-  .get('perCountry.FR')
-  .get('perCountry.EN');
+const { content } = await cb
+  .collection('manageable')
+  .lookupIn(manageableId, { throwOnSpecError: true })
+  .get('manageableType') // string: 970 - path: 977
+  .get('audit.createdBy'); // string: 971 - path: 977
+// .get('audit.createdAt')
+// .get('scope.organizationId')
+// .get('scope.projectId')
+// .get('scope.domainIds')
+
+const graphOperation: GraphPendingOperationAddManageable =
+  arkGraphPendingOperationAddManageable.assert({
+    op: 'addManageable',
+    happenedAt: Date.now(),
+    attempt: 0,
+    seqno: 0,
+    payload: {
+      manageableId,
+    },
+  });
+
+const graphId = arkGraphId.assert('');
+const graphPendingOperationId = arkGraphPendingOperationId.assert(
+  `graph_pending_operation__test`
+);
+
+// await cb.collection('graph').lookupIn(graphId).get('');
+
+await cb
+  .collection('graph')
+  .mutateIn(graphId)
+  .insert(
+    `pendingOperations.${graphPendingOperationId}`,
+    arkGraphPendingOperationAddManageable.assert(graphOperation)
+  );
+
+console.log(content);

@@ -21,8 +21,6 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  DocDefBodyShape,
-  ExtractPathToInsertableArrayIndex,
   If,
   IsFuzzyDocument,
   MakeTestPaths,
@@ -258,12 +256,6 @@ describe('mutateIn arrayInsert', async () => {
         `metadata.tags[${string}]` | 'metadata.tags[1]' | 'authors[1]';
 
       type ExtractPathToArray<Path> = Path extends `${string}[${number}]` ? Path : never;
-
-      type Repro =
-        | (ExtractPathToArray<TestDocDef['Path']> & NonNullable<unknown>)
-        | (ExtractPathToArray<TestDocDef2['Path']> & NonNullable<unknown>)
-        | 'metadata.tags[\u200b]'
-        | 'authors[1]';
 
       type MetaRepro<Path> = Path extends unknown
         ? ExtractPathToArray<Path> extends infer TP

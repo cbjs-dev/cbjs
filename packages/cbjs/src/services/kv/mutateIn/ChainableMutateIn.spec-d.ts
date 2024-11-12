@@ -74,14 +74,17 @@ type UserClusterTypes = {
 };
 
 describe('ChainableMutateIn', function () {
-  it('should return all the specs, in order, when the getter is called', ({ expect }) => {
+  it('should handle unions', ({ expect }) => {
     const collection: CollectionContainingDocDef<
       UserClusterTypes,
-      DocDef<BookId, Book>
+      DocDef<EventId, Event>
     > = true as any;
-    const specs = ChainableMutateIn.for(collection, 'book::001', {})
-      .arrayAppend('authors', 'Jonathan')
-      .replace('title', 'Hello')
+
+    const specs = ChainableMutateIn.for(collection, 'event::001', {})
+      .upsert('body', {
+        type: 'a',
+        payload: 'pa',
+      })
       .getSpecs();
 
     expect(specs).toStrictEqual([
@@ -90,7 +93,7 @@ describe('ChainableMutateIn', function () {
     ]);
   });
 
-  it('should be able to store the instance in a variable and add add more spec later', ({
+  it('should raise a ts error when a non-array value is given with multi=true', ({
     expect,
   }) => {
     const collection: CollectionContainingDocDef<
@@ -98,17 +101,27 @@ describe('ChainableMutateIn', function () {
       DocDef<BookId, Book>
     > = true as any;
 
-    const chainableMutate = ChainableMutateIn.for(
-      collection,
-      'book::001',
-      {}
-    ).arrayAppend('authors', 'Jonathan');
+    const specs = ChainableMutateIn.for(collection, 'book::001', {})
+      // @ts-expect-error the value MUST be an array
+      .arrayAppend('authors', 'Jonathan', { multi: true })
+      .getSpecs();
 
-    void chainableMutate.replace('title', 'Hello');
-
-    expect(chainableMutate.getSpecs()).toStrictEqual([
-      MutateInSpec.arrayAppend('authors', 'Jonathan'),
-      MutateInSpec.replace('title', 'Hello'),
+    expect(specs).toStrictEqual([
+      MutateInSpec.arrayAppend('authors', ['Jonathan'], { multi: true }),
     ]);
+  });
+
+  it('should only accept `never` as value when the path is illegal', () => {
+    type Doc = { releases: [string, ...number[]] };
+    type CT = {
+      store: { library: { books: [DocDef<BookId, Doc>] } };
+    };
+
+    const collection: CollectionContainingDocDef<CT, DocDef<BookId, Doc>> = true as any;
+
+    const specs = ChainableMutateIn.for(collection, 'book::001', {})
+
+      .arrayInsert('releases[1]', 0)
+      .getSpecs();
   });
 });

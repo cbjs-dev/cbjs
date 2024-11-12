@@ -410,8 +410,3 @@ type Book = {
 
 const result = await collection.lookupIn('book::001').get('title').get('authors[0]');
 ```
-
-### Tuples
-
-Cbjs considers that tuples cannot change in length, regardless of them being readonly or not.
-The values themselves can be modified, unless the tuple is `readonly`.

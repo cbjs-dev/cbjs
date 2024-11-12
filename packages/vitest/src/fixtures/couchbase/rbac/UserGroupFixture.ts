@@ -30,7 +30,7 @@ export class UserGroupFixture extends FixtureFunctionValue<
 > {
   public readonly fixtureName = 'UserGroupFixture';
   private name?: string;
-  private roles?: (string | Role)[];
+  private roles?: (string | Omit<Role, 'toString'>)[];
 
   override async use(
     { serverTestContext, logger, apiConfig }: FixtureContext<CouchbaseTestContext>,

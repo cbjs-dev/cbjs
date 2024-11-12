@@ -15,25 +15,17 @@
  */
 
 import {
-  ArrayAppendElement,
-  ArrayPrependElement,
-  DocDefBodyPathShape,
   DocDefBodyShape,
-  ExtractPathToAppendableArray,
-  ExtractPathToInsertableArrayIndex,
-  ExtractPathToOptionalProperty,
-  ExtractPathToPrependableArray,
-  ExtractPathToRemovableArrayIndex,
-  ExtractPathToType,
-  ExtractPathToWritable,
-  ExtractPathToWritableArrayIndex,
-  ExtractPathToWritableProperty,
   If,
   IsFuzzyDocument,
-  SubDocument,
+  IsLegalPath,
+  OpCodeCompletionPath,
+  OpCodeCompletionValue,
 } from '@cbjsdev/shared';
 
 import type { CompatibleMacro } from './mutateIn.types.js';
+
+// export type IllegalPathErrorMessage<Op extends KvOperation, Path extends string> = `Cannot '${Op}' at '${Path}'. Illegal path or value.`;
 
 /**
  * Wrap the value in a `ReadonlyArray` if `Multi` is `true`.
@@ -64,15 +56,15 @@ type OperationPath<Doc, Path extends string> =
  * Valid mutation path for an `insert` operation. Non-distributive.
  */
 // prettier-ignore
-export type MutateInInsertPath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToOptionalProperty<Def['Body'], Def['Path']>>
+export type MutateInInsertPath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'insert', Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `insert` operation at a specific path.
  */
 export type MutateInInsertValue<Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'insert', Def['Body'], Path>>
 ;
 
 /**
@@ -83,15 +75,15 @@ export type MutateInInsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Valid mutation path for an `upsert` operation.
  */
-export type MutateInUpsertPath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToWritableProperty<Def['Body'], Def['Path']> | ''>
+export type MutateInUpsertPath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'upsert', Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `upsert` operation at a specific path.
  */
 export type MutateInUpsertValue<Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'upsert', Def['Body'], Path>>
 ;
 
 /**
@@ -103,15 +95,15 @@ export type MutateInUpsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Valid mutation path for a `replace` operation.
  */
-export type MutateInReplacePath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToWritable<Def['Body'], Def['Path']>>
+export type MutateInReplacePath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'replace', Def['Body']>>
 ;
 
 /**
  * Acceptable value for a `replace` operation at a specific path.
  */
 export type MutateInReplaceValue<Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'replace', Def['Body'], Path>>
 ;
 
 /**
@@ -125,14 +117,8 @@ export type MutateInReplaceOptions = { createPath?: boolean; xattr?: boolean };
 // It is quite similar to the insert path, except that some array indexes are removable,
 // while insert cannot target array indexes at all.
 // prettier-ignore
-export type MutateInRemovePath<Def extends DocDefBodyPathShape> =
-  IsFuzzyDocument<Def['Body']> extends true ?
-    string :
-  (
-    | ''
-    | ExtractPathToRemovableArrayIndex<Def['Body'], Def['Path']>
-    | ExtractPathToOptionalProperty<Def['Body'], Def['Path']>
-  )
+export type MutateInRemovePath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'remove', Def['Body']>>
 ;
 
 /**
@@ -143,8 +129,8 @@ export type MutateInRemoveOptions = { xattr?: boolean };
 /**
  * Valid mutation path for an `arrayAppend` operation.
  */
-export type MutateInArrayAppendPath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToAppendableArray<Def['Body'], Def['Path'] | ''>>
+export type MutateInArrayAppendPath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend', Def['Body']>>
 ;
 
 /**
@@ -155,7 +141,7 @@ export type MutateInArrayAppendValue<
   Path extends string,
   Multi extends boolean,
 > =
-  OperationValue<Def['Body'], Multi, ArrayAppendElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayAppend', Def['Body'], Path>>
 ;
 
 /**
@@ -166,8 +152,8 @@ export type MutateInArrayAppendOptions<Multi extends boolean> = { createPath?: b
 /**
  * Valid mutation path for an `arrayPrepend` operation.
  */
-export type MutateInArrayPrependPath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToPrependableArray<Def['Body'], Def['Path'] | ''>>
+export type MutateInArrayPrependPath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayPrepend', Def['Body']>>
 ;
 
 /**
@@ -178,7 +164,7 @@ export type MutateInArrayPrependValue<
   Path extends string,
   Multi extends boolean,
 > =
-  OperationValue<Def['Body'], Multi, ArrayPrependElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayPrepend', Def['Body'], Path>>
 ;
 
 /**
@@ -188,8 +174,8 @@ export type MutateInArrayPrependOptions<Multi extends boolean> = { createPath?: 
 /**
  * Valid mutation path for an `arrayInsert` operation.
  */
-export type MutateInArrayInsertPath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToInsertableArrayIndex<Def['Body'], Def['Path'] | ''>>
+export type MutateInArrayInsertPath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayInsert', Def['Body']>>
 ;
 
 /**
@@ -200,19 +186,22 @@ export type MutateInArrayInsertValue<
   Path extends string,
   Multi extends boolean,
 > =
-  OperationValue<Def['Body'], Multi, SubDocument<Def['Body'], Path>>
+  IsLegalPath<'arrayInsert', Def['Body'], Path> extends true ?
+    OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayInsert', Def['Body'], Path>> :
+  never
+;
 
 /**
  * Mutation options for an `arrayInsert` operation.
  */
-export type MutateInArrayInsertOptions<Multi extends boolean> = { createPath?: boolean; xattr?: boolean, multi?: Multi };
+export type MutateInArrayInsertOptions<Multi extends boolean> = { xattr?: boolean, multi?: Multi };
 
 
 /**
  * Valid mutation path for an `arrayAddUnique` operation.
  */
-export type MutateInArrayAddUniquePath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'], ExtractPathToAppendableArray<Def['Body'], Def['Path'] | ''>>
+export type MutateInArrayAddUniquePath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'],  OpCodeCompletionPath<'arrayAppend', Def['Body']>>
 ;
 
 /**
@@ -222,7 +211,7 @@ export type MutateInArrayAddUniqueValue<
   Def extends DocDefBodyShape,
   Path extends string,
 > =
-  OperationValue<Def['Body'], false, ArrayAppendElement<Extract<SubDocument<Def['Body'], Path>, ReadonlyArray<unknown>>>>
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'arrayAppend', Def['Body'], Path>>
 ;
 
 /**
@@ -233,24 +222,20 @@ export type MutateInArrayAddUniqueOptions = { createPath?: boolean; xattr?: bool
 /**
  * Valid mutation path for an `increment` or `decrement` operation.
  */
-export type MutateInCounterPath<Def extends DocDefBodyPathShape> =
-  OperationPath<Def['Body'],
-    | ExtractPathToType<Def['Body'], ExtractPathToWritableProperty<Def['Body'], Def['Path']>, number>
-    | ExtractPathToWritableArrayIndex<Def['Body'], Def['Path'] | '', number>
-  >
-;
+export type MutateInBinaryPath<Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'binary', Def['Body']>>;
 
 /**
  * Valid mutation value for an `increment` or `decrement` operation.
  */
-export type MutateInCounterValue = number;
+export type MutateInBinaryValue<Def extends DocDefBodyShape, Path extends string> =
+  IsLegalPath<'binary', Def['Body'], Path> extends true ?
+    number :
+  never
+  // IllegalPathErrorMessage<'binary', Path>
+;
 
 /**
  * Mutation options for an `increment` operation.
  */
-export type MutateInCounterOptions = { createPath?: boolean; xattr?: boolean };
-
-/**
- * Mutation options for a `decrement` operation.
- */
-export type MutateInDecrementOptions = { createPath?: boolean; xattr?: boolean };
+export type MutateInBinaryOptions = { createPath?: boolean; xattr?: boolean };

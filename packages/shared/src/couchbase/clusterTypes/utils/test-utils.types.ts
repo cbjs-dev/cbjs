@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Extends, If, IsExactly } from '../../../misc/index.js';
-import { ResolveNegativeIndex } from './array-utils.types.js';
-import { TargetableArrayIndexes } from './path-utils.types.js';
+import { IfStrict, IsExactly } from '../../../misc/index.js';
+import { IsArrayLengthKnown, ResolveIndex, TupleIndexes } from './array-utils.types.js';
 
 /**
  * THIS IS FOR TESTS PURPOSES ONLY.
@@ -25,7 +24,7 @@ export type AssertTests<T extends Record<string, readonly [boolean, boolean]>> =
   keyof T extends infer Name extends string
     ? Name extends unknown
       ? T[Name] extends [infer Expected extends boolean, infer Actual extends boolean]
-        ? If<
+        ? IfStrict<
             IsExactly<Expected, Actual>,
             true,
             {
@@ -37,23 +36,6 @@ export type AssertTests<T extends Record<string, readonly [boolean, boolean]>> =
         : never
       : never
     : 'Only string keys are allowed';
-
-export type AssertExtends<
-  TestedType,
-  Assertions extends [unknown, boolean][],
-> = Assertions[number] extends infer AssertionTuple
-  ? AssertionTuple extends [infer Expected, infer ShouldExtend extends boolean]
-    ? If<
-        Extends<Expected, TestedType>,
-        ShouldExtend,
-        {
-          Expected: Expected;
-          ShouldExtend: ShouldExtend;
-          Actual: TestedType;
-        }
-      >
-    : never
-  : 'Only string keys are allowed';
 
 export type TestDocRequiredProperties = {
   String: string;
@@ -75,13 +57,29 @@ export type BuildOptionalProperties<T extends object> = {
   [Key in Extract<keyof T, string> as `Optional${Key}`]?: T[Key];
 };
 
+// prettier-ignore
 export type BuildReadonlyArrayProperties<T extends object> = {
-  [Key in Extract<keyof T, string> as T[Key] extends ReadonlyArray<unknown>
-    ? `Readonly${Key}`
-    : never]: T[Key] extends infer Value extends ReadonlyArray<unknown>
+  [Key in Extract<keyof T, string> as
+    T[Key] extends ReadonlyArray<unknown> ?
+      `Readonly${Key}` :
+    never
+  ]: T[Key] extends infer Value extends ReadonlyArray<unknown>
     ? Readonly<Value>
     : T[Key];
 };
+
+/**
+ * Extract all the possible keys of an array.
+ */
+// prettier-ignore
+type TargetableArrayIndexes<T extends ReadonlyArray<unknown>> =
+  IsArrayLengthKnown<T> extends false ?
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    -1 | (number & unknown) :
+  0 extends TupleIndexes<T> ?
+    -1 | TupleIndexes<T> :
+  never
+;
 
 /**
  * Union of all paths to all elements of the object.
@@ -95,7 +93,7 @@ export type MakeTestPaths<
 > = K extends AccessibleKey
   ? `${Accessor<T, K, IsRoot>}${
       | ''
-      | (ResolveNegativeIndex<T, K> extends infer Index extends keyof T
+      | (ResolveIndex<T, K> extends infer Index extends keyof T
           ? T[Index] extends infer Doc
             ? Doc extends readonly unknown[]
               ? TargetableArrayIndexes<Doc> extends infer Index extends number
