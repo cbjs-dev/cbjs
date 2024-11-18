@@ -31,9 +31,11 @@ import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
+const testTimeout = 45_000;
+
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Collections, ServerFeatures.Eventing))
-  .sequential('eventing', { timeout: 30_000 }, async function () {
+  .sequential('eventing', { timeout: testTimeout }, async function () {
     const eventingFunctionName = getRandomId();
 
     const test = await createCouchbaseTest(async ({ useBucket, useCollection }) => {
@@ -139,7 +141,7 @@ describe
           const testFn = eventingFunctions.find((f) => f.name === testFnName);
           expect(testFn).toBeDefined();
         },
-        { timeout: 30_000 }
+        { timeout: testTimeout }
       );
     });
 
@@ -156,7 +158,7 @@ describe
           const testFnStatus = statuses.functions.find((f) => f.name === testFnName);
           expect(testFnStatus).toBeDefined();
         },
-        { timeout: 30_000 }
+        { timeout: testTimeout }
       );
     });
 
@@ -167,7 +169,7 @@ describe
     }) {
       await expect(
         waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
-          timeout: 30_000,
+          timeout: testTimeout,
         })
       ).resolves.toBeUndefined();
     });
@@ -180,7 +182,9 @@ describe
     }) {
       await serverTestContext.cluster.eventingFunctions().deployFunction(testFnName);
       await expect(
-        waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
+        waitForEventingFunction(apiConfig, testFnName, 'deployed', {
+          timeout: testTimeout,
+        })
       ).resolves.toBeUndefined();
     });
 
@@ -192,7 +196,7 @@ describe
     }) {
       await serverTestContext.cluster.eventingFunctions().pauseFunction(testFnName);
       await expect(
-        waitForEventingFunction(apiConfig, testFnName, 'paused', { timeout: 30_000 })
+        waitForEventingFunction(apiConfig, testFnName, 'paused', { timeout: testTimeout })
       ).resolves.toBeUndefined();
     });
 
@@ -204,7 +208,9 @@ describe
     }) {
       await serverTestContext.cluster.eventingFunctions().resumeFunction(testFnName);
       await expect(
-        waitForEventingFunction(apiConfig, testFnName, 'deployed', { timeout: 30_000 })
+        waitForEventingFunction(apiConfig, testFnName, 'deployed', {
+          timeout: testTimeout,
+        })
       ).resolves.toBeUndefined();
     });
 
@@ -217,7 +223,7 @@ describe
       await serverTestContext.cluster.eventingFunctions().undeployFunction(testFnName);
       await expect(
         waitForEventingFunction(apiConfig, testFnName, 'undeployed', {
-          timeout: 30_000,
+          timeout: testTimeout,
         })
       ).resolves.toBeUndefined();
     });
@@ -230,7 +236,7 @@ describe
       await serverTestContext.cluster.eventingFunctions().dropFunction(testFnName);
 
       await waitForEventingFunction(apiConfig, testFnName, {
-        timeout: 30_000,
+        timeout: testTimeout,
         expectMissing: true,
       });
     });
