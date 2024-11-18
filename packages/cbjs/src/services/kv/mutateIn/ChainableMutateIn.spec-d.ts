@@ -16,11 +16,15 @@
  */
 import { describe, it } from 'vitest';
 
+import { Get, Keys } from '@cbjsdev/shared';
+
 import {
   CollectionContainingDocDef,
+  CollectionOptions,
   DocDef,
 } from '../../../clusterTypes/clusterTypes.js';
 import { MutateInUpsertValue } from '../../../clusterTypes/kv/mutation/mutationOperations.types.js';
+import { connect } from '../../../couchbase.js';
 import { MutateInSpec } from '../../../sdspecs.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 
@@ -34,6 +38,7 @@ type Book = {
   };
 };
 
+type BorrowId = `borrow::${string}`;
 type UserId = `user::${number}`;
 type User = {
   name: string;
@@ -41,8 +46,8 @@ type User = {
   metadata: {
     tags: string[];
   };
-  borrowing: Record<
-    string,
+  borrowing?: Record<
+    BorrowId,
     {
       borrowedAt: number;
       expectedReturnAt: number;
@@ -111,5 +116,12 @@ describe('ChainableMutateIn', function () {
       // @ts-expect-error cannot insert at this path
       .arrayInsert('releases[0]', 0)
       .getSpecs();
+  });
+
+  it('should allow to remove a record key', async () => {
+    const cb = await connect<UserClusterTypes>('');
+    const collection = cb.bucket('store').scope('library').collection('user');
+
+    void collection.mutateIn('user::001').remove('borrowing.#');
   });
 });

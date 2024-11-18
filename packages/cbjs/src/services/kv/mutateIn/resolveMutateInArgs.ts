@@ -32,9 +32,10 @@ type ResolvedArgs = {
 };
 
 export function resolveMutateInArgs<
+  Options,
   Def extends AnyDocDef,
   SpecDefinitions extends ReadonlyArray<MutateInSpec>,
->(args: MutateInArgs<Def, SpecDefinitions>): ResolvedArgs {
+>(args: MutateInArgs<Options, Def, SpecDefinitions>): ResolvedArgs {
   if (!isArray(args[0])) {
     return {
       options: (args[0] as MutateInOptions) ?? {},

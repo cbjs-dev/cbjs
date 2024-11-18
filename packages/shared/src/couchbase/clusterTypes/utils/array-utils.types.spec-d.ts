@@ -24,6 +24,7 @@ import {
   ArrayLastElement,
   ArrayLastIndex,
   ArrayPrependElement,
+  ArraySlice,
   GuaranteedIndexes,
   IsArrayLengthFixed,
   ResolveIndex,
@@ -491,5 +492,74 @@ describe('IsArrayLengthFixed', () => {
   test('tuple with optional element', () => {
     type Test = IsArrayLengthFixed<[string, number?]>;
     expectTypeOf<Test>().toEqualTypeOf<false>();
+  });
+});
+
+describe('ArraySlice', () => {
+  test('array', () => {
+    type Test = ArraySlice<string[], 1>;
+    expectTypeOf<Test>().toEqualTypeOf<string[]>();
+
+    type Test2 = ArraySlice<string[], -1>;
+    expectTypeOf<Test2>().toEqualTypeOf<[string]>();
+  });
+
+  test('readonly array', () => {
+    type Test = ArraySlice<readonly string[], 1>;
+    expectTypeOf<Test>().toEqualTypeOf<readonly string[]>();
+  });
+
+  test('tuple', () => {
+    type Test = ArraySlice<[string], 0>;
+    expectTypeOf<Test>().toEqualTypeOf<[string]>();
+
+    type Test2 = ArraySlice<[string], 1>;
+    expectTypeOf<Test2>().toEqualTypeOf<[]>();
+
+    type Test3 = ArraySlice<[string], -1>;
+    expectTypeOf<Test3>().toEqualTypeOf<[string]>();
+  });
+
+  test('tuple with variadic head', () => {
+    type Test = ArraySlice<[...number[], string], 0>;
+    expectTypeOf<Test>().toEqualTypeOf<[...number[], string]>();
+
+    type Test2 = ArraySlice<[...number[], string], 1>;
+    expectTypeOf<Test2>().toEqualTypeOf<[...number[], string]>();
+
+    type Test3 = ArraySlice<[...number[], string], -1>;
+    expectTypeOf<Test3>().toEqualTypeOf<[string]>();
+  });
+
+  test('tuple with variadic head same type', () => {
+    type Test = ArraySlice<[...string[], string], 1>;
+    expectTypeOf<Test>().toEqualTypeOf<[...string[], string]>();
+  });
+
+  test('tuple with variadic tail', () => {
+    type Test = ArraySlice<[string, ...number[]], 0>;
+    expectTypeOf<Test>().toEqualTypeOf<[string, ...number[]]>();
+
+    type Test2 = ArraySlice<[string, ...number[]], 1>;
+    expectTypeOf<Test2>().toEqualTypeOf<number[]>();
+
+    type Test3 = ArraySlice<[string, ...number[]], -1>;
+    expectTypeOf<Test3>().toEqualTypeOf<[string | number]>();
+  });
+
+  test('tuple with variadic tail same type', () => {
+    type Test = ArraySlice<[string, ...string[]], 1>;
+    expectTypeOf<Test>().toEqualTypeOf<string[]>();
+  });
+
+  test('tuple with optional element', () => {
+    type Test = ArraySlice<[string, number?], 0>;
+    expectTypeOf<Test>().toEqualTypeOf<[string, number?]>();
+
+    type Test2 = ArraySlice<[string, number?], 1>;
+    expectTypeOf<Test2>().toEqualTypeOf<[number?]>();
+
+    type Test3 = ArraySlice<[string, number?], -1>;
+    expectTypeOf<Test3>().toEqualTypeOf<[string | number | undefined]>();
   });
 });

@@ -101,7 +101,11 @@ Cluster types support a few options that can be passed during their declaration.
 
 ```ts
 type ClusterTypesOptions = {
-  autocomplete?: 'strict' | 'friendly'; // default: 'friendly'
+  codeCompletion?: {
+    array?: 'friendly' | 'strict'; // default: 'friendly'
+    record?: 'friendly' | 'strict'; // default: 'friendly'
+    recordPlaceholder?: string; // default: '#'
+  };
   keyMatchingStrategy?: 'always' | 'firstMatch'; // default: 'always'
   keyDelimiter?: string;
 }
@@ -218,10 +222,10 @@ type MyClusterTypes = {
 };
 ```
 
-### Autocomplete
+### Code completion
 
-There is a limitation of TypeScript regarding autocomplete when the path is a template string like `authors[${number}]`, the autocomplete will not offer that value.  
-Because of that, Cbjs adds _friendly paths_ to the autocomplete list :
+There is a limitation of TypeScript regarding code completion when the path is a template string like `authors[${number}]`, the typescript service will not offer that value.  
+Because of that, Cbjs adds _friendly paths_ to the completion list :
 
 ```ts twoslash
 import { connect, DocDef } from '@cbjsdev/cbjs';
@@ -245,12 +249,15 @@ const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
 
 // ---cut-before---
-// @noErrors: 2769
+// @noErrors: 2345 2769
 const result = await collection
   .lookupIn('book::001')
   .get('autho');
 //           ^|
 ```
+
+&nbsp;  
+&nbsp;
 
 Because their length is fixed, all indexes will be offered for tuples.
 
@@ -276,7 +283,7 @@ const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
 
 // ---cut-before---
-// @noErrors: 2769
+// @noErrors: 2345 2769
 const result = await collection
   .lookupIn('book::001')
   .get('quater_sal');
@@ -286,9 +293,62 @@ const result = await collection
 &nbsp;  
 &nbsp;  
 &nbsp;  
-&nbsp;
+&nbsp;  
+&nbsp;  
 
-You can turn off friendly path in the cluster types options :
+
+For records, a placeholder will be injected where the key is expected :
+
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [ DocDef<
+        `book::${string}`,
+        {
+          editions: Record<`edition::${string}`, { name: string; firstRelease: number }>
+        }
+      > ]
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+// @noErrors: 2345 2769
+const result = await collection
+  .lookupIn('book::001')
+  .get('edit');
+//          ^|
+```
+
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+
+::: tip
+Use specific key type such as `edition::${string}` instead of simply `string` to benefit from friendly paths.
+Wide type like `string` will match the placeholder and will be swallowed.
+:::
+
+To change the placeholder or turn off friendly path completely, set the options the cluster types definitions :
+
+```ts
+type MyClusterTypes = {
+  '@options': {
+    codeCompletion: {
+      array: 'strict'; // default 'friendly'
+      record: 'strict'; // default 'friendly'
+      recordPlaceholder: '!'; // default '#'
+    }
+  }
+};
+```
 
 ## Incremental adoption
 

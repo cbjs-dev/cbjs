@@ -27,36 +27,23 @@ import { ChainableLookupIn } from './ChainableLookupIn.js';
 export type LookupMethodName = 'lookupIn' | 'lookupInAnyReplica' | 'lookupInAllReplicas';
 
 export type LookupResult<
+  Options,
   Method extends LookupMethodName,
   SpecDefinitions,
   MatchingDocDefs,
   ThrowOnSpecError extends boolean
 > =
   Method extends 'lookupIn' ?
-    LookupInResult<LookupInSpecResults<SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError> :
+    LookupInResult<LookupInSpecResults<Options,SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError> :
   Method extends 'lookupInAnyReplica' ?
-    LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError> :
+    LookupInReplicaResult<LookupInSpecResults<Options,SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError> :
   Method extends 'lookupIn' ?
-    LookupInResult<LookupInSpecResults<SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError> :
-  PromiseValue<LookupInReplicaResult<LookupInSpecResults<SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError>[]>;
+    LookupInResult<LookupInSpecResults<Options,SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError> :
+  PromiseValue<LookupInReplicaResult<LookupInSpecResults<Options,SpecDefinitions, MatchingDocDefs>, ThrowOnSpecError>[]>;
 
 export type LookupInArgs = readonly [
-      specsOrOptions?: LookupInOptions<boolean> | LookupInAnyReplicaOptions<boolean> | LookupInAllReplicasOptions<boolean> | NarrowLookupSpecs<any, ReadonlyArray<LookupInSpec>>,
+      specsOrOptions?: LookupInOptions<boolean> | LookupInAnyReplicaOptions<boolean> | LookupInAllReplicasOptions<boolean> | NarrowLookupSpecs<any, any, ReadonlyArray<LookupInSpec>>,
       optionsOrCallback?: LookupInOptions<boolean> | LookupInAnyReplicaOptions<boolean> | LookupInAllReplicasOptions<boolean> | NodeCallback<unknown>,
       callback?: NodeCallback<unknown>
     ]
-;
-
-export type LookupInReturnType<
-  C extends AnyCollection,
-  Method extends LookupMethodName,
-  Key extends ExtractCollectionJsonDocKey<C>,
-  SpecDefinitions extends ReadonlyArray<unknown>,
-  ThrowOnSpecError extends boolean
-> =
-  IsNever<SpecDefinitions> extends true ?
-    ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError> :
-  IsArrayLengthKnown<SpecDefinitions> extends true ?
-    Promise<LookupResult<Method, SpecDefinitions, ExtractCollectionJsonDocDef<C, Key>, ThrowOnSpecError>> :
-  ChainableLookupIn<C, Method, Key, [], ThrowOnSpecError>
 ;

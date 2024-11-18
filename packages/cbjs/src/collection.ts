@@ -79,6 +79,7 @@ import {
   CollectionDocDef,
   CollectionDocDefMatchingKey,
   CollectionMatchingDocDef,
+  CollectionOptions,
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
 } from './clusterTypes/clusterTypes.js';
@@ -1908,6 +1909,7 @@ export class Collection<
   >(
     key: Key,
     specs: NarrowLookupSpecs<
+      CollectionOptions<this>,
       ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
       SpecDefinitions
     >,
@@ -1915,6 +1917,7 @@ export class Collection<
     callback?: NodeCallback<
       LookupInResult<
         LookupInSpecResults<
+          CollectionOptions<this>,
           SpecDefinitions,
           ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
         >,
@@ -1923,6 +1926,7 @@ export class Collection<
     >
   ): Promise<
     LookupResult<
+      CollectionOptions<this>,
       'lookupIn',
       SpecDefinitions,
       ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
@@ -1938,12 +1942,14 @@ export class Collection<
   >(
     key: Key,
     specs: NarrowLookupSpecs<
+      CollectionOptions<this>,
       ExtractCollectionJsonDocDef<Collection<T, B, S, C>, NoInfer<Key>>,
       SpecDefinitions
     >,
     callback?: NodeCallback<
       LookupInResult<
         LookupInSpecResults<
+          CollectionOptions<this>,
           SpecDefinitions,
           ExtractCollectionJsonDocDef<Collection<T, B, S, C>, NoInfer<Key>>
         >,
@@ -1952,6 +1958,7 @@ export class Collection<
     >
   ): Promise<
     LookupResult<
+      CollectionOptions<this>,
       'lookupIn',
       SpecDefinitions,
       ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>,
@@ -2003,13 +2010,21 @@ export class Collection<
     options: LookupInOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
       LookupInResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+        LookupInSpecResults<
+          CollectionOptions<this>,
+          SpecDefinitions,
+          CollectionDocDefMatchingKey<this, Key>
+        >,
         ThrowOnSpecError
       >
     >
   ): Promise<
     LookupInResult<
-      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+      LookupInSpecResults<
+        CollectionOptions<this>,
+        SpecDefinitions,
+        CollectionDocDefMatchingKey<this, Key>
+      >,
       ThrowOnSpecError
     >
   > {
@@ -2074,6 +2089,7 @@ export class Collection<
       const result = new LookupInResult({
         content: content as LookupInResultEntries<
           LookupInSpecResults<
+            CollectionOptions<this>,
             SpecDefinitions,
             ExtractCollectionJsonDocDef<Collection<T, B, S, C>, Key>
           >,
@@ -2109,21 +2125,37 @@ export class Collection<
   ): StreamableReplicasPromise<
     [
       LookupInReplicaResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+        LookupInSpecResults<
+          CollectionOptions<this>,
+          SpecDefinitions,
+          CollectionDocDefMatchingKey<this, Key>
+        >,
         ThrowOnSpecError
       >,
       ...LookupInReplicaResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+        LookupInSpecResults<
+          CollectionOptions<this>,
+          SpecDefinitions,
+          CollectionDocDefMatchingKey<this, Key>
+        >,
         ThrowOnSpecError
       >[],
     ],
     LookupInReplicaResult<
-      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+      LookupInSpecResults<
+        CollectionOptions<this>,
+        SpecDefinitions,
+        CollectionDocDefMatchingKey<this, Key>
+      >,
       ThrowOnSpecError
     >
   > {
     type ResultFromReplica = LookupInReplicaResult<
-      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+      LookupInSpecResults<
+        CollectionOptions<this>,
+        SpecDefinitions,
+        CollectionDocDefMatchingKey<this, Key>
+      >,
       ThrowOnSpecError
     >;
 
@@ -2229,10 +2261,15 @@ export class Collection<
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
+    specs: NarrowLookupSpecs<
+      CollectionOptions<this>,
+      CollectionDocDefMatchingKey<this, Key>,
+      SpecDefinitions
+    >,
     options: LookupInAnyReplicaOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
       LookupResult<
+        CollectionOptions<this>,
         'lookupInAnyReplica',
         SpecDefinitions,
         CollectionDocDefMatchingKey<this, Key>,
@@ -2241,6 +2278,7 @@ export class Collection<
     >
   ): Promise<
     LookupResult<
+      CollectionOptions<this>,
       'lookupInAnyReplica',
       SpecDefinitions,
       CollectionDocDefMatchingKey<this, Key>,
@@ -2255,9 +2293,14 @@ export class Collection<
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
+    specs: NarrowLookupSpecs<
+      CollectionOptions<this>,
+      CollectionDocDefMatchingKey<this, Key>,
+      SpecDefinitions
+    >,
     callback?: NodeCallback<
       LookupResult<
+        CollectionOptions<this>,
         'lookupInAnyReplica',
         SpecDefinitions,
         CollectionDocDefMatchingKey<this, Key>,
@@ -2266,6 +2309,7 @@ export class Collection<
     >
   ): Promise<
     LookupResult<
+      CollectionOptions<this>,
       'lookupInAnyReplica',
       SpecDefinitions,
       CollectionDocDefMatchingKey<this, Key>,
@@ -2319,17 +2363,29 @@ export class Collection<
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
+    specs: NarrowLookupSpecs<
+      CollectionOptions<this>,
+      CollectionDocDefMatchingKey<this, Key>,
+      SpecDefinitions
+    >,
     options: LookupInAllReplicasOptions<ThrowOnSpecError>,
     callback?: NodeCallback<
       LookupInReplicaResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+        LookupInSpecResults<
+          CollectionOptions<this>,
+          SpecDefinitions,
+          CollectionDocDefMatchingKey<this, Key>
+        >,
         ThrowOnSpecError
       >[]
     >
   ): Promise<
     LookupInReplicaResult<
-      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+      LookupInSpecResults<
+        CollectionOptions<this>,
+        SpecDefinitions,
+        CollectionDocDefMatchingKey<this, Key>
+      >,
       ThrowOnSpecError
     >[]
   >;
@@ -2341,16 +2397,28 @@ export class Collection<
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    specs: NarrowLookupSpecs<CollectionDocDefMatchingKey<this, Key>, SpecDefinitions>,
+    specs: NarrowLookupSpecs<
+      CollectionOptions<this>,
+      CollectionDocDefMatchingKey<this, Key>,
+      SpecDefinitions
+    >,
     callback?: NodeCallback<
       LookupInReplicaResult<
-        LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+        LookupInSpecResults<
+          CollectionOptions<this>,
+          SpecDefinitions,
+          CollectionDocDefMatchingKey<this, Key>
+        >,
         ThrowOnSpecError
       >[]
     >
   ): Promise<
     LookupInReplicaResult<
-      LookupInSpecResults<SpecDefinitions, CollectionDocDefMatchingKey<this, Key>>,
+      LookupInSpecResults<
+        CollectionOptions<this>,
+        SpecDefinitions,
+        CollectionDocDefMatchingKey<this, Key>
+      >,
       ThrowOnSpecError
     >[]
   >;
@@ -2390,7 +2458,9 @@ export class Collection<
     SpecDefinitions extends ReadonlyArray<MutateInSpec>,
   >(
     key: Key,
-    specsOrOptions?: MutateInOptions | NarrowMutationSpecs<Def, SpecDefinitions>,
+    specsOrOptions?:
+      | MutateInOptions
+      | NarrowMutationSpecs<CollectionOptions<this>, Def, SpecDefinitions>,
     optionsOrCallback?:
       | MutateInOptions
       | NodeCallback<MutateInResult<MutateInSpecResults<NoInfer<SpecDefinitions>>>>,

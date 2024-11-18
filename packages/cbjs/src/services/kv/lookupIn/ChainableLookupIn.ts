@@ -17,8 +17,8 @@
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import {
   CollectionDocDefMatchingKey,
+  CollectionOptions,
   ExtractCollectionJsonDocKey,
-  PathAutocomplete,
 } from '../../../clusterTypes/clusterTypes.js';
 import type { AnyCollection } from '../../../clusterTypes/index.js';
 import type {
@@ -69,7 +69,7 @@ type ThisAnd<T, Spec> =
         C,
         Method,
         Key,
-        [...SpecResults, LookupInSpecResult<Spec, Def>],
+        [...SpecResults, LookupInSpecResult<CollectionOptions<C>, Spec, Def>],
         ThrowOnSpecError,
         Def
       >
@@ -152,7 +152,10 @@ export class ChainableLookupIn<
 
   push<Spec extends LookupInSpec>(spec: Spec): ThisAnd<this, Spec> {
     this.specs = [...this.getSpecs(), spec];
-    return this as never as ThisAnd<this, LookupInSpecResult<Spec, Def>>;
+    return this as never as ThisAnd<
+      this,
+      LookupInSpecResult<CollectionOptions<C>, Spec, Def>
+    >;
   }
 
   execute(): Promise<LookupResult<Method, SpecResults, ThrowOnSpecError>> {
@@ -162,11 +165,6 @@ export class ChainableLookupIn<
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     return lookup(this.key, this.getSpecs(), this.options);
   }
-
-  get<Path extends PathAutocomplete<C, LookupInGetPath<Def>>>(
-    path: Path,
-    options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get, Path>>;
 
   /**
    * Get a property from the document.
@@ -178,7 +176,13 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  get<Path extends LookupInGetPath<Def>>(path: Path, options?: { xattr?: boolean }): any {
+  get<Path extends LookupInGetPath<CollectionOptions<C>, Def>>(
+    path: Path,
+    options?: { xattr?: boolean }
+  ): ThisAnd<
+    this,
+    MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.get, Path>
+  > {
     const spec = LookupInSpec.get(path, options);
     return this.push(spec);
   }
@@ -193,14 +197,18 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  exists<Path extends PathAutocomplete<C, LookupInExistsPath<Def>>>(
+  exists<Path extends LookupInExistsPath<CollectionOptions<C>, Def>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.exists, Path>> {
-    const spec = LookupInSpec.exists<Def, Extract<Path, LookupInExistsPath<Def>>>(
-      path as never,
-      options
-    );
+  ): ThisAnd<
+    this,
+    MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.exists, Path>
+  > {
+    const spec = LookupInSpec.exists<
+      CollectionOptions<C>,
+      Def,
+      Extract<Path, LookupInExistsPath<CollectionOptions<C>, Def>>
+    >(path as never, options);
     return this.push(spec);
   }
 
@@ -214,14 +222,18 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  count<Path extends PathAutocomplete<C, LookupInCountPath<Def>>>(
+  count<Path extends LookupInCountPath<CollectionOptions<C>, Def>>(
     path: Path,
     options?: { xattr?: boolean }
-  ): ThisAnd<this, MakeLookupInSpec<Def, CppProtocolSubdocOpcode.get_count, Path>> {
-    const spec = LookupInSpec.count<Def, Extract<Path, LookupInCountPath<Def>>>(
-      path as never,
-      options
-    );
+  ): ThisAnd<
+    this,
+    MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.get_count, Path>
+  > {
+    const spec = LookupInSpec.count<
+      Def,
+      Extract<Path, LookupInCountPath<CollectionOptions<C>, Def>>,
+      CollectionOptions<C>
+    >(path as never, options);
     return this.push(spec);
   }
 

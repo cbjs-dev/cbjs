@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  DocDefBodyShape,
-  If,
-  IsFuzzyDocument, LookupInMacroShape, OpCodeCompletionPath,
-} from '@cbjsdev/shared';
+import { DocDefBodyShape, If, IsFuzzyDocument, LookupInMacroShape, OpCodeCompletionPath } from '@cbjsdev/shared';
 import type { LookupInMacro } from '../../../sdspecs.js';
 
 /**
@@ -37,20 +33,20 @@ export type OperationPath<Doc, Path> =
  * Valid lookup path for a `get` operation.
  */
 // prettier-ignore
-export type LookupInGetPath<Def> =
+export type LookupInGetPath<Options, Def> =
   Def extends DocDefBodyShape ?
     IsFuzzyDocument<Def['Body']> extends true ?
       string | LookupInMacro :
-    OpCodeCompletionPath<'get', Def['Body']> | LookupInMacroShape :
+    OpCodeCompletionPath<'get', Options, Def['Body']> | LookupInMacroShape :
   never
 ;
 
 /**
  * Valid lookup path for an `exists` operation.
  */
-export type LookupInExistsPath<Def> =
+export type LookupInExistsPath<Options, Def> =
   Def extends DocDefBodyShape ?
-    OperationPath<Def['Body'], OpCodeCompletionPath<'exists', Def['Body']> | LookupInMacro> :
+    OperationPath<Def['Body'], OpCodeCompletionPath<'exists', Options, Def['Body']> | LookupInMacro> :
   never
 ;
 
@@ -58,12 +54,12 @@ export type LookupInExistsPath<Def> =
  * Valid lookup path for a `count` operation.
  */
 // prettier-ignore
-export type LookupInCountPath<Def> =
+export type LookupInCountPath<Options, Def> =
   Def extends DocDefBodyShape ?
     If<
       IsFuzzyDocument<Def['Body']>,
       string | LookupInMacro<'$document'>,
-      | OpCodeCompletionPath<'count', Def['Body']>
+      | OpCodeCompletionPath<'count', Options, Def['Body']>
       | LookupInMacro<'$document'>
     > :
   never

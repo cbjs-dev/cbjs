@@ -55,9 +55,7 @@ export type If<Case extends boolean, Then, Else = never> = Case extends true
 /**
  * Distribute `Case` and return `Then` if `Case` is true, false otherwise.
  */
-export type IfStrict<Case extends boolean, Then, Else = never> = [Case] extends [true]
-  ? Then
-  : Else;
+export type IfStrict<Case, Then, Else = never> = [Case] extends [true] ? Then : Else;
 
 /**
  * Return `true` if `X` extends `Y`.

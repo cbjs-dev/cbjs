@@ -42,7 +42,7 @@ describe('mutateIn arrayPrepend', async () => {
   > = {
     [Path in keyof T]: [
       T[Path],
-      Path extends MutateInArrayPrependPath<Def> ? true : false,
+      Path extends MutateInArrayPrependPath<NonNullable<unknown>, Def> ? true : false,
     ];
   };
 

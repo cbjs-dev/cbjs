@@ -218,7 +218,10 @@ describe('GetKeyspaceOptions', () => {
         'library',
         'books'
       >
-    >().toEqualTypeOf<{ keyMatchingStrategy: 'firstMatch'; autocomplete: 'friendly' }>();
+    >().toEqualTypeOf<{
+      keyMatchingStrategy: 'firstMatch';
+      codeCompletion: { array: 'friendly'; record: 'friendly'; recordPlaceholder: '#' };
+    }>();
   });
 
   it('should merge cluster options and bucket options', () => {
@@ -241,7 +244,7 @@ describe('GetKeyspaceOptions', () => {
     >().toEqualTypeOf<{
       keyMatchingStrategy: 'firstMatch';
       keyDelimiter: '::';
-      autocomplete: 'friendly';
+      codeCompletion: { array: 'friendly'; record: 'friendly'; recordPlaceholder: '#' };
     }>();
   });
 
@@ -268,7 +271,7 @@ describe('GetKeyspaceOptions', () => {
     >().toEqualTypeOf<{
       keyMatchingStrategy: 'always';
       keyDelimiter: '::';
-      autocomplete: 'friendly';
+      codeCompletion: { array: 'friendly'; record: 'friendly'; recordPlaceholder: '#' };
     }>();
   });
 
@@ -300,7 +303,7 @@ describe('GetKeyspaceOptions', () => {
     >().toEqualTypeOf<{
       keyMatchingStrategy: 'delimiter';
       keyDelimiter: '__';
-      autocomplete: 'friendly';
+      codeCompletion: { array: 'friendly'; record: 'friendly'; recordPlaceholder: '#' };
     }>();
   });
 });

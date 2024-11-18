@@ -40,12 +40,10 @@ describe('mutateIn upsert', async () => {
   type TestPaths<
     Def extends AnyDocDef,
     T extends Record<MakeTestPaths<Def['Body']>, boolean>,
-    ActualPath = MutateInUpsertPath<Def>,
+    ActualPath = MutateInUpsertPath<NonNullable<unknown>, Def>,
   > = {
     [Path in keyof T]: [T[Path], Path extends ActualPath ? true : false];
   };
-
-  type CC = MutateInUpsertPath<TestDocDef>;
 
   it('should only accept upsertable paths', () => {
     type Test = TestPaths<

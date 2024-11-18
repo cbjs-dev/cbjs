@@ -17,11 +17,11 @@ import type {
   AnyDocDef,
   ArrayElement,
   DocDefBodyShape,
-  DocumentCodeCompletion,
   If,
   IsArrayLengthFixed,
   IsFuzzyDocument,
-  LookupInMacroReturnType, OpCodeCompletionValue,
+  LookupInMacroReturnType,
+  OpCodeCompletionValue,
   Try,
 } from '@cbjsdev/shared';
 
@@ -35,8 +35,8 @@ import type { LookupInCountPath, LookupInExistsPath, LookupInGetPath } from './l
 /**
  * Return a {@link LookupInSpec} type with `Path` converted to an internal path.
  */
-export type MakeLookupInSpec<Def extends AnyDocDef, Opcode extends LookupInSpecOpCode, Path> =
-  LookupInSpec<Def, Opcode, ToLookupInternalPath<Path>>
+export type MakeLookupInSpec<Options, Def extends AnyDocDef, Opcode extends LookupInSpecOpCode, Path> =
+  LookupInSpec<Def, Opcode, ToLookupInternalPath<Path>, Options>
 ;
 
 /**
@@ -45,29 +45,29 @@ export type MakeLookupInSpec<Def extends AnyDocDef, Opcode extends LookupInSpecO
  * @see LookupIn
  * @see Specs
  */
-export type LookupInSpecResults<Specs, Defs> =
+export type LookupInSpecResults<Options, Specs, Defs> =
   Specs extends readonly [infer Spec, ...infer Rest] ?
-    [LookupInSpecResult<Spec, Defs>, ...LookupInSpecResults<Rest, Defs>] :
+    [LookupInSpecResult<Options, Spec, Defs>, ...LookupInSpecResults<Options, Rest, Defs>] :
   // An empty tuple will match ReadonlyArray, so we need to check this first
   Specs extends [] ?
     [] :
   Specs extends ReadonlyArray<infer Spec> ?
-    LookupInSpecResult<Spec, Defs>[] :
+    LookupInSpecResult<Options, Spec, Defs>[] :
   []
 ;
 
 /**
  * Spec operation result type for a single {@link LookupInSpec}.
  */
-export type LookupInSpecResult<Spec, Def> =
+export type LookupInSpecResult<Options, Spec, Def> =
   Def extends DocDefBodyShape ?
     Spec extends LookupInSpec<infer LookupDef, infer Op, infer Path> ?
       Op extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
         Path extends keyof LookupInMacroReturnType ?
           LookupInMacroReturnType[Path] :
         IsFuzzyDocument<LookupDef['Body']> extends true ?
-          OpCodeCompletionValue<'get', Def['Body'], Path> :
-        OpCodeCompletionValue<'get', LookupDef['Body'], Path> :
+          OpCodeCompletionValue<'get', Options, Def['Body'], Path> :
+        OpCodeCompletionValue<'get', Options, LookupDef['Body'], Path> :
       Op extends CppProtocolSubdocOpcode.get_count ?
         number :
       Op extends CppProtocolSubdocOpcode.exists ?
@@ -97,11 +97,11 @@ export type LookupInResultEntries<Results, ThrowOnSpecError extends boolean> =
 /**
  * Lookup paths - Non-distributive.
  */
-export type LookupInPath<Def, Opcode extends LookupInSpecOpCode> =
+export type LookupInPath<Options, Def, Opcode extends LookupInSpecOpCode> =
   Opcode extends CppProtocolSubdocOpcode.get_doc ? '' :
-  Opcode extends CppProtocolSubdocOpcode.get ? Exclude<LookupInGetPath<Def>, ''> :
-  Opcode extends CppProtocolSubdocOpcode.exists ? LookupInExistsPath<Def> :
-  Opcode extends CppProtocolSubdocOpcode.get_count ? LookupInCountPath<Def> :
+  Opcode extends CppProtocolSubdocOpcode.get ? Exclude<LookupInGetPath<Options, Def>, ''> :
+  Opcode extends CppProtocolSubdocOpcode.exists ? LookupInExistsPath<Options, Def> :
+  Opcode extends CppProtocolSubdocOpcode.get_count ? LookupInCountPath<Options, Def> :
   never
 ;
 
@@ -110,19 +110,19 @@ export type LookupInPath<Def, Opcode extends LookupInSpecOpCode> =
  *
  * @internal
  */
-export type AnyLookupInInternalPath<Def extends DocDefBodyShape, Opcode extends LookupInSpecOpCode = LookupInSpecOpCode> =
+export type AnyLookupInInternalPath<Options, Def extends DocDefBodyShape, Opcode extends LookupInSpecOpCode = LookupInSpecOpCode> =
   If<
     IsFuzzyDocument<Def['Body']>,
     string,
-    LookupInInternalPath<Def, Opcode>
+    LookupInInternalPath<Options, Def, Opcode>
   >
 ;
 
 /**
  * Lookup internal paths - Non-distributive.
  */
-export type LookupInInternalPath<Def, Opcode extends LookupInSpecOpCode> =
-  LookupInPath<Def, Opcode> extends infer Path ?
+export type LookupInInternalPath<Options, Def, Opcode extends LookupInSpecOpCode> =
+  LookupInPath<Options, Def, Opcode> extends infer Path ?
     Path extends string ?
       Path :
     Path extends LookupInMacro<infer LookupInMacroPath> ?
@@ -146,12 +146,12 @@ export type ToLookupInternalPath<UserPath> =
  * Validate the `LookupInSpec` consistency.
  * Returns an error message if the path or the value is inconsistency, `T` if everything looks good.
  */
-export type ValidateLookupInSpec<ExpectedDefs, Spec> =
+export type ValidateLookupInSpec<Options, ExpectedDefs, Spec> =
   ExpectedDefs extends AnyDocDef ?
     Spec extends LookupInSpec<infer Def, infer Opcode, infer InternalPath> ?
       IsFuzzyDocument<ExpectedDefs['Body']> extends true ?
         Spec :
-      InternalPath extends AnyLookupInInternalPath<ExpectedDefs, Opcode> ?
+      InternalPath extends AnyLookupInInternalPath<Options, ExpectedDefs, Opcode> ?
         Spec :
       `Invalid path: Cannot perform '${LookupInSpecOperationFriendlyName[Opcode]}' at '${InternalPath}' on any declared document.` :
     never :
@@ -162,9 +162,9 @@ export type ValidateLookupInSpec<ExpectedDefs, Spec> =
 /**
  * Validate an array of `MutateInSpec`.
  */
-export type ValidateLookupInSpecs<ExpectedDefs, Specs> =
+export type ValidateLookupInSpecs<Options, ExpectedDefs, Specs> =
   Specs extends readonly [infer Head, ...infer Rest] ?
-    [ValidateLookupInSpec<ExpectedDefs, Head>, ...ValidateLookupInSpecs<ExpectedDefs, Rest>] :
+    [ValidateLookupInSpec<Options, ExpectedDefs, Head>, ...ValidateLookupInSpecs<Options, ExpectedDefs, Rest>] :
   // Specs extends ReadonlyArray<LookupInSpec<Defs>> ?
   //   Specs :
   []
@@ -175,10 +175,10 @@ export type ValidateLookupInSpecs<ExpectedDefs, Specs> =
  *
  * @see ValidateLookupInSpecs
  */
-export type NarrowLookupSpecs<Def, Specs> = Try<
+export type NarrowLookupSpecs<Options, Def, Specs> = Try<
   Specs,
   [],
-  ValidateLookupInSpecs<Def, Specs>
+  ValidateLookupInSpecs<Options, Def, Specs>
 >;
 
 /**

@@ -56,15 +56,15 @@ type OperationPath<Doc, Path extends string> =
  * Valid mutation path for an `insert` operation. Non-distributive.
  */
 // prettier-ignore
-export type MutateInInsertPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'insert', Def['Body']>>
+export type MutateInInsertPath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'insert', Options, Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `insert` operation at a specific path.
  */
-export type MutateInInsertValue<Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, OpCodeCompletionValue<'insert', Def['Body'], Path>>
+export type MutateInInsertValue<Options, Def extends DocDefBodyShape, Path extends string> =
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'insert', Options, Def['Body'], Path>>
 ;
 
 /**
@@ -75,15 +75,15 @@ export type MutateInInsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Valid mutation path for an `upsert` operation.
  */
-export type MutateInUpsertPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'upsert', Def['Body']>>
+export type MutateInUpsertPath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'upsert',Options,  Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `upsert` operation at a specific path.
  */
-export type MutateInUpsertValue<Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, OpCodeCompletionValue<'upsert', Def['Body'], Path>>
+export type MutateInUpsertValue<Options, Def extends DocDefBodyShape, Path extends string> =
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'upsert', Options, Def['Body'], Path>>
 ;
 
 /**
@@ -95,15 +95,15 @@ export type MutateInUpsertOptions = { createPath?: boolean; xattr?: boolean };
 /**
  * Valid mutation path for a `replace` operation.
  */
-export type MutateInReplacePath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'replace', Def['Body']>>
+export type MutateInReplacePath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'replace', Options, Def['Body']>>
 ;
 
 /**
  * Acceptable value for a `replace` operation at a specific path.
  */
-export type MutateInReplaceValue<Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, OpCodeCompletionValue<'replace', Def['Body'], Path>>
+export type MutateInReplaceValue<Options, Def extends DocDefBodyShape, Path extends string> =
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'replace', Options, Def['Body'], Path>>
 ;
 
 /**
@@ -117,8 +117,8 @@ export type MutateInReplaceOptions = { createPath?: boolean; xattr?: boolean };
 // It is quite similar to the insert path, except that some array indexes are removable,
 // while insert cannot target array indexes at all.
 // prettier-ignore
-export type MutateInRemovePath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'remove', Def['Body']>>
+export type MutateInRemovePath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'remove', Options, Def['Body']>>
 ;
 
 /**
@@ -129,19 +129,20 @@ export type MutateInRemoveOptions = { xattr?: boolean };
 /**
  * Valid mutation path for an `arrayAppend` operation.
  */
-export type MutateInArrayAppendPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend', Def['Body']>>
+export type MutateInArrayAppendPath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend',Options,  Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `arrayAppend` operation at a specific path.
  */
 export type MutateInArrayAppendValue<
+  Options,
   Def extends DocDefBodyShape,
   Path extends string,
   Multi extends boolean,
 > =
-  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayAppend', Def['Body'], Path>>
+  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayAppend', Options, Def['Body'], Path>>
 ;
 
 /**
@@ -152,19 +153,20 @@ export type MutateInArrayAppendOptions<Multi extends boolean> = { createPath?: b
 /**
  * Valid mutation path for an `arrayPrepend` operation.
  */
-export type MutateInArrayPrependPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayPrepend', Def['Body']>>
+export type MutateInArrayPrependPath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayPrepend', Options, Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `arrayPrepend` operation at a specific path.
  */
 export type MutateInArrayPrependValue<
+  Options,
   Def extends DocDefBodyShape,
   Path extends string,
   Multi extends boolean,
 > =
-  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayPrepend', Def['Body'], Path>>
+  OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayPrepend', Options, Def['Body'], Path>>
 ;
 
 /**
@@ -174,20 +176,21 @@ export type MutateInArrayPrependOptions<Multi extends boolean> = { createPath?: 
 /**
  * Valid mutation path for an `arrayInsert` operation.
  */
-export type MutateInArrayInsertPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayInsert', Def['Body']>>
+export type MutateInArrayInsertPath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayInsert', Options, Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `arrayInsert` operation at a specific path.
  */
 export type MutateInArrayInsertValue<
+  Options,
   Def extends DocDefBodyShape,
   Path extends string,
   Multi extends boolean,
 > =
-  IsLegalPath<'arrayInsert', Def['Body'], Path> extends true ?
-    OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayInsert', Def['Body'], Path>> :
+  IsLegalPath<'arrayInsert', Options, Def['Body'], Path> extends true ?
+    OperationValue<Def['Body'], Multi, OpCodeCompletionValue<'arrayInsert', Options, Def['Body'], Path>> :
   never
 ;
 
@@ -200,18 +203,19 @@ export type MutateInArrayInsertOptions<Multi extends boolean> = { xattr?: boolea
 /**
  * Valid mutation path for an `arrayAddUnique` operation.
  */
-export type MutateInArrayAddUniquePath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'],  OpCodeCompletionPath<'arrayAppend', Def['Body']>>
+export type MutateInArrayAddUniquePath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'],  OpCodeCompletionPath<'arrayAppend', Options, Def['Body']>>
 ;
 
 /**
  * Acceptable value for an `arrayAddUnique` operation at a specific path.
  */
 export type MutateInArrayAddUniqueValue<
+  Options,
   Def extends DocDefBodyShape,
   Path extends string,
 > =
-  OperationValue<Def['Body'], false, OpCodeCompletionValue<'arrayAppend', Def['Body'], Path>>
+  OperationValue<Def['Body'], false, OpCodeCompletionValue<'arrayAppend', Options, Def['Body'], Path>>
 ;
 
 /**
@@ -222,15 +226,15 @@ export type MutateInArrayAddUniqueOptions = { createPath?: boolean; xattr?: bool
 /**
  * Valid mutation path for an `increment` or `decrement` operation.
  */
-export type MutateInBinaryPath<Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'binary', Def['Body']>>;
+export type MutateInBinaryPath<Options, Def extends DocDefBodyShape> =
+  OperationPath<Def['Body'], OpCodeCompletionPath<'binary', Options, Def['Body']>>;
 
 /**
  * Valid mutation value for an `increment` or `decrement` operation.
  */
-export type MutateInBinaryValue<Def extends DocDefBodyShape, Path extends string> =
-  IsLegalPath<'binary', Def['Body'], Path> extends true ?
-    OperationValue<Def['Body'], false, OpCodeCompletionValue<'binary', Def['Body'], Path>> :
+export type MutateInBinaryValue<Options, Def extends DocDefBodyShape, Path extends string> =
+  IsLegalPath<'binary', Options, Def['Body'], Path> extends true ?
+    OperationValue<Def['Body'], false, OpCodeCompletionValue<'binary', Options, Def['Body'], Path>> :
   IllegalPathErrorMessage<'binary', Path>
 ;
 

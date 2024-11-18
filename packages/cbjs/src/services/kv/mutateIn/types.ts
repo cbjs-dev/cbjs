@@ -26,11 +26,12 @@ import { NodeCallback } from '../../../utilities.js';
 import { ChainableMutateIn } from './ChainableMutateIn.js';
 
 export type MutateInArgs<
+  Options,
   Def extends AnyDocDef,
   SpecDefinitions,
 > =
   readonly [
-    specsOrOptions?: MutateInOptions | NarrowMutationSpecs<Def, SpecDefinitions>,
+    specsOrOptions?: MutateInOptions | NarrowMutationSpecs<Options, Def, SpecDefinitions>,
     optionsOrCallback?: MutateInOptions | NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>,
     callback?: NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
   ]

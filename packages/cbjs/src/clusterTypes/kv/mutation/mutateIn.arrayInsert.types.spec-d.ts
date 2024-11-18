@@ -45,7 +45,7 @@ describe('mutateIn arrayInsert', async () => {
   > = {
     [Path in keyof T]: [
       T[Path],
-      Path extends MutateInArrayInsertPath<Def> ? true : false,
+      Path extends MutateInArrayInsertPath<NonNullable<unknown>, Def> ? true : false,
     ];
   };
 
@@ -176,30 +176,30 @@ describe('mutateIn arrayInsert', async () => {
         'ReadonlyArrayKnownLength[2]': false;
         'ReadonlyArrayKnownLength[-1]': false;
         'ReadonlyArrayUnknownLength': false;
-        'ReadonlyArrayUnknownLength[0]': false;
-        'ReadonlyArrayUnknownLength[1]': false;
-        'ReadonlyArrayUnknownLength[2]': false;
-        'ReadonlyArrayUnknownLength[-1]': false;
+        'ReadonlyArrayUnknownLength[0]': true;
+        'ReadonlyArrayUnknownLength[1]': true;
+        'ReadonlyArrayUnknownLength[2]': true;
+        'ReadonlyArrayUnknownLength[-1]': true;
         'ReadonlyArrayHeadRest': false;
-        'ReadonlyArrayHeadRest[0]': false;
-        'ReadonlyArrayHeadRest[1]': false;
-        'ReadonlyArrayHeadRest[2]': false;
-        'ReadonlyArrayHeadRest[-1]': false;
+        'ReadonlyArrayHeadRest[0]': true;
+        'ReadonlyArrayHeadRest[1]': true;
+        'ReadonlyArrayHeadRest[2]': true;
+        'ReadonlyArrayHeadRest[-1]': true;
         'ReadonlyArrayHeadRestIncompatibleTail': false;
-        'ReadonlyArrayHeadRestIncompatibleTail[0]': false;
-        'ReadonlyArrayHeadRestIncompatibleTail[1]': false;
-        'ReadonlyArrayHeadRestIncompatibleTail[2]': false;
-        'ReadonlyArrayHeadRestIncompatibleTail[-1]': false;
+        'ReadonlyArrayHeadRestIncompatibleTail[0]': true;
+        'ReadonlyArrayHeadRestIncompatibleTail[1]': true;
+        'ReadonlyArrayHeadRestIncompatibleTail[2]': true;
+        'ReadonlyArrayHeadRestIncompatibleTail[-1]': true;
         'ReadonlyArrayTailRest': false;
-        'ReadonlyArrayTailRest[0]': false;
-        'ReadonlyArrayTailRest[1]': false;
-        'ReadonlyArrayTailRest[2]': false;
-        'ReadonlyArrayTailRest[-1]': false;
+        'ReadonlyArrayTailRest[0]': true;
+        'ReadonlyArrayTailRest[1]': true;
+        'ReadonlyArrayTailRest[2]': true;
+        'ReadonlyArrayTailRest[-1]': true;
         'ReadonlyArrayTailRestIncompatibleHead': false;
-        'ReadonlyArrayTailRestIncompatibleHead[0]': false;
-        'ReadonlyArrayTailRestIncompatibleHead[1]': false;
-        'ReadonlyArrayTailRestIncompatibleHead[2]': false;
-        'ReadonlyArrayTailRestIncompatibleHead[-1]': false;
+        'ReadonlyArrayTailRestIncompatibleHead[0]': true;
+        'ReadonlyArrayTailRestIncompatibleHead[1]': true;
+        'ReadonlyArrayTailRestIncompatibleHead[2]': true;
+        'ReadonlyArrayTailRestIncompatibleHead[-1]': true;
       }
     >;
 

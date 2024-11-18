@@ -15,8 +15,6 @@
  */
 import { describe, expectTypeOf, it } from 'vitest';
 
-import { FriendlyPathToArrayIndex } from '@cbjsdev/shared';
-
 import { connect } from '../../couchbase.js';
 import {
   GetReplicaResult,
@@ -27,7 +25,7 @@ import {
 import { PrefixScan, SamplingScan } from '../../rangeScan.js';
 import { LookupInSpec } from '../../sdspecs.js';
 import { StreamableReplicasPromise } from '../../streamablepromises.js';
-import { DocDef, PathAutocomplete } from '../clusterTypes.js';
+import { DocDef } from '../clusterTypes.js';
 
 type Book = { title: string };
 type QuarterSales = { sales: number[] };

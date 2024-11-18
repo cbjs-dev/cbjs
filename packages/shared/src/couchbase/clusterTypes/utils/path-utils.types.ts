@@ -15,7 +15,8 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import { Extends, If, IfStrict, IsNever, Not, Split } from '../../../misc/index.js';
+import { IfStrict, IsNever, Not, Split } from '../../../misc/index.js';
+import { DefaultKeyspaceOptions } from '../cluster.types.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
   ArrayAppendElement,
@@ -27,22 +28,13 @@ import {
   ArrayLastElement,
   ArrayPrependElement,
   ArraySlice,
+  IsFullyStaticArray,
   IsLastElementRemovable,
-  IsReadonlyArray,
-  IsVariadicArray,
+  IsTailStatic,
+  RestElement,
 } from './array-utils.types.js';
 import { OptionalKeys } from './misc-utils.types.js';
-
-// prettier-ignore
-export type FriendlyPathToArrayIndex<Path> =
-  Path extends unknown ?
-    Path extends `${infer PathToArray}[${infer Index extends number}]` ?
-      number extends Index ?
-        Path | `${PathToArray}[]` :
-        Path :
-      Path :
-    never
-;
+import { IsTemplateString } from './string-utils.types.js';
 
 // There is no 'arrayAddUnique' because it's the same as 'arrayAppend'.
 export type KvOperation =
@@ -60,307 +52,378 @@ export type KvOperation =
   | 'arrayInsert'
   | 'binary';
 
-type FuzzyCC = [any, any];
-
-type CodeCompletionOptions = {
-  friendlyArray: boolean;
-  friendlyRecord: boolean;
-};
+type FuzzyCC = [false, any, any];
 
 // prettier-ignore
-export type DiscardCC<Op extends KvOperation, CC> =
-  Op extends 'binary' | 'remove' ?
-    CC extends [string, true] ?
-      CC :
-    never :
-  Op extends 'arrayInsert' ?
-    CC extends [string, never] ?
-      never :
-    CC :
-  CC
-;
+export type OpCodeCompletionPath<Op extends KvOperation, Options, Doc> =
+  DocumentCodeCompletion<Op, Options, Doc>[1];
 
 // prettier-ignore
-export type OpCodeCompletionPath<Op extends KvOperation, Doc> =
-  DocumentCodeCompletion<Op, Doc>[0];
-
-// prettier-ignore
-export type IsLegalPath<Op extends KvOperation, Doc, Path> =
-  IsFuzzyDocument<Doc> extends true ?
-    true :
-  Path extends ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[0] ?
-    true :
-  false
-;
-
-// prettier-ignore
-export type OpCodeCompletionValue<Op extends KvOperation, Doc, Path> =
+export type OpCodeCompletionValue<Op extends KvOperation, Options, Doc, Path> =
   Op extends 'get' | 'upsert' | 'insert' ?
     Path extends '' ?
       Doc :
     Path extends string ?
-      ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[1] :
+      ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Options, Doc>, Path>[2] :
     never :
   Path extends string ?
-    Op extends 'binary' ?
-      ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[1] extends true ?
-        number :
-      never :
-    ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Doc>, Path>[1] :
+    ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Options, Doc>, Path> extends infer MatchingCC extends [unknown, unknown, unknown?] ?
+      Op extends 'binary' ?
+        IsNever<MatchingCC> extends true ?
+          never :
+        MatchingCC[2] extends true ?
+          number :
+        never :
+      MatchingCC[2] :
+    never :
   never
 ;
 
 // prettier-ignore
-type ExtractMatchingCC<Op extends KvOperation, CC, UserPath> =
+export type ExtractMatchingCC<Op extends KvOperation, CC, UserPath> =
   IsNever<CCPerfectMatchPath<CC, UserPath>> extends false ?
     DiscardCC<Op, CCPerfectMatchPath<CC, UserPath>> :
-  CC extends [infer Path extends string, unknown?] ?
+  CC extends [unknown, infer Path extends string, unknown?] ?
     Split<UserPath, '.', '`'> extends Split<Path, '.', '`'> ?
       DiscardCC<Op, CC> :
     never :
   never
 ;
 
+/**
+ * Discard CC entries that are either friendly or have been flagged as illegal paths.
+ *
+ * @see IsLegalPath
+ */
+// prettier-ignore
+export type DiscardCC<Op extends KvOperation, CC> =
+  CC extends [true, unknown, unknown?] ?
+    never :
+  Op extends 'binary' | 'remove' ?
+    CC extends [unknown, string, true] ?
+      CC :
+    never :
+  Op extends 'arrayInsert' ?
+    CC extends [unknown, string, never] ?
+    never :
+    CC :
+  CC
+;
+
 // prettier-ignore
 type CCPerfectMatchPath<CC, UserPath> =
-  CC extends [infer Path extends string, unknown] ?
+  CC extends [unknown, infer Path extends string, unknown?, unknown?] ?
     Split<Path, '.', '`'> extends Split<UserPath, '.', '`'> ?
       CC :
     never :
   never
 ;
 
+/**
+ * When the user path matches a string template, it doesn't mean the path is valid.
+ * For example, given `[string, ...number[]]` for a `binary` operation, code completion path will include `arr[${number}]`.
+ * So `arr[0]` will match the path, and yet, it is not a valid path because arr[0] is not a number.
+ * Returns `true` if the path is valid.
+ */
 // prettier-ignore
-export type DocumentCodeCompletion<Op extends KvOperation, T> =
+export type IsLegalPath<Op extends KvOperation, Options, Doc, Path> =
+  IsFuzzyDocument<Doc> extends true ?
+    true :
+  Path extends ExtractMatchingCC<Op, DocumentCodeCompletion<Op, Options, Doc>, Path>[1] ?
+    true :
+  false
+;
+
+// prettier-ignore
+type OptionFriendlyPathArrayIndex<T> =
+  'codeCompletion' extends keyof T ?
+    'array' extends keyof T['codeCompletion'] ?
+      'friendly' extends T['codeCompletion']['array'] ?
+        true :
+      false :
+    false :
+  false
+;
+
+// prettier-ignore
+type OptionFriendlyPathRecordKey<T> =
+  'codeCompletion' extends keyof T ?
+    'record' extends keyof T['codeCompletion'] ?
+      'friendly' extends T['codeCompletion']['record'] ?
+        true :
+      false :
+    false :
+  false
+;
+
+// prettier-ignore
+type OptionRecordFriendlyPlaceholder<T> =
+  'codeCompletion' extends keyof T ?
+    'recordPlaceholder' extends keyof T['codeCompletion'] ?
+      T['codeCompletion']['recordPlaceholder'] extends string ?
+        T['codeCompletion']['recordPlaceholder'] :
+      '#' :
+    '#' :
+  '#'
+;
+
+// prettier-ignore
+type PathToKey<Options, FriendlyPath, T, PathTo extends string, Key> =
+  T extends ReadonlyArray<unknown> ?
+    PTA<Options, FriendlyPath, PathTo, Key> :
+  PTO<Options, FriendlyPath, PathTo, Key>
+;
+
+// prettier-ignore
+type PTA<
+  Options,
+  FriendlyPath,
+  PathTo extends string,
+  Index,
+> =
+  Index extends number ?
+    [FriendlyPath] extends [true] ?
+      OptionFriendlyPathArrayIndex<Options> extends true ?
+        [true, `${PathTo}[]`] :
+      [true, `${PathTo}[${Index}]`] :
+    [FriendlyPath] extends [false] ?
+      [false, `${PathTo}[${Index}]`] :
+    number extends Index ?
+      OptionFriendlyPathArrayIndex<Options> extends true ?
+        [false, `${PathTo}[${Index}]`] | [true, `${PathTo}[]`] :
+      [boolean, `${PathTo}[${Index}]`] :
+    [boolean, `${PathTo}[${Index}]`] :
+  never
+;
+
+// prettier-ignore
+type PTO<
+  Options,
+  FriendlyPath,
+  PathTo extends string,
+  Key,
+> =
+  [FriendlyPath] extends [true] ?
+    OptionFriendlyPathRecordKey<Options> extends true ?
+      IsTemplateString<Key> extends true ?
+        [true, `${ConcatPath<PathTo, OptionRecordFriendlyPlaceholder<Options>>}`] :
+      [true, ConcatPath<PathTo, Key>] :
+    [true, ConcatPath<PathTo, Key>] :
+  [FriendlyPath] extends [false] ?
+    [false, ConcatPath<PathTo, Key>] :
+  OptionFriendlyPathRecordKey<Options> extends true ?
+    IsTemplateString<Key> extends true ?
+      [false, `${ConcatPath<PathTo, Key>}`] | [true, ConcatPath<PathTo, OptionRecordFriendlyPlaceholder<Options>>] :
+    [boolean, ConcatPath<PathTo, Key>] :
+  [boolean, ConcatPath<PathTo, Key>]
+;
+
+// prettier-ignore
+export type Keys<T> =
+  T extends ReadonlyArray<unknown> ?
+    ArrayKnownIndexes<T> | [-1] :
+  T extends Record<string, unknown> ?
+    keyof T extends infer Key ?
+      Key extends unknown ?
+        [Key] :
+      never :
+    never :
+  never
+;
+
+// prettier-ignore
+export type Get<T, K> =
+  K extends -1 ?
+    T extends ReadonlyArray<unknown> ?
+      ArrayLastElement<T> :
+    never :
+  K extends keyof Extract<T, object> ?
+    Extract<T, object>[K] :
+  never
+;
+
+// prettier-ignore
+export type DocumentCodeCompletion<Op extends KvOperation, Options, T> =
   T extends object ?
     IsFuzzyDocument<T> extends false ?
-      BuildBag<Op, '', T, [CodeCompletionSinglePass<Op, '', T>]>[number] :
+      BuildBag<Op, Options, boolean, '', T, [CodeCompletion<Op, boolean, Options, never, '', T>]>[number] :
     FuzzyCC :
   never
 ;
 
+type BorrowId = `b::${string}`;
+type UserId = `user::${number}`;
+type User = {
+  br?: Record<
+    BorrowId,
+    {
+      at: number;
+    }
+  >;
+};
+
+type TBB = BuildBag<'remove', DefaultKeyspaceOptions, boolean, '', User, []>;
+
 // prettier-ignore
-type BuildBag<Op extends KvOperation, PathToT, T, UnionStack extends ReadonlyArray<unknown>> =
-  PathToT extends string ?
-    T extends ReadonlyArray<unknown> ?
-      keyof T extends infer Index ?
-        Index extends keyof T & number ?
-          Exclude<T[Index], undefined> extends infer SubDoc ?
-            BuildBag<Op, `${PathToT}[${Index}]`, SubDoc, [...UnionStack, CodeCompletionSinglePass<Op, `${PathToT}[${Index}]`, SubDoc>]> :
+type BuildBag<Op extends KvOperation, Options, FriendlyPath, PathToDoc, Doc, UnionStack extends ReadonlyArray<unknown>> =
+  PathToDoc extends string ?
+    IsNever<Keys<Doc>> extends true ?
+      UnionStack :
+    Keys<Doc> extends infer KeyTuple ?
+      KeyTuple extends [infer Key] ?
+        Get<Doc, Key> extends infer SubDoc ?
+
+          PathToKey<Options, FriendlyPath, Doc, PathToDoc, Key> extends infer PTK ?
+            PTK extends [infer BuildFriendly, infer Path] ?
+            // [PTK, SubDoc] | (PTK extends [infer BuildFriendly, infer Path] ?
+            BuildBag<Op, Options, BuildFriendly, Path, SubDoc, [
+              ...UnionStack,
+              CodeCompletion<Op, BuildFriendly, Doc, Key, Path, SubDoc>
+            ]> :
+            // never):
+          never :
           never :
         never :
-      never :
-
-    T extends Record<string, unknown> ?
-      keyof T extends infer Key ?
-        Key extends keyof T & string ?
-          Exclude<T[Key], undefined> extends infer SubDoc ?
-            BuildBag<Op, ConcatPath<PathToT, Key>, SubDoc, [...UnionStack, CodeCompletionSinglePass<Op, ConcatPath<PathToT, Key>, SubDoc>]> :
-          never :
-        never :
-      never :
-
-    [...UnionStack, CodeCompletionSinglePass<Op, PathToT, T>] :
+      UnionStack :
+    never :
   never
 ;
 
+/**
+ * ParentDocKey is the key of the parent that led to this doc.
+ */
 // prettier-ignore
-export type CodeCompletionSinglePass<Op extends KvOperation, Path, T> =
-  | (Op extends 'get' ? [Path, T] : never)
-  | (Op extends 'upsert' ? Path extends '' ? ['', T] : never : never)
-  | CCArray<Op, Path, T>
+export type CodeCompletion<Op extends KvOperation, BuildFriendly, ParentDoc, KeyToDoc, PathToDoc, Doc> =
+  Op extends 'get' ?
+    [BuildFriendly, PathToDoc, Exclude<Doc, undefined>] :
 
-  // # Object
-  | (T extends Record<string, unknown> ?
-      keyof T extends infer Key ?
-        Key extends keyof T ?
-          (
-          | (Op extends 'get' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
-          | (Op extends 'exists' ? [ConcatPath<Path, Key>] : never)
-          | (Op extends 'count' ? [Path] : never)
-          | (Op extends 'upsert' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
-          | (Op extends 'replace' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
-          | (Op extends 'binary' ? Exclude<T[Key], undefined> extends number ? [ConcatPath<Path, Key>, true] : never : never)
-          | (undefined extends T[Key] ?
-              | (Op extends 'insert' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
-              | (Op extends 'remove' ? [ConcatPath<Path, Key>, true] : never)
-              :
-            Key extends OptionalKeys<T> ?
-              (
-                | (Op extends 'insert' ? [ConcatPath<Path, Key>, Exclude<T[Key], undefined>] : never)
-                | (Op extends 'remove' ? [ConcatPath<Path, Key>, true] : never)
-                ) :
-              never
-            )
-          ) :
+  Op extends 'exists' ?
+    PathToDoc extends '' ?
       never :
+    [BuildFriendly, PathToDoc] :
+
+  Op extends 'count' ?
+    IsCountable<Doc> extends true ?
+      [BuildFriendly, PathToDoc] :
     never :
-  never)
+
+  Op extends 'upsert' ?
+    IsNever<KeyToDoc> extends true ?
+      [BuildFriendly, '', Doc] :
+    DocIsInArray<ParentDoc, KeyToDoc> extends true ?
+      never :
+    [BuildFriendly, PathToDoc, Exclude<Doc, undefined>] :
+
+  Op extends 'replace' ?
+    PathToDoc extends '' ?
+      never :
+    [BuildFriendly, PathToDoc, Exclude<Doc, undefined>] :
+
+  Op extends 'binary' ?
+    CanHaveRest<ParentDoc> extends true ?
+      Extract<ParentDoc, ReadonlyArray<unknown>> extends infer PD extends ReadonlyArray<unknown> ?
+        IsNever<PD> extends false ?
+          number extends PD[number] ?
+            number extends KeyToDoc ?
+              number extends RestElement<PD> ?
+                [BuildFriendly, PathToDoc, true] :
+              IsTailStatic<PD> extends true ?
+                [BuildFriendly, PathToDoc, true] :
+              never :
+            [BuildFriendly, PathToDoc, CanBeNumber<Doc>] :
+          never :
+        never :
+      never :
+    CanBeNumber<Doc> extends true ?
+      [BuildFriendly, PathToDoc, true] :
+    never :
+
+  Op extends 'insert' ?
+    DocIsInArray<ParentDoc, KeyToDoc> extends true ?
+      never :
+    undefined extends Doc ?
+      [BuildFriendly, PathToDoc, Exclude<Doc, undefined>] :
+    KeyToDoc extends OptionalKeys<ParentDoc> ?
+      [BuildFriendly, PathToDoc, Exclude<Doc, undefined>] :
+    never :
+
+  Op extends 'remove' ?
+    undefined extends Doc ?
+      [BuildFriendly, PathToDoc, true] :
+    DocIsInArray<ParentDoc, KeyToDoc> extends true ?
+      Extract<ParentDoc, ReadonlyArray<unknown>> extends infer PD ?
+        IsFullyStaticArray<PD> extends true ?
+          never :
+        KeyToDoc extends -1 ?
+          IsLastElementRemovable<PD> extends true ?
+            [BuildFriendly, PathToDoc, true] :
+          [BuildFriendly, PathToDoc, false] :
+        number extends KeyToDoc ?
+          [BuildFriendly, PathToDoc, true] :
+        [BuildFriendly, PathToDoc, IfStrict<ArrayHasDescendingInheritance<ArraySlice<PD, KeyToDoc>>, true, false>] :
+      never :
+    KeyToDoc extends OptionalKeys<ParentDoc> ?
+      [BuildFriendly, PathToDoc, true] :
+    never :
+
+  Op extends 'arrayAppend' ?
+    CCArrayAppend<BuildFriendly, PathToDoc, Extract<Doc, ReadonlyArray<unknown>>> :
+
+  Op extends 'arrayPrepend' ?
+    CCArrayPrepend<BuildFriendly, PathToDoc, Extract<Doc, ReadonlyArray<unknown>>> :
+
+  Op extends 'arrayInsert' ?
+    CCArrayInsert<BuildFriendly, PathToDoc, Extract<Doc, ReadonlyArray<unknown>>> :
+
+  never
 ;
 
+type CanHaveRest<T> = CanHaveRest_Internal<T> extends false ? false : true;
+
 // prettier-ignore
-type CCArray<Op extends KvOperation, Path, T> =
+type CanHaveRest_Internal<T> =
   T extends ReadonlyArray<unknown> ?
-    IsReadonlyArray<T> extends true ?
-      CCReadArray<Op, Path, T> :
-    (
-    | CCReadArray<Op, Path, T>
-    | CCArrayNonVariadic<Op, Path, T>
-    | CCArrayVariadic<Op, Path, T>
-    | (Op extends 'upsert' ? [Path, T] : never)
-    )
-    :
-  never
+    [number] extends ArrayKnownIndexes<T> ?
+      true :
+    false :
+  false
 ;
 
 // prettier-ignore
-type CCReadArray<Op extends KvOperation, Path, T extends ReadonlyArray<unknown>> =
-  Path extends string ?
-  | (Op extends 'count' ? [`${Path}`] : never)
-  | (Op extends 'get' ? [`${Path}[-1]`, Exclude<ArrayLastElement<T>, undefined>] : never)
-  | (
-    Op extends 'get' | 'exists' ?
-      ArrayKnownIndexes<T> extends infer IndexTuple ?
-        IndexTuple extends [infer Index extends number] ?
-          | (Op extends 'get' ? [`${Path}[${Index}]`, Exclude<T[Index], undefined>] : never)
-          | (Op extends 'exists' ? [`${Path}[${Index}]`] : never)
-          :
-        never :
-      never :
-    never
-    )
-    :
-  never
-;
-
-// prettier-ignore
-type CCArrayNonVariadic<Op extends KvOperation, Path, T extends ReadonlyArray<unknown>> =
-  Path extends string ?
-    IsVariadicArray<T> extends false ?
-      | (Op extends 'replace' ? [`${Path}[-1]`, ArrayLastElement<T>] : never)
-      | (Op extends 'binary' ? CCArrayBinary<Path, T> : never)
-      | (
-        Op extends 'replace' ?
-          ArrayKnownIndexes<T> extends infer IndexTuple ?
-            IndexTuple extends [infer Index extends keyof T & number] ?
-              [`${Path}[${Index}]`, T[Index]] :
-            never :
-          never :
-        never
-        ) :
-    never :
-  never
-;
-
-// prettier-ignore
-type CCArrayVariadic<Op extends KvOperation, Path, T extends ReadonlyArray<unknown>> =
-  IsVariadicArray<T> extends true ?
-    | (Op extends 'binary' ? CCArrayBinary<Path, T> : never)
-    | (Op extends 'replace' ? CCArrayReplace<Path, T> : never)
-    | (Op extends 'remove' ? CCArrayRemove<Path, T> : never)
-    | (Op extends 'arrayAppend' ? CCArrayAppend<Path, T> : never)
-    | (Op extends 'arrayPrepend' ? CCArrayPrepend<Path, T> : never)
-    | (Op extends 'arrayInsert' ? CCArrayInsert<Path, T> : never)
-    :
-  never
-;
-
+type IsCountable<T> = IsNever<Extract<T, ReadonlyArray<unknown> | Record<string, unknown>>> extends true ? false : true ;
 type CanBeNumber<T> = Not<IsNever<Extract<T, number>>>;
+// prettier-ignore
+type CanBeArray<T> = IsNever<Extract<T, ReadonlyArray<unknown>>> extends true ? false : true ;
 
 // prettier-ignore
-type CCArrayBinary<Path, T extends ReadonlyArray<unknown>> =
-  Path extends string ?
-    ArrayKnownIndexes<T> extends infer IndexTuple ?
-      Extends<[number], IndexTuple> extends infer HasRest ?
-        HasRest extends true ?
-          CCArrayBinary_Rest<Path, T, IndexTuple> :
-        IndexTuple extends [infer Index extends number] ?
-          | If<CanBeNumber<T[Index]>, [`${Path}[${Index}]`, true]>
-          | If<CanBeNumber<ArrayLastElement<T>>, [`${Path}[-1]`, true]>
-          :
-        never :
-      never :
-    never :
-  never
+type DocIsInArray<ParentDoc, KeyToDoc> =
+  KeyToDoc extends number ?
+    CanBeArray<ParentDoc> extends true ?
+      true :
+    false :
+  false
 ;
 
 // prettier-ignore
-type CCArrayBinary_Rest<Path, T extends ReadonlyArray<unknown>, IndexTuple> =
-  Path extends string ?
-    IndexTuple extends [infer Index extends number] ?
-      number extends Index ?
-        ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
-          CanBeNumber<Info['RestElement']> extends true ?
-            [`${Path}[${number}]`, true] | [`${Path}[-1]`, CanBeNumber<ArrayLastElement<T>>] :
-          Info['IsTailStatic'] extends true ?
-            [`${Path}[-1]`, CanBeNumber<ArrayLastElement<T>>] :
-          never :
-        never :
-      [`${Path}[${Index}]`, CanBeNumber<T[Index]>] :
-    never :
-  never
-;
-
-// prettier-ignore
-type CCArrayReplace<Path, T extends ReadonlyArray<unknown>> =
-  Path extends string ?
-    | [`${Path}[-1]`, Exclude<ArrayLastElement<T>, undefined>]
-    | (ArrayKnownIndexes<T> extends infer IndexTuple ?
-        IndexTuple extends [infer Index extends number] ?
-          [`${Path}[${Index}]`, Exclude<T[Index], undefined>] :
-        never :
-      never
-      )
-    :
-  never
-;
-
-// prettier-ignore
-type CCArrayRemove<Path, T extends ReadonlyArray<unknown>> =
-  Path extends string ?
-    | [`${Path}[-1]`, IsLastElementRemovable<T>]
-    | CCArrayRemove_KnownIndexes<Path, T>
-    :
-  never
-;
-
-// prettier-ignore
-type CCArrayRemove_KnownIndexes<Path, T extends ReadonlyArray<unknown>> =
-  Path extends string ?
-    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
-      Info['IsFullyStatic'] extends true ?
-        never :
-      ArrayKnownIndexes<T> extends infer IndexTuple ?
-        IndexTuple extends [infer Index extends number] ?
-          number extends Index ?
-            [`${Path}[${Index}]`, true] :
-          [`${Path}[${Index}]`, IfStrict<ArrayHasDescendingInheritance<ArraySlice<T, Index>>, true, false>] :
-        never :
-      never :
-    never :
-  never
-;
-
-// prettier-ignore
-type CCArrayAppend<Path, T extends ReadonlyArray<unknown>> =
+type CCArrayAppend<BuildFriendly, Path, T extends ReadonlyArray<unknown>> =
   ArrayAppendElement<T> extends infer E ?
     IsNever<E> extends true ?
       never :
-    [Path, E] :
+    [BuildFriendly, Path, E] :
   never
 ;
 
 // prettier-ignore
-type CCArrayPrepend<Path, T extends ReadonlyArray<unknown>> =
+type CCArrayPrepend<BuildFriendly, Path, T extends ReadonlyArray<unknown>> =
   ArrayPrependElement<T> extends infer E ?
     IsNever<E> extends true ?
       never :
-    [Path, E] :
+    [BuildFriendly, Path, E] :
   never
 ;
 
 // prettier-ignore
-type CCArrayInsert<Path, T> =
+type CCArrayInsert<BuildFriendly, Path, T> =
   T extends ReadonlyArray<unknown> ?
     Path extends string ?
       ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
@@ -369,8 +432,8 @@ type CCArrayInsert<Path, T> =
         ArrayKnownIndexes<T> extends infer IndexTuple ?
           IndexTuple extends [infer Index extends number] ?
             number extends Index ?
-              [`${Path}[${Index}]`, Info['RestElement']] :
-            [`${Path}[${Index}]`, IfStrict<ArrayHasAscendingInheritance<ArraySlice<T, Index>>, Exclude<T[Index], undefined>>] :
+              [BuildFriendly, `${Path}[${Index}]`, Info['RestElement']] :
+            [BuildFriendly, `${Path}[${Index}]`, IfStrict<ArrayHasAscendingInheritance<ArraySlice<T, Index>>, Exclude<T[Index], undefined>>] :
           never :
         never :
       never :
@@ -388,18 +451,3 @@ type ConcatPath<Path, Key> =
     never :
   never
 ;
-
-///////////////////////
-// Dev utility types //
-///////////////////////
-
-/**
- * @internal
- */
-export type FilterCC<CC, PathPrefix extends string> = CC extends infer Tuple
-  ? Tuple extends [infer Op, infer Path, (infer Value)?]
-    ? Path extends `${PathPrefix}${string}`
-      ? [Op, Path, Value]
-      : never
-    : never
-  : never;

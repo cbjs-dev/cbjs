@@ -23,17 +23,27 @@ import type {
   ScopeName,
 } from './keyspace.types.js';
 
+type CodeCompletionOptions = {
+  array?: 'strict' | 'friendly';
+  record?: 'strict' | 'friendly';
+  recordPlaceholder?: string;
+};
+
 export type ClusterTypesOptions =
   | {
-      autocomplete?: 'strict' | 'friendly';
+      codeCompletion: CodeCompletionOptions;
       keyMatchingStrategy?: undefined;
     }
   | {
-      autocomplete?: 'strict' | 'friendly';
+      codeCompletion?: CodeCompletionOptions;
+      keyMatchingStrategy?: undefined;
+    }
+  | {
+      codeCompletion?: CodeCompletionOptions;
       keyMatchingStrategy: 'always' | 'firstMatch';
     }
   | {
-      autocomplete?: 'strict' | 'friendly';
+      codeCompletion?: CodeCompletionOptions;
       keyMatchingStrategy: 'delimiter';
       keyDelimiter: string;
     };
@@ -66,16 +76,20 @@ type CollectionTypeDefinition = ClusterTypesOptions | ReadonlyArray<AnyDocDef> |
 
 export type DefaultKeyspaceOptions = {
   keyMatchingStrategy: 'always';
-  autocomplete: 'friendly';
+  codeCompletion: {
+    array: 'friendly';
+    record: 'friendly';
+    recordPlaceholder: '#';
+  };
 };
 
 // prettier-ignore
 type Merge<T, U> =
   IsNever<T> extends true ?
     U :
-    IsNever<U> extends true ?
-      T :
-    Pretty<Pick<T, Exclude<keyof T, keyof U>> & U>
+  IsNever<U> extends true ?
+    T :
+  Pretty<Pick<T, Exclude<keyof T, keyof U>> & U>
 ;
 
 // prettier-ignore

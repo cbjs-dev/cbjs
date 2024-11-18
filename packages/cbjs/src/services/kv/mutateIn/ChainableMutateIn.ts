@@ -17,9 +17,9 @@
 import { IsLegalPath } from '@cbjsdev/shared';
 
 import {
+  CollectionOptions,
   ExtractCollectionJsonDocDef,
   ExtractCollectionJsonDocKey,
-  PathAutocomplete,
 } from '../../../clusterTypes/clusterTypes.js';
 import type {
   AnyCollection,
@@ -165,8 +165,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   insert<
-    const Path extends MutateInInsertPath<Def>,
-    Value extends MutateInInsertValue<Def, NoInfer<Path>>,
+    const Path extends MutateInInsertPath<CollectionOptions<C>, Def>,
+    Value extends MutateInInsertValue<CollectionOptions<C>, Def, NoInfer<Path>>,
   >(
     path: Path,
     value: NoInfer<Value>,
@@ -191,8 +191,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   upsert<
-    Path extends MutateInUpsertPath<Def>,
-    Value extends MutateInUpsertValue<Def, Path>,
+    Path extends MutateInUpsertPath<CollectionOptions<C>, Def>,
+    Value extends MutateInUpsertValue<CollectionOptions<C>, Def, Path>,
   >(
     path: Path,
     value: Value,
@@ -216,8 +216,8 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   replace<
-    Path extends PathAutocomplete<C, MutateInReplacePath<Def>>,
-    Value extends MutateInReplaceValue<Def, NoInfer<Path>>,
+    Path extends MutateInReplacePath<CollectionOptions<C>, Def>,
+    Value extends MutateInReplaceValue<CollectionOptions<C>, Def, NoInfer<Path>>,
   >(
     path: Path,
     value: NoInfer<Value>,
@@ -239,10 +239,10 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  remove<const Path extends PathAutocomplete<C, MutateInRemovePath<Def>>>(
+  remove<const Path extends MutateInRemovePath<CollectionOptions<C>, Def>>(
     path: Path,
     options?: MutateInRemoveOptions
-  ): IsLegalPath<'remove', Def['Body'], Path> extends true
+  ): IsLegalPath<'remove', CollectionOptions<C>, Def['Body'], Path> extends true
     ? ChainableMutateIn<C, Key, [...SpecResults, undefined]>
     : IllegalPathErrorMessage<'remove', Path> {
     const spec = MutateInSpec.remove(path, options);
@@ -270,27 +270,37 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayAppend<
-    Path extends MutateInArrayAppendPath<Def>,
-    Value extends MutateInArrayAppendValue<Def, NoInfer<Path>, Multi>,
+    Path extends MutateInArrayAppendPath<CollectionOptions<C>, Def>,
+    Value extends MutateInArrayAppendValue<
+      CollectionOptions<C>,
+      Def,
+      NoInfer<Path>,
+      Multi
+    >,
     Multi extends boolean = false,
   >(
     path: Path,
     value: NoInfer<Value>,
     options?: MutateInArrayAppendOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayAppend<Def, Path, Value, Multi>(path, value, options);
+    const spec = MutateInSpec.arrayAppend(path, value, options);
     return this.push(spec);
   }
 
   arrayAppendMultiple<
-    Path extends MutateInArrayAppendPath<Def>,
-    Value extends MutateInArrayAppendValue<Def, NoInfer<Path>, true>,
+    Path extends MutateInArrayAppendPath<CollectionOptions<C>, Def>,
+    Value extends MutateInArrayAppendValue<
+      CollectionOptions<C>,
+      Def,
+      NoInfer<Path>,
+      true
+    >,
   >(
     path: Path,
     value: NoInfer<Value>,
     options?: Omit<MutateInArrayAppendOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayAppend<Def, Path, Value, true>(path, value, {
+    const spec = MutateInSpec.arrayAppend(path, value, {
       ...options,
       multi: true,
     });
@@ -318,27 +328,37 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayPrepend<
-    Path extends MutateInArrayPrependPath<Def>,
-    Value extends MutateInArrayPrependValue<Def, NoInfer<Path>, Multi>,
+    Path extends MutateInArrayPrependPath<CollectionOptions<C>, Def>,
+    Value extends MutateInArrayPrependValue<
+      CollectionOptions<C>,
+      Def,
+      NoInfer<Path>,
+      Multi
+    >,
     Multi extends boolean = false,
   >(
     path: Path,
     value: NoInfer<Value>,
     options?: MutateInArrayPrependOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayPrepend<Def, Path, Value, Multi>(path, value, options);
+    const spec = MutateInSpec.arrayPrepend(path, value, options);
     return this.push(spec);
   }
 
   arrayPrependMultiple<
-    Path extends MutateInArrayPrependPath<Def>,
-    Value extends MutateInArrayPrependValue<Def, NoInfer<Path>, true>,
+    Path extends MutateInArrayPrependPath<CollectionOptions<C>, Def>,
+    Value extends MutateInArrayPrependValue<
+      CollectionOptions<C>,
+      Def,
+      NoInfer<Path>,
+      true
+    >,
   >(
     path: Path,
     value: NoInfer<Value>,
     options?: Omit<MutateInArrayPrependOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayPrepend<Def, Path, Value, true>(path, value, {
+    const spec = MutateInSpec.arrayPrepend(path, value, {
       ...options,
       multi: true,
     });
@@ -367,10 +387,11 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayInsert<
-    Path extends PathAutocomplete<C, MutateInArrayInsertPath<Def>>,
+    Path extends MutateInArrayInsertPath<CollectionOptions<C>, Def>,
     Value extends MutateInArrayInsertValue<
+      CollectionOptions<C>,
       Def,
-      Extract<NoInfer<Path>, MutateInArrayInsertPath<Def>>,
+      Extract<NoInfer<Path>, MutateInArrayInsertPath<CollectionOptions<C>, Def>>,
       Multi
     >,
     Multi extends boolean = false,
@@ -384,10 +405,11 @@ export class ChainableMutateIn<
   }
 
   arrayInsertMultiple<
-    Path extends PathAutocomplete<C, MutateInArrayInsertPath<Def>>,
+    Path extends MutateInArrayInsertPath<CollectionOptions<C>, Def>,
     Value extends MutateInArrayInsertValue<
+      CollectionOptions<C>,
       Def,
-      Extract<NoInfer<Path>, MutateInArrayInsertPath<Def>>,
+      Extract<NoInfer<Path>, MutateInArrayInsertPath<CollectionOptions<C>, Def>>,
       true
     >,
   >(
@@ -419,14 +441,14 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   arrayAddUnique<
-    Path extends MutateInArrayAddUniquePath<Def>,
-    Value extends MutateInArrayAddUniqueValue<Def, NoInfer<Path>>,
+    Path extends MutateInArrayAddUniquePath<CollectionOptions<C>, Def>,
+    Value extends MutateInArrayAddUniqueValue<CollectionOptions<C>, Def, NoInfer<Path>>,
   >(
     path: Path,
     value: NoInfer<Value>,
     options?: MutateInArrayAddUniqueOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
-    const spec = MutateInSpec.arrayAddUnique<Def, Path, Value>(path, value, options);
+    const spec = MutateInSpec.arrayAddUnique(path, value, options);
     return this.push(spec);
   }
 
@@ -439,8 +461,8 @@ export class ChainableMutateIn<
    * @param options
    */
   arrayAddUniqueMultiple<
-    Path extends MutateInArrayAddUniquePath<Def>,
-    Value extends MutateInArrayAddUniqueValue<Def, NoInfer<Path>>,
+    Path extends MutateInArrayAddUniquePath<CollectionOptions<C>, Def>,
+    Value extends MutateInArrayAddUniqueValue<CollectionOptions<C>, Def, NoInfer<Path>>,
     Values extends ReadonlyArray<Value>,
   >(
     path: Path,
@@ -451,7 +473,7 @@ export class ChainableMutateIn<
     let instance = this;
 
     for (const value of values) {
-      const spec = MutateInSpec.arrayAddUnique<Def, Path, Value>(path, value, options);
+      const spec = MutateInSpec.arrayAddUnique(path, value, options);
 
       instance = instance.push(spec) as never;
     }
@@ -473,10 +495,11 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   increment<
-    Path extends PathAutocomplete<C, MutateInBinaryPath<Def>>,
+    Path extends MutateInBinaryPath<CollectionOptions<C>, Def>,
     Value extends MutateInBinaryValue<
+      CollectionOptions<C>,
       Def,
-      Extract<NoInfer<Path>, MutateInBinaryPath<Def>>
+      Extract<NoInfer<Path>, MutateInBinaryPath<CollectionOptions<C>, Def>>
     >,
   >(
     path: Path,
@@ -501,10 +524,11 @@ export class ChainableMutateIn<
    * attributes data for the document.
    */
   decrement<
-    Path extends PathAutocomplete<C, MutateInBinaryPath<Def>>,
+    Path extends MutateInBinaryPath<CollectionOptions<C>, Def>,
     Value extends MutateInBinaryValue<
+      CollectionOptions<C>,
       Def,
-      Extract<NoInfer<Path>, MutateInBinaryPath<Def>>
+      Extract<NoInfer<Path>, MutateInBinaryPath<CollectionOptions<C>, Def>>
     >,
   >(
     path: Path,

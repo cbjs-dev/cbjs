@@ -81,7 +81,7 @@ type MyClusterTypes = {
 const cluster = await connect<MyClusterTypes>('');
 const collection = cluster.bucket('store').scope('library').collection('books');
 const bookId = 'book::001';
-// @noErrors: 2769
+// @noErrors: 2345 2769
 // ---cut-before---
 const {
   content: [title],

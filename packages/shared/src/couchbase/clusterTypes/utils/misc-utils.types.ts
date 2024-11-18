@@ -41,6 +41,7 @@ export type RequiredKeys<T> = Extract<
  * Return a union of the optional keys of the type argument.
  */
 export type OptionalKeys<T> =
+  T extends unknown ?
   // eslint-disable-next-line @typescript-eslint/ban-types
   {} extends Record<keyof T, unknown>
     ? keyof T
@@ -49,7 +50,9 @@ export type OptionalKeys<T> =
           [Key in keyof T]: T extends Record<Key, T[Key]> ? never : Key;
         }[keyof T],
         undefined
-      >;
+      > :
+  never
+;
 
 // prettier-ignore
 export type OmitNeverValues<T> = {

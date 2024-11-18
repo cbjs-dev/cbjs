@@ -42,7 +42,7 @@ describe('mutateIn arrayAddUnique', async () => {
   > = {
     [Path in keyof T]: [
       T[Path],
-      Path extends MutateInArrayAddUniquePath<Def> ? true : false,
+      Path extends MutateInArrayAddUniquePath<NonNullable<unknown>, Def> ? true : false,
     ];
   };
 

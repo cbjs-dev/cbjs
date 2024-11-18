@@ -27,6 +27,7 @@ import {
   LookupInResultEntry,
 } from '../../../index.js';
 import { LookupInSpec } from '../../../sdspecs.js';
+import { CollectionOptions } from '../../clusterTypes.js';
 import {
   LookupInInternalPath,
   LookupInResultEntries,
@@ -35,6 +36,8 @@ import {
   LookupInSpecResults,
 } from './lookupIn.types.js';
 
+type NoOptions = NonNullable<unknown>;
+
 describe('LookupInSpecs', () => {
   type TestDoc = {
     title: string;
@@ -42,6 +45,7 @@ describe('LookupInSpecs', () => {
       tags: string[];
     };
     authors: [string, ...string[]];
+    editions: Record<`edition::${string}`, { publishedAt: number }>;
   };
 
   type TestDoc2 = {
@@ -258,11 +262,26 @@ describe('LookupInSpecs', () => {
         ]);
       });
 
-      it('should offer friendly autocomplete values for array indexes', async () => {
+      it('should offer friendly code completion path for array indexes', async () => {
         const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
         const collection = cluster.bucket('test').defaultCollection();
 
-        const result = await collection.lookupIn('test__document').get('');
+        const result = await collection
+          .lookupIn('test__document')
+          .get('metadata.sales[]');
+
+        expectTypeOf(result).toEqualTypeOf<LookupInResult<[never]>>();
+      });
+
+      it('should offer friendly code completion path for record keys', async () => {
+        const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+        const collection = cluster.bucket('test').defaultCollection();
+
+        const result = await collection
+          .lookupIn('test__document')
+          .get('editions.#.publishedAt');
+
+        expectTypeOf(result).toEqualTypeOf<LookupInResult<[never]>>();
       });
 
       it('should infer the result type of an array of typeless specs based on collection documents', async () => {
@@ -307,9 +326,9 @@ describe('LookupInSpecs', () => {
 
   describe('LookupInSpecResult', () => {
     type Test<
-      Path extends LookupInInternalPath<TestDocDef, Opcode>,
+      Path extends LookupInInternalPath<NoOptions, TestDocDef, Opcode>,
       Opcode extends LookupInSpecOpCode,
-    > = LookupInSpecResult<LookupInSpec<TestDocDef, Opcode, Path>, TestDocDef>;
+    > = LookupInSpecResult<NoOptions, LookupInSpec<TestDocDef, Opcode, Path>, TestDocDef>;
 
     it('should infer the correct type', () => {
       expectTypeOf<
@@ -342,6 +361,7 @@ describe('LookupInSpecs', () => {
   describe('LookupInSpecResults', () => {
     it('should infer the correct result when using user defined document', () => {
       type Test = LookupInSpecResults<
+        NoOptions,
         [
           LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.get, 'title'>,
           LookupInSpec<TestDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
@@ -358,6 +378,7 @@ describe('LookupInSpecs', () => {
       // prettier-ignore
       expectTypeOf<
         LookupInSpecResults<
+          NoOptions,
           [
             LookupInSpec<AnyDocDef, CppProtocolSubdocOpcode.get, 'title'>,
             LookupInSpec<AnyDocDef, CppProtocolSubdocOpcode.exists, 'title'>,
@@ -372,6 +393,7 @@ describe('LookupInSpecs', () => {
       // prettier-ignore
       expectTypeOf<
         LookupInSpecResults<
+          NoOptions,
           [
             LookupInSpec<DocDef, CppProtocolSubdocOpcode.get, 'title'>,
             LookupInSpec<DocDef, CppProtocolSubdocOpcode.exists, 'title'>,

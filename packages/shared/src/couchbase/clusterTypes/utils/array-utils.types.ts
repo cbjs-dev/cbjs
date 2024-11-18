@@ -90,9 +90,6 @@ export type TupleIndexes<T extends ReadonlyArray<unknown>> =
   never
 ;
 
-type TTI = TupleIndexes<[string, string?]>;
-type TTI2 = ArrayIndexes<[string, ...string[]]>;
-
 /**
  * Extract all the possible keys of an array.
  */
@@ -102,6 +99,7 @@ export type ArrayIndexes<T extends ReadonlyArray<unknown>> =
 /**
  * Extract all the known array's keys, wrapping each of them in a tuple, effectively preventing the merge of the union.
  *
+ * ```ts
  * ArrayKnownIndexes<string[]> // [number]
  * ArrayKnownIndexes<string, string, string[]> // [number] | [0] | [1]
  * ArrayKnownIndexes<string, number?> // [0] | [1]
@@ -162,38 +160,23 @@ export type ArrayLastIndex<T extends ReadonlyArray<unknown>> =
  * Return the type of the last element of the array.
  */
 // prettier-ignore
-export type ArrayLastElement<T extends ReadonlyArray<unknown>> =
-  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
-    Info['IsFullyStatic'] extends true ?
-      T[Info['LastIndex']] :
-    Info['IsHeadStatic'] extends true ?
-      (Info['OptionalIndexes'] | ArrayInfo<Info['StaticSlice']>['LastIndex']) extends infer PossibleLastIndex ?
-        PossibleLastIndex extends number ?
-          T[PossibleLastIndex] :
+export type ArrayLastElement<T> =
+  T  extends ReadonlyArray<unknown> ?
+    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+      Info['IsFullyStatic'] extends true ?
+        T[Info['LastIndex']] :
+      Info['IsHeadStatic'] extends true ?
+        (Info['OptionalIndexes'] | ArrayInfo<Info['StaticSlice']>['LastIndex']) extends infer PossibleLastIndex ?
+          PossibleLastIndex extends number ?
+            T[PossibleLastIndex] :
+          never :
         never :
-      never :
-    Info['IsTailStatic'] extends true ?
-      Info['StaticSlice'][ArrayInfo<Info['StaticSlice']>['LastIndex']] :
-    Info['RestElement'] :
+      Info['IsTailStatic'] extends true ?
+        Info['StaticSlice'][ArrayInfo<Info['StaticSlice']>['LastIndex']] :
+      Info['RestElement'] :
+    never :
   never
 ;
-
-export type ArrayLastElementBench<
-  T extends ReadonlyArray<unknown>,
-  Info extends ArrayInfoShape,
-> = Info['IsFullyStatic'] extends true
-  ? T[Info['LastIndex']]
-  : Info['IsHeadStatic'] extends true
-    ?
-        | Info['OptionalIndexes']
-        | ArrayInfo<Info['StaticSlice']>['LastIndex'] extends infer PossibleLastIndex
-      ? PossibleLastIndex extends number
-        ? T[PossibleLastIndex]
-        : never
-      : never
-    : Info['IsTailStatic'] extends true
-      ? Info['StaticSlice'][ArrayInfo<Info['StaticSlice']>['LastIndex']]
-      : Info['RestElement'];
 
 /**
  * Transform an array into a union of tuple representing its entries.
@@ -321,6 +304,24 @@ export type ArrayInfo<
 ;
 
 // prettier-ignore
+export type RestElement<T> =
+  T extends ReadonlyArray<unknown> ?
+    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+      Info['RestElement'] :
+    never :
+  never
+;
+
+// prettier-ignore
+export type IsFullyStaticArray<T> =
+  T extends ReadonlyArray<unknown> ?
+    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+      Info['IsFullyStatic'] :
+    never :
+  never
+;
+
+// prettier-ignore
 export type IsHeadStatic<T extends ReadonlyArray<unknown>> =
   ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
     Info['IsHeadStatic'] :
@@ -410,15 +411,17 @@ export type ArrayHasAscendingInheritance<T extends ReadonlyArray<unknown>> =
  * Returns `true` if every element type can be assigned to the previous one.
  */
 // prettier-ignore
-export type ArrayHasDescendingInheritance<T extends ReadonlyArray<unknown>> =
-  ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
-    Info['IsFullyStatic'] extends true ?
-      TupleHasDescendingInheritance<T> :
-    Info['IsHeadStatic'] extends true ?
-      TupleHasDescendingInheritance<[...Info['StaticSlice'], Info['RestElement']]> :
-    Info['IsTailStatic'] extends true ?
-      TupleHasDescendingInheritance<[Info['RestElement'], ...Info['StaticSlice']]> :
-    true :
+export type ArrayHasDescendingInheritance<T> =
+  T extends ReadonlyArray<unknown> ?
+    ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+      Info['IsFullyStatic'] extends true ?
+        TupleHasDescendingInheritance<T> :
+      Info['IsHeadStatic'] extends true ?
+        TupleHasDescendingInheritance<[...Info['StaticSlice'], Info['RestElement']]> :
+      Info['IsTailStatic'] extends true ?
+        TupleHasDescendingInheritance<[Info['RestElement'], ...Info['StaticSlice']]> :
+      true :
+    never :
   never
 ;
 
@@ -461,10 +464,29 @@ export type ArrayMap<T extends ReadonlyArray<unknown>, Prop extends keyof ArrayE
 
 /**
  * Return a slice of an array, starting at the given index `Start` (included), up to the end of the array.
+ * Start `number` will return the entire array.
+ * Start `-1` will return a tuple containing the last element of the array.
+ * Other negative indexes are not supported.
+ *
+ * ```ts
+ * ArraySlice<[string, number, symbol], 1> // [number, symbol]
+ * ArraySlice<[string, number, symbol], -1> // [symbol]
+ * ArraySlice<[string, number, symbol], number> // [string, number, symbol]
+ * ```
  */
 // prettier-ignore
-export type ArraySlice<T extends ReadonlyArray<unknown>, Start extends number> =
-  ArraySliceTRE<T, Start, []>
+export type ArraySlice<T, Start> =
+  number extends Start ?
+    T :
+  Start extends 0 ?
+    T :
+  Start extends -1 ?
+    [ArrayLastElement<T>] :
+  T extends ReadonlyArray<unknown> ?
+    Start extends number ?
+      ArraySliceTRE<T, Start, []> :
+    never :
+  never
 ;
 
 // prettier-ignore
@@ -473,7 +495,7 @@ type ArraySliceTRE<T extends ReadonlyArray<unknown>, Start extends number, Drop 
     T :
   T extends [unknown, ...infer Rest] ?
     ArraySliceTRE<Rest, Start, [...Drop, unknown]> :
-  []
+  T
 ;
 
 // prettier-ignore
@@ -486,10 +508,19 @@ export type IsFirstElementRemovable<T extends ReadonlyArray<unknown>> =
 ;
 
 // prettier-ignore
-export type IsLastElementRemovable<T extends ReadonlyArray<unknown>> =
-  IsTailStatic<T> extends true ?
-    ArrayHasAscendingInheritance<T> extends true ?
-      true :
-    false :
-  true
+export type IsLastElementRemovable<T> =
+  T  extends ReadonlyArray<unknown> ?
+    IsTailStatic<T> extends true ?
+      ArrayHasAscendingInheritance<T> extends true ?
+        true :
+      false :
+    true :
+  never
+;
+
+// prettier-ignore
+export type DropTupleHead<T> =
+  T extends [unknown, ...infer Rest] ?
+    Rest :
+  never
 ;

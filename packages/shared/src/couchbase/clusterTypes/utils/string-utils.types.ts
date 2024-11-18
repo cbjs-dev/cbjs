@@ -32,3 +32,13 @@ export type StringDigits = `${number}`;
  * A string that contains a timestamp in seconds.
  */
 export type TimestampSeconds = `${number}`;
+
+// prettier-ignore
+export type IsTemplateString<T> =
+  T extends string ?
+    IsTemplateStringHead<T> extends true ? true : IsTemplateStringTail<T> :
+  never
+;
+
+export type IsTemplateStringTail<T extends string> = `A${T}` extends T ? true : false;
+export type IsTemplateStringHead<T extends string> = `${T}A` extends T ? true : false;
