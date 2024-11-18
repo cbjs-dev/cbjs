@@ -9,11 +9,17 @@
     "test": "vitest --run"
   },
   "dependencies": {
+    "@ark/attest": "^0.25.0",
     "@cbjsdev/cbjs": "workspace:*",
-    "@cbjsdev/shared": "workspace:*"
+    "@cbjsdev/shared": "workspace:*",
+    "@vvo/tzdb": "^6.149.0",
+    "arktype": "2.0.0-rc.23",
+    "graph-data-structure": "^4.2.0",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "@types/validator": "^13.12.2",
     "typescript": "5.4.5"
   }
 }
