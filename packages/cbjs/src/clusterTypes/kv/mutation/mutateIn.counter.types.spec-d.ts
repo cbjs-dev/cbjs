@@ -21,7 +21,6 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  FilterCC,
   MakeTestPaths,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
