@@ -59,7 +59,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Xattr))('kv expiry', async 
       expect,
       useDocumentKey,
     }) => {
-      const before = Math.floor(Date.now() / 1000) - 1;
+      const before = Math.floor(Date.now() / 1000);
       const docKey = useDocumentKey();
       await serverTestContext.collection.upsert(
         docKey,
