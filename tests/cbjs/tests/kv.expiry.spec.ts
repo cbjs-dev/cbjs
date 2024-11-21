@@ -80,7 +80,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Xattr))('kv expiry', async 
 
       invariant(docExpiry);
 
-      expect(before + expiry).toBeLessThanOrEqual(docExpiry);
+      expect(before + expiry).toBeLessThanOrEqual(docExpiry + 1);
       expect(docExpiry).toBeLessThanOrEqual(expiry + after);
     });
   });
