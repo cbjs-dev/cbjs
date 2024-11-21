@@ -522,4 +522,26 @@ describe.shuffle('kv mutateIn', async () => {
       arr: [1, 2, 3, 4, 5, 6],
     });
   });
+
+  test('should decrement the value without using a binary collection', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    const result = await serverTestContext.collection
+      .mutateIn(testDocKey)
+      .decrement('int', 4);
+
+    expect(result.content[0].value).toEqual(10);
+    expect(result.cas).toBeNonZeroCAS();
+    expect(result.token).toBeMutationToken();
+
+    const resultGet = await serverTestContext.collection.get(testDocKey);
+
+    expect(resultGet.content).toStrictEqual({
+      int: 10,
+      str: 'hello',
+      arr: [1, 2, 3],
+    });
+  });
 });

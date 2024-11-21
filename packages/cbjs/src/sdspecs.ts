@@ -819,7 +819,7 @@ export class MutateInSpec<
     return MutateInSpec._create(
       binding.protocol_subdoc_opcode.counter,
       path,
-      +decrementBy as Value,
+      (-1 * +decrementBy) as Value,
       options
     );
   }
