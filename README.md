@@ -1,12 +1,12 @@
 <h1 align="center">
- <img src="https://github.com/cbjs-dev/cbjs/raw/main/docs/src/public/cbjs-logotype.svg" height="120" />
+ <img alt="Cbjs" src="https://github.com/cbjs-dev/cbjs/raw/main/docs/src/public/cbjs-logotype.svg" height="120" />
 </h1>
 <p align="center">
 A modern Couchbase SDK for Node.js & TypeScript.
 <p>
 
 <p align="center">
-    <img src="https://img.shields.io/badge/%20-couchbase-ec1218?logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTM0IiBoZWlnaHQ9IjEzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxjaXJjbGUgcj0iNjciIGN4PSI2NyIgY3k9IjY3IiBmaWxsPSIjZmZmZmZmICIvPgogICAgPHBhdGggZmlsbD0iI0VDMTIxOEZGIiBkPSJNIDExMS41NSA3OS4xNSBDIDExMS41NSA4My4xNSAxMDkuMjUgODYuNjUgMTA0Ljc1IDg3LjQ1IEMgOTYuOTUgODguODUgODAuNTUgODkuNjUgNjYuODUgODkuNjUgQyA1My4xNSA4OS42NSAzNi43NSA4OC44NSAyOC45NSA4Ny40NSBDIDI0LjQ1IDg2LjY1IDIyLjE1IDgzLjE1IDIyLjE1IDc5LjE1IEMgMjIuMTUgNzAuNTUgMjIuMTUgNjEuOTUgMjIuMTUgNTMuMzUgQyAyMi4xNSA0OS4zNSAyNS4yNSA0NS42NSAyOC45NSA0NS4wNSBDIDMxLjI1IDQ0LjY1IDM2LjY1IDQ0LjI1IDQwLjg1IDQ0LjI1IEMgNDIuNDUgNDQuMjUgNDMuNzUgNDUuNDUgNDMuNzUgNDcuMzUgTCA0My43NSA2NS40NSBDIDUxLjg1IDY1LjQ1IDU4Ljg1IDY0Ljk1IDY2Ljk1IDY0Ljk1IEMgNzUuMDUgNjQuOTUgODIuMDUgNjUuNDUgOTAuMTUgNjUuNDUgTCA5MC4xNSA0Ny4zNSBDIDkwLjE1IDQ1LjQ1IDkxLjQ1IDQ0LjI1IDkzLjA1IDQ0LjI1IEMgOTcuMjUgNDQuMjUgMTAyLjY1IDQ0LjY1IDEwNC45NSA0NS4wNSBDIDEwOC43NSA0NS42NSAxMTEuNzUgNDkuMzUgMTExLjc1IDUzLjM1IEMgMTExLjU1IDYxLjk1IDExMS41NSA3MC41NSAxMTEuNTUgNzkuMTUgWiIgLz4KPC9zdmc+" />
+    <img src="/assets/couchbase-badge.svg" alt="Couchbase Badge" />
  <a href="https://www.npmjs.com/package/@cbjsdev/cbjs"><img src="https://img.shields.io/npm/v/@cbjsdev/cbjs?label=cbjs" /></a>
  <a href="https://github.com/cbjs-dev/cbjs/actions/workflows/tests.yml"><img src="https://github.com/cbjs-dev/cbjs/actions/workflows/tests.yml/badge.svg" /></a>
 </p>
@@ -41,7 +41,11 @@ By making extensive usage of TypeScript, Cbjs is able to add some exclusive feat
 
 Because Cbjs knows your documents, the return type of KV operations is inferred from the parameters.
 
-[![code sample show casing the inferred return type](https://github.com/cbjs-dev/cbjs/assets/94478/f28353bf-6e70-415c-b8da-217e71545acb)](https://cbjs.dev/guide/features.html#inferred-return-type)
+<picture>
+  <source srcset="/assets/inferred-return-type-light.png" media="(prefers-color-scheme: light)" />
+  <source srcset="/assets/inferred-return-type-dark.png" media="(prefers-color-scheme: dark)" />
+  <img src="/assets/inferred-return-type-light.png" alt="code sample show casing the inferred return type" />
+</picture>
 
 Read more about [couchbase document path autocomplete](https://cbjs.dev/guide/features.html#inferred-return-type).
 
@@ -62,7 +66,11 @@ Read more about [chainable lookupIn](https://cbjs.dev/guide/services/kv.html#cha
 
 Because Cbjs knows your documents, autocompletion is offered when writing a document path.
 
-[![code sample show casing the path autocompletion](https://github.com/cbjs-dev/cbjs/assets/94478/fb0a5721-2a0c-4ee4-9dc7-b27b1aa434d5)](https://cbjs.dev/guide/features.html#ide-autocompletion)
+<picture>
+  <source srcset="/assets/code-completion-light.png" media="(prefers-color-scheme: light)" />
+  <source srcset="/assets/code-completion-dark.png" media="(prefers-color-scheme: dark)" />
+  <img src="/assets/inferred-return-type-light.png" alt="code sample show casing code completion for the path of sub-document operations" />
+</picture>
 
 ### Improved types
 
@@ -82,7 +90,7 @@ if (title.error) {
 
 The same goes for callbacks and many more ! [Read more](https://cbjs.dev/guide/features.html#discriminated-unions).
 
-### Useful Stack Trace
+### Better Stack Trace
 
 Without `cbjs` :
 
@@ -102,7 +110,8 @@ DocumentNotFoundError: document not found
 
 ### Support for cloud lambdas
 
-Unlike the official library, Cbjs doesn't use the filesystem, which is sometimes unavailable on cloud lambas like Cloudflare Workers.
+Access to the file system via `node:fs` is sometimes unavailable on cloud lambdas like Cloudflare Workers.  
+Because Cbjs doesn't use it to load the driver binary, it works fine on all cloud lambdas providers.
 
 ## License
 
