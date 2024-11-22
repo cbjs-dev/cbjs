@@ -10,6 +10,8 @@ Cbjs provides a set of functions to help you deploy and maintain your Couchbase 
 This package is in active development and its API may change without warning.
 :::
 
+::: code-group
+
 ```bash [npm]
 npm install -D @cbjsdev/deploy
 ```
@@ -25,3 +27,4 @@ pnpm add -D @cbjsdev/deploy
 ```bash [bun]
 bun add @cbjsdev/deploy --dev
 ```
+:::
