@@ -31,8 +31,6 @@ export { getDefaultServerTestContext, createServerTestContext } from './context.
 export { cleanupCouchbaseAfterEach, cleanupCouchbaseAfterAll } from './hook.js';
 export { setTestLogger, getTestLogger } from './logger.js';
 
-export * from './utils/getRandomId.js';
-
 export * from './fixtures/couchbase/analytics/index.js';
 export * from './fixtures/couchbase/kv/index.js';
 export * from './fixtures/couchbase/query/index.js';

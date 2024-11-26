@@ -23,9 +23,9 @@ import {
 } from '@cbjsdev/deploy';
 import { whoami } from '@cbjsdev/http-client';
 import { getApiConfig, getConnectionParams, invariant, sleep } from '@cbjsdev/shared';
-import { getRandomId } from '@cbjsdev/vitest';
 
 import { apiConfig } from '../setupTests.js';
+import { getRandomId } from '../utils/getRandomId.js';
 
 describe(
   'applyCouchbaseClusterChanges',
