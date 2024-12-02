@@ -12,6 +12,7 @@
     "@cbjsdev/cbjs": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
+    "@cbjsdev/http-client": "workspace:*",
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
     "semver": "^7.5.4",
