@@ -237,6 +237,22 @@ describe
       }
     );
 
+    test('should return an array of values when using ChainableLookupIn.values()', async ({
+      serverTestContext,
+      testDocKey,
+      expect,
+    }) => {
+      const result = await serverTestContext.collection
+        .lookupInAnyReplica(testDocKey)
+        .get('str')
+        .get('int')
+        .get('missingPath')
+        .exists('missingPath')
+        .values();
+
+      expect(result).toEqual(['hello', 14, undefined, false]);
+    });
+
     test('should throw during lookupInAnyReplica if a spec fails and throwOnSpecError is true', async ({
       serverTestContext,
       testDocKey,

@@ -14,11 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expectTypeOf, it } from 'vitest';
+import { describe, it } from 'vitest';
 
-import { AnyCollection, DocDef } from '../../../clusterTypes/index.js';
-import { Collection } from '../../../collection.js';
-import { connect } from '../../../couchbase.js';
+import { AnyCollection } from '../../../clusterTypes/index.js';
 import { LookupInSpec } from '../../../sdspecs.js';
 import { ChainableLookupIn } from './ChainableLookupIn.js';
 
@@ -55,59 +53,5 @@ describe('ChainableLookupIn', function () {
       LookupInSpec.count('metadata.tags'),
       LookupInSpec.exists('title'),
     ]);
-  });
-
-  it.skip('should pick the correct DocDef based on the matching key', ({ expect }) => {
-    type BookDocDef = DocDef<`book::${string}`, { title: string }>;
-    type UserClusterTypes = {
-      store: {
-        library: {
-          books: [BookDocDef];
-        };
-      };
-    };
-
-    const collection: Collection<UserClusterTypes, 'store', 'library', 'books'> =
-      true as any;
-
-    expectTypeOf(
-      ChainableLookupIn.for(collection, 'lookupIn', 'book::001', {})
-    ).toEqualTypeOf<
-      ChainableLookupIn<
-        Collection<UserClusterTypes, 'store', 'library', 'books'>,
-        'lookupIn',
-        `book::001`,
-        [],
-        boolean,
-        BookDocDef
-      >
-    >();
-  });
-
-  it.skip('should match string template path', ({ expect }) => {
-    type BookDocDef = DocDef<`book::${string}`, { title: string }>;
-    type UserClusterTypes = {
-      store: {
-        library: {
-          books: [BookDocDef];
-        };
-      };
-    };
-
-    const collection: Collection<UserClusterTypes, 'store', 'library', 'books'> =
-      true as any;
-
-    expectTypeOf(
-      ChainableLookupIn.for(collection, 'lookupIn', 'book::001', {})
-    ).toEqualTypeOf<
-      ChainableLookupIn<
-        Collection<UserClusterTypes, 'store', 'library', 'books'>,
-        'lookupIn',
-        `book::001`,
-        [],
-        boolean,
-        BookDocDef
-      >
-    >();
   });
 });

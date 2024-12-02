@@ -33,7 +33,6 @@ import { LookupInSpec, MutateInSpec } from './sdspecs.js';
 import { CouchbaseMap, CouchbaseSet } from './services/kv/dataStructures/index.js';
 import { ChainableLookupIn } from './services/kv/lookupIn/ChainableLookupIn.js';
 import { ChainableMutateIn } from './services/kv/mutateIn/ChainableMutateIn.js';
-import { StreamableReplicasPromise } from './streamablepromises.js';
 
 type TestDoc = {
   title: string;

@@ -217,6 +217,22 @@ describe.shuffle('kv lookupIn', async () => {
     expect(result.content).toStrictEqual(result.results);
   });
 
+  test('should return an array of values when using ChainableLookupIn.values()', async ({
+    serverTestContext,
+    testDocKey,
+    expect,
+  }) => {
+    const result = await serverTestContext.collection
+      .lookupIn(testDocKey)
+      .get('str')
+      .get('int')
+      .get('missingPath')
+      .exists('missingPath')
+      .values();
+
+    expect(result).toEqual(['hello', 14, undefined, false]);
+  });
+
   test('should perform the lookupIn using ChainableLookupIn instance specs with options', async ({
     serverTestContext,
     testDocKey,

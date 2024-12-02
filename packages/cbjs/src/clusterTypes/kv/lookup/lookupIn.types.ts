@@ -94,6 +94,22 @@ export type LookupInResultEntries<Results, ThrowOnSpecError extends boolean> =
   Array<LookupInResultEntry<ArrayElement<Results>, null> | LookupInResultEntry<undefined, Error>>
 ;
 
+export type ValuesFromSpecResults<Method, SpecResults, ThrowOnSpecError> =
+  [ThrowOnSpecError] extends [true] ?
+    Method extends 'lookupInAllReplicas' ?
+      SpecResults[] :
+    SpecResults :
+  Method extends 'lookupInAllReplicas' ?
+    ArrayElementOrUndefined<SpecResults>[] :
+  ArrayElementOrUndefined<SpecResults>
+;
+    
+type ArrayElementOrUndefined<Arr> =
+  Arr extends readonly [infer Head extends unknown, ...infer Rest] ?
+    [Head | undefined, ...ArrayElementOrUndefined<Rest>] :
+  []
+;
+
 /**
  * Lookup paths - Non-distributive.
  */

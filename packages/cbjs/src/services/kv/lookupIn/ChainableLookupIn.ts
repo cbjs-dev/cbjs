@@ -21,9 +21,12 @@ import {
   ExtractCollectionJsonDocKey,
 } from '../../../clusterTypes/clusterTypes.js';
 import type { AnyCollection } from '../../../clusterTypes/index.js';
-import type {
+import {
+  ExtractValuesFromLookupInResultEntries,
+  LookupInResultEntries,
   LookupInSpecResult,
   MakeLookupInSpec,
+  ValuesFromSpecResults,
 } from '../../../clusterTypes/kv/lookup/lookupIn.types.js';
 import type {
   LookupInCountPath,
@@ -242,5 +245,27 @@ export class ChainableLookupIn<
    */
   getSpecs(): LookupInSpec[] {
     return this.specs;
+  }
+
+  /**
+   * Return an array containing all the values.
+   *
+   * @example
+   * ```ts
+   * const [title, tags] = await cb.collection('acme')
+   *   .get('title')
+   *   .get('tags')
+   *   .values();
+   * ```
+   */
+  async values(): Promise<ValuesFromSpecResults<Method, SpecResults, ThrowOnSpecError>> {
+    if (this.method === 'lookupInAllReplicas') {
+      const result = (await this.execute()) as { content: { value: unknown }[] }[];
+      return result.map((r) => r.content.map((e) => e.value)) as never;
+    }
+
+    const { content } = (await this.execute()) as { content: { value: unknown }[] };
+
+    return content.map((e) => e.value) as never;
   }
 }

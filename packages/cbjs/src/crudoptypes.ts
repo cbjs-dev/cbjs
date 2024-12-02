@@ -278,7 +278,7 @@ export class LookupInResult<
  * @category Key-Value
  */
 export class LookupInReplicaResult<
-  Results = any[],
+  Results extends ReadonlyArray<any> = any[],
   ThrowOnSpecError extends boolean = false,
 > {
   /**
