@@ -323,9 +323,6 @@ importers:
       '@cbjsdev/cbjs':
         specifier: workspace:*
         version: link:../../packages/cbjs
-      '@cbjsdev/http-client':
-        specifier: workspace:*
-        version: link:../../packages/http-client
       '@cbjsdev/shared':
         specifier: workspace:*
         version: link:../../packages/shared
