@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { UpsertOptions } from '@cbjsdev/cbjs';
-import { invariant } from '@cbjsdev/shared';
-import { getRandomId, ServerTestContext } from '@cbjsdev/vitest';
+import { getRandomId, invariant } from '@cbjsdev/shared';
+import { ServerTestContext } from '@cbjsdev/vitest';
 
 export type SampleCollection = {
   upsert: (key: string, body: unknown, opts: UpsertOptions) => Promise<unknown>;

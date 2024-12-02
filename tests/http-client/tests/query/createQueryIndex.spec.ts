@@ -16,7 +16,8 @@
 import { describe } from 'vitest';
 
 import { createQueryIndex } from '@cbjsdev/http-client';
-import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
+import { getRandomId } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverVersionSatisfies } from '../../utils/serverVersionSatisfies.js';
 

@@ -15,10 +15,9 @@
  */
 import { ISearchIndex } from '@cbjsdev/cbjs';
 import { waitForSearchIndex } from '@cbjsdev/http-client';
-import { OptionalProps } from '@cbjsdev/shared';
+import { getRandomId, OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
-import { getRandomId } from '../../../utils/getRandomId.js';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
 

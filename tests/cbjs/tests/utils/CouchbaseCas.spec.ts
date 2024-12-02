@@ -17,7 +17,8 @@
 import { describe } from 'vitest';
 
 import { CouchbaseCas } from '@cbjsdev/cbjs';
-import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
+import { getRandomId } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('CouchbaseCas', { timeout: 20_000 }, async () => {
   const test = await createCouchbaseTest();

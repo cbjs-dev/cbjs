@@ -36,6 +36,7 @@ import {
   DefaultClusterTypes,
   getApiConfig,
   getConnectionParams,
+  getRandomId,
   invariant,
   Keyspace,
   keyspacePath,
@@ -43,7 +44,6 @@ import {
 } from '@cbjsdev/shared';
 
 import { getTestLogger } from './logger.js';
-import { getRandomId } from './utils/getRandomId.js';
 
 export class ServerTestContext {
   public readonly contextId: string;

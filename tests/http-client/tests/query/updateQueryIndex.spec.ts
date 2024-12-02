@@ -16,7 +16,8 @@
 import { describe } from 'vitest';
 
 import { createQueryIndex, updateQueryIndex } from '@cbjsdev/http-client';
-import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
+import { getRandomId } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 // requires a multi-node cluster
 describe.skip('updateQueryIndex', { timeout: 80_000 }, async () => {

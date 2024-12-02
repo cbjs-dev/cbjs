@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IAnalyticsLink } from '@cbjsdev/cbjs';
 import { ApiAnalyticsLink } from '@cbjsdev/http-client';
-import { OptionalProps } from '@cbjsdev/shared';
+import { getRandomId, OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
-import { getRandomId } from '../../../utils/getRandomId.js';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
 

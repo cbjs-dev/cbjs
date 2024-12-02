@@ -22,8 +22,6 @@ import {
 } from '../../../clusterTypes/clusterTypes.js';
 import type { AnyCollection } from '../../../clusterTypes/index.js';
 import {
-  ExtractValuesFromLookupInResultEntries,
-  LookupInResultEntries,
   LookupInSpecResult,
   MakeLookupInSpec,
   ValuesFromSpecResults,

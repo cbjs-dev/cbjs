@@ -22,10 +22,15 @@ import {
   getCouchbaseClusterChanges,
 } from '@cbjsdev/deploy';
 import { whoami } from '@cbjsdev/http-client';
-import { getApiConfig, getConnectionParams, invariant, sleep } from '@cbjsdev/shared';
+import {
+  getApiConfig,
+  getConnectionParams,
+  getRandomId,
+  invariant,
+  sleep,
+} from '@cbjsdev/shared';
 
 import { apiConfig } from '../setupTests.js';
-import { getRandomId } from '../utils/getRandomId.js';
 
 describe(
   'applyCouchbaseClusterChanges',

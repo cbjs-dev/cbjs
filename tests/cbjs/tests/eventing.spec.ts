@@ -26,8 +26,8 @@ import {
   Scope,
 } from '@cbjsdev/cbjs';
 import { ServerFeatures, waitForEventingFunction } from '@cbjsdev/http-client';
-import { sleep, waitFor } from '@cbjsdev/shared';
-import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
+import { getRandomId, sleep, waitFor } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 

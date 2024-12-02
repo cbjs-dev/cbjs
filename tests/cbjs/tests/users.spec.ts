@@ -18,8 +18,8 @@ import { describe } from 'vitest';
 
 import { HttpErrorContext, Role, UserNotFoundError } from '@cbjsdev/cbjs';
 import { ServerFeatures, waitForUser } from '@cbjsdev/http-client';
-import { getConnectionParams, invariant, waitFor } from '@cbjsdev/shared';
-import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
+import { getConnectionParams, getRandomId, invariant, waitFor } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 

@@ -25,5 +25,6 @@ export * from './arrayFirstElement.js';
 export * from './arrayLastElement.js';
 export * from './arrayMap.js';
 export * from './isArray.js';
+export * from './getRandomId.js';
 
 export * from './jsonToUrlSearchParams.js';

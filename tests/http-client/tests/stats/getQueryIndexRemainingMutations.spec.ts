@@ -16,8 +16,8 @@
 import { describe } from 'vitest';
 
 import { getQueryIndexRemainingMutations } from '@cbjsdev/http-client';
-import { waitFor } from '@cbjsdev/shared';
-import { createCouchbaseTest, getRandomId } from '@cbjsdev/vitest';
+import { getRandomId, waitFor } from '@cbjsdev/shared';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('getQueryIndexRemainingMutations', { skip: true }, async () => {
   const test = await createCouchbaseTest();
