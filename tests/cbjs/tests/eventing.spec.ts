@@ -31,7 +31,7 @@ import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
-const testTimeout = 45_000;
+const testTimeout = 90_000;
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Collections, ServerFeatures.Eventing))

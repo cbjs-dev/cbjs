@@ -56,79 +56,75 @@ describe
       }
     );
 
-    test(
-      'should upsert a function successfully',
-      async function ({
-        serverTestContext,
-        metadataBucket,
-        metadataCollection,
-        testFnName,
-      }) {
-        const bucketBindings = [
-          new EventingFunctionBucketBinding({
-            name: new EventingFunctionKeyspace({
-              bucket: serverTestContext.bucket.name,
-              scope: serverTestContext.scope.name,
-              collection: serverTestContext.collection.name,
-            }),
-            alias: 'bucketbinding1',
-            access: EventingFunctionBucketAccess.ReadWrite,
+    test('should upsert a function successfully', async function ({
+      serverTestContext,
+      metadataBucket,
+      metadataCollection,
+      testFnName,
+    }) {
+      const bucketBindings = [
+        new EventingFunctionBucketBinding({
+          name: new EventingFunctionKeyspace({
+            bucket: serverTestContext.bucket.name,
+            scope: serverTestContext.scope.name,
+            collection: serverTestContext.collection.name,
           }),
-        ];
+          alias: 'bucketbinding1',
+          access: EventingFunctionBucketAccess.ReadWrite,
+        }),
+      ];
 
-        const urlBindings = [
-          new EventingFunctionUrlBinding({
-            hostname: 'http://127.0.0.1',
-            alias: 'urlbinding1',
-            auth: new EventingFunctionUrlAuthBasic({
-              username: 'username',
-              password: 'password',
-            }),
-            allowCookies: false,
-            validateSslCertificate: false,
+      const urlBindings = [
+        new EventingFunctionUrlBinding({
+          hostname: 'http://127.0.0.1',
+          alias: 'urlbinding1',
+          auth: new EventingFunctionUrlAuthBasic({
+            username: 'username',
+            password: 'password',
           }),
-        ];
+          allowCookies: false,
+          validateSslCertificate: false,
+        }),
+      ];
 
-        const constantBindings = [
-          {
-            alias: 'someconstant',
-            literal: 'someliteral',
-          },
-        ];
+      const constantBindings = [
+        {
+          alias: 'someconstant',
+          literal: 'someliteral',
+        },
+      ];
 
-        // Give time to the eventing service to acknowledge the new buckets
-        await sleep(2000);
+      // Give time to the eventing service to acknowledge the new buckets
+      await sleep(2000);
 
-        const metadataKeyspace = new EventingFunctionKeyspace({
-          bucket: metadataBucket,
-          scope: Scope.DEFAULT_NAME,
-          collection: metadataCollection,
-        });
+      const metadataKeyspace = new EventingFunctionKeyspace({
+        bucket: metadataBucket,
+        scope: Scope.DEFAULT_NAME,
+        collection: metadataCollection,
+      });
 
-        const sourceKeyspace = new EventingFunctionKeyspace({
-          bucket: serverTestContext.bucket.name,
-          scope: serverTestContext.scope.name,
-          collection: serverTestContext.collection.name,
-        });
+      const sourceKeyspace = new EventingFunctionKeyspace({
+        bucket: serverTestContext.bucket.name,
+        scope: serverTestContext.scope.name,
+        collection: serverTestContext.collection.name,
+      });
 
-        const code = `
+      const code = `
           function OnUpdate(doc, meta) {
             log('data:', doc, meta)
           }
         `;
 
-        await serverTestContext.scope.eventingFunctions().upsertFunction({
-          name: testFnName,
-          code,
-          bucketBindings,
-          urlBindings,
-          constantBindings,
-          metadataKeyspace,
-          sourceKeyspace,
-        });
-      },
-      { timeout: 15_000 }
-    );
+      await serverTestContext.scope.eventingFunctions().upsertFunction({
+        name: testFnName,
+        code,
+        bucketBindings,
+        urlBindings,
+        constantBindings,
+        metadataKeyspace,
+        sourceKeyspace,
+      });
+    });
 
     test('should get all event functions', async function ({
       expect,
