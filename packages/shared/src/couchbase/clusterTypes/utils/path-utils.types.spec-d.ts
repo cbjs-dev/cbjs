@@ -1173,7 +1173,7 @@ describe('OpCodeCompletionValue', () => {
     });
   });
 
-  describe('remove', () => {
+  test('remove', () => {
     type Test = OpCodeCompletionValue<
       'remove',
       NonNullable<unknown>,
@@ -1191,7 +1191,7 @@ describe('OpCodeCompletionValue', () => {
     expectTypeOf<Test2>().toEqualTypeOf<true>();
   });
 
-  describe('binary', () => {
+  test('binary', () => {
     type TestDoc = { arr: [number, ...string[]] };
     type Test = OpCodeCompletionValue<'binary', NonNullable<unknown>, TestDoc, 'arr[0]'>;
     expectTypeOf<Test>().toEqualTypeOf<number>();
@@ -1203,5 +1203,17 @@ describe('OpCodeCompletionValue', () => {
       'arr[1]'
     >;
     expectTypeOf<Test2>().toEqualTypeOf<never>();
+  });
+
+  test('deep binary', () => {
+    type NestedDoc = { attempt: number };
+    type TestDoc = { arr: NestedDoc[] };
+    type Test = OpCodeCompletionValue<
+      'binary',
+      NonNullable<unknown>,
+      TestDoc,
+      'arr[0].attempt'
+    >;
+    expectTypeOf<Test>().toEqualTypeOf<number>();
   });
 });
