@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AnalyticsLinkInput } from '@cbjsdev/cbjs';
 import { ApiAnalyticsLink } from '@cbjsdev/http-client';
 import { getRandomId, OptionalProps } from '@cbjsdev/shared';
 
@@ -21,29 +22,29 @@ import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
 
 export type AnalyticsLinkFixtureParams = OptionalProps<
-  ApiAnalyticsLink,
-  'name' | 'scope'
+  AnalyticsLinkInput,
+  'name' | 'dataverse'
 >;
 
 export class AnalyticsLinkFixture extends FixtureFunctionValue<
   [AnalyticsLinkFixtureParams],
-  Promise<ApiAnalyticsLink>,
+  Promise<AnalyticsLinkInput>,
   CouchbaseTestContext
 > {
   public readonly fixtureName = 'AnalyticsLinkFixture';
-  private link?: ApiAnalyticsLink;
+  private link?: AnalyticsLinkInput;
 
   async use(
     { serverTestContext, logger }: FixtureContext<CouchbaseTestContext>,
     params: AnalyticsLinkFixtureParams
-  ): Promise<ApiAnalyticsLink> {
+  ): Promise<AnalyticsLinkInput> {
     this.link = {
       name: getRandomId(),
-      scope: 'Default',
+      dataverse: 'Default',
       ...params,
     };
 
-    logger?.debug(`AnalyticsLinkFixture: ${this.link.name} in ${this.link.scope}`);
+    logger?.debug(`AnalyticsLinkFixture: ${this.link?.name} in ${this.link?.dataverse}`);
 
     await serverTestContext.c.analyticsIndexes().createLink(this.link);
 
@@ -53,6 +54,6 @@ export class AnalyticsLinkFixture extends FixtureFunctionValue<
   override async cleanup({ serverTestContext }: FixtureContext<CouchbaseTestContext>) {
     if (!this.link) return;
     const linkName = `${this.link.name}.Local`;
-    await serverTestContext.c.analyticsIndexes().dropLink(linkName, this.link.scope);
+    await serverTestContext.c.analyticsIndexes().dropLink(linkName, this.link.dataverse);
   }
 }

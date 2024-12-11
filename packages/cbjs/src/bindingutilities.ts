@@ -16,6 +16,10 @@
  */
 import { DurabilityLevelName, invariant } from '@cbjsdev/shared';
 
+import {
+  AnalyticsEncryptionLevel,
+  CouchbaseAnalyticsEncryptionSettings,
+} from './analyticsindexmanager.js';
 import { AnalyticsScanConsistency, AnalyticsStatus } from './analyticstypes.js';
 import binding, {
   CppAnalyticsResponseAnalyticsStatus,
@@ -25,6 +29,8 @@ import binding, {
   CppDiagPingState,
   CppDurabilityLevel,
   CppError,
+  CppManagementAnalyticsCouchbaseLinkEncryptionLevel,
+  CppManagementAnalyticsCouchbaseLinkEncryptionSettings,
   CppManagementClusterBucketCompression,
   CppManagementClusterBucketConflictResolution,
   CppManagementClusterBucketEvictionPolicy,
@@ -1528,4 +1534,76 @@ export function eventingFunctionStatusFromCpp(
   }
 
   throw new InvalidArgumentError('Unrecognized EventingFunctionStatus');
+}
+
+/**
+ * @internal
+ */
+export function couchbaseLinkEncryptionLevelFromCpp(
+  level: CppManagementAnalyticsCouchbaseLinkEncryptionLevel
+): AnalyticsEncryptionLevel {
+  if (level === binding.management_analytics_couchbase_link_encryption_level.none) {
+    return AnalyticsEncryptionLevel.None;
+  }
+  if (level === binding.management_analytics_couchbase_link_encryption_level.half) {
+    return AnalyticsEncryptionLevel.Half;
+  }
+  if (level === binding.management_analytics_couchbase_link_encryption_level.full) {
+    return AnalyticsEncryptionLevel.Full;
+  }
+  throw new InvalidArgumentError(
+    'Unrecognized CppManagementAnalyticsCouchbaseLinkEncryptionLevel'
+  );
+}
+/**
+ * @internal
+ */
+export function encryptionLevelToCpp(
+  level: AnalyticsEncryptionLevel
+): CppManagementAnalyticsCouchbaseLinkEncryptionLevel {
+  if (level === AnalyticsEncryptionLevel.None) {
+    return binding.management_analytics_couchbase_link_encryption_level.none;
+  }
+  if (level === AnalyticsEncryptionLevel.Half) {
+    return binding.management_analytics_couchbase_link_encryption_level.half;
+  }
+  if (level === AnalyticsEncryptionLevel.Full) {
+    return binding.management_analytics_couchbase_link_encryption_level.full;
+  }
+  throw new InvalidArgumentError('Unrecognized AnalyticsEncryptionLevel');
+}
+/**
+ * @internal
+ */
+export function encryptionSettingsToCpp(
+  settings?: CouchbaseAnalyticsEncryptionSettings
+): CppManagementAnalyticsCouchbaseLinkEncryptionSettings {
+  if (!settings) {
+    return {
+      level: binding.management_analytics_couchbase_link_encryption_level.none,
+    };
+  }
+  return {
+    level: encryptionLevelToCpp(settings.encryptionLevel),
+    certificate: settings.certificate ? settings.certificate.toString() : undefined,
+    client_certificate: settings.clientCertificate
+      ? settings.clientCertificate.toString()
+      : undefined,
+    client_key: settings.clientKey ? settings.clientKey.toString() : undefined,
+  };
+}
+/**
+ * @internal
+ */
+export function encryptionSettingsFromCpp(
+  settings: CppManagementAnalyticsCouchbaseLinkEncryptionSettings
+): CouchbaseAnalyticsEncryptionSettings {
+  return new CouchbaseAnalyticsEncryptionSettings({
+    encryptionLevel: couchbaseLinkEncryptionLevelFromCpp(settings.level),
+    certificate: settings.certificate ? Buffer.from(settings.certificate) : undefined,
+    clientCertificate: settings.client_certificate
+      ? Buffer.from(settings.client_certificate)
+      : undefined,
+    clientKey: undefined,
+  });
 }

@@ -45,6 +45,32 @@ describe
       await useUser();
     });
 
+    test('should successfully create a user with groups', async function ({
+      serverTestContext,
+      useUserGroup,
+    }) {
+      const groupName = await useUserGroup();
+      await serverTestContext.cluster.users().upsertUser({
+        username: getRandomId(),
+        password: getRandomId(),
+        roles: [
+          new Role({
+            name: 'data_reader',
+            bucket: serverTestContext.bucket.name,
+            scope: '*',
+            collection: '*',
+          }),
+          new Role({
+            name: 'data_writer',
+            bucket: serverTestContext.bucket.name,
+            scope: '*',
+            collection: '*',
+          }),
+        ],
+        groups: [groupName],
+      });
+    });
+
     test('should successfully get user', async function ({
       expect,
       serverTestContext,
@@ -56,6 +82,38 @@ describe
           username,
         })
       );
+    });
+
+    test('should successfully update a user', async function ({
+      expect,
+      serverTestContext,
+      useUser,
+    }) {
+      const { username } = await useUser();
+      const user = await serverTestContext.cluster.users().getUser(username);
+
+      user.roles = [
+        new Role({
+          name: 'ro_admin',
+        }),
+      ];
+
+      await serverTestContext.cluster.users().upsertUser(user);
+
+      await waitFor(async () => {
+        await expect(
+          serverTestContext.cluster.users().getUser(username)
+        ).resolves.toEqual(
+          expect.objectContaining({
+            username,
+            roles: [
+              {
+                name: 'ro_admin',
+              },
+            ],
+          })
+        );
+      });
     });
 
     test('should throw a UserNotFoundError when getting a missing user', async function ({
