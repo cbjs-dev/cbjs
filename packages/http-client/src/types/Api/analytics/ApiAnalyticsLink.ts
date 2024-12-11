@@ -34,7 +34,7 @@ export type ApiAnalyticsLinkSharedProperties = {
 
 export type ApiAnalyticsLink = OneOf<
   [
-    // ApiAnalyticsCouchbaseRemoteLink,
+    ApiAnalyticsCouchbaseRemoteLink,
     ApiAnalyticsS3RemoteLink,
     ApiAnalyticsAzureRemoteLink,
     ApiAnalyticsGoogleStorageRemoteLink,

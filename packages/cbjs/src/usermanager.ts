@@ -24,6 +24,7 @@ import {
 import {
   CouchbaseClusterTypes,
   getRoleScope,
+  hasOwn,
   Pretty,
   RoleName,
   RoleScope,
@@ -89,35 +90,35 @@ export type SdkScopedRole = Pretty<
  *
  * @category Management
  */
-export class Role<Name extends RoleName = RoleName> {
+export class Role<RoleDef extends SdkScopedRole = SdkScopedRole> {
   /**
    * The name of the role.
    */
-  name: Name;
+  name: RoleDef['name'];
 
   /**
    * The bucket this role applies to.
    */
-  bucket: 'bucket' extends RoleScope[Name][number] ? string : undefined;
+  bucket: 'bucket' extends keyof RoleDef ? RoleDef['bucket'] : never;
 
   /**
    * The scope this role applies to.
    */
-  scope: 'scope' extends RoleScope[Name][number] ? string : undefined;
+  scope: 'scope' extends keyof RoleDef ? RoleDef['scope'] : never;
 
   /**
    * The collection this role applies to.
    */
-  collection: 'collection' extends RoleScope[Name][number] ? string : undefined;
+  collection: 'collection' extends keyof RoleDef ? RoleDef['collection'] : never;
 
   /**
    * @internal
    */
-  constructor(data: Role<Name>) {
+  constructor(data: RoleDef) {
     this.name = data.name;
-    this.bucket = data.bucket;
-    this.scope = data.scope;
-    this.collection = data.collection;
+    this.bucket = (data as { bucket: string }).bucket as never;
+    this.scope = (data as { scope: string }).scope as never;
+    this.collection = (data as { collection: string }).collection as never;
   }
 
   /**
@@ -322,12 +323,11 @@ export class User implements IUser {
   /**
    * Used to upsert a user
    * @internal
-   * @deprecated
    */
   static _toNsData(user: IUser) {
     return {
       name: user.displayName,
-      groups: user.groups,
+      groups: user.groups?.join(','),
       password: user.password,
       roles: user.roles?.map((role) => Role._toNsStr(role as Role)).join(','),
     };
@@ -354,7 +354,7 @@ export class UserAndMetadata extends User {
   /**
    * The last time the users password was changed.
    */
-  passwordChanged: Date;
+  passwordChanged?: Date;
 
   /**
    * The external groups that this user is associated with.

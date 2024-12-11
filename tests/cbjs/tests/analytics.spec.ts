@@ -210,9 +210,9 @@ describe
       const dataverseName = await useDataverse();
 
       await useAnalyticsLink({
-        type: 's3',
+        linkType: 's3',
         name: 'testLink',
-        scope: dataverseName,
+        dataverse: dataverseName,
         accessKeyId: 'testAccessKeyId',
         region: 'eu-west-3',
         secretAccessKey: 'testSecretAccessKey',
@@ -228,9 +228,9 @@ describe
       const dataverseName = await useDataverse();
 
       await useAnalyticsLink({
-        type: 's3',
+        linkType: 's3',
         name: 'testLink',
-        scope: dataverseName,
+        dataverse: dataverseName,
         accessKeyId: 'testAccessKeyId',
         region: 'eu-west-3',
         secretAccessKey: 'testSecretAccessKey',
@@ -238,8 +238,9 @@ describe
 
       await expect(
         serverTestContext.cluster.analyticsIndexes().replaceLink({
+          linkType: 's3',
           name: 'testLink',
-          scope: dataverseName,
+          dataverse: dataverseName,
           accessKeyId: 'testAccessKeyId',
           region: 'eu-west-1',
           secretAccessKey: 'testSecretAccessKey',
@@ -267,9 +268,9 @@ describe
     }) {
       const dv = await useDataverse();
       await useAnalyticsLink({
-        type: 's3',
+        linkType: 's3',
         name: 'testLink',
-        scope: dv,
+        dataverse: dv,
         accessKeyId: 'testAccessKeyId',
         region: 'eu-west-3',
         secretAccessKey: 'testSecretAccessKey',
