@@ -368,8 +368,8 @@ export class UnambiguousTimeoutError extends TimeoutError {
  */
 export class FeatureNotAvailableError extends CouchbaseError {
   declare cause: Error;
-  constructor(cause?: Error, context?: ServiceErrorContext) {
-    super('feature not available', cause, context);
+  constructor(reason?: string, cause?: Error, context?: ServiceErrorContext) {
+    super(`feature not available${appendReason(reason)}`, cause, context);
   }
 }
 

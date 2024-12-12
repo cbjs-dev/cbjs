@@ -43,6 +43,7 @@ import binding, {
   CppManagementEventingFunctionLogLevel,
   CppManagementEventingFunctionProcessingStatus,
   CppManagementEventingFunctionStatus,
+  CppManagementRbacAuthDomain,
   CppMutationState,
   CppPersistTo,
   CppPrefixScan,
@@ -714,6 +715,15 @@ export function errorFromCpp(cppError: unknown): Error | null {
 
     switch (cppError.ctxtype) {
       case 'transaction_operation_failed':
+        if (args[0] === 'feature_not_available_exception') {
+          const msg =
+            'Possibly attempting a binary transaction operation with a server version < 7.6.2';
+          return new TransactionOperationFailedError(
+            msg,
+            new FeatureNotAvailableError(msg, new Error(msg))
+          );
+        }
+
         return new TransactionOperationFailedError(...args);
       case 'transaction_op_exception':
         return txnOpExceptionFromCpp(
@@ -773,7 +783,7 @@ export function errorFromCpp(cppError: unknown): Error | null {
     case binding.errc_key_value.document_not_locked:
       return new DocumentNotLockedError(cppError, context);
     case binding.errc_common.feature_not_available:
-      return new FeatureNotAvailableError(cppError, context);
+      return new FeatureNotAvailableError(undefined, cppError, context);
     case binding.errc_common.scope_not_found:
       return new ScopeNotFoundError(cppError, context);
     case binding.errc_common.index_not_found:
@@ -1606,4 +1616,36 @@ export function encryptionSettingsFromCpp(
       : undefined,
     clientKey: undefined,
   });
+}
+
+/**
+ * @internal
+ */
+export function authDomainToCpp(domain: string): CppManagementRbacAuthDomain {
+  if (domain === 'unknown') {
+    return binding.management_rbac_auth_domain.unknown;
+  }
+  if (domain === 'local') {
+    return binding.management_rbac_auth_domain.local;
+  }
+  if (domain === 'external') {
+    return binding.management_rbac_auth_domain.external;
+  }
+  throw new InvalidArgumentError('Unrecognized auth domain.');
+}
+
+/**
+ * @internal
+ */
+export function authDomainFromCpp(domain: CppManagementRbacAuthDomain): string {
+  if (domain === binding.management_rbac_auth_domain.unknown) {
+    return 'unknown';
+  }
+  if (domain === binding.management_rbac_auth_domain.local) {
+    return 'local';
+  }
+  if (domain === binding.management_rbac_auth_domain.external) {
+    return 'external';
+  }
+  throw new InvalidArgumentError('Unrecognized CppManagementRbacAuthDomain.');
 }

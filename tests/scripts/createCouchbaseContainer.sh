@@ -1,6 +1,6 @@
-docker pull couchbase:7.6.1
+docker pull couchbase:7.6.2
 docker run \
-  --name couchbase-7.6.1 \
+  --name couchbase-7.6.2 \
   --detach \
   -p 8091:8091 \
   -p 8092:8092 \
@@ -21,7 +21,7 @@ docker run \
   -p 9123:9123 \
   -p 11210:11210 \
   -p 11280:11280 \
-  couchbase:7.6.1
+  couchbase:7.6.2
 
 sleep 5
 

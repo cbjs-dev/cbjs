@@ -64,7 +64,7 @@ import {
   QueryResult,
   QueryScanConsistency,
 } from './querytypes.js';
-import { DefaultTranscoder } from './transcoders.js';
+import { DefaultTranscoder, Transcoder } from './transcoders.js';
 import { NodeCallback, PromiseHelper } from './utilities.js';
 
 /**
@@ -506,6 +506,36 @@ export type TransactionQueryOptions<
 };
 
 /**
+ * @category Transactions
+ */
+export interface TransactionGetOptions {
+  /**
+   * Specifies an explicit transcoder to use for this specific operation.
+   */
+  transcoder?: Transcoder;
+}
+
+/**
+ * @category Transactions
+ */
+export interface TransactionInsertOptions {
+  /**
+   * Specifies an explicit transcoder to use for this specific operation.
+   */
+  transcoder?: Transcoder;
+}
+
+/**
+ * @category Transactions
+ */
+export interface TransactionReplaceOptions {
+  /**
+   * Specifies an explicit transcoder to use for this specific operation.
+   */
+  transcoder?: Transcoder;
+}
+
+/**
  * @internal
  */
 function translateGetResult<
@@ -514,13 +544,14 @@ function translateGetResult<
   S extends ScopeName<T, B> = ScopeName<T, B>,
   C extends CollectionName<T, B, S> = CollectionName<T, B, S>,
   Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
->(cppRes: CppTransactionGetResult): TransactionGetResult<T, B, S, C, Key> {
-  let content: any = cppRes.content;
+>(
+  cppRes: CppTransactionGetResult,
+  transcoder: Transcoder
+): TransactionGetResult<T, B, S, C, Key> {
+  let content;
 
-  try {
-    content = JSON.parse(cppRes.content.toString('utf8'));
-  } catch (e) {
-    /* this is a binary document, let's keep its content as-is */
+  if (cppRes.content.data && cppRes.content.data.length > 0) {
+    content = transcoder.decode(cppRes.content.data, cppRes.content.flags);
   }
 
   const id = new DocumentId<T, B, S, C, Key>(
@@ -613,6 +644,7 @@ export class TransactionAttemptContext<
    *
    * @param collection The collection the document lives in.
    * @param key The document key to retrieve.
+   * @param options Optional parameters for this operation.
    */
   async get<
     LInstance extends AnyCollection,
@@ -625,7 +657,11 @@ export class TransactionAttemptContext<
     >['Key'],
     const Key extends KeyspaceDocDef<T, B, S, C>['Key'],
   >(
-    ...args: If<IsNever<Instance>, [collection: LInstance, key: LKey], [key: Key]>
+    ...args: If<
+      IsNever<Instance>,
+      [collection: LInstance, key: LKey, options?: TransactionGetOptions],
+      [key: Key, options?: TransactionGetOptions]
+    >
   ): Promise<
     If<
       IsNever<Instance>,
@@ -639,7 +675,8 @@ export class TransactionAttemptContext<
       TransactionGetResult<T, B, S, C, Key>
     >
   > {
-    const [collection, key] = args as [LInstance, LKey];
+    const [collection, key, options] = args as [LInstance, LKey, TransactionGetOptions?];
+    const transcoder = options?.transcoder ?? this.transcoder;
 
     invariant(collection);
 
@@ -650,7 +687,7 @@ export class TransactionAttemptContext<
 
       invariant(result);
 
-      return translateGetResult(result) as never;
+      return translateGetResult(result, transcoder) as never;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
       throw err;
@@ -732,6 +769,7 @@ export class TransactionAttemptContext<
    * @param collection The {@link Collection} the document lives in.
    * @param key The document key to insert.
    * @param content The document content to insert.
+   * @param options Optional parameters for this operation.
    */
   async insert<
     LInstance extends AnyCollection,
@@ -756,8 +794,13 @@ export class TransactionAttemptContext<
           CKS['scope'],
           CKS['collection']
         >['Body'],
+        options?: TransactionInsertOptions,
       ],
-      [key: Key, content: DocDefMatchingKey<Key, T, B, S, C>['Body']]
+      [
+        key: Key,
+        content: DocDefMatchingKey<Key, T, B, S, C>['Body'],
+        options?: TransactionInsertOptions,
+      ]
     >
   ): Promise<
     If<
@@ -772,23 +815,25 @@ export class TransactionAttemptContext<
       TransactionGetResult<T, B, S, C, Key>
     >
   > {
-    const [collection, key, content] = args as [
+    const [collection, key, content, options] = args as [
       LInstance,
       LKey,
       DocDefMatchingKey<Key, T, B, S, C>['Body'],
+      TransactionInsertOptions?,
     ];
+    const transcoder = options?.transcoder ?? this.transcoder;
 
     invariant(collection);
 
     try {
       const insert = promisify(this._impl.insert).bind(this._impl);
       const id = collection.getDocId(key);
-      const [data, flags] = this.transcoder.encode(content);
+      const [data, flags] = transcoder.encode(content);
       const result = await insert({ id, content: { data, flags } });
 
       invariant(result);
 
-      return translateGetResult(result) as never;
+      return translateGetResult(result, transcoder) as never;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
       throw err;
@@ -800,6 +845,7 @@ export class TransactionAttemptContext<
    *
    * @param doc The document to replace.
    * @param content The document content to insert.
+   * @param options Optional parameters for this operation.
    */
   async replace<
     LB extends BucketName<T>,
@@ -808,15 +854,21 @@ export class TransactionAttemptContext<
     const Key extends KeyspaceDocDef<T, LB, LS, LC>['Key'],
   >(
     doc: Exclude<TransactionDocInfo<T, LB, LS, LC, Key>, 'cas'> & { cas: CasInput },
-    content: DocDefMatchingKey<Key, T, LB, LS, LC>['Body']
+    content: DocDefMatchingKey<Key, T, LB, LS, LC>['Body'],
+    options?: TransactionReplaceOptions
   ): Promise<TransactionGetResult<T, LB, LS, LC, Key>> {
+    const transcoder = options?.transcoder ?? this.transcoder;
+
     try {
       const replace = promisify(this._impl.replace).bind(this._impl);
-      const [data, flags] = this.transcoder.encode(content);
+      const [data, flags] = transcoder.encode(content);
       const result = await replace({
         doc: {
           id: doc.id,
-          content: Buffer.from(''),
+          content: {
+            data: Buffer.from(''),
+            flags: 0,
+          },
           cas: doc.cas,
           links: doc._links,
           metadata: doc._metadata,
@@ -826,7 +878,7 @@ export class TransactionAttemptContext<
 
       invariant(result);
 
-      return translateGetResult(result) as never;
+      return translateGetResult(result, transcoder) as never;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
       throw err;
@@ -851,7 +903,10 @@ export class TransactionAttemptContext<
       await remove({
         doc: {
           id: doc.id,
-          content: Buffer.from(''),
+          content: {
+            data: Buffer.from(''),
+            flags: 0,
+          },
           cas: doc.cas,
           links: doc._links,
           metadata: doc._metadata,
