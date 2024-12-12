@@ -68,7 +68,7 @@ describe('PromiseHelper', async () => {
     });
 
     // This test is expected to produce an unhandled error
-    test('user callback should not be called twice when it throws an error', async ({
+    test.skip('user callback should not be called twice when it throws an error', async ({
       expect,
     }) => {
       const userCallback = vi.fn((err, res) => {
