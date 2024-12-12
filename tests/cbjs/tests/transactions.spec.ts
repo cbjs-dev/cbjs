@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 import JSONBigint from 'json-bigint';
-import { describe } from 'vitest';
+import { describe, vi } from 'vitest';
 
 import {
   BucketNotFoundError,
   DocumentExistsError,
   DocumentNotFoundError,
+  FeatureNotAvailableError,
   keyspacePath,
   KeyValueErrorContext,
   ParsingFailureError,
+  RawBinaryTranscoder,
   TransactionFailedError,
   TransactionOperationFailedError,
 } from '@cbjsdev/cbjs';
@@ -688,30 +690,99 @@ describe
       expect(() => cluster.transactions()).toThrowError(BucketNotFoundError);
     });
 
-    // JSCBC-1243:  Although we do not support binary docs (at least until we add ExtBinarySupport),
-    // we should not crash if a user happens to attempt a get on a binary doc w/in a txn lambda.
-    test('should successfully get a binary document within the transaction lambda', async ({
-      serverTestContext,
-      expect,
-      useDocumentKey,
-    }) => {
-      const testDocKey = useDocumentKey();
-      const testBinVal = Buffer.from(
-        '00092bc691fb824300a6871ceddf7090d7092bc691fb824300a6871ceddf7090d7',
-        'hex'
-      );
+    test.runIf(serverSupportsFeatures(ServerFeatures.BinaryTransactions))(
+      'should successfully mutate and get a binary document within the transaction lambda',
+      async ({ serverTestContext, expect, useDocumentKey }) => {
+        const testDocKey = useDocumentKey();
+        const testBinVal = Buffer.from(
+          '00092bc691fb824300a6871ceddf7090d7092bc691fb824300a6871ceddf7090d7',
+          'hex'
+        );
+        const nextBinVal = Buffer.from('666f6f62617262617a', 'hex');
 
-      await serverTestContext.co.insert(testDocKey, testBinVal);
+        await serverTestContext.cluster.transactions().run(
+          async (attempt) => {
+            await attempt.insert(serverTestContext.collection, testDocKey, testBinVal);
+            const resultGet = await attempt.get(serverTestContext.collection, testDocKey);
+            const resultReplace = await attempt.replace(resultGet, nextBinVal);
 
-      await serverTestContext.cluster.transactions().run(
-        async (attempt) => {
-          const result = await attempt.get(serverTestContext.collection, testDocKey);
+            expect(resultReplace.cas).not.toEqual(resultGet.cas);
+          },
+          { timeout: 5000 }
+        );
+      }
+    );
 
-          expect(result.content).toEqual(testBinVal);
-        },
-        { timeout: 5000 }
-      );
-    });
+    test.runIf(serverSupportsFeatures(ServerFeatures.BinaryTransactions))(
+      'should use the given transcoder',
+      async ({ serverTestContext, expect, useDocumentKey }) => {
+        const testDocKey = useDocumentKey();
+        const testBinVal = Buffer.from(
+          '00092bc691fb824300a6871ceddf7090d7092bc691fb824300a6871ceddf7090d7',
+          'hex'
+        );
+        const nextBinVal = Buffer.from('666f6f62617262617a', 'hex');
+
+        const transcoder = new RawBinaryTranscoder();
+
+        const encodeSpy = vi.spyOn(transcoder, 'encode');
+        const decodeSpy = vi.spyOn(transcoder, 'decode');
+
+        await serverTestContext.cluster.transactions().run(
+          async (attempt) => {
+            await attempt.insert(serverTestContext.collection, testDocKey, testBinVal, {
+              transcoder,
+            });
+            const resultGet = await attempt.get(
+              serverTestContext.collection,
+              testDocKey,
+              {
+                transcoder,
+              }
+            );
+            expect(resultGet.content).toEqual(testBinVal);
+
+            const resultReplace = await attempt.replace(resultGet, nextBinVal, {
+              transcoder,
+            });
+
+            expect(resultReplace.cas).not.toEqual(resultGet.cas);
+          },
+          { timeout: 5000 }
+        );
+
+        expect(encodeSpy).toHaveBeenCalledTimes(2); // insert + replace
+        expect(decodeSpy).toHaveBeenCalledTimes(1); // get
+      }
+    );
+
+    test.skipIf(serverSupportsFeatures(ServerFeatures.BinaryTransactions))(
+      'should throw a FeatureNotAvailableError when attempting to insert a binary document within the transaction lambda',
+      async ({ serverTestContext, expect, useDocumentKey }) => {
+        const testDocKey = useDocumentKey();
+        const testBinVal = Buffer.from(
+          '00092bc691fb824300a6871ceddf7090d7092bc691fb824300a6871ceddf7090d7',
+          'hex'
+        );
+        let numAttempts = 0;
+
+        try {
+          await serverTestContext.cluster.transactions().run(
+            async (attempt) => {
+              numAttempts++;
+              await attempt.insert(serverTestContext.collection, testDocKey, testBinVal);
+            },
+            { timeout: 5_000 }
+          );
+        } catch (err) {
+          expect(err).toBeInstanceOf(TransactionFailedError);
+          invariant(err instanceof TransactionFailedError);
+          expect(err.cause).toBeInstanceOf(FeatureNotAvailableError);
+        }
+
+        expect(numAttempts).toEqual(1);
+      }
+    );
 
     test('should be able to use the fluid API', async ({
       serverTestContext,

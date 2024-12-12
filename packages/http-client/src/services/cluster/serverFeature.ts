@@ -47,6 +47,7 @@ export const ServerFeatures = {
   ScopeSearchIndexManagement: 'scope_search_index_management',
   ScopeEventingFunctionManagement: 'scope_eventing_function_management',
   NotLockedKVStatus: 'kv_not_locked',
+  BinaryTransactions: 'binary_transactions',
 } as const;
 
 export type ServerFeature = (typeof ServerFeatures)[keyof typeof ServerFeatures];
@@ -98,6 +99,8 @@ export function versionSupports(version: string, feature: ServerFeature) {
     case ServerFeatures.NotLockedKVStatus:
     case ServerFeatures.ScopeEventingFunctionManagement:
       return gte(version, '7.6.0');
+    case ServerFeatures.BinaryTransactions:
+      return gte(version, '7.6.2');
   }
 
   throw new Error(`Unknown feature '${feature}'`);

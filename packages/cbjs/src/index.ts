@@ -43,6 +43,7 @@ export * from './queryindexmanager.js';
 export * from './querytypes.js';
 export * from './rangeScan.js';
 export * from './scope.js';
+export * from './scopeeventingfunctionmanager.js';
 export * from './scopesearchindexmanager.js';
 export * from './sdspecs.js';
 export * from './searchfacet.js';

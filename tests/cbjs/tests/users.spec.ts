@@ -16,7 +16,13 @@
  */
 import { describe } from 'vitest';
 
-import { HttpErrorContext, Role, UserNotFoundError } from '@cbjsdev/cbjs';
+import {
+  HttpErrorContext,
+  InvalidArgumentError,
+  Role,
+  SdkScopedRole,
+  UserNotFoundError,
+} from '@cbjsdev/cbjs';
 import { ServerFeatures, waitForUser } from '@cbjsdev/http-client';
 import { getConnectionParams, getRandomId, invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
@@ -92,11 +98,10 @@ describe
       const { username } = await useUser();
       const user = await serverTestContext.cluster.users().getUser(username);
 
-      user.roles = [
-        new Role({
-          name: 'ro_admin',
-        }),
-      ];
+      const role = new Role({
+        name: 'ro_admin',
+      });
+      user.roles = [role];
 
       await serverTestContext.cluster.users().upsertUser(user);
 
@@ -213,5 +218,87 @@ describe
         invariant(err instanceof UserNotFoundError);
         expect(err.context).toBeInstanceOf(HttpErrorContext);
       }
+    });
+
+    test('should throw an InvalidArgumentError when upserting an external user with password', async ({
+      expect,
+      serverTestContext,
+    }) => {
+      await expect(
+        serverTestContext.cluster.users().upsertUser(
+          {
+            username: getRandomId(),
+            password: getRandomId(),
+          },
+          { domainName: 'external' }
+        )
+      ).rejects.toThrowError(InvalidArgumentError);
+    });
+
+    test('should throw an InvalidArgumentError when upserting a user with an invalid domain', async ({
+      expect,
+      serverTestContext,
+    }) => {
+      await expect(
+        serverTestContext.cluster.users().upsertUser(
+          {
+            username: getRandomId(),
+            password: getRandomId(),
+          },
+          { domainName: 'whatever' }
+        )
+      ).rejects.toThrowError(InvalidArgumentError);
+    });
+
+    test('should throw an InvalidArgumentError when getting a user from an invalid domain', async ({
+      expect,
+      useUser,
+      serverTestContext,
+    }) => {
+      const { username } = await useUser();
+
+      await expect(
+        serverTestContext.cluster.users().getUser(username, { domainName: 'whatever' })
+      ).rejects.toThrowError(InvalidArgumentError);
+    });
+
+    test('should throw an InvalidArgumentError when dropping a user from an invalid domain', async ({
+      expect,
+      useUser,
+      serverTestContext,
+    }) => {
+      const { username } = await useUser();
+
+      await expect(
+        serverTestContext.cluster.users().dropUser(username, { domainName: 'whatever' })
+      ).rejects.toThrowError(InvalidArgumentError);
+    });
+
+    test('should throw an InvalidArgumentError when getting all users from an invalid domain', async ({
+      expect,
+      useUser,
+      serverTestContext,
+    }) => {
+      const { username } = await useUser();
+
+      await expect(
+        serverTestContext.cluster.users().dropUser(username, { domainName: 'whatever' })
+      ).rejects.toThrowError(InvalidArgumentError);
+    });
+
+    test('should throw an InvalidArgumentError when upserting a user with invalid roles', async ({
+      expect,
+      useUser,
+      serverTestContext,
+    }) => {
+      const { username } = await useUser();
+
+      await expect(
+        serverTestContext.cluster.users().upsertUser({
+          username,
+          // @ts-expect-error invalid role
+          roles: [{ name: 'data_reader', bucket: 'not-a-bucket' }],
+        })
+      ).rejects.toThrowError(InvalidArgumentError);
     });
   });
