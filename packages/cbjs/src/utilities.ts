@@ -36,6 +36,8 @@ export { type Cas, CouchbaseCas };
 export type NodeCallback<T> = (...args: [null, T] | [Error, null]) => void;
 export type VoidNodeCallback = (err: Error | null) => void;
 
+class UserCallbackError extends Error {}
+
 /**
  * @internal
  */
@@ -61,7 +63,21 @@ export class PromiseHelper {
     const prom = logicFn();
 
     if (callback) {
-      prom.then((res) => callback(null, res)).catch((err) => callback(err, null));
+      prom
+        .then((res) => {
+          try {
+            callback(null, res);
+          } catch (err) {
+            throw new UserCallbackError('', { cause: err });
+          }
+        })
+        .catch((err) => {
+          if (err instanceof UserCallbackError) {
+            throw err.cause;
+          }
+
+          callback(err, null);
+        });
     }
 
     return prom;
@@ -70,10 +86,10 @@ export class PromiseHelper {
   /**
    * @internal
    */
-  static wrap<T>(
+  static wrap(
     logicFn: (callback: VoidNodeCallback) => void,
     callback?: VoidNodeCallback | null
-  ): Promise<T>;
+  ): Promise<void>;
   static wrap<T>(
     logicFn: (callback: NodeCallback<NonVoid<T>>) => void,
     callback?: NodeCallback<NonVoid<T>> | null
@@ -94,7 +110,21 @@ export class PromiseHelper {
     });
 
     if (callback) {
-      prom.then((res) => callback(null, res)).catch((err) => callback(err, null));
+      prom
+        .then((res) => {
+          try {
+            callback(null, res);
+          } catch (err) {
+            throw new UserCallbackError('', { cause: err });
+          }
+        })
+        .catch((err) => {
+          if (err instanceof UserCallbackError) {
+            throw err.cause;
+          }
+
+          callback(err, null);
+        });
     }
 
     return prom;

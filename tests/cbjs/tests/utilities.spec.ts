@@ -14,11 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { setImmediate } from 'node:timers/promises';
 import { describe, vi } from 'vitest';
 
 import { CouchbaseError } from '@cbjsdev/cbjs';
+import { PromiseHelper } from '@cbjsdev/cbjs/internal';
 import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
+
+import { NodeCallback } from './kv.durability.spec.js';
 
 describe('PromiseHelper', async () => {
   const test = await createCouchbaseTest();
@@ -61,6 +65,23 @@ describe('PromiseHelper', async () => {
       await waitFor(() => {
         expect(callback).toHaveBeenCalled();
       });
+    });
+
+    // This test is expected to produce an unhandled error
+    test('user callback should not be called twice when it throws an error', async ({
+      expect,
+    }) => {
+      const userCallback = vi.fn((err, res) => {
+        throw new Error('user callback error');
+      });
+
+      await PromiseHelper.wrap((cb) => {
+        cb(null, 'success');
+      }, userCallback);
+
+      await setImmediate();
+
+      expect(userCallback).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -105,3 +126,21 @@ describe('PromiseHelper', async () => {
     });
   });
 });
+
+/**
+ *      prom
+ *         .then((res) => {
+ *           try {
+ *             callback(null, res);
+ *           } catch (err) {
+ *             throw new UserCallbackError('', { cause: err });
+ *           }
+ *         })
+ *         .catch((err) => {
+ *           if (err instanceof UserCallbackError) {
+ *             throw err.cause;
+ *           }
+ *
+ *           callback(err, null);
+ *         });
+ */
