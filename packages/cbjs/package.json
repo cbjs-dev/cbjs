@@ -1,7 +1,7 @@
 {
   "name": "@cbjsdev/cbjs",
   "version": "1.22.0",
-  "description": "Modern Couchbase client for JS runtimes.",
+  "description": "A modern Couchbase SDK for Node.js and TypeScript.",
   "keywords": [
     "couchbase",
     "typescript",
