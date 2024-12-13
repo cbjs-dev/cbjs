@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2023-Present Jonathan MASSUCHETTI.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { describe } from 'vitest';
 
-export * from './getPool.js';
-export * from './getPool.js';
-export * from './initCluster.js';
-export * from './getClusterRelease.js';
-export * from './setIndexerSettings.js';
-export * from './serverFeature.js';
-export * from './getClusterRootCertificates.js';
-export * from './getRebalanceProgress.js';
+import { getRebalanceProgress } from '@cbjsdev/http-client';
+import { createCouchbaseTest } from '@cbjsdev/vitest';
 
-export type { InitClusterParams } from './requests/requestInitCluster.js';
-export type { CouchbaseIndexerSettings } from './requests/requestSetIndexerSettings.js';
+describe('getRebalanceProgress', async () => {
+  const test = await createCouchbaseTest();
+
+  test('should return the progress', async ({ apiConfig, expect }) => {
+    const result = await getRebalanceProgress(apiConfig);
+
+    expect(result).toEqual({
+      status: 'none',
+    });
+  });
+});

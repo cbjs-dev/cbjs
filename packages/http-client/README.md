@@ -34,6 +34,7 @@ The Couchbase REST API is vast. This package currently support the following :
 * [getClusterRootCertificates](https://cbjs.dev/guide/http-client/actions.html#getclusterrootcertificates)
 * [versionSupportsFeatures](https://cbjs.dev/guide/http-client/actions.html#versionsupportsfeatures)
 * [getPool](https://cbjs.dev/guide/http-client/actions.html#getpool)
+* [getRebalanceProgress](https://cbjs.dev/guide/http-client/actions.html#getrebalanceprogress)
 
 ### Analytics
 * [createAnalyticsLink](https://cbjs.dev/guide/http-client/actions.html#createanalyticslink)
@@ -86,7 +87,7 @@ The Couchbase REST API is vast. This package currently support the following :
 
 ## WaitFor
 
-This section is dedicated to functions that waits for a resource to reach a certain status.
+This section is dedicated to functions that waits for a resource to reach the expected status.
 
 * [waitForBucket](https://cbjs.dev/guide/http-client/wait-for.html#waitforbucket)
 * [waitForScope](https://cbjs.dev/guide/http-client/wait-for.html#waitforscope)

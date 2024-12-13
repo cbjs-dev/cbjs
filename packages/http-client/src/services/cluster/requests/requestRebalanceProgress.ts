@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export * from './getPool.js';
-export * from './getPool.js';
-export * from './initCluster.js';
-export * from './getClusterRelease.js';
-export * from './setIndexerSettings.js';
-export * from './serverFeature.js';
-export * from './getClusterRootCertificates.js';
-export * from './getRebalanceProgress.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
 
-export type { InitClusterParams } from './requests/requestInitCluster.js';
-export type { CouchbaseIndexerSettings } from './requests/requestSetIndexerSettings.js';
+export async function requestRebalanceProgress(
+  apiConfig: CouchbaseHttpApiConfig,
+  poolName = 'default'
+) {
+  return apiGET(apiConfig, `/pools/${poolName}/rebalanceProgress`);
+}

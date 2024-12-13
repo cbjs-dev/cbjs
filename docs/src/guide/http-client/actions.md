@@ -96,6 +96,19 @@ declare function getPool(
 ): Promise<ApiPool>;
 ```
 
+### getRebalanceProgress
+
+Retrieves information about the cluster pool.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, ApiRebalanceProgress } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getRebalanceProgress(
+  params: CouchbaseHttpApiConfig, 
+  poolName?: string
+): Promise<ApiRebalanceProgress>;
+```
+
 ## Analytics
 
 ### createAnalyticsLink
