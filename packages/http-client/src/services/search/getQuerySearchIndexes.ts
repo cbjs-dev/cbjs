@@ -61,17 +61,10 @@ function toFriendlyFormat(index: QueryResultSearchIndex): HttpClientSearchIndex 
   return {
     id: index.id,
     name: index.name,
-    fields: index.index_key.map((field) => {
-      if (field.startsWith('`') && field.endsWith('`')) {
-        return field.substring(1, field.length - 1);
-      }
-
-      return field;
-    }) as [string, ...string[]],
     node: index.datastore_id,
     state: index.state,
     namespace: index.namespace_id,
     using: index.using,
-    ...scope,
+    ...(scope as any),
   };
 }

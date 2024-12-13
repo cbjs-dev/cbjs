@@ -40,12 +40,12 @@ export type QueryResultGsiIndex = DiscriminatingPrimaryIndexProps &
 export type QueryResultSearchIndex = DiscriminatingKeyspaceProps & {
   datastore_id: string;
   id: string;
-
+  index_key: [];
   /**
    * Index name.
    */
   name: string;
-  index_key: [string, ...string[]];
+  namespace: string;
   namespace_id: string;
   state: 'online' | 'deferred' | (string & NonNullable<unknown>);
   using: 'fts';

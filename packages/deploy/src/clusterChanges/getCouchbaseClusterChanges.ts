@@ -9,10 +9,12 @@ import {
   CouchbaseClusterChangeCreateCollection,
   CouchbaseClusterChangeCreateIndex,
   CouchbaseClusterChangeCreateScope,
+  CouchbaseClusterChangeCreateSearchIndex,
   CouchbaseClusterChangeCreateUser,
   CouchbaseClusterChangeDropCollection,
   CouchbaseClusterChangeDropIndex,
   CouchbaseClusterChangeDropScope,
+  CouchbaseClusterChangeDropSearchIndex,
   CouchbaseClusterChangeDropUser,
   CouchbaseClusterChangeRecreateBucket,
   CouchbaseClusterChangeRecreateIndex,
@@ -20,6 +22,7 @@ import {
   CouchbaseClusterChangeUpdateBucket,
   CouchbaseClusterChangeUpdateCollection,
   CouchbaseClusterChangeUpdateIndex,
+  CouchbaseClusterChangeUpdateSearchIndex,
   CouchbaseClusterChangeUpdateUser,
   CouchbaseClusterChangeUpdateUserPassword,
   CouchbaseClusterConfig,
@@ -64,6 +67,24 @@ export function getCouchbaseClusterChanges(
     );
 
     changes.push(...obsoleteScopes, ...newScopes);
+
+    const obsoleteSearchIndexes = getObsoleteSearchIndexes(
+      currentKeyspaceConfig,
+      nextKeyspaceConfig,
+      requestedBucketName
+    );
+    const newSearchIndexes = getNewSearchIndexes(
+      currentKeyspaceConfig,
+      nextKeyspaceConfig,
+      requestedBucketName
+    );
+    const updatedSearchIndexes = getUpdatedSearchIndexes(
+      currentKeyspaceConfig,
+      nextKeyspaceConfig,
+      requestedBucketName
+    );
+
+    changes.push(...obsoleteSearchIndexes, ...newSearchIndexes, ...updatedSearchIndexes);
 
     Object.entries(requestedBucket.scopes).forEach(
       ([requestedScopeName, requestedScope]) => {
@@ -396,10 +417,10 @@ function getObsoleteIndexes(
 ): CouchbaseClusterChangeDropIndex[] {
   const currentIndexes = Object.keys(
     currentConfig[bucketName]?.scopes[scopeName]?.collections[collectionName]?.indexes ??
-      []
+      {}
   );
   const requestedIndexes = Object.keys(
-    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.indexes ?? []
+    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.indexes ?? {}
   );
 
   return currentIndexes
@@ -422,10 +443,10 @@ function getNewIndexes(
 ): CouchbaseClusterChangeCreateIndex[] {
   const currentIndexes = Object.keys(
     currentConfig[bucketName]?.scopes[scopeName]?.collections[collectionName]?.indexes ??
-      []
+      {}
   );
   const requestedIndexes = Object.keys(
-    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.indexes ?? []
+    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.indexes ?? {}
   );
 
   return requestedIndexes
@@ -457,7 +478,7 @@ function getUpdatedIndexes(
   collectionName: string
 ): Array<CouchbaseClusterChangeRecreateIndex | CouchbaseClusterChangeUpdateIndex> {
   const requestedIndexes = Object.keys(
-    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.indexes ?? []
+    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.indexes ?? {}
   );
 
   const changes = requestedIndexes
@@ -640,4 +661,108 @@ function getNewUsers(
   });
 
   return changes;
+}
+
+function getObsoleteSearchIndexes(
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
+  bucketName: string,
+  scopeName: string,
+  collectionName: string
+): CouchbaseClusterChangeDropSearchIndex[] {
+  const currentIndexes = Object.keys(currentConfig[bucketName]?.searchIndexes ?? {});
+  const requestedIndexes = Object.keys(nextConfig[bucketName].searchIndexes ?? {});
+
+  return currentIndexes
+    .filter((b) => !requestedIndexes.includes(b))
+    .map((b) => ({
+      type: 'dropSearchIndex',
+      name: b,
+      bucket: bucketName,
+      scope: scopeName,
+      collection: collectionName,
+    }));
+}
+
+function getNewSearchIndexes(
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
+  bucketName: string,
+  scopeName: string,
+  collectionName: string
+): CouchbaseClusterChangeCreateSearchIndex[] {
+  const currentIndexes = Object.keys(currentConfig[bucketName]?.searchIndexes ?? {});
+  const requestedIndexes = Object.keys(nextConfig[bucketName].searchIndexes ?? {});
+
+  return requestedIndexes
+    .filter((indexConfigName) => !currentIndexes.includes(indexConfigName))
+    .map((indexConfigName) => {
+      const requestedIndexFn = nextConfig[bucketName]?.searchIndexes?.[indexConfigName];
+
+      invariant(requestedIndexFn, 'Search index definition not found.');
+
+      return {
+        type: 'createSearchIndex',
+        name: indexConfigName,
+        bucket: bucketName,
+        scope: scopeName,
+        collection: collectionName,
+        configFn: requestedIndexFn,
+      };
+    });
+}
+
+function getUpdatedSearchIndexes(
+  currentConfig: CouchbaseClusterConfig['keyspaces'],
+  nextConfig: CouchbaseClusterConfig['keyspaces'],
+  bucketName: string,
+  scopeName: string,
+  collectionName: string
+): CouchbaseClusterChangeUpdateSearchIndex[] {
+  const requestedIndexes = Object.keys(
+    nextConfig[bucketName].scopes[scopeName].collections[collectionName]?.searchIndexes ??
+      {}
+  );
+
+  const changes = requestedIndexes
+    .map((b) => {
+      const currentIndexFn = currentConfig[bucketName].searchIndexes?.[b];
+      const requestedIndexFn = nextConfig[bucketName].searchIndexes?.[b];
+
+      if (!currentIndexFn) {
+        return;
+      }
+
+      invariant(requestedIndexFn, 'Requested search index definition not found.');
+
+      const currentIndexConfig = currentIndexFn({
+        sourceName: bucketName,
+        sourceUUID: '<sourceUUID>',
+      });
+
+      const requestedIndexConfig = requestedIndexFn({
+        sourceName: bucketName,
+        sourceUUID: '<sourceUUID>',
+      });
+
+      invariant(currentIndexFn, 'Current index definition not found.');
+      invariant(requestedIndexFn, 'Requested index definition not found.');
+
+      const indexHaveChanged =
+        JSON.stringify(currentIndexConfig) !== JSON.stringify(requestedIndexConfig);
+
+      if (indexHaveChanged) {
+        return {
+          type: 'updateSearchIndex',
+          name: b,
+          bucket: bucketName,
+          scope: scopeName,
+          collection: collectionName,
+          configFn: requestedIndexFn,
+        } satisfies CouchbaseClusterChangeUpdateSearchIndex;
+      }
+    })
+    .filter((c) => c !== undefined);
+
+  return changes as CouchbaseClusterChangeUpdateSearchIndex[];
 }

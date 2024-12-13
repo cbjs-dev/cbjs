@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export * from './ApiQueryResponseBody.js';
-export * from './ApiQueryIndexStatus.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+
+export async function requestGetQueryIndexesStatus(params: CouchbaseHttpApiConfig) {
+  return await apiGET({ ...params }, `/indexStatus`);
+}

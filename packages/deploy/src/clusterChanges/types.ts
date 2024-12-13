@@ -1,9 +1,10 @@
 import {
   IBucketSettings,
-  ICreateBucketSettings,
+  ICreateBucketSettings, ISearchIndex,
   IUser,
   UpdateBucketSettings,
 } from '@cbjsdev/cbjs';
+import { ApiSearchIndexDefinition } from '@cbjsdev/http-client';
 
 export type CouchbaseClusterChange =
   | CouchbaseClusterChangeCreateBucket
@@ -23,7 +24,11 @@ export type CouchbaseClusterChange =
   | CouchbaseClusterChangeUpdateUser
   | CouchbaseClusterChangeUpdateUserPassword
   | CouchbaseClusterChangeRecreateUser
-  | CouchbaseClusterChangeDropUser;
+  | CouchbaseClusterChangeDropUser
+  | CouchbaseClusterChangeCreateSearchIndex
+  | CouchbaseClusterChangeUpdateSearchIndex
+  | CouchbaseClusterChangeDropSearchIndex
+;
 
 export type CouchbaseClusterChangeCreateBucket = {
   type: 'createBucket';
@@ -150,6 +155,41 @@ export type CouchbaseClusterChangeDropUser = {
   user: IUser & { domain: string };
 };
 
+export type CouchbaseClusterChangeCreateSearchIndex = {
+  type: 'createSearchIndex';
+  bucket: string;
+  scope: string;
+  collection: string;
+  /**
+   * The config alias for the search index.
+   */
+  name: string;
+  configFn: CouchbaseClusterSearchIndexConfig;
+};
+
+export type CouchbaseClusterChangeUpdateSearchIndex = {
+  type: 'updateSearchIndex';
+  bucket: string;
+  scope: string;
+  collection: string;
+  /**
+   * The config alias for the search index.
+   */
+  name: string;
+  configFn: CouchbaseClusterSearchIndexConfig;
+};
+
+export type CouchbaseClusterChangeDropSearchIndex = {
+  type: 'dropSearchIndex';
+  bucket: string;
+  scope: string;
+  collection: string;
+  /**
+   * The config alias for the search index.
+   */
+  name: string;
+};
+
 export type CouchbaseClusterConfig = {
   /**
    * The users in your cluster.
@@ -165,6 +205,7 @@ export type CouchbaseClusterBucketConfig = Omit<IBucketSettings, 'name'> & {
 
 export type CouchbaseClusterScopeConfig = {
   collections: Record<string, CouchbaseClusterCollectionConfig>;
+  searchIndexes?: Record<string, CouchbaseClusterSearchIndexConfig>;
 };
 
 export type CouchbaseClusterCollectionConfig = {
@@ -178,3 +219,8 @@ export type CouchbaseClusterCollectionIndexConfig = {
   where?: string;
   numReplicas?: number;
 };
+
+export type CouchbaseClusterSearchIndexConfig = (sourceParams: {
+  sourceName: string;
+  sourceUUID: string;
+}) => Omit<ISearchIndex, 'name'>;

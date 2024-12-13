@@ -39,7 +39,9 @@ export default defineProject({
     minWorkers: 1,
     maxWorkers: 1,
     env: {
-      CB_CONNECTION_STRING: process.env.CB_CONNECTION_STRING ?? 'couchbase://127.0.0.1',
+      CB_CONNECTION_STRING:
+        process.env.CB_CONNECTION_STRING ??
+        'couchbase://192.168.106.128,192.168.106.130,192.168.106.129',
       CB_USER: process.env.CB_USER ?? 'Administrator',
       CB_PASSWORD: process.env.CB_PASSWORD ?? 'password',
       DEBUG: '1',
