@@ -15,7 +15,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import { IfStrict, IsNever, Not, Split } from '../../../misc/index.js';
+import { IfStrict, IsNever, Not, Split, UnionKeys } from '../../../misc/index.js';
 import { DefaultKeyspaceOptions } from '../cluster.types.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
@@ -123,7 +123,7 @@ type CCPerfectMatchPath<CC, UserPath> =
  * When the user path matches a string template, it doesn't mean the path is valid.
  * For example, given `[string, ...number[]]` for a `binary` operation, code completion path will include `arr[${number}]`.
  * So `arr[0]` will match the path, and yet, it is not a valid path because arr[0] is not a number.
- * Returns `true` if the path is valid.
+ * @returns `true` if the path is valid.
  */
 // prettier-ignore
 export type IsLegalPath<Op extends KvOperation, Options, Doc, Path> =
@@ -204,16 +204,14 @@ type PTO<
   Key,
 > =
   [FriendlyPath] extends [true] ?
-    OptionFriendlyPathRecordKey<Options> extends true ?
-      IsTemplateString<Key> extends true ?
-        [true, `${ConcatPath<PathTo, OptionRecordFriendlyPlaceholder<Options>>}`] :
-      [true, ConcatPath<PathTo, Key>] :
+    IsTemplateString<Key> extends true ?
+      [true, ConcatPath<PathTo, '#'>] :
     [true, ConcatPath<PathTo, Key>] :
   [FriendlyPath] extends [false] ?
     [false, ConcatPath<PathTo, Key>] :
   OptionFriendlyPathRecordKey<Options> extends true ?
     IsTemplateString<Key> extends true ?
-      [false, `${ConcatPath<PathTo, Key>}`] | [true, ConcatPath<PathTo, OptionRecordFriendlyPlaceholder<Options>>] :
+      [false, ConcatPath<PathTo, Key>] | [true, ConcatPath<PathTo, '#'>] :
     [boolean, ConcatPath<PathTo, Key>] :
   [boolean, ConcatPath<PathTo, Key>]
 ;
@@ -233,15 +231,20 @@ export type Keys<T> =
 
 // prettier-ignore
 export type Get<T, K> =
-  K extends -1 ?
-    T extends ReadonlyArray<unknown> ?
+  T extends ReadonlyArray<unknown> ?
+    K extends -1 ?
       ArrayLastElement<T> :
+    K extends number ?
+      T[K] :
     never :
-  K extends keyof Extract<T, object> ?
-    Extract<T, object>[K] :
+  K extends string | number ?
+    Extract<T, { [Key in K]?: unknown }>[K] :
   never
 ;
 
+type TG = Get<{ title?: string } | { status: string }, 'status'>;
+type TTG = Extract<{ title: string } | { status: string }, { [Key in 'title']: any }>
+  
 // prettier-ignore
 export type DocumentCodeCompletion<Op extends KvOperation, Options, T> =
   T extends object ?
@@ -251,18 +254,17 @@ export type DocumentCodeCompletion<Op extends KvOperation, Options, T> =
   never
 ;
 
-type BorrowId = `b::${string}`;
-type UserId = `user::${number}`;
-type User = {
-  br?: Record<
-    BorrowId,
-    {
-      at: number;
-    }
-  >;
-};
+type TestDoc = { title: string } | { status: string };
+type TBB = BuildBag<'get', NonNullable<unknown>, false, 'events', TestDoc, []>;
 
-type TBB = BuildBag<'remove', DefaultKeyspaceOptions, boolean, '', User, []>;
+// prettier-ignore
+type TTK = 
+  Keys<TestDoc> extends infer KeyTuple ?
+    KeyTuple extends [infer Key] ?
+      Get<TestDoc, Key> :
+    never :
+  never
+;
 
 // prettier-ignore
 type BuildBag<Op extends KvOperation, Options, FriendlyPath, PathToDoc, Doc, UnionStack extends ReadonlyArray<unknown>> =
@@ -272,16 +274,13 @@ type BuildBag<Op extends KvOperation, Options, FriendlyPath, PathToDoc, Doc, Uni
     Keys<Doc> extends infer KeyTuple ?
       KeyTuple extends [infer Key] ?
         Get<Doc, Key> extends infer SubDoc ?
-
           PathToKey<Options, FriendlyPath, Doc, PathToDoc, Key> extends infer PTK ?
             PTK extends [infer BuildFriendly, infer Path] ?
-            // [PTK, SubDoc] | (PTK extends [infer BuildFriendly, infer Path] ?
-            BuildBag<Op, Options, BuildFriendly, Path, SubDoc, [
-              ...UnionStack,
-              CodeCompletion<Op, BuildFriendly, Doc, Key, Path, SubDoc>
-            ]> :
-            // never):
-          never :
+              BuildBag<Op, Options, BuildFriendly, Path, SubDoc, [
+                ...UnionStack,
+                CodeCompletion<Op, BuildFriendly, Doc, Key, Path, SubDoc>
+              ]> :
+            never :
           never :
         never :
       UnionStack :

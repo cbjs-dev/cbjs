@@ -166,10 +166,10 @@ export class ChainableMutateIn<
    */
   insert<
     const Path extends MutateInInsertPath<CollectionOptions<C>, Def>,
-    Value extends MutateInInsertValue<CollectionOptions<C>, Def, NoInfer<Path>>,
+    Value extends MutateInInsertValue<CollectionOptions<C>, Def, Path>,
   >(
     path: Path,
-    value: NoInfer<Value>,
+    value: Value,
     options?: MutateInInsertOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.insert(path, value, options);

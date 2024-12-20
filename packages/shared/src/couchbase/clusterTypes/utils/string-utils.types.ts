@@ -37,7 +37,7 @@ export type TimestampSeconds = `${number}`;
 export type IsTemplateString<T> =
   T extends string ?
     IsTemplateStringHead<T> extends true ? true : IsTemplateStringTail<T> :
-  never
+  false
 ;
 
 export type IsTemplateStringTail<T extends string> = `A${T}` extends T ? true : false;

@@ -541,6 +541,7 @@ describe('ReplaceCodeCompletion', () => {
       NoOptions,
       { title: string; description?: string; metadata?: { tags: string[] } }
     >;
+
     expectTypeOf<Test>().toEqualTypeOf<
       | ['title', string]
       | ['description', string]
@@ -1068,7 +1069,9 @@ describe('DocumentCodeCompletionTest', () => {
 
   test('document with unions', () => {
     type TestDoc = {
-      events: { type: 'a'; payload: 'pa' } | { type: 'b'; payload: 'pb' };
+      events:
+        | { type: 'a'; propA: { title: string } }
+        | { type: 'b'; propB: { status: string } };
     };
     type Test = DocumentCodeCompletionTest<'get', NoOptions, TestDoc>;
 
@@ -1076,7 +1079,10 @@ describe('DocumentCodeCompletionTest', () => {
       | [``, TestDoc]
       | [`events`, TestDoc['events']]
       | [`events.type`, 'a' | 'b']
-      | [`events.payload`, 'pa' | 'pb']
+      | [`events.propA`, { title: string }]
+      | [`events.propA.title`, string]
+      | [`events.propB`, { status: string }]
+      | [`events.propB.status`, string]
     >();
   });
 });

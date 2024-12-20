@@ -2,7 +2,6 @@ import { Cluster, keyspacePath } from '@cbjsdev/cbjs';
 import {
   CouchbaseHttpApiConfig,
   createQueryIndex,
-  getUser,
   updateQueryIndex,
   updateUserPassword,
   waitForBucket,
