@@ -16,5 +16,10 @@
 import { RetryConfig } from 'ts-retry-promise';
 
 export type WaitForOptions = Partial<RetryConfig> & {
+  /**
+   * Wait for the resource to be missing instead of waiting for its presence.
+   * Typically used after a deletion command.
+   * @default false
+   */
   expectMissing?: boolean;
 };

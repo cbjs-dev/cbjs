@@ -27,7 +27,7 @@ export type QueryResultGsiIndex = DiscriminatingPrimaryIndexProps &
      */
     name: string;
     namespace_id: string;
-    state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+    state: 'online' | 'deferred' | 'building' | (string & NonNullable<unknown>);
     using: 'gsi';
     metadata: {
       num_replica: number;
@@ -47,7 +47,7 @@ export type QueryResultSearchIndex = DiscriminatingKeyspaceProps & {
   name: string;
   namespace: string;
   namespace_id: string;
-  state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+  state: 'online' | 'deferred' | 'building' | (string & NonNullable<unknown>);
   using: 'fts';
 };
 

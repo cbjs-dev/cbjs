@@ -159,7 +159,6 @@ export type CouchbaseClusterChangeCreateSearchIndex = {
   type: 'createSearchIndex';
   bucket: string;
   scope: string;
-  collection: string;
   /**
    * The config alias for the search index.
    */
@@ -171,7 +170,6 @@ export type CouchbaseClusterChangeUpdateSearchIndex = {
   type: 'updateSearchIndex';
   bucket: string;
   scope: string;
-  collection: string;
   /**
    * The config alias for the search index.
    */
@@ -183,7 +181,6 @@ export type CouchbaseClusterChangeDropSearchIndex = {
   type: 'dropSearchIndex';
   bucket: string;
   scope: string;
-  collection: string;
   /**
    * The config alias for the search index.
    */
@@ -221,6 +218,17 @@ export type CouchbaseClusterCollectionIndexConfig = {
 };
 
 export type CouchbaseClusterSearchIndexConfig = (sourceParams: {
+  /**
+   * The name of the bucket hosting to the index.
+   */
   sourceName: string;
-  sourceUUID: string;
-}) => Omit<ISearchIndex, 'name'>;
+  /**
+   * Alias for `sourceName`.
+   */
+  bucketName: string;
+
+  /**
+   * The index's scope.
+   */
+  scopeName: string;
+}) => ISearchIndex;

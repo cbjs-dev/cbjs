@@ -2,7 +2,6 @@ import { Cluster, keyspacePath } from '@cbjsdev/cbjs';
 import {
   CouchbaseHttpApiConfig,
   createQueryIndex,
-  getBucket,
   updateQueryIndex,
   updateUserPassword,
   waitForBucket,
@@ -90,8 +89,8 @@ export async function applyCouchbaseClusterChanges(
     dropUser: applyDropUser,
     recreateUser: applyRecreateUser,
     updateUserPassword: applyUpdateUserPassword,
-    createSearchIndex: applyCreateSearchIndex,
-    updateSearchIndex: applyCreateSearchIndex,
+    createSearchIndex: applyUpsertSearchIndex,
+    updateSearchIndex: applyUpsertSearchIndex,
     dropSearchIndex: applyDropSearchIndex,
   };
 
@@ -624,7 +623,7 @@ async function applyDropUser(
   console.log(`${getTimePrefix()} User "${change.user.username}" dropped`);
 }
 
-async function applyCreateSearchIndex(
+async function applyUpsertSearchIndex(
   cluster: Cluster,
   apiConfig: CouchbaseHttpApiConfig,
   change:
@@ -632,20 +631,32 @@ async function applyCreateSearchIndex(
     | CouchbaseClusterChangeUpdateSearchIndex,
   opts: ChangeOptions
 ) {
-  const bucket = await getBucket(apiConfig, change.bucket);
-  const config = change.configFn({ sourceName: change.bucket, sourceUUID: bucket.uuid });
+  const config = change.configFn({
+    sourceName: change.bucket,
+    bucketName: change.bucket,
+    scopeName: change.scope,
+  });
+
+  if (change.type === 'updateSearchIndex') {
+    const searchIndex = await cluster
+      .bucket(change.bucket)
+      .scope(change.scope)
+      .searchIndexes()
+      .getIndex(change.name);
+
+    config.uuid = searchIndex.uuid;
+    config.sourceUUID = searchIndex.sourceUuid;
+  }
 
   console.log(
     `${getTimePrefix()} Requesting creation of search index "${change.bucket} # ${change.name}"`
   );
 
-  await cluster.searchIndexes().upsertIndex(
-    {
-      ...config,
-      name: change.name,
-    },
-    opts
-  );
+  await cluster
+    .bucket(change.bucket)
+    .scope(change.scope)
+    .searchIndexes()
+    .upsertIndex(config, opts);
 
   console.log(
     `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be created`
@@ -655,6 +666,7 @@ async function applyCreateSearchIndex(
     change.name,
     {
       bucket: change.bucket,
+      scope: change.scope,
     },
     opts
   );
@@ -673,7 +685,11 @@ async function applyDropSearchIndex(
     `${getTimePrefix()} Requesting deletion of search index "${change.bucket} # ${change.name}"`
   );
 
-  await cluster.searchIndexes().dropIndex(change.name);
+  await cluster
+    .bucket(change.bucket)
+    .scope(change.scope)
+    .searchIndexes()
+    .dropIndex(change.name);
 
   console.log(
     `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be deleted`
