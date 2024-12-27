@@ -19,3 +19,4 @@ export type * from './misc-utils.types.js';
 export type * from './path-utils.types.js';
 export type * from './string-utils.types.js';
 export type * from './test-utils.types.js';
+export type * from './sub-document.type.js';

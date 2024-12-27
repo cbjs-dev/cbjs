@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsLegalPath } from '@cbjsdev/shared';
+import { IsLegalPath, SubDocument } from '@cbjsdev/shared';
 
 import {
   CollectionOptions,
@@ -190,16 +190,16 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  upsert<
-    Path extends MutateInUpsertPath<CollectionOptions<C>, Def>,
-    Value extends MutateInUpsertValue<CollectionOptions<C>, Def, Path>,
-  >(
+  upsert<Path extends MutateInUpsertPath<CollectionOptions<C>, Def>>(
     path: Path,
-    value: Value,
+    value: MutateInUpsertValue<CollectionOptions<C>, Def, Path>,
     options?: MutateInUpsertOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.upsert(path, value, options);
-    return this.push(spec);
+    const newSpecs = [...this.getSpecs(), spec];
+    this.specs = newSpecs as never;
+
+    return this as never;
   }
 
   /**
@@ -215,12 +215,9 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  replace<
-    Path extends MutateInReplacePath<CollectionOptions<C>, Def>,
-    Value extends MutateInReplaceValue<CollectionOptions<C>, Def, NoInfer<Path>>,
-  >(
+  replace<Path extends MutateInReplacePath<CollectionOptions<C>, Def>>(
     path: Path,
-    value: NoInfer<Value>,
+    value: MutateInReplaceValue<CollectionOptions<C>, Def, NoInfer<Path>>,
     options?: MutateInReplaceOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.replace(path, value, options);
@@ -253,9 +250,11 @@ export class ChainableMutateIn<
    * Add one or more values at end of an array.
    *
    * Fails if the property does not exist, unless `{ createPath: true }`.
-   * Use `{ multi: true }` to add multiple values.
+   * Use the option `{ multi: true }` to add multiple values or
+   * use `arrayAppendMultiple`.
    *
    * @see MutateInSpec.arrayAppend
+   * @see MutateInSpec.arrayAppendMultiple
    * @param path The path to the field.
    * @param value The value to add.
    * @param options Optional parameters for this operation.
@@ -271,33 +270,19 @@ export class ChainableMutateIn<
    */
   arrayAppend<
     Path extends MutateInArrayAppendPath<CollectionOptions<C>, Def>,
-    Value extends MutateInArrayAppendValue<
-      CollectionOptions<C>,
-      Def,
-      NoInfer<Path>,
-      Multi
-    >,
     Multi extends boolean = false,
   >(
     path: Path,
-    value: NoInfer<Value>,
+    value: MutateInArrayAppendValue<CollectionOptions<C>, Def, NoInfer<Path>, Multi>,
     options?: MutateInArrayAppendOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayAppend(path, value, options);
     return this.push(spec);
   }
 
-  arrayAppendMultiple<
-    Path extends MutateInArrayAppendPath<CollectionOptions<C>, Def>,
-    Value extends MutateInArrayAppendValue<
-      CollectionOptions<C>,
-      Def,
-      NoInfer<Path>,
-      true
-    >,
-  >(
+  arrayAppendMultiple<Path extends MutateInArrayAppendPath<CollectionOptions<C>, Def>>(
     path: Path,
-    value: NoInfer<Value>,
+    value: MutateInArrayAppendValue<CollectionOptions<C>, Def, NoInfer<Path>, true>,
     options?: Omit<MutateInArrayAppendOptions<never>, 'multi'>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayAppend(path, value, {
@@ -329,16 +314,10 @@ export class ChainableMutateIn<
    */
   arrayPrepend<
     Path extends MutateInArrayPrependPath<CollectionOptions<C>, Def>,
-    Value extends MutateInArrayPrependValue<
-      CollectionOptions<C>,
-      Def,
-      NoInfer<Path>,
-      Multi
-    >,
     Multi extends boolean = false,
   >(
     path: Path,
-    value: NoInfer<Value>,
+    value: MutateInArrayPrependValue<CollectionOptions<C>, Def, NoInfer<Path>, Multi>,
     options?: MutateInArrayPrependOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayPrepend(path, value, options);
@@ -388,16 +367,15 @@ export class ChainableMutateIn<
    */
   arrayInsert<
     Path extends MutateInArrayInsertPath<CollectionOptions<C>, Def>,
-    Value extends MutateInArrayInsertValue<
+    Multi extends boolean = false,
+  >(
+    path: Path,
+    value: MutateInArrayInsertValue<
       CollectionOptions<C>,
       Def,
       Extract<NoInfer<Path>, MutateInArrayInsertPath<CollectionOptions<C>, Def>>,
       Multi
     >,
-    Multi extends boolean = false,
-  >(
-    path: Path,
-    value: NoInfer<Value>,
     options?: MutateInArrayInsertOptions<Multi>
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayInsert(path as never, value as never, options);
@@ -440,12 +418,9 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  arrayAddUnique<
-    Path extends MutateInArrayAddUniquePath<CollectionOptions<C>, Def>,
-    Value extends MutateInArrayAddUniqueValue<CollectionOptions<C>, Def, NoInfer<Path>>,
-  >(
+  arrayAddUnique<Path extends MutateInArrayAddUniquePath<CollectionOptions<C>, Def>>(
     path: Path,
-    value: NoInfer<Value>,
+    value: MutateInArrayAddUniqueValue<CollectionOptions<C>, Def, NoInfer<Path>>,
     options?: MutateInArrayAddUniqueOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, undefined]> {
     const spec = MutateInSpec.arrayAddUnique(path, value, options);
@@ -494,16 +469,13 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  increment<
-    Path extends MutateInBinaryPath<CollectionOptions<C>, Def>,
-    Value extends MutateInBinaryValue<
+  increment<Path extends MutateInBinaryPath<CollectionOptions<C>, Def>>(
+    path: Path,
+    incrementBy: MutateInBinaryValue<
       CollectionOptions<C>,
       Def,
       Extract<NoInfer<Path>, MutateInBinaryPath<CollectionOptions<C>, Def>>
     >,
-  >(
-    path: Path,
-    incrementBy: Value,
     options?: MutateInBinaryOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
     const spec = MutateInSpec.increment(path, incrementBy, options);
@@ -523,16 +495,13 @@ export class ChainableMutateIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  decrement<
-    Path extends MutateInBinaryPath<CollectionOptions<C>, Def>,
-    Value extends MutateInBinaryValue<
+  decrement<Path extends MutateInBinaryPath<CollectionOptions<C>, Def>>(
+    path: Path,
+    decrementBy: MutateInBinaryValue<
       CollectionOptions<C>,
       Def,
       Extract<NoInfer<Path>, MutateInBinaryPath<CollectionOptions<C>, Def>>
     >,
-  >(
-    path: Path,
-    decrementBy: Value,
     options?: MutateInBinaryOptions
   ): ChainableMutateIn<C, Key, [...SpecResults, number]> {
     const spec = MutateInSpec.decrement(path, decrementBy, options);

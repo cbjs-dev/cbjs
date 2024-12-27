@@ -124,7 +124,6 @@ export type JsonDocumentDef<Def extends DocDefBodyShape> =
  * Return all the DocDef of a keyspace that matches the given key accounting for
  * the keyMatchingStrategy of the given keyspace
  */
-// TODO reuse that to match Path in OpCodeCompletionValue
 // prettier-ignore
 export type DocDefMatchingKey<
   Key extends string,

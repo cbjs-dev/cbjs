@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocDef } from '@cbjsdev/shared';
+
 import { CppProtocolSubdocOpcode } from '../../../binding.js';
 import {
   CollectionDocDefMatchingKey,
@@ -22,18 +24,19 @@ import {
 } from '../../../clusterTypes/clusterTypes.js';
 import type { AnyCollection } from '../../../clusterTypes/index.js';
 import {
+  LookupInGetResult,
   LookupInSpecResult,
   MakeLookupInSpec,
+  OptimisticGetPathCheck,
   ValuesFromSpecResults,
 } from '../../../clusterTypes/kv/lookup/lookupIn.types.js';
 import type {
   LookupInCountPath,
   LookupInExistsPath,
-  LookupInGetPath,
 } from '../../../clusterTypes/kv/lookup/lookupOperations.types.js';
 import { LookupInOptions } from '../../../collection.js';
 import { LookupInReplicaResult, LookupInResult } from '../../../crudoptypes.js';
-import { LookupInSpec } from '../../../sdspecs.js';
+import { LookupInMacro, LookupInSpec } from '../../../sdspecs.js';
 import type { LookupMethodName } from './types.js';
 
 // prettier-ignore
@@ -57,7 +60,7 @@ type LookupResult<
   never
 ;
 
-type ThisAnd<T, Spec> =
+type ThisAnd<T, AddedSpecResult> =
   T extends ChainableLookupIn<
     infer C,
     infer Method,
@@ -70,7 +73,7 @@ type ThisAnd<T, Spec> =
         C,
         Method,
         Key,
-        [...SpecResults, LookupInSpecResult<CollectionOptions<C>, Spec, Def>],
+        [...SpecResults, AddedSpecResult],
         ThrowOnSpecError,
         Def
       >
@@ -79,13 +82,10 @@ type ThisAnd<T, Spec> =
 export class ChainableLookupIn<
   out C extends AnyCollection,
   out Method extends LookupMethodName,
-  out Key extends ExtractCollectionJsonDocKey<C>,
+  out Key extends string,
   in out SpecResults extends ReadonlyArray<unknown>,
   out ThrowOnSpecError extends boolean,
-  in out Def extends CollectionDocDefMatchingKey<C, Key> = CollectionDocDefMatchingKey<
-    C,
-    Key
-  >,
+  in out Def extends DocDef = CollectionDocDefMatchingKey<C, Key>,
 > implements Promise<LookupResult<Method, SpecResults, ThrowOnSpecError>>
 {
   // Promise stuff
@@ -104,7 +104,7 @@ export class ChainableLookupIn<
       | undefined
       | null
   ): Promise<TResult1 | TResult2> {
-    return this.execute().then(onFulfilled, onRejected);
+    return this.execute().then(onFulfilled as never, onRejected);
   }
 
   catch<TResult = never>(
@@ -151,15 +151,14 @@ export class ChainableLookupIn<
     return new ChainableLookupIn(collection, method, key, options, []);
   }
 
-  push<Spec extends LookupInSpec>(spec: Spec): ThisAnd<this, Spec> {
+  push<Spec extends LookupInSpec>(
+    spec: Spec
+  ): ThisAnd<this, LookupInSpecResult<CollectionOptions<C>, Spec, Def>> {
     this.specs = [...this.getSpecs(), spec];
-    return this as never as ThisAnd<
-      this,
-      LookupInSpecResult<CollectionOptions<C>, Spec, Def>
-    >;
+    return this as never;
   }
 
-  execute(): Promise<LookupResult<Method, SpecResults, ThrowOnSpecError>> {
+  execute(): Promise<LookupInResult<[1, 2], true>> {
     const lookupMethod = this.collection[this.method as Method & keyof C];
     const lookup = lookupMethod.bind(this.collection) as any;
 
@@ -177,15 +176,12 @@ export class ChainableLookupIn<
    * Whether this operation should reference the document body or the extended
    * attributes data for the document.
    */
-  get<Path extends LookupInGetPath<CollectionOptions<C>, Def>>(
-    path: Path,
+  get<const Path extends string | LookupInMacro>(
+    path: OptimisticGetPathCheck<CollectionOptions<C>, Def, Path>,
     options?: { xattr?: boolean }
-  ): ThisAnd<
-    this,
-    MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.get, Path>
-  > {
+  ): ThisAnd<this, LookupInGetResult<Def, Path>> {
     const spec = LookupInSpec.get(path, options);
-    return this.push(spec);
+    return this.push(spec) as never;
   }
 
   /**
@@ -203,7 +199,11 @@ export class ChainableLookupIn<
     options?: { xattr?: boolean }
   ): ThisAnd<
     this,
-    MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.exists, Path>
+    LookupInSpecResult<
+      CollectionOptions<C>,
+      MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.exists, Path>,
+      Def
+    >
   > {
     const spec = LookupInSpec.exists<
       CollectionOptions<C>,
@@ -228,7 +228,16 @@ export class ChainableLookupIn<
     options?: { xattr?: boolean }
   ): ThisAnd<
     this,
-    MakeLookupInSpec<CollectionOptions<C>, Def, CppProtocolSubdocOpcode.get_count, Path>
+    LookupInSpecResult<
+      CollectionOptions<C>,
+      MakeLookupInSpec<
+        CollectionOptions<C>,
+        Def,
+        CppProtocolSubdocOpcode.get_count,
+        Path
+      >,
+      Def
+    >
   > {
     const spec = LookupInSpec.count<
       Def,
@@ -258,7 +267,9 @@ export class ChainableLookupIn<
    */
   async values(): Promise<ValuesFromSpecResults<Method, SpecResults, ThrowOnSpecError>> {
     if (this.method === 'lookupInAllReplicas') {
-      const result = (await this.execute()) as { content: { value: unknown }[] }[];
+      const result = (await this.execute()) as never as {
+        content: { value: unknown }[];
+      }[];
       return result.map((r) => r.content.map((e) => e.value)) as never;
     }
 

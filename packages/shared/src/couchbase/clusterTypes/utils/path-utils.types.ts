@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import { IfStrict, IsNever, Not, Split, UnionKeys } from '../../../misc/index.js';
-import { DefaultKeyspaceOptions } from '../cluster.types.js';
+import { IfStrict, IsNever, Not, Split } from '../../../misc/index.js';
 import type { IsFuzzyDocument } from '../document.types.js';
 import {
   ArrayAppendElement,
@@ -205,13 +202,13 @@ type PTO<
 > =
   [FriendlyPath] extends [true] ?
     IsTemplateString<Key> extends true ?
-      [true, ConcatPath<PathTo, '#'>] :
+      [true, ConcatPath<PathTo, OptionRecordFriendlyPlaceholder<Options>>] :
     [true, ConcatPath<PathTo, Key>] :
   [FriendlyPath] extends [false] ?
     [false, ConcatPath<PathTo, Key>] :
   OptionFriendlyPathRecordKey<Options> extends true ?
     IsTemplateString<Key> extends true ?
-      [false, ConcatPath<PathTo, Key>] | [true, ConcatPath<PathTo, '#'>] :
+      [false, ConcatPath<PathTo, Key>] | [true, ConcatPath<PathTo, OptionRecordFriendlyPlaceholder<Options>>] :
     [boolean, ConcatPath<PathTo, Key>] :
   [boolean, ConcatPath<PathTo, Key>]
 ;
@@ -242,27 +239,12 @@ export type Get<T, K> =
   never
 ;
 
-type TG = Get<{ title?: string } | { status: string }, 'status'>;
-type TTG = Extract<{ title: string } | { status: string }, { [Key in 'title']: any }>
-  
 // prettier-ignore
 export type DocumentCodeCompletion<Op extends KvOperation, Options, T> =
   T extends object ?
     IsFuzzyDocument<T> extends false ?
       BuildBag<Op, Options, boolean, '', T, [CodeCompletion<Op, boolean, Options, never, '', T>]>[number] :
     FuzzyCC :
-  never
-;
-
-type TestDoc = { title: string } | { status: string };
-type TBB = BuildBag<'get', NonNullable<unknown>, false, 'events', TestDoc, []>;
-
-// prettier-ignore
-type TTK = 
-  Keys<TestDoc> extends infer KeyTuple ?
-    KeyTuple extends [infer Key] ?
-      Get<TestDoc, Key> :
-    never :
   never
 ;
 

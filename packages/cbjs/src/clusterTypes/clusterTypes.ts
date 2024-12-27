@@ -46,17 +46,7 @@ export type { DocDef };
 // prettier-ignore
 export type CollectionDocDef<Instance> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
-    B extends BucketName<T> ?
-      S extends ScopeName<T, WildcardFallback<B, BucketName<T>>> ?
-        C extends CollectionName<
-          T,
-          WildcardFallback<B, BucketName<T>>,
-          WildcardFallback<S, ScopeName<T, WildcardFallback<B, BucketName<T>>>>
-        > ?
-          KeyspaceDocDef<T, B, S, C> :
-        never :
-      never :
-    never :
+    KeyspaceDocDef<T, B, S, C> :
   never
 ;
 

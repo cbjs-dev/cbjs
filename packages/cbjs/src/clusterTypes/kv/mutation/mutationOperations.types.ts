@@ -20,7 +20,7 @@ import {
   IsFuzzyDocument,
   IsLegalPath, KvOperation,
   OpCodeCompletionPath,
-  OpCodeCompletionValue,
+  OpCodeCompletionValue, SubDocument,
 } from '@cbjsdev/shared';
 
 import type { CompatibleMacro } from './mutateIn.types.js';
@@ -83,7 +83,7 @@ export type MutateInUpsertPath<Options, Def extends DocDefBodyShape> =
  * Acceptable value for an `upsert` operation at a specific path.
  */
 export type MutateInUpsertValue<Options, Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, OpCodeCompletionValue<'upsert', Options, Def['Body'], Path>>
+  OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
 ;
 
 /**
@@ -103,7 +103,7 @@ export type MutateInReplacePath<Options, Def extends DocDefBodyShape> =
  * Acceptable value for a `replace` operation at a specific path.
  */
 export type MutateInReplaceValue<Options, Def extends DocDefBodyShape, Path extends string> =
-  OperationValue<Def['Body'], false, OpCodeCompletionValue<'replace', Options, Def['Body'], Path>>
+  OperationValue<Def['Body'], false, SubDocument<Def['Body'], Path>>
 ;
 
 /**

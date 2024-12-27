@@ -20,8 +20,9 @@ import type {
   If,
   IsArrayLengthFixed,
   IsFuzzyDocument,
+  LookupInMacroResult,
   LookupInMacroReturnType,
-  OpCodeCompletionValue,
+  SubDocument,
   Try,
 } from '@cbjsdev/shared';
 
@@ -60,19 +61,19 @@ export type LookupInSpecResults<Options, Specs, Defs> =
  * Spec operation result type for a single {@link LookupInSpec}.
  */
 export type LookupInSpecResult<Options, Spec, Def> =
-  Def extends DocDefBodyShape ?
-    Spec extends LookupInSpec<infer LookupDef, infer Op, infer Path> ?
-      Op extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
+  Spec extends LookupInSpec<infer LookupDef, infer Op, infer Path> ?
+    Op extends CppProtocolSubdocOpcode.get | CppProtocolSubdocOpcode.get_doc ?
+      Def extends DocDefBodyShape ?
         Path extends keyof LookupInMacroReturnType ?
           LookupInMacroReturnType[Path] :
         IsFuzzyDocument<LookupDef['Body']> extends true ?
-          OpCodeCompletionValue<'get', Options, Def['Body'], Path> :
-        OpCodeCompletionValue<'get', Options, LookupDef['Body'], Path> :
-      Op extends CppProtocolSubdocOpcode.get_count ?
-        number :
-      Op extends CppProtocolSubdocOpcode.exists ?
-        boolean :
+          SubDocument<Def['Body'], Path> :
+        SubDocument<LookupDef['Body'], Path> :
       never :
+    Op extends CppProtocolSubdocOpcode.get_count ?
+      number :
+    Op extends CppProtocolSubdocOpcode.exists ?
+      boolean :
     never :
   never
 ;
@@ -108,6 +109,23 @@ type ArrayElementOrUndefined<Arr> =
   Arr extends readonly [infer Head extends unknown, ...infer Rest] ?
     [Head | undefined, ...ArrayElementOrUndefined<Rest>] :
   []
+;
+
+// prettier-ignore
+export type OptimisticGetPathCheck<Options, Def extends DocDefBodyShape, Path extends string | LookupInMacro> =
+  Path extends string ?
+    [SubDocument<Def['Body'], Path>] extends [never] ?
+      LookupInGetPath<Options, Def> :
+    Path :
+  LookupInGetPath<Options, Def>
+;
+
+export type LookupInGetResult<Def extends DocDefBodyShape, Path extends string | LookupInMacro> =
+  Path extends LookupInMacro ?
+    LookupInMacroResult<Path> :
+  Path extends string ?
+    SubDocument<Def['Body'], Path> :
+  never
 ;
 
 /**
