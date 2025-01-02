@@ -19,6 +19,7 @@ import { connect } from '@cbjsdev/cbjs';
 import {
   applyCouchbaseClusterChanges,
   CouchbaseClusterConfig,
+  CouchbaseClusterSearchIndexConfig,
   getCouchbaseClusterChanges,
 } from '@cbjsdev/deploy';
 import { whoami } from '@cbjsdev/http-client';
@@ -84,6 +85,9 @@ describe(
           numReplicas: 0,
           scopes: {
             [scopeName]: {
+              searchIndexes: {
+                searchIndex1: searchIndexConfigFn1(collectionName1),
+              },
               collections: {
                 [collectionName1]: {
                   indexes: {
@@ -117,7 +121,7 @@ describe(
       );
 
       await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
-        timeout: 30_000,
+        timeout: 45_000,
       });
 
       // Check keyspaces //
@@ -149,6 +153,16 @@ describe(
 
       expect(c1indexes.find((i) => i.name === 'c1_title')).toBeDefined();
       expect(c2indexes.find((i) => i.name === 'c2_group')).toBeDefined();
+
+      // Check search indexes //
+
+      const searchIndexes = await cluster
+        .bucket(bucketName)
+        .scope(scopeName)
+        .searchIndexes()
+        .getAllIndexes();
+
+      expect(searchIndexes.find((i) => i.name === 'searchIndex1')).toBeDefined();
 
       // Check users //
       const users = await cluster.users().getAllUsers();
@@ -284,7 +298,7 @@ describe(
       );
 
       await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
-        timeout: 30_000,
+        timeout: 45_000,
       });
 
       await expect(cluster.buckets().getBucket(bucketName)).resolves.toBeDefined();
@@ -315,6 +329,222 @@ describe(
       expect(c1indexes.find((i) => i.name === 'c1_title')).toBeDefined();
       expect(c2indexes.find((i) => i.name === 'c2_group')).toBeUndefined();
       expect(c2indexes.find((i) => i.name === 'c2_groupId')).toBeDefined();
+
+      clusterConfig.keyspaces = nextClusterConfig.keyspaces;
+    });
+
+    it('should upsert search indexes when they change', async ({ expect }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
+
+      const nextClusterConfig: CouchbaseClusterConfig = {
+        ...clusterConfig,
+        keyspaces: {
+          [bucketName]: {
+            ramQuotaMB: 100,
+            numReplicas: 0,
+            scopes: {
+              [scopeName]: {
+                searchIndexes: {
+                  searchIndex1: searchIndexConfigFn2(collectionName1),
+                },
+                collections: {
+                  [collectionName1]: {
+                    indexes: {
+                      c1_title: {
+                        keys: ['title'],
+                      },
+                    },
+                  },
+                  [collectionName2]: {
+                    indexes: {
+                      c2_groupId: {
+                        keys: ['groupId'],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const changes = getCouchbaseClusterChanges(clusterConfig, nextClusterConfig);
+
+      console.log(
+        `The following changes have been detected in the cluster : \n\t${changes.map((c) => JSON.stringify(c)).join('\n\t')}`
+      );
+
+      await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
+        timeout: 30_000,
+      });
+
+      const searchIndexes = await cluster
+        .bucket(bucketName)
+        .scope(scopeName)
+        .searchIndexes()
+        .getAllIndexes();
+
+      const searchIndex1 = searchIndexes.find((i) => i.name === 'searchIndex1');
+
+      expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        searchIndex1?.params.mapping.types[`${scopeName}.${collectionName1}`].properties
+          .operations.properties.a.properties.op.fields[0].type
+      ).toEqual('number');
     });
   }
 );
+
+const searchIndexConfigFn1: (
+  collectionName: string
+) => CouchbaseClusterSearchIndexConfig =
+  (collectionName) =>
+  ({ sourceName, scopeName }) => ({
+    name: 'searchIndex1',
+    type: 'fulltext-index',
+    params: {
+      doc_config: {
+        docid_prefix_delim: '',
+        docid_regexp: '',
+        mode: 'scope.collection.type_field',
+        type_field: 'type',
+      },
+      mapping: {
+        default_analyzer: 'standard',
+        default_datetime_parser: 'dateTimeOptional',
+        default_field: '_all',
+        default_mapping: {
+          dynamic: false,
+          enabled: false,
+        },
+        default_type: '_default',
+        docvalues_dynamic: false,
+        index_dynamic: false,
+        store_dynamic: false,
+        type_field: '_type',
+        types: {
+          [`${scopeName}.${collectionName}`]: {
+            dynamic: false,
+            enabled: true,
+            properties: {
+              operations: {
+                dynamic: false,
+                enabled: true,
+                properties: {
+                  a: {
+                    dynamic: false,
+                    enabled: true,
+                    properties: {
+                      op: {
+                        enabled: true,
+                        dynamic: false,
+                        fields: [
+                          {
+                            analyzer: 'keyword',
+                            index: true,
+                            name: 'op',
+                            store: true,
+                            type: 'text',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      store: {
+        indexType: 'scorch',
+        segmentVersion: 15,
+      },
+    },
+    sourceType: 'gocbcore',
+    sourceName: sourceName,
+    sourceParams: {},
+    planParams: {
+      maxPartitionsPerPIndex: 1024,
+      indexPartitions: 1,
+      numReplicas: 0,
+    },
+  });
+
+const searchIndexConfigFn2: (
+  collectionName: string
+) => CouchbaseClusterSearchIndexConfig =
+  (collectionName) =>
+  ({ sourceName, scopeName }) => ({
+    name: 'searchIndex1',
+    type: 'fulltext-index',
+    params: {
+      doc_config: {
+        docid_prefix_delim: '',
+        docid_regexp: '',
+        mode: 'scope.collection.type_field',
+        type_field: 'type',
+      },
+      mapping: {
+        default_analyzer: 'standard',
+        default_datetime_parser: 'dateTimeOptional',
+        default_field: '_all',
+        default_mapping: {
+          dynamic: false,
+          enabled: false,
+        },
+        default_type: '_default',
+        docvalues_dynamic: false,
+        index_dynamic: false,
+        store_dynamic: false,
+        type_field: '_type',
+        types: {
+          [`${scopeName}.${collectionName}`]: {
+            dynamic: false,
+            enabled: true,
+            properties: {
+              operations: {
+                dynamic: false,
+                enabled: true,
+                properties: {
+                  a: {
+                    dynamic: false,
+                    enabled: true,
+                    properties: {
+                      op: {
+                        enabled: true,
+                        dynamic: false,
+                        fields: [
+                          {
+                            analyzer: 'keyword',
+                            index: true,
+                            name: 'op',
+                            store: true,
+                            type: 'number',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      store: {
+        indexType: 'scorch',
+        segmentVersion: 15,
+      },
+    },
+    sourceType: 'gocbcore',
+    sourceName: sourceName,
+    sourceParams: {},
+    planParams: {
+      maxPartitionsPerPIndex: 1024,
+      indexPartitions: 1,
+      numReplicas: 0,
+    },
+  });

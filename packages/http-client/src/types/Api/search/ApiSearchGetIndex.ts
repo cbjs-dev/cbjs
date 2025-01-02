@@ -45,6 +45,5 @@ export type PlanPIndexes = {
       priority: number;
     };
   };
-  // TODO complete with correct param names
 } & SearchIndexConfigIndexParams &
   SearchIndexConfigSourceParams;

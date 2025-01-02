@@ -21,3 +21,4 @@ export * from './getQueryIndexStats.js';
 export * from './getQueryIndexRemainingMutations.js';
 export * from './createQueryIndex.js';
 export * from './updateQueryIndex.js';
+export * from './getQueryIndexStatus.js';

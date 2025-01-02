@@ -25,6 +25,7 @@ export type ApiSearchIndexDefinition = SearchIndexCommonConfig &
 export type SearchIndexCommonConfig = {
   /**
    * The UUID of the search index.  Used for updates to ensure consistency.
+   * The UUID changes with each definition update.
    */
   uuid?: string;
 
@@ -40,6 +41,7 @@ export type SearchIndexCommonConfig = {
 
   /**
    * The UUID of the data source.
+   * Do NOT fill when creating the index.
    */
   sourceUUID?: string;
 
@@ -168,25 +170,30 @@ export type SearchIndexIndexParamsIndexTypeBleve = {
         dynamic: boolean;
         enabled: boolean;
         properties: {
-          [name: string]: {
-            enabled: boolean;
-            dynamic: boolean;
-            fields: Array<{
-              analyzer?: SearchIndexMappingFieldAnalyzer;
-              docvalues?: boolean;
-              include_in_all?: boolean;
-              include_term_vectors?: boolean;
-              dims?: number;
-              similarity?: string;
-              index: boolean;
-              name: string;
-              store: boolean;
-              type: SearchIndexMappingFieldType;
-            }>;
-          };
+          [name: string]: PropertyMapping;
         };
       };
     };
+  };
+};
+
+type PropertyMapping = {
+  enabled: boolean;
+  dynamic: boolean;
+  fields?: Array<{
+    analyzer?: SearchIndexMappingFieldAnalyzer;
+    docvalues?: boolean;
+    include_in_all?: boolean;
+    include_term_vectors?: boolean;
+    dims?: number;
+    similarity?: string;
+    index: boolean;
+    name: string;
+    store: boolean;
+    type: SearchIndexMappingFieldType;
+  }>;
+  properties?: {
+    [name: string]: PropertyMapping;
   };
 };
 

@@ -25,7 +25,7 @@ import { requestQuerySearchIndexes } from './requests/requestQuerySearchIndexes.
 export async function getQuerySearchIndexes(
   params: CouchbaseHttpApiConfig,
   options: Partial<Keyspace> & { index?: string } = {}
-) {
+): Promise<HttpClientSearchIndex[]> {
   const response = await requestQuerySearchIndexes(params);
 
   if (response.status !== 200) {
@@ -35,8 +35,13 @@ export async function getQuerySearchIndexes(
   const body = (await response.json()) as ApiQueryResponseBody<QueryResultSearchIndex[]>;
   const friendlyResult = body.results.map(toFriendlyFormat);
 
+  const indexName =
+    options.index && options.bucket && options.scope
+      ? `${options.bucket}.${options.scope}.${options.index}`
+      : options.index;
+
   return friendlyResult.filter((index) => {
-    if (options.index && options.index !== index.name) return false;
+    if (indexName && indexName !== index.name) return false;
     if (options.collection && options.collection !== index.collectionName) return false;
     if (options.scope && options.scope !== index.scopeName) return false;
     if (options.bucket && options.bucket !== index.bucketName) return false;
@@ -61,17 +66,10 @@ function toFriendlyFormat(index: QueryResultSearchIndex): HttpClientSearchIndex 
   return {
     id: index.id,
     name: index.name,
-    fields: index.index_key.map((field) => {
-      if (field.startsWith('`') && field.endsWith('`')) {
-        return field.substring(1, field.length - 1);
-      }
-
-      return field;
-    }) as [string, ...string[]],
     node: index.datastore_id,
     state: index.state,
     namespace: index.namespace_id,
     using: index.using,
-    ...scope,
+    ...(scope as any),
   };
 }

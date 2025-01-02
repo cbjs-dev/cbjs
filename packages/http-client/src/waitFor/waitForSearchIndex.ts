@@ -15,19 +15,20 @@
  */
 import { retry } from 'ts-retry-promise';
 
-import { hasOwn, isPartialKeyspace, Keyspace } from '@cbjsdev/shared';
+import { isPartialKeyspace, Keyspace } from '@cbjsdev/shared';
 
-import {
-  getQuerySearchIndexes,
-  getSearchIndex,
-  getStatistics,
-} from '../services/index.js';
+import { getQuerySearchIndexes } from '../services/index.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
+import { HttpClientQueryIndex } from '../types/HttpClient/index.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
 
 export type WaitForSearchIndexOptions = WaitForOptions & {
-  awaitQueryVisibility?: boolean;
+  /**
+   * Wait for the index to have been built.
+   *
+   * @default true
+   */
   awaitMutations?: boolean;
 };
 
@@ -60,52 +61,24 @@ export async function waitForSearchIndex(
     ...options,
   };
 
-  const { expectMissing, awaitMutations, awaitQueryVisibility } = resolvedOptions;
+  const { expectMissing, awaitMutations } = resolvedOptions;
 
   return await retry(async () => {
-    const index = awaitQueryVisibility
-      ? (await getQuerySearchIndexes(apiConfig, { index: indexName }))[0]
-      : await getSearchIndex(apiConfig, indexName);
+    const indexes = await getQuerySearchIndexes(apiConfig, {
+      ...keyspace,
+      index: indexName,
+    });
+    const index = indexes[0] as HttpClientQueryIndex | undefined;
 
     if (!index && !expectMissing) throw new Error('Search index is not visible yet');
     if (index && expectMissing) throw new Error('Search index still exists');
 
-    const indexReady = hasOwn(index, 'state')
-      ? index.state === 'online'
-      : index.planPIndexes.length > 0;
-
-    if (!indexReady && !expectMissing) throw new Error('Search index is not ready yet');
-
-    if (!awaitMutations) {
+    if (!awaitMutations || expectMissing) {
       return;
     }
 
-    const stats = await getStatistics(apiConfig, [
-      {
-        metric: [
-          { label: 'name', value: 'fts_num_mutations_to_index' },
-          { label: 'index', value: indexName },
-        ],
-        step: 1,
-        start: -10,
-      },
-    ]);
-
-    // Index not found
-    if (stats[0].data.length === 0) {
-      if (expectMissing) return;
-      throw new Error('Search index is not visible yet');
-    }
-
-    if (expectMissing) {
-      throw new Error('Search index still exists');
-    }
-
-    const values = stats[0].data[0].values;
-    const remainingMutations = values[values.length - 1][1];
-
-    if (!expectMissing && remainingMutations !== '0') {
-      throw new Error('Search index has pending mutations');
+    if (index?.state !== 'online') {
+      throw new Error('Search index still being built');
     }
   }, resolvedOptions);
 }

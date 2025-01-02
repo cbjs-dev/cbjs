@@ -8,6 +8,7 @@ import {
   waitForCollection,
   waitForQueryIndex,
   waitForScope,
+  waitForSearchIndex,
   waitForUser,
   whoami,
 } from '@cbjsdev/http-client';
@@ -19,11 +20,13 @@ import {
   CouchbaseClusterChangeCreateCollection,
   CouchbaseClusterChangeCreateIndex,
   CouchbaseClusterChangeCreateScope,
+  CouchbaseClusterChangeCreateSearchIndex,
   CouchbaseClusterChangeCreateUser,
   CouchbaseClusterChangeDropBucket,
   CouchbaseClusterChangeDropCollection,
   CouchbaseClusterChangeDropIndex,
   CouchbaseClusterChangeDropScope,
+  CouchbaseClusterChangeDropSearchIndex,
   CouchbaseClusterChangeDropUser,
   CouchbaseClusterChangeRecreateBucket,
   CouchbaseClusterChangeRecreateIndex,
@@ -31,6 +34,7 @@ import {
   CouchbaseClusterChangeUpdateBucket,
   CouchbaseClusterChangeUpdateCollection,
   CouchbaseClusterChangeUpdateIndex,
+  CouchbaseClusterChangeUpdateSearchIndex,
   CouchbaseClusterChangeUpdateUser,
   CouchbaseClusterChangeUpdateUserPassword,
 } from './types.js';
@@ -43,6 +47,11 @@ export type ChangeOptions = {
    */
   timeout?: number;
 };
+
+function getTimePrefix() {
+  const d = new Date();
+  return `[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}]`;
+}
 
 export async function applyCouchbaseClusterChanges(
   cluster: Cluster,
@@ -80,6 +89,9 @@ export async function applyCouchbaseClusterChanges(
     dropUser: applyDropUser,
     recreateUser: applyRecreateUser,
     updateUserPassword: applyUpdateUserPassword,
+    createSearchIndex: applyUpsertSearchIndex,
+    updateSearchIndex: applyUpsertSearchIndex,
+    dropSearchIndex: applyDropSearchIndex,
   };
 
   for (const change of changes) {
@@ -611,7 +623,89 @@ async function applyDropUser(
   console.log(`${getTimePrefix()} User "${change.user.username}" dropped`);
 }
 
-function getTimePrefix() {
-  const d = new Date();
-  return `[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}]`;
+async function applyUpsertSearchIndex(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change:
+    | CouchbaseClusterChangeCreateSearchIndex
+    | CouchbaseClusterChangeUpdateSearchIndex,
+  opts: ChangeOptions
+) {
+  const config = change.configFn({
+    sourceName: change.bucket,
+    bucketName: change.bucket,
+    scopeName: change.scope,
+  });
+
+  if (change.type === 'updateSearchIndex') {
+    const searchIndex = await cluster
+      .bucket(change.bucket)
+      .scope(change.scope)
+      .searchIndexes()
+      .getIndex(change.name);
+
+    config.uuid = searchIndex.uuid;
+    config.sourceUUID = searchIndex.sourceUuid;
+  }
+
+  console.log(
+    `${getTimePrefix()} Requesting creation of search index "${change.bucket} # ${change.name}"`
+  );
+
+  await cluster
+    .bucket(change.bucket)
+    .scope(change.scope)
+    .searchIndexes()
+    .upsertIndex(config, opts);
+
+  console.log(
+    `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be created`
+  );
+  await waitForSearchIndex(
+    apiConfig,
+    change.name,
+    {
+      bucket: change.bucket,
+      scope: change.scope,
+    },
+    opts
+  );
+  console.log(
+    `${getTimePrefix()} Search index "${change.bucket} # ${change.name}" created`
+  );
+}
+
+async function applyDropSearchIndex(
+  cluster: Cluster,
+  apiConfig: CouchbaseHttpApiConfig,
+  change: CouchbaseClusterChangeDropSearchIndex,
+  opts: ChangeOptions
+) {
+  console.log(
+    `${getTimePrefix()} Requesting deletion of search index "${change.bucket} # ${change.name}"`
+  );
+
+  await cluster
+    .bucket(change.bucket)
+    .scope(change.scope)
+    .searchIndexes()
+    .dropIndex(change.name);
+
+  console.log(
+    `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be deleted`
+  );
+  await waitForSearchIndex(
+    apiConfig,
+    change.name,
+    {
+      bucket: change.bucket,
+    },
+    {
+      ...opts,
+      expectMissing: true,
+    }
+  );
+  console.log(
+    `${getTimePrefix()} Search index "${change.bucket} # ${change.name}" deleted`
+  );
 }

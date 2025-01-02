@@ -148,7 +148,7 @@ export class ServerTestContext {
 
     await cluster.buckets().createBucket({
       name: bucketName,
-      ramQuotaMB: 256,
+      ramQuotaMB: 100,
       storageBackend: 'couchstore',
       numReplicas: 0,
       replicaIndexes: false,

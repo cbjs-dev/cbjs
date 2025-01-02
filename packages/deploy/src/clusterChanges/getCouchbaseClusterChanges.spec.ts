@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest';
 
 import { getCouchbaseClusterChanges } from './getCouchbaseClusterChanges.js';
-import { CouchbaseClusterConfig } from './types.js';
+import { CouchbaseClusterConfig, CouchbaseClusterSearchIndexConfig } from './types.js';
 
 describe('getCouchbaseClusterChanges', () => {
   it('should return an empty array when both currentConfig and nextConfig are empty', ({
@@ -536,4 +536,294 @@ describe('getCouchbaseClusterChanges', () => {
       },
     ]);
   });
+
+  it('should identify new search indexes and add them to changes', ({ expect }) => {
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {},
+              },
+            },
+          },
+        },
+      },
+    };
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              searchIndexes: {
+                searchIndex1: searchIndexConfigFn1,
+              },
+              collections: {
+                collection1: {},
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
+
+    expect(changes).toEqual([
+      {
+        type: 'createSearchIndex',
+        name: 'searchIndex1',
+        bucket: 'bucket1',
+        scope: 'scope1',
+        configFn: searchIndexConfigFn1,
+      },
+    ]);
+  });
+
+  it('should identify updated search indexes and add them to changes', ({ expect }) => {
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              searchIndexes: {
+                searchIndex1: searchIndexConfigFn1,
+              },
+              collections: {
+                collection1: {},
+              },
+            },
+          },
+        },
+      },
+    };
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              searchIndexes: {
+                searchIndex1: searchIndexConfigFn2,
+              },
+              collections: {
+                collection1: {},
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
+
+    expect(changes).toEqual([
+      {
+        type: 'updateSearchIndex',
+        name: 'searchIndex1',
+        bucket: 'bucket1',
+        scope: 'scope1',
+        configFn: searchIndexConfigFn2,
+      },
+    ]);
+  });
+
+  it('should identify obsolete search indexes and add them to changes', ({ expect }) => {
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              searchIndexes: {
+                searchIndex1: searchIndexConfigFn1,
+              },
+              collections: {
+                collection1: {},
+              },
+            },
+          },
+        },
+      },
+    };
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {},
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
+
+    expect(changes).toEqual([
+      {
+        type: 'dropSearchIndex',
+        name: 'searchIndex1',
+        bucket: 'bucket1',
+        scope: 'scope1',
+      },
+    ]);
+  });
+});
+
+const searchIndexConfigFn1: CouchbaseClusterSearchIndexConfig = ({
+  sourceName,
+  scopeName,
+}) => ({
+  name: 'searchIndex1',
+  type: 'fulltext-index',
+  params: {
+    doc_config: {
+      docid_prefix_delim: '',
+      docid_regexp: '',
+      mode: 'scope.collection.type_field',
+      type_field: 'type',
+    },
+    mapping: {
+      default_analyzer: 'standard',
+      default_datetime_parser: 'dateTimeOptional',
+      default_field: '_all',
+      default_mapping: {
+        dynamic: false,
+        enabled: false,
+      },
+      default_type: '_default',
+      docvalues_dynamic: false,
+      index_dynamic: false,
+      store_dynamic: false,
+      type_field: '_type',
+      types: {
+        [`${scopeName}._default`]: {
+          dynamic: false,
+          enabled: true,
+          properties: {
+            operations: {
+              dynamic: false,
+              enabled: true,
+              properties: {
+                a: {
+                  dynamic: false,
+                  enabled: true,
+                  properties: {
+                    op: {
+                      enabled: true,
+                      dynamic: false,
+                      fields: [
+                        {
+                          analyzer: 'keyword',
+                          index: true,
+                          name: 'op',
+                          store: true,
+                          type: 'text',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    store: {
+      indexType: 'scorch',
+      segmentVersion: 15,
+    },
+  },
+  sourceType: 'gocbcore',
+  sourceName: sourceName,
+  sourceParams: {},
+  planParams: {
+    maxPartitionsPerPIndex: 1024,
+    indexPartitions: 1,
+    numReplicas: 0,
+  },
+});
+
+const searchIndexConfigFn2: CouchbaseClusterSearchIndexConfig = ({
+  sourceName,
+  scopeName,
+}) => ({
+  name: 'searchIndex1',
+  type: 'fulltext-index',
+  params: {
+    doc_config: {
+      docid_prefix_delim: '',
+      docid_regexp: '',
+      mode: 'scope.collection.type_field',
+      type_field: 'type',
+    },
+    mapping: {
+      default_analyzer: 'standard',
+      default_datetime_parser: 'dateTimeOptional',
+      default_field: '_all',
+      default_mapping: {
+        dynamic: false,
+        enabled: false,
+      },
+      default_type: '_default',
+      docvalues_dynamic: false,
+      index_dynamic: false,
+      store_dynamic: false,
+      type_field: '_type',
+      types: {
+        [`${scopeName}._default`]: {
+          dynamic: false,
+          enabled: true,
+          properties: {
+            operations: {
+              dynamic: false,
+              enabled: true,
+              properties: {
+                a: {
+                  dynamic: false,
+                  enabled: true,
+                  properties: {
+                    op: {
+                      enabled: true,
+                      dynamic: false,
+                      fields: [
+                        {
+                          analyzer: 'keyword',
+                          index: true,
+                          name: 'op',
+                          store: true,
+                          type: 'number',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    store: {
+      indexType: 'scorch',
+      segmentVersion: 15,
+    },
+  },
+  sourceType: 'gocbcore',
+  sourceName: sourceName,
+  sourceParams: {},
+  planParams: {
+    maxPartitionsPerPIndex: 1024,
+    indexPartitions: 1,
+    numReplicas: 0,
+  },
 });

@@ -18,7 +18,6 @@ import { retry } from 'ts-retry-promise';
 import { Keyspace, Pretty } from '@cbjsdev/shared';
 
 import { getQueryIndexes } from '../services/index.js';
-import { getQueryIndexRemainingMutations } from '../services/query/getQueryIndexRemainingMutations.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
 import { waitOptionsModerate } from './options.js';
 import { WaitForOptions } from './types.js';
@@ -26,7 +25,8 @@ import { WaitForOptions } from './types.js';
 export type WaitForQueryIndexOptions = Pretty<
   WaitForOptions & {
     /**
-     * Wait for the index to have processed all mutations.
+     * Wait for the index to have been built.
+     *
      * @default true
      */
     awaitMutations?: boolean;
@@ -59,23 +59,17 @@ export async function waitForQueryIndex(
 
   return await retry(async () => {
     const indexes = await getQueryIndexes(apiConfig, keyspace);
-    const indexExists = indexes.some((index) => index.name === indexName);
+    const index = indexes.find((index) => index.name === indexName);
 
-    if (!indexExists && !expectMissing) throw new Error('Query index is not visible yet');
-    if (indexExists && expectMissing) throw new Error('Query index still exists');
+    if (!index && !expectMissing) throw new Error('Query index is not visible yet');
+    if (index && expectMissing) throw new Error('Query index still exists');
 
     if (!awaitMutations || expectMissing) {
       return;
     }
 
-    const remainingMutations = await getQueryIndexRemainingMutations(
-      apiConfig,
-      indexName,
-      keyspace
-    );
-
-    if (!expectMissing && remainingMutations > 0) {
-      throw new Error('Query index has pending mutations');
+    if (index?.state !== 'online') {
+      throw new Error('Query index is still being build');
     }
   }, resolvedOptions);
 }

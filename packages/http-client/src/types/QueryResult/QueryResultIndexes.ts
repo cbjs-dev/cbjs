@@ -27,7 +27,7 @@ export type QueryResultGsiIndex = DiscriminatingPrimaryIndexProps &
      */
     name: string;
     namespace_id: string;
-    state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+    state: 'online' | 'deferred' | 'building' | (string & NonNullable<unknown>);
     using: 'gsi';
     metadata: {
       num_replica: number;
@@ -40,14 +40,14 @@ export type QueryResultGsiIndex = DiscriminatingPrimaryIndexProps &
 export type QueryResultSearchIndex = DiscriminatingKeyspaceProps & {
   datastore_id: string;
   id: string;
-
+  index_key: [];
   /**
    * Index name.
    */
   name: string;
-  index_key: [string, ...string[]];
+  namespace: string;
   namespace_id: string;
-  state: 'online' | 'deferred' | (string & NonNullable<unknown>);
+  state: 'online' | 'deferred' | 'building' | (string & NonNullable<unknown>);
   using: 'fts';
 };
 

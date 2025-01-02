@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RetryConfig } from 'ts-retry-promise';
+import 'node-fetch';
 
-export type WaitForOptions = Partial<RetryConfig> & {
-  /**
-   * Wait for the resource to be missing instead of waiting for its presence.
-   * Typically used after a deletion command.
-   * @default false
-   */
-  expectMissing?: boolean;
-};
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+
+export async function requestGetQueryIndexesStatus(params: CouchbaseHttpApiConfig) {
+  return await apiGET({ ...params }, `/indexStatus`);
+}

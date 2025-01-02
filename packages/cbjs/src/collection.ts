@@ -157,7 +157,6 @@ export interface GetOptions<
    * This allows for easy retrieval of select fields without incurring the
    * overhead of fetching the whole document.
    */
-  // TODO
   project?: string | string[];
 
   /**
