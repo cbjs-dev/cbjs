@@ -15,7 +15,11 @@
  */
 import { describe } from 'vitest';
 
-import { getQueryIndexStatus } from '@cbjsdev/http-client';
+import {
+  getQueryIndexStatus,
+  waitForCollection,
+  waitForQueryIndexer,
+} from '@cbjsdev/http-client';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('getQueryIndexStatus', { timeout: 40_000, retry: 2 }, async () => {
@@ -27,6 +31,12 @@ describe('getQueryIndexStatus', { timeout: 40_000, retry: 2 }, async () => {
     serverTestContext,
     apiConfig,
   }) => {
+    await waitForCollection(
+      apiConfig,
+      serverTestContext.bucket.name,
+      serverTestContext.scope.name,
+      serverTestContext.collection.name
+    );
     const name = await useIndex({
       bucketName: serverTestContext.bucket.name,
       scopeName: serverTestContext.scope.name,
