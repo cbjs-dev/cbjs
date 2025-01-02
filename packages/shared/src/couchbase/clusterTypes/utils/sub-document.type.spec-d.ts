@@ -32,12 +32,14 @@ describe('SubDocument', function () {
     events:
       | {
           type: 'a';
+          mixed: string;
           propA: {
             title: string;
           };
         }
       | {
           type: 'b';
+          mixed: number;
           propB: {
             status: string;
           };
@@ -93,9 +95,6 @@ describe('SubDocument', function () {
       { prop: string } | string[]
     >();
     expectTypeOf<SubDocument<Doc, `obj.mixed[${number}]`>>().toEqualTypeOf<string>();
-
-    type T = SubDocument<Doc, `obj.nestedArray[0]`>;
-    //   ^?
     expectTypeOf<SubDocument<Doc, `obj.mixed.prop`>>().toEqualTypeOf<string>();
     expectTypeOf<SubDocument<Doc, `obj.nestedArray`>>().toEqualTypeOf<string[][]>();
     expectTypeOf<SubDocument<Doc, `obj.nestedArray[0]`>>().toEqualTypeOf<string[]>();
@@ -116,8 +115,13 @@ describe('SubDocument', function () {
     expectTypeOf<Test>().toEqualTypeOf<string>();
   });
 
-  it('should return not mixed up properties in a union', () => {
+  it('should return never for a property of another member of the union', () => {
     type Test = SubDocument<Doc, 'events.propB.title'>;
     expectTypeOf<Test>().toBeNever();
+  });
+
+  it('should return a union of all the types of the property in every member of the union', () => {
+    type Test = SubDocument<Doc, 'events.mixed'>;
+    expectTypeOf<Test>().toEqualTypeOf<string | number>();
   });
 });

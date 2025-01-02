@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { IsAny, IsNever } from '../../misc/index.js';
+import { IsAny, IsNever, UnionKeys } from '../../misc/index.js';
 import type { Keyspace } from '../utils/index.js';
 import type {
   ClusterTypesOptions,
@@ -84,11 +84,11 @@ export type KeyspaceDocDef<
 // prettier-ignore
 export type IsFuzzyDocument<T> =
   IsAny<T> extends true ? true :
-  IsNever<keyof T> extends true ? true :
-  string extends keyof T ? true :
-  symbol extends keyof T ? true :
+  IsNever<UnionKeys<T>> extends true ? true :
+  string extends UnionKeys<T> ? true :
+  symbol extends UnionKeys<T> ? true :
   T extends ReadonlyArray<unknown> ? false :
-  number extends keyof T ? true :
+  number extends UnionKeys<T> ? true :
   false
 ;
 

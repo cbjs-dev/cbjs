@@ -1,5 +1,14 @@
 set -e
 
+while read local_ref local_sha remote_ref remote_sha
+do
+  # If the local SHA is all zeros, it indicates a branch deletion
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    echo "Skipping hook because '$remote_ref' is being deleted..."
+    exit 0
+  fi
+done
+
 pnpm run lint:check
 pnpm run build
 

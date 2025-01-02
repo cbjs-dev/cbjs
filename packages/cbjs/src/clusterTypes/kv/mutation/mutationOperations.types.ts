@@ -130,7 +130,7 @@ export type MutateInRemoveOptions = { xattr?: boolean };
  * Valid mutation path for an `arrayAppend` operation.
  */
 export type MutateInArrayAppendPath<Options, Def extends DocDefBodyShape> =
-  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend',Options,  Def['Body']>>
+  OperationPath<Def['Body'], OpCodeCompletionPath<'arrayAppend', Options,  Def['Body']>>
 ;
 
 /**

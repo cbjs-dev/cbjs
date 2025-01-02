@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IsLegalPath, SubDocument } from '@cbjsdev/shared';
+import { If, IsLegalPath, SubDocument } from '@cbjsdev/shared';
 
 import {
   CollectionOptions,
@@ -350,7 +350,7 @@ export class ChainableMutateIn<
    * Fails if the property does not exist, unless `{ createPath: true }`.
    * Use `{ multi: true }` to add multiple values.
    *
-   * @example arrayInsert('authors[1]', 'Luke');
+   * @example collection.arrayInsert('authors[1]', 'Luke');
    *
    * @param path The path to an element of an array.
    * @param value The value to add.

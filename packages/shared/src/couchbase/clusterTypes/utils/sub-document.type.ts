@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Split } from '../../../misc/index.js';
+import { IsNever, Split } from '../../../misc/index.js';
 import { IsFuzzyDocument } from '../document.types.js';
 import { ArrayLastElement } from './array-utils.types.js';
 
@@ -67,6 +67,15 @@ type SplitSegmentsAccessorsTRE<
   Acc
 ;
 
+// prettier-ignore
+type ExtractMembersWithProperty<T, P extends string> = 
+  T extends unknown ?
+    P extends keyof T ?
+      T :
+    never :
+  never
+;
+
 /**
  * Return the sub-document type from path segments.
  * Non-Distributive.
@@ -76,17 +85,7 @@ export type SubDocumentFromPathSegments<
   T,
   Segments extends ReadonlyArray<string>
 > =
-  Segments extends [infer Segment, ...infer RestSegments extends string[]] ?
-    // Object access
-    Segment extends keyof T ?
-      RestSegments['length'] extends 0 ?
-        T[Segment] :
-      T[Segment] extends infer NextDoc ?
-        NextDoc extends unknown ?
-          SubDocumentFromPathSegments<NextDoc, RestSegments> :
-          never :
-        never :
-
+  Segments extends [infer Segment extends string, ...infer RestSegments extends string[]] ?
     // Array access
     Segment extends `[${infer Index extends number}]` ?
       RestSegments['length'] extends 0 ?
@@ -96,8 +95,24 @@ export type SubDocumentFromPathSegments<
         RestSegments
       > :
 
-    Segment extends '' ? // Root
+    // Root
+    Segment extends '' ?
       T :
+
+    // Object access
+    ExtractMembersWithProperty<T, Segment> extends infer Members ?
+      IsNever<Members> extends true ?
+        never :
+      Segment extends keyof Members ?
+        RestSegments['length'] extends 0 ?
+          Members[Segment] :
+        Members[Segment] extends infer NextDoc ?
+          NextDoc extends unknown ?
+            SubDocumentFromPathSegments<NextDoc, RestSegments> :
+          never :
+        never :
+      never :
+      
     never :
   never
 ;
@@ -114,9 +129,6 @@ type ArrayElementAtIndex<T, K> =
 /**
  * Return the type of an element at a specific path.
  *
- * `DeepUndefined` toggles if `undefined` should be included in the result type when
- * a parent property is optional.
- *
  * @example
  *
  * ```ts
@@ -124,8 +136,7 @@ type ArrayElementAtIndex<T, K> =
  *   metadata?: { tags: string[] };
  * };
  *
- * SubDocument<TestDoc, 'metadata.tags'>        // string[] | undefined
- * SubDocument<TestDoc, 'metadata.tags', false> // string[]
+ * SubDocument<TestDoc, 'metadata.tags'> // string[] | undefined
  * ```
  */
 // prettier-ignore

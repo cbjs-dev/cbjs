@@ -143,22 +143,16 @@ export type MutateInValue<
 
 /**
  * Validate the `MutateInSpec` consistency.
- * Returns an error message if the path or the value is inconsistency, `T` if everything looks good.
+ * Returns an error message if the path or the value is inconsistency, `Spec` if everything looks good.
  */
-export type ValidateMutateInSpec<Options, Defs extends DocDefKeyBodyShape, Specs> =
+export type ValidateMutateInSpec<Options, Defs extends DocDefKeyBodyShape, Spec> =
   Defs extends unknown ?
-    Specs extends MutateInSpec<any, infer Opcode, infer Path, infer Multi, infer Value> ?
+    Spec extends MutateInSpec<any, infer Opcode, infer Path, infer Multi, infer Value> ?
       Path extends AnyMutateInPath<Options, Defs, Opcode> ?
         Opcode extends CppProtocolSubdocOpcode.remove | CppProtocolSubdocOpcode.remove_doc ?
-          Specs :
+          Spec :
         [Value] extends [AnyMutateInValue<Options, Defs, Opcode, Path, Multi>] ?
-          Specs :
-          // {
-          //   Path: Path;
-          //   Value: Value;
-          //   MutateInPath: AnyMutateInPath<Defs, Opcode>;
-          //   MutateInValue: AnyMutateInValue<Defs, Opcode, Path, Multi>;
-          // } :
+          Spec :
         `Invalid value for '${MutateInSpecOperationFriendlyName[Opcode]}' operation at '${Path}' on any declared document.` :
       `Invalid path: Cannot perform '${MutateInSpecOperationFriendlyName[Opcode]}' operation at '${Path}' on any declared document.` :
     never :

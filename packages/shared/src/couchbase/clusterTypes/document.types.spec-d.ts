@@ -186,16 +186,6 @@ describe('GetKeyspaceOptions', () => {
   });
 
   it('should return the default options when none are defined', () => {
-    //   v?
-    type T = GetKeyspaceOptions<
-      {
-        store: { library: { books: [] } };
-      },
-      'store',
-      'library',
-      'books'
-    >;
-
     expectTypeOf<
       GetKeyspaceOptions<
         {

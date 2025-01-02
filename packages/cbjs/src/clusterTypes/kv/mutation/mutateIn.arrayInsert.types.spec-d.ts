@@ -21,14 +21,14 @@ import {
   BuildOptionalProperties,
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
-  If,
-  IsFuzzyDocument,
+  DocumentCodeCompletion,
   MakeTestPaths,
+  OpCodeCompletionPath,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
 import { connect } from '../../../couchbase.js';
-import { DocDef } from '../../clusterTypes.js';
+import { CollectionOptions, DocDef } from '../../clusterTypes.js';
 import type { MutateInArrayInsertPath } from './mutationOperations.types.js';
 
 describe('mutateIn arrayInsert', async () => {
@@ -221,54 +221,48 @@ describe('mutateIn arrayInsert', async () => {
     expectTypeOf<TestArrDocResult>().toEqualTypeOf<true>();
   });
 
-  it('should not offer a nested prop that is not an array', () => {
-    it('should not offer a nested prop that is not an array', async () => {
-      type UserClusterTypes = {
-        b: {
-          s: {
-            c: [
-              DocDef<
-                `book::${string}`,
-                {
-                  body: { title: string; expectedBenefits?: string };
-                  metadata: { tags: string[] };
-                }
-              >,
-            ];
-          };
+  it('should not offer a nested prop that is not an array', async () => {
+    type BookDocDef = DocDef<
+      `book::${string}`,
+      {
+        body: { title: string; expectedBenefits?: string };
+        metadata: { tags: string[] };
+      }
+    >;
+
+    type Options = {
+      codeCompletion: {
+        array: 'friendly';
+        record: 'friendly';
+      };
+    };
+    type UserClusterTypes = {
+      b: {
+        s: {
+          c: [BookDocDef];
         };
       };
+    };
 
-      const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
+    type T = OpCodeCompletionPath<'arrayInsert', Options, BookDocDef['Body']>;
+    //   ^?
+    type TT = OpCodeCompletionPath<'arrayInsert', Options, BookDocDef['Body']>;
+    //   ^?
+    type TTG = DocumentCodeCompletion<'get', Options, BookDocDef['Body']>[1];
+    //   ^?
+    type TTI = DocumentCodeCompletion<'binary', Options, BookDocDef['Body']>[1];
+    //   ^?
+    type TTAI = DocumentCodeCompletion<'arrayInsert', Options, BookDocDef['Body']>[1];
+    //   ^?
 
-      type OperationPath<Doc, Path extends string> = If<
-        IsFuzzyDocument<Doc>,
-        string,
-        Path
-      >;
+    const cluster = await connect<UserClusterTypes>('couchbase://127.0.0.1');
 
-      type TestDocDef = DocDef<string, { metadata: { tags: string[] } }>;
-      type TestDocDef2 = DocDef<string, { authors: string[] }>;
-      type T =
-        // | (MutateInArrayInsertPath<TestDocDef> & NonNullable<unknown>)
-        // | ExtractPathToInsertableArrayIndex<TestDocDef['Body'], TestDocDef['Path']>
-        // | If<true, `authors[${number}]`, 'nope'>
-        `metadata.tags[${string}]` | 'metadata.tags[1]' | 'authors[1]';
+    const collection = cluster.bucket('b').scope('s').collection('c');
 
-      type ExtractPathToArray<Path> = Path extends `${string}[${number}]` ? Path : never;
+    type TOpts = CollectionOptions<typeof collection>;
 
-      type MetaRepro<Path> = Path extends unknown
-        ? ExtractPathToArray<Path> extends infer TP
-          ? (TP & NonNullable<unknown>) | 'metadata.tags[1]'
-          : never
-        : never;
-
-      type TR = MetaRepro<`metadata.tags[${number}]`>;
-
-      const t: T = 'metadata.tags[1]';
-
-      const collection = cluster.bucket('b').scope('s').collection('c');
-      // await collection.mutateIn('book::001').arrayInsert('');
-    });
+    await collection.mutateIn('book::001').arrayInsert('metadata.tags[1]', 'hi');
+    // @ts-expect-error cannot arrayInsert at [-1]
+    await collection.mutateIn('book::001').arrayInsert('metadata.tags[-1]', 'hi');
   });
 });

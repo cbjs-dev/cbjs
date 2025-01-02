@@ -30,7 +30,7 @@ import {
   IsTailStatic,
   RestElement,
 } from './array-utils.types.js';
-import { OptionalKeys } from './misc-utils.types.js';
+import { OptionalKeys, SaveIdentity } from './misc-utils.types.js';
 import { IsTemplateString } from './string-utils.types.js';
 
 // There is no 'arrayAddUnique' because it's the same as 'arrayAppend'.
@@ -164,6 +164,12 @@ type OptionRecordFriendlyPlaceholder<T> =
   '#'
 ;
 
+type TPTK = PathToKey<OptionsFriendly, boolean, string[], 'tags', number>
+//    ^?
+
+type TPTKCase = PathToKey<OptionsFriendly, boolean, TestDoc, '', 'tags'>
+//    ^?
+
 // prettier-ignore
 type PathToKey<Options, FriendlyPath, T, PathTo extends string, Key> =
   T extends ReadonlyArray<unknown> ?
@@ -243,10 +249,18 @@ export type Get<T, K> =
 export type DocumentCodeCompletion<Op extends KvOperation, Options, T> =
   T extends object ?
     IsFuzzyDocument<T> extends false ?
-      BuildBag<Op, Options, boolean, '', T, [CodeCompletion<Op, boolean, Options, never, '', T>]>[number] :
+      BuildBag<Op, Options, boolean, '', T, [CodeCompletion<Op, boolean, never, never, '', T>]>[number] :
     FuzzyCC :
   never
 ;
+
+type TCC = CCArrayInsert<boolean, 'tags', string[]>;
+//   ^?
+
+type OptionsFriendly = { codeCompletion: { array: 'friendly'; record: 'friendly' } };
+type TestDoc = string[];
+type TBB = BuildBag<'arrayInsert', OptionsFriendly, boolean, '', TestDoc, [CodeCompletion<'arrayInsert', boolean, never, never, '', TestDoc>]>;
+//   ^?
 
 // prettier-ignore
 type BuildBag<Op extends KvOperation, Options, FriendlyPath, PathToDoc, Doc, UnionStack extends ReadonlyArray<unknown>> =
@@ -258,6 +272,13 @@ type BuildBag<Op extends KvOperation, Options, FriendlyPath, PathToDoc, Doc, Uni
         Get<Doc, Key> extends infer SubDoc ?
           PathToKey<Options, FriendlyPath, Doc, PathToDoc, Key> extends infer PTK ?
             PTK extends [infer BuildFriendly, infer Path] ?
+            // Tests
+            // [
+            //   [BuildFriendly, Doc, PathToDoc, Key],
+            //   BuildBag<Op, Options, BuildFriendly, Path, SubDoc, []>
+            // ] :
+            // Tests-end
+              
               BuildBag<Op, Options, BuildFriendly, Path, SubDoc, [
                 ...UnionStack,
                 CodeCompletion<Op, BuildFriendly, Doc, Key, Path, SubDoc>
@@ -354,7 +375,16 @@ export type CodeCompletion<Op extends KvOperation, BuildFriendly, ParentDoc, Key
     CCArrayPrepend<BuildFriendly, PathToDoc, Extract<Doc, ReadonlyArray<unknown>>> :
 
   Op extends 'arrayInsert' ?
-    CCArrayInsert<BuildFriendly, PathToDoc, Extract<Doc, ReadonlyArray<unknown>>> :
+    // Extract<Doc, ReadonlyArray<unknown>> extends infer ArrDoc ?
+    //   IsNever<ArrDoc> extends false ?
+    //     [BuildFriendly, PathToDoc, ArrDoc] :
+    //   never :
+    // never :
+    // ['arrayInsert', BuildFriendly] :
+    // ['CC', BuildFriendly] :
+    // ['CC', BuildFriendly, PathToDoc, Doc] :
+    // TODO fix: BuildFriendly is true/false when evaluating the subdoc, so Doc is `string` and not `string[]`
+    CCArrayInsert<BuildFriendly, PathToDoc, Extract<ParentDoc, ReadonlyArray<unknown>>> :
 
   never
 ;
@@ -404,20 +434,21 @@ type CCArrayPrepend<BuildFriendly, Path, T extends ReadonlyArray<unknown>> =
 ;
 
 // prettier-ignore
-type CCArrayInsert<BuildFriendly, Path, T> =
-  T extends ReadonlyArray<unknown> ?
-    Path extends string ?
-      ArrayInfo<T> extends infer Info extends ArrayInfoShape ?
+type CCArrayInsert<BuildFriendly, PathToDoc, ParentDoc> =
+  ParentDoc extends ReadonlyArray<unknown> ?
+    PathToDoc extends `${string}[${infer Index extends number}]` ?
+      ArrayInfo<ParentDoc> extends infer Info extends ArrayInfoShape ?
         Info['IsFullyStatic'] extends true ?
-          never :
-        ArrayKnownIndexes<T> extends infer IndexTuple ?
-          IndexTuple extends [infer Index extends number] ?
-            number extends Index ?
-              [BuildFriendly, `${Path}[${Index}]`, Info['RestElement']] :
-            [BuildFriendly, `${Path}[${Index}]`, IfStrict<ArrayHasAscendingInheritance<ArraySlice<T, Index>>, Exclude<T[Index], undefined>>] :
-          never :
-        never :
       never :
+        Index extends -1 ?
+          // -1 is an invalid path for arrayInsert
+          [BuildFriendly, PathToDoc, never] :
+        number extends Index ?
+          [BuildFriendly, PathToDoc, Info['RestElement']] :
+        [BuildFriendly, PathToDoc, IfStrict<ArrayHasAscendingInheritance<ArraySlice<ParentDoc, Index>>, Exclude<ParentDoc[Index], undefined>>] :
+      never :
+    PathToDoc extends `${string}[]` ?
+      [BuildFriendly, PathToDoc, never] :
     never :
   never
 ;

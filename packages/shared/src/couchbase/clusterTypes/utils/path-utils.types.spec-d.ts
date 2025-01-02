@@ -341,12 +341,12 @@ describe('ArrayPrependCodeCompletion', () => {
 describe('ArrayInsertCodeCompletion', () => {
   test('array', () => {
     type Test = DocumentCodeCompletionTest<'arrayInsert', NoOptions, string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[`[${number}]`, string]>();
+    expectTypeOf<Test>().toEqualTypeOf<['[-1]', never] | [`[${number}]`, string]>();
   });
 
   test('readonly array', () => {
     type Test = DocumentCodeCompletionTest<'arrayInsert', NoOptions, readonly string[]>;
-    expectTypeOf<Test>().toEqualTypeOf<[`[${number}]`, string]>();
+    expectTypeOf<Test>().toEqualTypeOf<['[-1]', never] | [`[${number}]`, string]>();
   });
 
   test('tuple', () => {
@@ -360,7 +360,7 @@ describe('ArrayInsertCodeCompletion', () => {
       NoOptions,
       [...number[], string]
     >;
-    expectTypeOf<Test>().toEqualTypeOf<[`[${number}]`, number]>();
+    expectTypeOf<Test>().toEqualTypeOf<['[-1]', never] | [`[${number}]`, number]>();
   });
 
   test('tuple with variadic head same type', () => {
@@ -369,7 +369,7 @@ describe('ArrayInsertCodeCompletion', () => {
       NoOptions,
       [...string[], string]
     >;
-    expectTypeOf<Test>().toEqualTypeOf<[`[${number}]`, string]>();
+    expectTypeOf<Test>().toEqualTypeOf<['[-1]', never] | [`[${number}]`, string]>();
   });
 
   test('tuple with variadic tail', () => {
@@ -378,7 +378,9 @@ describe('ArrayInsertCodeCompletion', () => {
       NoOptions,
       [string, ...number[]]
     >;
-    expectTypeOf<Test>().toEqualTypeOf<[`[0]`, never] | [`[${number}]`, number]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['[-1]', never] | [`[0]`, never] | [`[${number}]`, number]
+    >();
   });
 
   test('tuple with variadic tail same type', () => {
@@ -387,12 +389,16 @@ describe('ArrayInsertCodeCompletion', () => {
       NoOptions,
       [string, ...string[]]
     >;
-    expectTypeOf<Test>().toEqualTypeOf<[`[0]`, string] | [`[${number}]`, string]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['[-1]', never] | [`[0]`, string] | [`[${number}]`, string]
+    >();
   });
 
   test('tuple with optional element', () => {
     type Test = DocumentCodeCompletionTest<'arrayInsert', NoOptions, [string, number?]>;
-    expectTypeOf<Test>().toEqualTypeOf<['[0]', never] | ['[1]', number]>();
+    expectTypeOf<Test>().toEqualTypeOf<
+      ['[-1]', never] | ['[0]', never] | ['[1]', number]
+    >();
   });
 });
 
@@ -850,7 +856,9 @@ describe('DocumentCodeCompletionTest', () => {
 
     expectTypeOf<Test['arrayPrepend']>().toEqualTypeOf<['', string]>();
 
-    expectTypeOf<Test['arrayInsert']>().toEqualTypeOf<[`[${number}]`, string]>();
+    expectTypeOf<Test['arrayInsert']>().toEqualTypeOf<
+      [`[-1]`, never] | [`[${number}]`, string]
+    >();
   });
 
   test('root object', () => {
@@ -1030,7 +1038,10 @@ describe('DocumentCodeCompletionTest', () => {
 
     type TestArrayInsert = DocumentCodeCompletionTest<'arrayInsert', NoOptions, TestDoc>;
     expectTypeOf<TestArrayInsert>().toEqualTypeOf<
-      [`metadata.tags[${number}]`, string] | [`authors[${number}]`, string]
+      | [`metadata.tags[${number}]`, string]
+      | [`metadata.tags[-1]`, never]
+      | [`authors[${number}]`, string]
+      | [`authors[-1]`, never]
     >();
 
     type TestBinary = DocumentCodeCompletionTest<'binary', NoOptions, TestDoc>;
@@ -1084,6 +1095,18 @@ describe('DocumentCodeCompletionTest', () => {
       | [`events.propB`, { status: string }]
       | [`events.propB.status`, string]
     >();
+  });
+});
+
+describe('OpCodeCompletionPath', () => {
+  test('properties of all union members are present', () => {
+    type Test = OpCodeCompletionPath<
+      'get',
+      NonNullable<unknown>,
+      { title: string } | { attempt: number }
+    >;
+
+    expectTypeOf<Test>().toEqualTypeOf<'' | 'title' | 'attempt'>();
   });
 });
 

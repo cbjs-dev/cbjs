@@ -22,6 +22,7 @@ import {
   BuildReadonlyArrayProperties,
   BuildReadonlyProperties,
   MakeTestPaths,
+  SubDocument,
   TestDocRequiredProperties,
 } from '@cbjsdev/shared';
 
@@ -224,22 +225,20 @@ describe('mutateIn upsert', async () => {
       };
     };
 
+    type UnionMemberA = { title: string };
+    type UnionMemberB = { attempt: number };
+    type UnionDoc = UnionMemberA | UnionMemberB;
+
     type UserClusterTypes = {
       test: {
         _default: {
-          _default: [DocDef<MonumentId, Monument>];
+          _default: [DocDef<MonumentId, Monument>, DocDef<`union__${string}`, UnionDoc>];
         };
       };
     };
 
     const cluster = await connect<UserClusterTypes>('...');
     const collection = cluster.bucket('test').defaultCollection();
-
-    type T = CollectionDocDefMatchingKey<typeof collection, 'monument::001'>;
-    //   ^?
-
-    const r = void collection.mutateIn('monument::001');
-    //    ^?
 
     void collection
       .mutateIn('monument::001')
@@ -264,5 +263,13 @@ describe('mutateIn upsert', async () => {
       // @ts-expect-error invalid path - cannot upsert at an array index
       .upsert('historicalReferences.persons[0]', { name: 'John Doe' })
       .upsert('historicalReferences.persons[0].surname', 'The Dude');
+
+    type TU = SubDocument<UnionDoc, 'attempt'>;
+
+    void collection
+      .mutateIn('union__abc')
+      // @ts-expect-error invalid path
+      .upsert('description', 'hi')
+      .upsert('attempt', 1);
   });
 });
