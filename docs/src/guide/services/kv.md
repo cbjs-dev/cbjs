@@ -99,23 +99,63 @@ If you have opt-in for the [cluster types](/guide/cluster-types) on the targeted
 
 Cbjs introduce the ability to chain sub-doc operations. Using this syntax also enables path autocompletion :
 
-```ts
-import { LookupInSpec } from '@cbjsdev/cbjs';
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
 
-const lookups = collection
-  .lookupIn('docKey')
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [
+        DocDef<`author::${string}`, { firstname: string; lastname: string }>,
+        DocDef<`book::${string}`, { title: string; authors: string[]; metadata: { tags: string[] }; }>,
+      ]
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const { content: [
+  { value: title },
+  { value: authors },
+]} = await collection
+  .lookupIn('book::001')
   .get('title')
+  .get('authors')
+```
 
-if (withTags) {
-  lookups.get('metadata.tags');
-}
+If you are only interested in the values of the lookup, you can use the  `.values()` method :
 
-return await lookups;
+```ts twoslash
+import { connect, DocDef } from '@cbjsdev/cbjs';
+
+type MyClusterTypes = {
+  store: {
+    library: {
+      books: [
+        DocDef<`author::${string}`, { firstname: string; lastname: string }>,
+        DocDef<`book::${string}`, { title: string; authors: string[] }>,
+      ]
+    };
+  };
+};
+
+const cluster = await connect<MyClusterTypes>('...');
+const collection = cluster.bucket('store').scope('library').collection('books');
+
+// ---cut-before---
+const [title, authors] = await collection
+  .lookupIn('book::001')
+  .get('title')
+  .get('authors')
+  .values()
 ```
 
 > [!IMPORTANT]
 > When using the classic `lookupIn` syntax, the request is executed immediately, regardless of it being awaited or not.
-> A chained lookupIn will only perform the request once awaited `await lookups` or `.then()` is called on it.
+> A chained lookupIn will only perform the request once awaited `await lookups`, `execute()` or `.then()` is called on it.
 
 ### Error handling
 
@@ -256,43 +296,6 @@ return await mutations;
 > [!IMPORTANT]
 > When using the classic `mutateIn` syntax, the request is executed immediately, regardless of it being awaited or not.
 > A chained mutateIn will only perform the request once awaited `await mutations` or `.then()` is called on it.
-
-Cbjs also introduce two new methods `insertIntoRecord` and `removeFromRecord` :
-
-```ts twoslash
-import { connect, DocDef } from '@cbjsdev/cbjs';
-
-type MyClusterTypes = {
-  store: {
-    library: {
-      books: [
-        DocDef<`book::${string}`, { title: string; editions: Record<string, { year: number; sales?: number }> }>,
-      ]
-    };
-  };
-};
-
-const cluster = await connect<MyClusterTypes>('...');
-const collection = cluster.bucket('store').scope('library').collection('books');
-
-// @errors: 2339 2345
-// ---cut-before---
-// Let's say we have defined a `Book` document as follow :
-type Book = { 
-  title: string; 
-  editions: Record<string, { year: number; sales?: number }> 
-}
-
-const result = await collection
-  .mutateIn('book::001')
-  // No error, yet it should show an error, because `year` is not an optional property
-  .insert('editions.001.year', 2000)
-
-  // Show an error, as we would expect
-  .insertIntoRecord('editions.edition::001', 'year', 2000)
-  .removeFromRecord('editions.edition::000', 'year')
-;
-```
 
 ### Error handling
 
