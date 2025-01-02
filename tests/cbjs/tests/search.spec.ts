@@ -22,7 +22,7 @@ import {
   SearchIndexNotFoundError,
   SearchQuery,
 } from '@cbjsdev/cbjs';
-import { ServerFeatures } from '@cbjsdev/http-client';
+import { ServerFeatures, waitForCollection } from '@cbjsdev/http-client';
 import { invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
@@ -122,6 +122,7 @@ describe
       'should see test data correctly',
       { timeout: 60_000 },
       async ({
+        apiConfig,
         serverTestContext,
         useCollection,
         useSearchIndex,
@@ -147,22 +148,25 @@ describe
           awaitMutations: true,
         });
 
-        await waitFor(async () => {
-          const result = await serverTestContext.cluster.searchQuery(
-            indexName,
-            SearchQuery.term(sampleData.testUid).field('testUid'),
-            { explain: true, fields: ['name'] }
-          );
+        await waitFor(
+          async () => {
+            const result = await serverTestContext.cluster.searchQuery(
+              indexName,
+              SearchQuery.term(sampleData.testUid).field('testUid'),
+              { explain: true, fields: ['name'] }
+            );
 
-          expect(result.rows).toBeInstanceOf(Array);
-          expect(result.rows).toHaveLength(sampleData.sampleSize);
+            expect(result.rows).toBeInstanceOf(Array);
+            expect(result.rows).toHaveLength(sampleData.sampleSize);
 
-          result.rows.forEach((row) => {
-            expect(row.index).toBeTypeOf('string');
-            expect(row.id).toBeTypeOf('string');
-            expect(row.score).toBeTypeOf('number');
-          });
-        });
+            result.rows.forEach((row) => {
+              expect(row.index).toBeTypeOf('string');
+              expect(row.id).toBeTypeOf('string');
+              expect(row.score).toBeTypeOf('number');
+            });
+          },
+          { timeout: 20_000, retryInterval: 100 }
+        );
       }
     );
 
@@ -328,47 +332,54 @@ describe
       }
     });
 
-    test('should disable scoring', async ({
-      serverTestContext,
-      expect,
-      useCollection,
-      useSearchIndex,
-      useSampleData,
-    }) => {
-      expect.hasAssertions();
+    test(
+      'should disable scoring',
+      { timeout: 60_000 },
+      async ({
+        serverTestContext,
+        expect,
+        useCollection,
+        useSearchIndex,
+        useSampleData,
+      }) => {
+        expect.hasAssertions();
 
-      const collectionName = await useCollection();
-      await sleep(2_000);
+        const collectionName = await useCollection();
+        await sleep(2_000);
 
-      const collection = serverTestContext.bucket.collection(collectionName);
+        const collection = serverTestContext.bucket.collection(collectionName);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { name, ...indexConfig } = getSearchIndexConfig(
-        'willBeRemovedAndRandomized',
-        collection.getKeyspace()
-      );
-
-      const sampleData = await useSampleData(collection);
-      const indexName = await useSearchIndex(indexConfig, {
-        waitSearchIndexTimeout: 55_000,
-        awaitMutations: true,
-      });
-
-      await waitFor(async () => {
-        const result = await serverTestContext.cluster.searchQuery(
-          indexName,
-          SearchQuery.term(sampleData.testUid).field('testUid'),
-          { disableScoring: true }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { name, ...indexConfig } = getSearchIndexConfig(
+          'willBeRemovedAndRandomized',
+          collection.getKeyspace()
         );
 
-        expect(result.rows).toBeInstanceOf(Array);
-        expect(result.rows).toHaveLength(sampleData.sampleSize);
-
-        result.rows.forEach((row) => {
-          expect(row.index).toBeTypeOf('string');
-          expect(row.id).toBeTypeOf('string');
-          expect(row.score).toEqual(0);
+        const sampleData = await useSampleData(collection);
+        const indexName = await useSearchIndex(indexConfig, {
+          waitSearchIndexTimeout: 55_000,
+          awaitMutations: true,
         });
-      });
-    });
+
+        await waitFor(
+          async () => {
+            const result = await serverTestContext.cluster.searchQuery(
+              indexName,
+              SearchQuery.term(sampleData.testUid).field('testUid'),
+              { disableScoring: true }
+            );
+
+            expect(result.rows).toBeInstanceOf(Array);
+            expect(result.rows).toHaveLength(sampleData.sampleSize);
+
+            result.rows.forEach((row) => {
+              expect(row.index).toBeTypeOf('string');
+              expect(row.id).toBeTypeOf('string');
+              expect(row.score).toEqual(0);
+            });
+          },
+          { timeout: 20_000 }
+        );
+      }
+    );
   });
