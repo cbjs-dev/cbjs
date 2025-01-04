@@ -15,11 +15,7 @@
  */
 import { describe } from 'vitest';
 
-import {
-  getQueryIndexStatus,
-  waitForCollection,
-  waitForQueryIndexer,
-} from '@cbjsdev/http-client';
+import { getQueryIndexStatus, waitForCollection } from '@cbjsdev/http-client';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('getQueryIndexStatus', { timeout: 40_000, retry: 2 }, async () => {
