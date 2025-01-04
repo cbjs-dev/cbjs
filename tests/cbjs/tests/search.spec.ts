@@ -61,7 +61,12 @@ describe
         collection,
       });
 
-      await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
+      await waitFor(
+        async () => {
+          await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
+        },
+        { timeout: 21_000, retryInterval: 5_000 }
+      );
     });
 
     test(
