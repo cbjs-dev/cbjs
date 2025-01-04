@@ -267,6 +267,8 @@ describe
           { waitSearchIndexTimeout: 55_000 }
         );
 
+        await sleep(5_000);
+
         const result = await serverTestContext.cluster.searchQuery(
           searchIndexName,
           new SearchQuery({
