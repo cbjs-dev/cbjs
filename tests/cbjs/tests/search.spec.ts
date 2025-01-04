@@ -23,7 +23,7 @@ import {
   SearchQuery,
 } from '@cbjsdev/cbjs';
 import { ServerFeatures, waitForCollection } from '@cbjsdev/http-client';
-import { invariant, sleep, waitFor } from '@cbjsdev/shared';
+import { getRandomId, invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig.js';
@@ -38,21 +38,28 @@ describe
     });
 
     test('should successfully create & drop an index', async ({
+      apiConfig,
       serverTestContext,
       useSearchIndex,
       useCollection,
     }) => {
-      const collection = await useCollection();
-      await sleep(2_000);
+      const collection = await useCollection({
+        bucketName: serverTestContext.bucket.name,
+        scopeName: serverTestContext.scope.name,
+      });
+
+      await waitForCollection(
+        apiConfig,
+        serverTestContext.bucket.name,
+        serverTestContext.scope.name,
+        collection
+      );
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { name, ...indexConfig } = getSearchIndexConfig(
-        'willBeRemovedAndRandomized',
-        {
-          ...serverTestContext.getKeyspace(),
-          collection,
-        }
-      );
+      const { name, ...indexConfig } = getSearchIndexConfig(getRandomId(), {
+        ...serverTestContext.getKeyspace(),
+        collection,
+      });
 
       await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
     });
@@ -60,32 +67,57 @@ describe
     test(
       'should successfully get all indexes',
       { timeout: 30_000 },
-      async ({ serverTestContext, useCollection, useSearchIndex, expect }) => {
+      async ({ apiConfig, serverTestContext, useCollection, useSearchIndex, expect }) => {
+        expect.hasAssertions();
+
         const collection = await useCollection();
-        await sleep(2_000);
+        await waitForCollection(
+          apiConfig,
+          serverTestContext.bucket.name,
+          serverTestContext.scope.name,
+          collection
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { name, ...indexConfig } = getSearchIndexConfig(
-          'willBeRemovedAndRandomized',
-          {
-            ...serverTestContext.getKeyspace(),
-            collection,
-          }
-        );
-        const index0 = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
-        const index1 = await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
-        const indexes = await serverTestContext.cluster.searchIndexes().getAllIndexes();
+        const { name, ...indexConfig } = getSearchIndexConfig(getRandomId(), {
+          ...serverTestContext.getKeyspace(),
+          collection,
+        });
 
-        expect(indexes.length).toBeGreaterThanOrEqual(2);
-        expect(indexes).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              name: index0,
-            }),
-            expect.objectContaining({
-              name: index1,
-            }),
-          ])
+        let index0 = '';
+        let index1 = '';
+
+        await waitFor(
+          async () => {
+            index0 = await useSearchIndex(indexConfig, {
+              waitSearchIndexTimeout: 0,
+            });
+            index1 = await useSearchIndex(indexConfig, {
+              waitSearchIndexTimeout: 0,
+            });
+          },
+          { timeout: 21_000, retryInterval: 5_000 }
+        );
+
+        await waitFor(
+          async () => {
+            const indexes = await serverTestContext.cluster
+              .searchIndexes()
+              .getAllIndexes();
+
+            expect(indexes.length).toBeGreaterThanOrEqual(2);
+            expect(indexes).toEqual(
+              expect.arrayContaining([
+                expect.objectContaining({
+                  name: index0,
+                }),
+                expect.objectContaining({
+                  name: index1,
+                }),
+              ])
+            );
+          },
+          { retryInterval: 5_000 }
         );
       }
     );
@@ -93,27 +125,46 @@ describe
     test(
       'should successfully get an index',
       { timeout: 60_000 },
-      async ({ serverTestContext, useCollection, useSearchIndex, expect }) => {
+      async ({ apiConfig, serverTestContext, useCollection, useSearchIndex, expect }) => {
+        expect.hasAssertions();
+
         const collection = await useCollection();
-        await sleep(2_000);
+        await waitForCollection(
+          apiConfig,
+          serverTestContext.bucket.name,
+          serverTestContext.scope.name,
+          collection
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { name, ...indexConfig } = getSearchIndexConfig(
-          'willBeRemovedAndRandomized',
-          {
-            ...serverTestContext.getKeyspace(),
-            collection,
-          }
-        );
-        const indexName = await useSearchIndex(indexConfig, {
-          waitSearchIndexTimeout: 0,
+        const { name, ...indexConfig } = getSearchIndexConfig(getRandomId(), {
+          ...serverTestContext.getKeyspace(),
+          collection,
         });
-        const index = await serverTestContext.cluster.searchIndexes().getIndex(indexName);
 
-        expect(index).toEqual(
-          expect.objectContaining({
-            name: indexName,
-          })
+        let indexName = '';
+        await waitFor(
+          async () => {
+            indexName = await useSearchIndex(indexConfig, {
+              waitSearchIndexTimeout: 0,
+            });
+          },
+          { timeout: 21_000, retryInterval: 5_000 }
+        );
+
+        await waitFor(
+          async () => {
+            const index = await serverTestContext.cluster
+              .searchIndexes()
+              .getIndex(indexName);
+
+            expect(index).toEqual(
+              expect.objectContaining({
+                name: indexName,
+              })
+            );
+          },
+          { retryInterval: 5_000 }
         );
       }
     );
@@ -132,21 +183,33 @@ describe
         expect.hasAssertions();
 
         const collectionName = await useCollection();
-        await sleep(2_000);
+        await waitForCollection(
+          apiConfig,
+          serverTestContext.bucket.name,
+          serverTestContext.scope.name,
+          collectionName
+        );
 
         const collection = serverTestContext.bucket.collection(collectionName);
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { name, ...indexConfig } = getSearchIndexConfig(
-          'willBeRemovedAndRandomized',
+          getRandomId(),
           collection.getKeyspace()
         );
 
         const sampleData = await useSampleData(collection);
-        const indexName = await useSearchIndex(indexConfig, {
-          waitSearchIndexTimeout: 55_000,
-          awaitMutations: true,
-        });
+
+        let indexName = '';
+        await waitFor(
+          async () => {
+            indexName = await useSearchIndex(indexConfig, {
+              waitSearchIndexTimeout: 55_000,
+              awaitMutations: true,
+            });
+          },
+          { timeout: 21_000, retryInterval: 5_000 }
+        );
 
         await waitFor(
           async () => {
@@ -156,7 +219,6 @@ describe
               { explain: true, fields: ['name'] }
             );
 
-            expect(result.rows).toBeInstanceOf(Array);
             expect(result.rows).toHaveLength(sampleData.sampleSize);
 
             result.rows.forEach((row) => {
@@ -174,18 +236,26 @@ describe
       'should include the locations and fragments',
       { timeout: 60_000 },
       async ({
+        apiConfig,
         serverTestContext,
         useDocumentKey,
         useCollection,
         useSearchIndex,
         expect,
       }) => {
-        const testDocKey = useDocumentKey();
+        expect.hasAssertions();
+
         const collectionName = await useCollection();
-        await sleep(2_000);
+        await waitForCollection(
+          apiConfig,
+          serverTestContext.bucket.name,
+          serverTestContext.scope.name,
+          collectionName
+        );
 
         const collection = serverTestContext.bucket.collection(collectionName);
 
+        const testDocKey = useDocumentKey();
         const testDocBody = {
           title: 'Couchbase',
           tagline: 'No Equal - The Cloud database for modern applications',
@@ -195,127 +265,139 @@ describe
 
         await collection.insert(testDocKey, testDocBody);
 
-        const searchIndexName = await useSearchIndex(
-          {
-            type: 'fulltext-index',
-            sourceType: 'couchbase',
-            sourceName: serverTestContext.bucket.name,
-            params: {
-              doc_config: {
-                docid_prefix_delim: '',
-                docid_regexp: '',
-                mode: 'scope.collection.type_field',
-                type_field: 'type',
-              },
-              mapping: {
-                analysis: {},
-                default_analyzer: 'en',
-                default_datetime_parser: 'dateTimeOptional',
-                default_field: '_all',
-                default_mapping: {
-                  dynamic: false,
-                  enabled: false,
-                },
-                default_type: '_default',
-                docvalues_dynamic: false,
-                index_dynamic: false,
-                store_dynamic: false,
-                type_field: '_type',
-                types: {
-                  [`${collection.scope.name}.${collection.name}`]: {
-                    dynamic: false,
-                    enabled: true,
-                    properties: {
-                      title: {
+        let searchIndexName = '';
+
+        await waitFor(
+          async () => {
+            searchIndexName = await useSearchIndex(
+              {
+                type: 'fulltext-index',
+                sourceType: 'couchbase',
+                sourceName: serverTestContext.bucket.name,
+                params: {
+                  doc_config: {
+                    docid_prefix_delim: '',
+                    docid_regexp: '',
+                    mode: 'scope.collection.type_field',
+                    type_field: 'type',
+                  },
+                  mapping: {
+                    analysis: {},
+                    default_analyzer: 'en',
+                    default_datetime_parser: 'dateTimeOptional',
+                    default_field: '_all',
+                    default_mapping: {
+                      dynamic: false,
+                      enabled: false,
+                    },
+                    default_type: '_default',
+                    docvalues_dynamic: false,
+                    index_dynamic: false,
+                    store_dynamic: false,
+                    type_field: '_type',
+                    types: {
+                      [`${collection.scope.name}.${collection.name}`]: {
                         dynamic: false,
                         enabled: true,
-                        fields: [
-                          {
-                            include_term_vectors: true,
-                            index: true,
-                            name: 'title',
-                            store: true,
-                            type: 'text',
+                        properties: {
+                          title: {
+                            dynamic: false,
+                            enabled: true,
+                            fields: [
+                              {
+                                include_term_vectors: true,
+                                index: true,
+                                name: 'title',
+                                store: true,
+                                type: 'text',
+                              },
+                            ],
                           },
-                        ],
-                      },
-                      description: {
-                        dynamic: false,
-                        enabled: true,
-                        fields: [
-                          {
-                            include_in_all: true,
-                            include_term_vectors: true,
-                            index: true,
-                            name: 'description',
-                            store: true,
-                            type: 'text',
+                          description: {
+                            dynamic: false,
+                            enabled: true,
+                            fields: [
+                              {
+                                include_in_all: true,
+                                include_term_vectors: true,
+                                index: true,
+                                name: 'description',
+                                store: true,
+                                type: 'text',
+                              },
+                            ],
                           },
-                        ],
+                        },
                       },
                     },
                   },
+                  store: {
+                    indexType: 'scorch',
+                    segmentVersion: 15,
+                  },
                 },
+                sourceParams: {},
               },
-              store: {
-                indexType: 'scorch',
-                segmentVersion: 15,
-              },
-            },
-            sourceParams: {},
+              { waitSearchIndexTimeout: 55_000 }
+            );
           },
-          { waitSearchIndexTimeout: 55_000 }
+          { timeout: 21_000, retryInterval: 5_000 }
         );
 
-        await sleep(5_000);
-
-        const result = await serverTestContext.cluster.searchQuery(
-          searchIndexName,
-          new SearchQuery({
-            match: 'database scale',
-            fields: ['title', 'description'],
-            analyzer: 'en',
-            operator: 'or',
-          }),
-          {
-            includeLocations: true,
-            fields: ['title', 'description'],
-            highlight: {
-              style: HighlightStyle.HTML,
-            },
-          }
-        );
-
-        result.rows.forEach((row) => {
-          expect(row).toHaveProperty('index');
-          expect(row).toHaveProperty('id');
-          expect(row).toHaveProperty('score');
-          expect(row).toHaveProperty('explanation', undefined);
-
-          expect(row.locations).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                field: 'description',
-                term: 'scale',
-                position: 11,
-                start_offset: 70,
-                end_offset: 75,
-                array_positions: undefined,
+        await waitFor(
+          async () => {
+            const result = await serverTestContext.cluster.searchQuery(
+              searchIndexName,
+              new SearchQuery({
+                match: 'database scale',
+                fields: ['title', 'description'],
+                analyzer: 'en',
+                operator: 'or',
               }),
-            ])
-          );
+              {
+                includeLocations: true,
+                fields: ['title', 'description'],
+                highlight: {
+                  style: HighlightStyle.HTML,
+                },
+              }
+            );
 
-          expect(row.fields).toEqual({
-            title: testDocBody.title,
-            description: testDocBody.description,
-          });
+            expect(result.rows).toHaveLength(1);
 
-          expect(row.fragments).toEqual({
-            description: [
-              'Couchbase is a NoSQL, distributed <mark>database</mark> focused on performances at <mark>scale</mark>.',
-            ],
-          });
-        });
+            result.rows.forEach((row) => {
+              expect(row).toHaveProperty('index');
+              expect(row).toHaveProperty('id');
+              expect(row).toHaveProperty('score');
+              expect(row).toHaveProperty('explanation', undefined);
+
+              expect(row.locations).toEqual(
+                expect.arrayContaining([
+                  expect.objectContaining({
+                    field: 'description',
+                    term: 'scale',
+                    position: 11,
+                    start_offset: 70,
+                    end_offset: 75,
+                    array_positions: undefined,
+                  }),
+                ])
+              );
+
+              expect(row.fields).toEqual({
+                title: testDocBody.title,
+                description: testDocBody.description,
+              });
+
+              expect(row.fragments).toEqual({
+                description: [
+                  'Couchbase is a NoSQL, distributed <mark>database</mark> focused on performances at <mark>scale</mark>.',
+                ],
+              });
+            });
+          },
+          { timeout: 20_000 }
+        );
       }
     );
 
@@ -338,6 +420,7 @@ describe
       'should disable scoring',
       { timeout: 60_000 },
       async ({
+        apiConfig,
         serverTestContext,
         expect,
         useCollection,
@@ -347,21 +430,33 @@ describe
         expect.hasAssertions();
 
         const collectionName = await useCollection();
-        await sleep(2_000);
+        await waitForCollection(
+          apiConfig,
+          serverTestContext.bucket.name,
+          serverTestContext.scope.name,
+          collectionName
+        );
 
         const collection = serverTestContext.bucket.collection(collectionName);
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { name, ...indexConfig } = getSearchIndexConfig(
-          'willBeRemovedAndRandomized',
+          getRandomId(),
           collection.getKeyspace()
         );
 
         const sampleData = await useSampleData(collection);
-        const indexName = await useSearchIndex(indexConfig, {
-          waitSearchIndexTimeout: 55_000,
-          awaitMutations: true,
-        });
+        let indexName = '';
+
+        await waitFor(
+          async () => {
+            indexName = await useSearchIndex(indexConfig, {
+              waitSearchIndexTimeout: 55_000,
+              awaitMutations: true,
+            });
+          },
+          { timeout: 21_000, retryInterval: 5_000 }
+        );
 
         await waitFor(
           async () => {
