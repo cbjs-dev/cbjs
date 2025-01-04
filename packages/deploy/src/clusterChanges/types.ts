@@ -164,6 +164,7 @@ export type CouchbaseClusterChangeCreateSearchIndex = {
    */
   name: string;
   configFn: CouchbaseClusterSearchIndexConfig;
+  config: ReturnType<CouchbaseClusterSearchIndexConfig>;
 };
 
 export type CouchbaseClusterChangeUpdateSearchIndex = {
@@ -175,6 +176,7 @@ export type CouchbaseClusterChangeUpdateSearchIndex = {
    */
   name: string;
   configFn: CouchbaseClusterSearchIndexConfig;
+  config: ReturnType<CouchbaseClusterSearchIndexConfig>;
 };
 
 export type CouchbaseClusterChangeDropSearchIndex = {

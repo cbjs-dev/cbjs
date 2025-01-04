@@ -637,13 +637,15 @@ async function applyUpsertSearchIndex(
     scopeName: change.scope,
   });
 
-  if (change.type === 'updateSearchIndex') {
-    const searchIndex = await cluster
-      .bucket(change.bucket)
-      .scope(change.scope)
-      .searchIndexes()
-      .getIndex(change.name);
+  const searchIndexes = await cluster
+    .bucket(change.bucket)
+    .scope(change.scope)
+    .searchIndexes()
+    .getAllIndexes();
 
+  const searchIndex = searchIndexes.find((s) => s.name === change.name);
+
+  if (searchIndex) {
     config.uuid = searchIndex.uuid;
     config.sourceUUID = searchIndex.sourceUuid;
   }

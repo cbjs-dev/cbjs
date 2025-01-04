@@ -579,6 +579,11 @@ describe('getCouchbaseClusterChanges', () => {
         bucket: 'bucket1',
         scope: 'scope1',
         configFn: searchIndexConfigFn1,
+        config: searchIndexConfigFn1({
+          sourceName: 'bucket1',
+          bucketName: 'bucket1',
+          scopeName: 'scope1',
+        }),
       },
     ]);
   });
@@ -628,6 +633,11 @@ describe('getCouchbaseClusterChanges', () => {
         bucket: 'bucket1',
         scope: 'scope1',
         configFn: searchIndexConfigFn2,
+        config: searchIndexConfigFn2({
+          sourceName: 'bucket1',
+          bucketName: 'bucket1',
+          scopeName: 'scope1',
+        }),
       },
     ]);
   });

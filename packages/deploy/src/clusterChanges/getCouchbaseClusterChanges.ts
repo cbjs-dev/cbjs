@@ -720,6 +720,11 @@ function getNewSearchIndexes(
         bucket: bucketName,
         scope: scopeName,
         configFn: requestedIndexFn,
+        config: requestedIndexFn({
+          sourceName: bucketName,
+          bucketName,
+          scopeName,
+        }),
       };
     });
 }
@@ -762,16 +767,17 @@ function getUpdatedSearchIndexes(
       invariant(currentIndexFn, 'Current index definition not found.');
       invariant(requestedIndexFn, 'Requested index definition not found.');
 
-      const indexHaveChanged =
+      const indexHasChanged =
         JSON.stringify(currentIndexConfig) !== JSON.stringify(requestedIndexConfig);
 
-      if (indexHaveChanged) {
+      if (indexHasChanged) {
         return {
           type: 'updateSearchIndex',
           name: b,
           bucket: bucketName,
           scope: scopeName,
           configFn: requestedIndexFn,
+          config: requestedIndexConfig,
         } satisfies CouchbaseClusterChangeUpdateSearchIndex;
       }
     })
