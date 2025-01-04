@@ -121,6 +121,7 @@ export type SearchIndexMappingFieldType =
   | 'vector';
 
 export type SearchIndexMappingFieldAnalyzer =
+  | (string & NonNullable<unknown>)
   | 'ar'
   | 'cjk'
   | 'ckb'
