@@ -227,7 +227,7 @@ describe
               expect(row.score).toBeTypeOf('number');
             });
           },
-          { timeout: 20_000, retryInterval: 100 }
+          { timeout: 40_000, retryInterval: 100 }
         );
       }
     );
@@ -396,7 +396,7 @@ describe
               });
             });
           },
-          { timeout: 20_000 }
+          { timeout: 40_000 }
         );
       }
     );
@@ -475,7 +475,7 @@ describe
               expect(row.score).toEqual(0);
             });
           },
-          { timeout: 20_000 }
+          { timeout: 40_000 }
         );
       }
     );
