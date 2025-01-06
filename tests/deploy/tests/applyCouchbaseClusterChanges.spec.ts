@@ -40,6 +40,10 @@ describe.runIf(
     ServerFeatures.ScopeSearchIndexManagement
   )
 )('applyCouchbaseClusterChanges', { sequential: true, timeout: 180_000 }, async () => {
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    await sleep(15_000);
+  }
+
   const bucketName = 'cbjs_' + getRandomId();
   const scopeName = getRandomId();
   const collectionName1 = getRandomId();
