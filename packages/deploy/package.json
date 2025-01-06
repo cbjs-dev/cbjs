@@ -37,7 +37,8 @@
   "dependencies": {
     "@cbjsdev/cbjs": "workspace:*",
     "@cbjsdev/http-client": "workspace:*",
-    "@cbjsdev/shared": "workspace:*"
+    "@cbjsdev/shared": "workspace:*",
+    "ts-retry-promise": "^0.8.0"
   },
   "devDependencies": {
     "typescript": "5.4.5",

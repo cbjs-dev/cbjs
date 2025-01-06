@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from 'vitest';
+import { afterAll, beforeAll, describe } from 'vitest';
 
 import {
   HighlightStyle,
@@ -22,86 +22,92 @@ import {
   SearchIndexNotFoundError,
   SearchQuery,
 } from '@cbjsdev/cbjs';
-import { ServerFeatures, waitForCollection } from '@cbjsdev/http-client';
+import {
+  ServerFeatures,
+  waitForCollection,
+  waitForSearchIndex,
+} from '@cbjsdev/http-client';
 import { getRandomId, invariant, waitFor } from '@cbjsdev/shared';
-import { createCouchbaseTest } from '@cbjsdev/vitest';
+import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjsdev/vitest';
 
 import { getSearchIndexConfig } from '../data/searchIndexConfig.js';
 import { useSampleData } from '../fixtures/useSampleData.js';
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
-describe
-  .runIf(serverSupportsFeatures(ServerFeatures.Search))
-  .shuffle('search', { retry: 2 }, async () => {
+describe.runIf(serverSupportsFeatures(ServerFeatures.Search))(
+  'search',
+  { sequential: true },
+  async () => {
+    const serverTestContext = getDefaultServerTestContext();
+
+    const collectionName = `cbjs_${getRandomId()}`;
+    const scopeName = `cbjs_${getRandomId()}`;
+    const indexName1 = `cbjs_${getRandomId()}`;
+
     const test = await createCouchbaseTest({
       useSampleData,
+      collectionName,
     });
 
-    test('should successfully create & drop an index', async ({
-      apiConfig,
-      serverTestContext,
-      useSearchIndex,
-      useCollection,
-    }) => {
-      const collection = await useCollection({
-        bucketName: serverTestContext.bucket.name,
-        scopeName: serverTestContext.scope.name,
-      });
+    beforeAll(async () => {
+      const apiConfig = await serverTestContext.getApiConfig();
+      await serverTestContext.bucket.collections().createScope(scopeName);
+      await serverTestContext.bucket
+        .collections()
+        .createCollection(collectionName, scopeName);
 
       await waitForCollection(
         apiConfig,
         serverTestContext.bucket.name,
-        serverTestContext.scope.name,
-        collection
-      );
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { name, ...indexConfig } = getSearchIndexConfig(getRandomId(), {
-        ...serverTestContext.getKeyspace(),
-        collection,
-      });
-
-      await waitFor(
-        async () => {
-          await useSearchIndex(indexConfig, { waitSearchIndexTimeout: 0 });
-        },
-        { timeout: 21_000, retryInterval: 5_000 }
+        scopeName,
+        collectionName
       );
     });
+
+    afterAll(async () => {
+      await serverTestContext.bucket.collections().dropScope(scopeName);
+    });
+
+    test(
+      'should successfully create an index',
+      { timeout: 25_000 },
+      async ({ apiConfig, serverTestContext }) => {
+        const indexConfig = getSearchIndexConfig(indexName1, {
+          bucket: serverTestContext.bucket.name,
+          scope: scopeName,
+          collection: collectionName,
+        });
+
+        await waitFor(
+          async () => {
+            await serverTestContext.cluster.searchIndexes().upsertIndex(indexConfig);
+          },
+          { timeout: 10_000, retryInterval: 1_000 }
+        );
+
+        await waitForSearchIndex(apiConfig, indexName1);
+      }
+    );
 
     test(
       'should successfully get all indexes',
       { timeout: 30_000 },
-      async ({ apiConfig, serverTestContext, useCollection, useSearchIndex, expect }) => {
+      async ({ apiConfig, serverTestContext, expect }) => {
         expect.hasAssertions();
 
-        const collection = await useCollection();
-        await waitForCollection(
-          apiConfig,
-          serverTestContext.bucket.name,
-          serverTestContext.scope.name,
-          collection
-        );
+        const indexName2 = `cbjs_${getRandomId()}`;
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { name, ...indexConfig } = getSearchIndexConfig(getRandomId(), {
-          ...serverTestContext.getKeyspace(),
-          collection,
+        const indexConfig = getSearchIndexConfig(indexName2, {
+          bucket: serverTestContext.bucket.name,
+          scope: scopeName,
+          collection: collectionName,
         });
-
-        let index0 = '';
-        let index1 = '';
 
         await waitFor(
           async () => {
-            index0 = await useSearchIndex(indexConfig, {
-              waitSearchIndexTimeout: 0,
-            });
-            index1 = await useSearchIndex(indexConfig, {
-              waitSearchIndexTimeout: 0,
-            });
+            await serverTestContext.cluster.searchIndexes().upsertIndex(indexConfig);
           },
-          { timeout: 21_000, retryInterval: 5_000 }
+          { timeout: 10_000, retryInterval: 1_000 }
         );
 
         await waitFor(
@@ -110,62 +116,40 @@ describe
               .searchIndexes()
               .getAllIndexes();
 
-            expect(indexes.length).toBeGreaterThanOrEqual(2);
             expect(indexes).toEqual(
               expect.arrayContaining([
                 expect.objectContaining({
-                  name: index0,
+                  name: indexName1,
                 }),
                 expect.objectContaining({
-                  name: index1,
+                  name: indexName2,
                 }),
               ])
             );
+            expect(indexes.length).toBeGreaterThanOrEqual(2);
           },
           { retryInterval: 5_000 }
         );
+
+        await serverTestContext.cluster.searchIndexes().dropIndex(indexName2);
       }
     );
 
     test(
       'should successfully get an index',
       { timeout: 60_000 },
-      async ({ apiConfig, serverTestContext, useCollection, useSearchIndex, expect }) => {
+      async ({ serverTestContext, expect }) => {
         expect.hasAssertions();
-
-        const collection = await useCollection();
-        await waitForCollection(
-          apiConfig,
-          serverTestContext.bucket.name,
-          serverTestContext.scope.name,
-          collection
-        );
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { name, ...indexConfig } = getSearchIndexConfig(getRandomId(), {
-          ...serverTestContext.getKeyspace(),
-          collection,
-        });
-
-        let indexName = '';
-        await waitFor(
-          async () => {
-            indexName = await useSearchIndex(indexConfig, {
-              waitSearchIndexTimeout: 0,
-            });
-          },
-          { timeout: 21_000, retryInterval: 5_000 }
-        );
 
         await waitFor(
           async () => {
             const index = await serverTestContext.cluster
               .searchIndexes()
-              .getIndex(indexName);
+              .getIndex(indexName1);
 
             expect(index).toEqual(
               expect.objectContaining({
-                name: indexName,
+                name: indexName1,
               })
             );
           },
@@ -177,49 +161,19 @@ describe
     test(
       'should see test data correctly',
       { timeout: 60_000 },
-      async ({
-        apiConfig,
-        serverTestContext,
-        useCollection,
-        useSearchIndex,
-        useSampleData,
-        expect,
-      }) => {
+      async ({ serverTestContext, useSampleData, expect }) => {
         expect.hasAssertions();
 
-        const collectionName = await useCollection();
-        await waitForCollection(
-          apiConfig,
-          serverTestContext.bucket.name,
-          serverTestContext.scope.name,
-          collectionName
-        );
-
-        const collection = serverTestContext.bucket.collection(collectionName);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { name, ...indexConfig } = getSearchIndexConfig(
-          getRandomId(),
-          collection.getKeyspace()
-        );
+        const collection = serverTestContext.bucket
+          .scope(scopeName)
+          .collection(collectionName);
 
         const sampleData = await useSampleData(collection);
-
-        let indexName = '';
-        await waitFor(
-          async () => {
-            indexName = await useSearchIndex(indexConfig, {
-              waitSearchIndexTimeout: 55_000,
-              awaitMutations: true,
-            });
-          },
-          { timeout: 21_000, retryInterval: 5_000 }
-        );
 
         await waitFor(
           async () => {
             const result = await serverTestContext.cluster.searchQuery(
-              indexName,
+              indexName1,
               SearchQuery.term(sampleData.testUid).field('testUid'),
               { explain: true, fields: ['name'] }
             );
@@ -240,25 +194,12 @@ describe
     test(
       'should include the locations and fragments',
       { timeout: 60_000 },
-      async ({
-        apiConfig,
-        serverTestContext,
-        useDocumentKey,
-        useCollection,
-        useSearchIndex,
-        expect,
-      }) => {
+      async ({ serverTestContext, useDocumentKey, useSearchIndex, expect }) => {
         expect.hasAssertions();
 
-        const collectionName = await useCollection();
-        await waitForCollection(
-          apiConfig,
-          serverTestContext.bucket.name,
-          serverTestContext.scope.name,
-          collectionName
-        );
-
-        const collection = serverTestContext.bucket.collection(collectionName);
+        const collection = serverTestContext.bucket
+          .scope(scopeName)
+          .collection(collectionName);
 
         const testDocKey = useDocumentKey();
         const testDocBody = {
@@ -434,39 +375,16 @@ describe
       }) => {
         expect.hasAssertions();
 
-        const collectionName = await useCollection();
-        await waitForCollection(
-          apiConfig,
-          serverTestContext.bucket.name,
-          serverTestContext.scope.name,
-          collectionName
-        );
-
-        const collection = serverTestContext.bucket.collection(collectionName);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { name, ...indexConfig } = getSearchIndexConfig(
-          getRandomId(),
-          collection.getKeyspace()
-        );
+        const collection = serverTestContext.bucket
+          .scope(scopeName)
+          .collection(collectionName);
 
         const sampleData = await useSampleData(collection);
-        let indexName = '';
-
-        await waitFor(
-          async () => {
-            indexName = await useSearchIndex(indexConfig, {
-              waitSearchIndexTimeout: 55_000,
-              awaitMutations: true,
-            });
-          },
-          { timeout: 21_000, retryInterval: 5_000 }
-        );
 
         await waitFor(
           async () => {
             const result = await serverTestContext.cluster.searchQuery(
-              indexName,
+              indexName1,
               SearchQuery.term(sampleData.testUid).field('testUid'),
               { disableScoring: true }
             );
@@ -484,4 +402,5 @@ describe
         );
       }
     );
-  });
+  }
+);

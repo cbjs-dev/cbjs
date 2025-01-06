@@ -1,3 +1,5 @@
+import { retry } from 'ts-retry-promise';
+
 import { Cluster, keyspacePath } from '@cbjsdev/cbjs';
 import {
   CouchbaseHttpApiConfig,
@@ -12,7 +14,7 @@ import {
   waitForUser,
   whoami,
 } from '@cbjsdev/http-client';
-import { waitFor } from '@cbjsdev/shared';
+import { hasOwn, waitFor } from '@cbjsdev/shared';
 
 import {
   CouchbaseClusterChange,
@@ -96,7 +98,22 @@ export async function applyCouchbaseClusterChanges(
 
   for (const change of changes) {
     const operation = operations[change.type];
-    await operation(cluster, apiConfig, change as never, resolvedOptions);
+
+    // We retry the operation only in case of internal failure - often the server is getting
+    // overwhelmed in CI
+    await retry(() => operation(cluster, apiConfig, change as never, resolvedOptions), {
+      retries: 3,
+      delay: 5_000,
+      retryIf: (err) => {
+        if (err instanceof Error && hasOwn(err, 'errors') && Array.isArray(err.errors)) {
+          return err.errors.some(
+            (e) => hasOwn(e, 'code') && (e as { code: number }).code === 5000
+          );
+        }
+
+        return false;
+      },
+    });
   }
 }
 
