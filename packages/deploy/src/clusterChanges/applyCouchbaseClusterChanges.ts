@@ -104,15 +104,6 @@ export async function applyCouchbaseClusterChanges(
     await retry(() => operation(cluster, apiConfig, change as never, resolvedOptions), {
       retries: 3,
       delay: 5_000,
-      retryIf: (err) => {
-        if (err instanceof Error && hasOwn(err, 'errors') && Array.isArray(err.errors)) {
-          return err.errors.some(
-            (e) => hasOwn(e, 'code') && (e as { code: number }).code === 5000
-          );
-        }
-
-        return false;
-      },
     });
   }
 }
