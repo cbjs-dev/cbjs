@@ -103,7 +103,7 @@ export async function applyCouchbaseClusterChanges(
     // overwhelmed in CI
     await retry(() => operation(cluster, apiConfig, change as never, resolvedOptions), {
       retries: 3,
-      delay: 5_000,
+      delay: 15_000,
     });
   }
 }
@@ -649,7 +649,7 @@ async function applyUpsertSearchIndex(
     .bucket(change.bucket)
     .scope(change.scope)
     .searchIndexes()
-    .getAllIndexes();
+    .getAllIndexes({ timeout: 15_000 });
 
   const searchIndex = searchIndexes.find((s) => s.name === change.name);
 
@@ -657,21 +657,7 @@ async function applyUpsertSearchIndex(
     config.uuid = searchIndex.uuid;
     config.sourceUUID = searchIndex.sourceUuid;
   }
-  const e = {
-    stack: 'Error: internal_server_failure (5)',
-    message: 'internal_server_failure (5)',
-    ctxtype: 'http',
-    code: 5,
-    client_context_id: '52ad38-44b6-f84f-911f-691f4bf2826d8b',
-    method: 'GET',
-    path: '/api/bucket/cbjs_dc413a79/scope/bed53e57/index',
-    http_status: 200,
-    http_body: '{"status":"ok","indexDefs":null}\n',
-    last_dispatched_to: '127.0.0.1:8094',
-    last_dispatched_from: '127.0.0.1:47824',
-    retry_attempts: +0,
-    retry_reasons: [],
-  };
+
   console.log(
     `${getTimePrefix()} Requesting creation of search index "${change.bucket} # ${change.name}"`
   );

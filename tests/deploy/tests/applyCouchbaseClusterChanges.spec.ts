@@ -225,7 +225,9 @@ describe.runIf(
       `The following changes have been detected in the cluster : \n\t${changes.map((c) => JSON.stringify(c)).join('\n\t')}`
     );
 
-    await applyCouchbaseClusterChanges(cluster, apiConfig, changes);
+    await applyCouchbaseClusterChanges(cluster, apiConfig, changes, {
+      timeout: 180_000,
+    });
 
     const users = await cluster.users().getAllUsers();
 
