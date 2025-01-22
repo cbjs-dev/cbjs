@@ -79,7 +79,7 @@ jobs:
             vitest-cache-main
 
       - name: Run all tests
-        run: pnpm vitest --run --bail 5
+        run: pnpm vitest --run --bail 5 --project project:deploy
 
       - name: Upload Tests Report
         if: always()
