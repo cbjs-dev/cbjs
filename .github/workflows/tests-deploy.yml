@@ -1,0 +1,93 @@
+name: Tests Deploy
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    if: >
+      (github.event_name == 'push' 
+      && !contains(github.event.head_commit.message, 'skip ci') 
+      && !startsWith(github.event.head_commit.message, 'docs')) ||
+      (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun') ||
+      github.event_name == 'workflow_dispatch'
+    timeout-minutes: 20
+    runs-on:
+      group: couchbase-runners
+      labels: ubuntu-latest-m
+    strategy:
+      fail-fast: false
+      matrix:
+        couchbase-server-version: ['enterprise-7.6.4' ]
+    services:
+      couchbase:
+        image: couchbase:${{ matrix.couchbase-server-version }}
+        ports:
+          - 8091:8091
+          - 8092:8092
+          - 8093:8093
+          - 8094:8094
+          - 8095:8095
+          - 8096:8096
+          - 8097:8097
+          - 9102:9102
+          - 18091:18091
+          - 18092:18092
+          - 18093:18093
+          - 18094:18094
+          - 18095:18095
+          - 18096:18096
+          - 18097:18097
+          - 19102:19102
+          - 9123:9123
+          - 11210:11210
+          - 11280:11280
+    env:
+      CB_CONNECTION_STRING: couchbase://127.0.0.1
+      CB_USER: Administrator
+      CB_PASSWORD: password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.6
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm i
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Initialize Couchbase cluster
+        run: pnpm dlx tsx tests/scripts/initTestCluster.ts
+
+      - name: Vitest cache
+        uses: actions/cache@v4
+        with:
+          path: ./node_modules/.vite/vitest/results.json
+          key: vitest-cache-${{ github.ref_name }}
+          restore-keys: |
+            vitest-cache-main
+
+      - name: Run all tests
+        run: pnpm vitest --run --bail 5 --project project:deploy
+
+      - name: Upload Tests Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-report-${{ matrix.couchbase-server-version }}-${{ github.sha }}
+          path: tests-report
+          overwrite: true
+
+      - name: Upload Tests Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-logs-${{ matrix.couchbase-server-version }}-${{ github.sha }}
+          path: vitest-pino.log
+          overwrite: true

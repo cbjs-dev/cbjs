@@ -666,7 +666,11 @@ async function applyUpsertSearchIndex(
     .bucket(change.bucket)
     .scope(change.scope)
     .searchIndexes()
-    .upsertIndex(config, opts);
+    .upsertIndex(config, opts)
+    .catch((err) => {
+      console.error(err);
+      throw err;
+    });
 
   console.log(
     `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be created`
