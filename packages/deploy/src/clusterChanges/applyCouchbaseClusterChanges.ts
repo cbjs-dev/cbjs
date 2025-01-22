@@ -1,6 +1,6 @@
 import { retry } from 'ts-retry-promise';
 
-import { Cluster, keyspacePath } from '@cbjsdev/cbjs';
+import { AnyCluster, Cluster, keyspacePath } from '@cbjsdev/cbjs';
 import {
   CouchbaseHttpApiConfig,
   createQueryIndex,
@@ -14,7 +14,7 @@ import {
   waitForUser,
   whoami,
 } from '@cbjsdev/http-client';
-import { hasOwn, waitFor } from '@cbjsdev/shared';
+import { waitFor } from '@cbjsdev/shared';
 
 import {
   CouchbaseClusterChange,
@@ -56,7 +56,7 @@ function getTimePrefix() {
 }
 
 export async function applyCouchbaseClusterChanges(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   changes: CouchbaseClusterChange[],
   options?: ChangeOptions
@@ -67,7 +67,7 @@ export async function applyCouchbaseClusterChanges(
   const operations: Record<
     CouchbaseClusterChange['type'],
     (
-      cluster: Cluster,
+      cluster: AnyCluster,
       apiConfig: CouchbaseHttpApiConfig,
       change: never,
       opts: { timeout?: number }
@@ -109,7 +109,7 @@ export async function applyCouchbaseClusterChanges(
 }
 
 async function applyCreateBucket(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeCreateBucket,
   opts: ChangeOptions
@@ -130,7 +130,7 @@ async function applyCreateBucket(
 }
 
 async function applyDropBucket(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeDropBucket,
   opts: ChangeOptions
@@ -152,7 +152,7 @@ async function applyDropBucket(
 }
 
 async function applyUpdateBucket(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeUpdateBucket,
   opts: ChangeOptions
@@ -178,7 +178,7 @@ async function applyUpdateBucket(
 }
 
 async function applyRecreateBucket(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeRecreateBucket,
   opts: ChangeOptions
@@ -207,7 +207,7 @@ async function applyRecreateBucket(
 }
 
 async function applyCreateScope(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeCreateScope,
   opts: ChangeOptions
@@ -230,7 +230,7 @@ async function applyCreateScope(
 }
 
 async function applyDropScope(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeDropScope,
   opts: ChangeOptions
@@ -256,7 +256,7 @@ async function applyDropScope(
 }
 
 async function applyCreateCollection(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeCreateCollection,
   opts: ChangeOptions
@@ -288,7 +288,7 @@ async function applyCreateCollection(
 }
 
 async function applyDropCollection(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeDropCollection,
   opts: ChangeOptions
@@ -320,7 +320,7 @@ async function applyDropCollection(
 }
 
 async function applyUpdateCollection(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeUpdateCollection,
   opts: ChangeOptions
@@ -351,7 +351,7 @@ async function applyUpdateCollection(
 }
 
 async function applyCreateIndex(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeCreateIndex,
   opts: ChangeOptions
@@ -402,7 +402,7 @@ async function applyCreateIndex(
 }
 
 async function applyDropIndex(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeDropIndex,
   opts: ChangeOptions
@@ -450,7 +450,7 @@ async function applyDropIndex(
 }
 
 async function applyUpdateIndex(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeUpdateIndex,
   opts: ChangeOptions
@@ -488,7 +488,7 @@ async function applyUpdateIndex(
 }
 
 async function applyRecreateIndex(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeRecreateIndex,
   opts: ChangeOptions
@@ -508,7 +508,7 @@ async function applyRecreateIndex(
 }
 
 async function applyCreateUser(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeCreateUser,
   opts: ChangeOptions
@@ -524,7 +524,7 @@ async function applyCreateUser(
 }
 
 async function applyUpdateUser(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeUpdateUser,
   opts: ChangeOptions
@@ -562,7 +562,7 @@ async function applyUpdateUser(
 }
 
 async function applyUpdateUserPassword(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeUpdateUserPassword,
   opts: ChangeOptions
@@ -594,7 +594,7 @@ async function applyUpdateUserPassword(
 }
 
 async function applyRecreateUser(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeRecreateUser,
   opts: ChangeOptions
@@ -613,7 +613,7 @@ async function applyRecreateUser(
 }
 
 async function applyDropUser(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeDropUser,
   opts: ChangeOptions
@@ -632,7 +632,7 @@ async function applyDropUser(
 }
 
 async function applyUpsertSearchIndex(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change:
     | CouchbaseClusterChangeCreateSearchIndex
@@ -686,7 +686,7 @@ async function applyUpsertSearchIndex(
 }
 
 async function applyDropSearchIndex(
-  cluster: Cluster,
+  cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change: CouchbaseClusterChangeDropSearchIndex,
   opts: ChangeOptions

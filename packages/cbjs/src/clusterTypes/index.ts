@@ -21,6 +21,7 @@ export type {
   AnyCollection,
   AnyScope,
   AnyBucket,
+  AnyCluster,
   ClusterCollection,
   ClusterScope,
   ClusterBucket,

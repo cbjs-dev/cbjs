@@ -24,8 +24,10 @@ import {
 
 import { Bucket } from '../bucket.js';
 import { Collection } from '../collection.js';
+import { connect } from '../couchbase.js';
 import { Scope } from '../scope.js';
 import {
+  AnyCluster,
   ClusterBucket,
   ClusterCollection,
   ClusterScope,
@@ -90,6 +92,17 @@ describe('IsDefaultClusterTypes', () => {
 
   it('should return false when at least one bucket is defined', () => {
     expectTypeOf<IsDefaultClusterTypes<{ BucketOne: never }>>().toEqualTypeOf<false>();
+  });
+});
+
+describe('AnyCluster', () => {
+  it('should accept any cluster object with cluster types', async () => {
+    function doSomething(cluster: AnyCluster): void {
+      // something
+    }
+
+    const cluster = await connect<UserClusterTypes>('...');
+    doSomething(cluster);
   });
 });
 

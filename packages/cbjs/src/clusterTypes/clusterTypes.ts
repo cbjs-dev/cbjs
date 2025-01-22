@@ -38,6 +38,7 @@ import {
 } from '@cbjsdev/shared';
 
 import { Bucket } from '../bucket.js';
+import { Cluster } from '../cluster.js';
 import type { Collection } from '../collection.js';
 import type { Scope } from '../scope.js';
 
@@ -122,6 +123,7 @@ export type CollectionOptions<Instance> =
   never
 ;
 
+export type AnyCluster = Cluster<any>;
 export type AnyBucket = Bucket<any, any>;
 export type AnyScope = Scope<any, any, any>;
 export type AnyCollection = Collection<any, any, any, any>;
