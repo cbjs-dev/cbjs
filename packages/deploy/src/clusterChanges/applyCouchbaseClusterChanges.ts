@@ -645,18 +645,27 @@ async function applyUpsertSearchIndex(
     scopeName: change.scope,
   });
 
-  const searchIndexes = await cluster
-    .bucket(change.bucket)
-    .scope(change.scope)
-    .searchIndexes()
-    .getAllIndexes({ timeout: 15_000 });
+  await retry(
+    async () => {
+      const searchIndexes = await cluster
+        .bucket(change.bucket)
+        .scope(change.scope)
+        .searchIndexes()
+        .getAllIndexes();
 
-  const searchIndex = searchIndexes.find((s) => s.name === change.name);
+      const searchIndex = searchIndexes.find((s) => s.name === change.name);
 
-  if (searchIndex) {
-    config.uuid = searchIndex.uuid;
-    config.sourceUUID = searchIndex.sourceUuid;
-  }
+      if (searchIndex) {
+        config.uuid = searchIndex.uuid;
+        config.sourceUUID = searchIndex.sourceUuid;
+      }
+    },
+    {
+      delay: 1_000,
+      retries: 'INFINITELY',
+      timeout: opts.timeout,
+    }
+  );
 
   console.log(
     `${getTimePrefix()} Requesting creation of search index "${change.bucket} # ${change.name}"`

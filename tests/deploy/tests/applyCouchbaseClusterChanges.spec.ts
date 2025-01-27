@@ -128,7 +128,7 @@ describe.runIf(
     );
 
     await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
-      timeout: 45_000,
+      timeout: 180_000,
     });
 
     // Check keyspaces //

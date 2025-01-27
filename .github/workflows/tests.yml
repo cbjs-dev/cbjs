@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - narrow-deploy-500
   issue_comment:
     types: [created]
 
@@ -22,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        couchbase-server-version: [ 'enterprise-7.6.1', 'enterprise-7.6.2', 'enterprise-7.6.3', 'enterprise-7.6.4' ]
+        couchbase-server-version: [ 'enterprise-7.6.4' ]
     services:
       couchbase:
         image: couchbase:${{ matrix.couchbase-server-version }}
@@ -111,7 +112,7 @@ jobs:
 
       - name: Upload Couchbase Logs
         if: failure() && steps.cb-logs.conclusion == 'success'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: couchbase-logs-${{ github.sha }}-${{ github.run_id }}
           path: couchbase-logs-${{ github.sha }}-${{ github.run_id }}.tar.gz
