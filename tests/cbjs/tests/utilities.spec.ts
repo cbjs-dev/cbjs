@@ -17,17 +17,119 @@
 import { setImmediate } from 'node:timers/promises';
 import { describe, vi } from 'vitest';
 
-import { CouchbaseError } from '@cbjsdev/cbjs';
+import { connect, CouchbaseError } from '@cbjsdev/cbjs';
 import { PromiseHelper } from '@cbjsdev/cbjs/internal';
 import { invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
-
-import { NodeCallback } from './kv.durability.spec.js';
 
 describe('PromiseHelper', async () => {
   const test = await createCouchbaseTest();
 
   describe('wrap', async () => {
+    test('should resolve with the result of the logic function', async ({ expect }) => {
+      await expect(
+        PromiseHelper.wrap<string>((cb) => {
+          cb(null, 'Success!');
+        })
+      ).resolves.toEqual('Success!');
+    });
+
+    test('should throw the error of the logic function if the call is awaited', async ({
+      expect,
+    }) => {
+      const error = new Error('Logic function error');
+
+      await expect(
+        PromiseHelper.wrap<string>((cb) => {
+          cb(error, null);
+        })
+      ).rejects.toThrow(error);
+    });
+
+    test('should not throw the error of the logic function if the call is not awaited', async ({
+      expect,
+    }) => {
+      const error = new Error('Logic function error');
+
+      try {
+        void PromiseHelper.wrap<string>((cb) => {
+          cb(error, null);
+        });
+      } catch (err) {
+        expect.fail('PromiseHelper.wrap has thrown while not awaited');
+      }
+
+      await setImmediate();
+    });
+
+    test('should invoke the callback with the result of the logic function', async ({
+      expect,
+    }) => {
+      const userCallback = vi.fn();
+
+      await PromiseHelper.wrap<string>((cb) => {
+        cb(null, 'Success!');
+      }, userCallback);
+
+      expect(userCallback).toHaveBeenCalledExactlyOnceWith(null, 'Success!');
+    });
+
+    test('should invoke the callback with the error of the logic function', async ({
+      expect,
+    }) => {
+      const userCallback = vi.fn();
+      const error = new Error('Logic function error');
+
+      void PromiseHelper.wrap<string>((cb) => {
+        cb(error, null);
+      }, userCallback);
+
+      await setImmediate();
+
+      expect(userCallback).toHaveBeenCalledExactlyOnceWith(error, null);
+    });
+
+    test('user callback error should not interrupt the execution', async ({ expect }) => {
+      process.on('unhandledRejection', () => {
+        // No-op but don't mark the test as failed
+      });
+
+      const userCallback = vi.fn((err, res) => {
+        throw new Error('user callback error');
+      });
+
+      void PromiseHelper.wrap((cb) => {
+        cb(null, 'success');
+      }, userCallback);
+
+      await setImmediate();
+
+      expect(userCallback).toHaveBeenCalled();
+    });
+
+    test('user callback should not be called twice when it throws an error', async ({
+      expect,
+    }) => {
+      const rejectionHandler = vi.fn();
+
+      process.on('unhandledRejection', () => {
+        rejectionHandler();
+      });
+
+      const userCallback = vi.fn((err, res) => {
+        throw new Error('user callback error');
+      });
+
+      void PromiseHelper.wrap((cb) => {
+        cb(null, 'success');
+      }, userCallback);
+
+      await setImmediate();
+
+      expect(userCallback).toHaveBeenCalledOnce();
+      expect(rejectionHandler).toHaveBeenCalledOnce();
+    });
+
     test('error thrown when call is awaited should contain a valid stack when a kv operation fails', async ({
       expect,
       serverTestContext,
@@ -66,81 +168,97 @@ describe('PromiseHelper', async () => {
         expect(callback).toHaveBeenCalled();
       });
     });
+  });
 
-    // This test is expected to produce an unhandled error
-    test.skip('user callback should not be called twice when it throws an error', async ({
+  describe('wrapAsync', async () => {
+    test('should resolve with the result of the logic function', async ({ expect }) => {
+      await expect(
+        PromiseHelper.wrapAsync(() => Promise.resolve('Success!'))
+      ).resolves.toEqual('Success!');
+    });
+
+    test('should throw the error of the logic function if the call is awaited', async ({
       expect,
     }) => {
+      const error = new Error('Logic function error');
+
+      await expect(
+        PromiseHelper.wrapAsync(() => Promise.reject<string>(error))
+      ).rejects.toThrow(error);
+    });
+
+    test('should not throw the error of the logic function if the call is not awaited', async ({
+      expect,
+    }) => {
+      const error = new Error('Logic function error');
+
+      try {
+        void PromiseHelper.wrapAsync(() => Promise.reject<string>(error));
+      } catch (err) {
+        expect.fail('PromiseHelper.wrapAsync has thrown while not awaited');
+      }
+
+      await setImmediate();
+    });
+
+    test('should invoke the callback with the result of the logic function', async ({
+      expect,
+    }) => {
+      const userCallback = vi.fn();
+
+      await PromiseHelper.wrapAsync(() => Promise.resolve('Success!'), userCallback);
+
+      expect(userCallback).toHaveBeenCalledExactlyOnceWith(null, 'Success!');
+    });
+
+    test('should invoke the callback with the error of the logic function', async ({
+      expect,
+    }) => {
+      const userCallback = vi.fn();
+      const error = new Error('Logic function error');
+
+      void PromiseHelper.wrapAsync(() => Promise.reject<string>(error), userCallback);
+
+      await setImmediate();
+
+      expect(userCallback).toHaveBeenCalledExactlyOnceWith(error, null);
+    });
+
+    test('user callback error should not interrupt the execution', async ({ expect }) => {
+      process.on('unhandledRejection', () => {
+        // No-op but don't mark the test as failed
+      });
+
       const userCallback = vi.fn((err, res) => {
         throw new Error('user callback error');
       });
 
-      await PromiseHelper.wrap((cb) => {
-        cb(null, 'success');
-      }, userCallback);
+      void PromiseHelper.wrapAsync(() => Promise.resolve('Success!'), userCallback);
 
       await setImmediate();
 
-      expect(userCallback).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe.skip('wrapAsync', async () => {
-    test('error thrown when call is awaited should contain a meaningful stack trace when a kv operation fails', async ({
-      expect,
-      serverTestContext,
-    }) => {
-      expect.hasAssertions();
-
-      try {
-        await serverTestContext.collection.getAnyReplica('missingDoc');
-      } catch (err) {
-        expect(err).toBeInstanceOf(CouchbaseError);
-        invariant(err instanceof CouchbaseError);
-
-        expect(err.stack).toBeTypeOf('string');
-        expect(err.stack).toContain('at Collection.getAnyReplica');
-      }
+      expect(userCallback).toHaveBeenCalled();
     });
 
-    test('error thrown when call with callback should contain a meaningful stack trace when a kv operation fails', async ({
+    test('user callback should not be called twice when it throws an error', async ({
       expect,
-      serverTestContext,
     }) => {
-      expect.hasAssertions();
-      const callback = vi.fn();
+      const rejectionHandler = vi.fn();
 
-      async function callMe() {
-        return serverTestContext.collection.getAnyReplica('missingDoc', (err, res) => {
-          invariant(err instanceof CouchbaseError);
-          expect(err.stack).toContain('at Collection.getAnyReplica (');
-          callback();
-        });
-      }
-
-      await expect(callMe()).rejects.toThrowError();
-
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalled();
+      process.on('unhandledRejection', () => {
+        rejectionHandler();
       });
+
+      const userCallback = vi.fn((err, res) => {
+        throw new Error('user callback error');
+      });
+
+      void PromiseHelper.wrapAsync(() => Promise.resolve('Success!'), userCallback);
+
+      await setImmediate();
+
+      expect(userCallback).toHaveBeenCalledOnce();
+      expect(rejectionHandler).toHaveBeenCalledOnce();
     });
   });
 });
-
-/**
- *      prom
- *         .then((res) => {
- *           try {
- *             callback(null, res);
- *           } catch (err) {
- *             throw new UserCallbackError('', { cause: err });
- *           }
- *         })
- *         .catch((err) => {
- *           if (err instanceof UserCallbackError) {
- *             throw err.cause;
- *           }
- *
- *           callback(err, null);
- *         });
- */

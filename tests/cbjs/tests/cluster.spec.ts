@@ -206,4 +206,14 @@ describe.shuffle('cluster', { timeout: 10_000, repeats: 5 }, async () => {
     expect(cluster.searchTimeout).toEqual(60000);
     expect(cluster.viewTimeout).toEqual(60000);
   });
+
+  test('should not expose auth info in cluster', async ({
+    expect,
+    serverTestContext,
+  }) => {
+    const clusterStr = JSON.stringify(serverTestContext.cluster);
+    const cluster = JSON.parse(clusterStr);
+
+    expect(cluster).toHaveProperty('_auth', '***hidden***');
+  });
 });

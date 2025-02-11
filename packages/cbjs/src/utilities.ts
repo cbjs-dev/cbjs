@@ -36,8 +36,6 @@ export { type Cas, CouchbaseCas };
 export type NodeCallback<T> = (...args: [null, T] | [Error, null]) => void;
 export type VoidNodeCallback = (err: Error | null) => void;
 
-class UserCallbackError extends Error {}
-
 /**
  * @internal
  */
@@ -63,21 +61,10 @@ export class PromiseHelper {
     const prom = logicFn();
 
     if (callback) {
-      prom
-        .then((res) => {
-          try {
-            callback(null, res);
-          } catch (err) {
-            throw new UserCallbackError('', { cause: err });
-          }
-        })
-        .catch((err) => {
-          if (err instanceof UserCallbackError) {
-            throw err.cause;
-          }
-
-          callback(err, null);
-        });
+      prom.then(
+        (res) => callback(null, res),
+        (err: Error) => callback(err, null)
+      );
     }
 
     return prom;
@@ -92,11 +79,11 @@ export class PromiseHelper {
   ): Promise<void>;
   static wrap<T>(
     logicFn: (callback: NodeCallback<NonVoid<T>>) => void,
-    callback?: NodeCallback<NonVoid<T>> | null
+    callback?: NodeCallback<NonVoid<NoInfer<T>>> | null
   ): Promise<T>;
   static wrap<T>(
     logicFn: (callback: (err: Error | null, res?: T | null) => void) => void,
-    callback?: ((err: Error | null, res: T | null) => T) | null
+    callback?: ((err: Error | null, res: NoInfer<T> | null) => T) | null
   ): Promise<T> {
     const prom = new Promise<T>((resolve, reject) => {
       logicFn((err, res) => {
@@ -110,21 +97,10 @@ export class PromiseHelper {
     });
 
     if (callback) {
-      prom
-        .then((res) => {
-          try {
-            callback(null, res);
-          } catch (err) {
-            throw new UserCallbackError('', { cause: err });
-          }
-        })
-        .catch((err) => {
-          if (err instanceof UserCallbackError) {
-            throw err.cause;
-          }
-
-          callback(err, null);
-        });
+      prom.then(
+        (res) => callback(null, res),
+        (err: Error) => callback(err, null)
+      );
     }
 
     return prom;

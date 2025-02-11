@@ -69,6 +69,7 @@ describe
       ]);
 
       expect(result).toBeInstanceOf(Array);
+      expect(result[0]).toBeInstanceOf(LookupInReplicaResult);
       expect(result[0].content).toHaveLength(4);
 
       expect(result[0].content[0].error).toBeNull();

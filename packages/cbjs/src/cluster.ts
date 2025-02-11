@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { promisify } from 'node:util';
+import { inspect, promisify } from 'util';
 
 import { BucketName, CouchbaseClusterTypes, DefaultClusterTypes } from '@cbjsdev/shared';
 
@@ -387,6 +387,23 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   */
   get resolveTimeout(): number | undefined {
     return this._resolveTimeout;
+  }
+
+  /**
+   * @internal
+   */
+  [inspect.custom](): Record<string, any> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _auth, ...rest } = this;
+    return { ...rest, _auth: '***hidden***' };
+  }
+  /**
+   * @internal
+   */
+  toJSON(): Record<string, any> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _auth, ...rest } = this;
+    return { ...rest, _auth: '***hidden***' };
   }
 
   /**
@@ -857,6 +874,10 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async waitForBuckets() {
+    await Promise.allSettled(this._openBuckets.values());
   }
 
   /**
