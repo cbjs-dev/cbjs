@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { TaskContext, Test } from 'vitest';
+import type { TestContext } from 'vitest';
 
 import type { Class } from '@cbjsdev/shared';
 
@@ -63,7 +63,7 @@ export function useFixture<
   const suiteFixture = getSuiteFixture(ctx, fixtureClass);
 
   const testFixture = async function (
-    { task }: TaskContext<Test>,
+    { task }: TestContext,
     use: (f: (...args: Args) => UseValue) => Promise<void>
   ) {
     await use(function (...args: Args) {

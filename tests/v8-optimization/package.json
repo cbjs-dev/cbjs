@@ -16,8 +16,8 @@
     "glob": "^10.3.10",
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
-    "tsx": "^4.7.0",
-    "vitest": "1.5.2"
+    "tsx": "^4.8.1",
+    "vitest": "3.0.5"
   },
   "devDependencies": {
     "typescript": "5.4.5",

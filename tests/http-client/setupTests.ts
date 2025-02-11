@@ -13,13 +13,13 @@ import { testLogger } from './setupLogger.js';
 setTestLogger(testLogger);
 setHttpClientLogger(testLogger);
 
-beforeAll(async ({ filepath }) => {
-  testLogger.info(`Executing test file: ${filepath}`);
+beforeAll(async ({ file }) => {
+  testLogger.info(`Executing test file: ${file.filepath}`);
 });
 
-beforeEach(({ task, onTestFailed }) => {
-  onTestFailed((taskResult) => {
-    const errors = taskResult.errors?.map((e) => {
+beforeEach(({ onTestFailed }) => {
+  onTestFailed(({ task }) => {
+    const errors = task.result?.errors?.map((e) => {
       const trimmedError: Record<string, unknown> = {
         message: e.message,
         stack: e.stack,

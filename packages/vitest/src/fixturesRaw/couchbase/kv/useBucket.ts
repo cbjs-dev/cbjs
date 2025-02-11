@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Use } from '@vitest/runner';
-import { TaskContext, Test } from 'vitest';
+import { TestContext } from 'vitest';
 
 import { ICreateBucketSettings } from '@cbjsdev/cbjs';
 import { waitForBucket } from '@cbjsdev/http-client';
@@ -29,8 +29,7 @@ export const useBucket = async (
     logger,
     serverTestContext,
     apiConfig,
-  }: TaskContext<Test> &
-    Pick<CbjsTestContext, 'logger' | 'serverTestContext' | 'apiConfig'>,
+  }: TestContext & Pick<CbjsTestContext, 'logger' | 'serverTestContext' | 'apiConfig'>,
   use: Use<(opts?: BucketFixtureParams) => Promise<string>>
 ) => {
   let bucketName = `cbjs_${serverTestContext.newUid()}`;

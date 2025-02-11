@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Use } from '@vitest/runner';
-import { TaskContext, Test } from 'vitest';
+import { TestContext } from 'vitest';
 
 import { Keyspace } from '@cbjsdev/cbjs';
 import { hasOwn } from '@cbjsdev/shared';
@@ -27,7 +27,7 @@ export const useDocumentKey = async (
     task,
     logger,
     serverTestContext,
-  }: TaskContext<Test> & Pick<CbjsTestContext, 'logger' | 'serverTestContext'>,
+  }: TestContext & Pick<CbjsTestContext, 'logger' | 'serverTestContext'>,
   use: Use<(opts?: DocumentKeyFixtureParams) => string>
 ) => {
   const instance = {

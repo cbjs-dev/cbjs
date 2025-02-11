@@ -15,7 +15,7 @@
  */
 import { Use } from '@vitest/runner';
 import { retry } from 'ts-retry-promise';
-import { TaskContext, Test } from 'vitest';
+import { TestContext } from 'vitest';
 
 import { waitForScope } from '@cbjsdev/http-client';
 
@@ -28,8 +28,7 @@ export const useScope = async (
     logger,
     serverTestContext,
     apiConfig,
-  }: TaskContext<Test> &
-    Pick<CbjsTestContext, 'logger' | 'serverTestContext' | 'apiConfig'>,
+  }: TestContext & Pick<CbjsTestContext, 'logger' | 'serverTestContext' | 'apiConfig'>,
   use: Use<(opts?: ScopeFixtureParams) => Promise<string>>
 ) => {
   let bucketName = serverTestContext.b.name;

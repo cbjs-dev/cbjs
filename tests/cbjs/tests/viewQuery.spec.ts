@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterEach, beforeEach, describe, Test } from 'vitest';
+import { afterEach, beforeEach, describe, RunnerTestCase } from 'vitest';
 
 import {
   DesignDocument,
@@ -24,18 +24,16 @@ import {
   ViewOrdering,
   ViewRow,
 } from '@cbjsdev/cbjs';
-import { waitForViewDesignDocument } from '@cbjsdev/http-client';
-import { ServerFeatures } from '@cbjsdev/http-client';
-import { arrayFirstElement, waitFor } from '@cbjsdev/shared';
-import { arrayLastElement } from '@cbjsdev/shared';
+import { ServerFeatures, waitForViewDesignDocument } from '@cbjsdev/http-client';
+import { arrayFirstElement, arrayLastElement, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, TestFixtures } from '@cbjsdev/vitest';
 
 import { useSampleData } from '../fixtures/useSampleData.js';
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
-describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
-  'view query',
-  async () => {
+describe
+  .runIf(serverSupportsFeatures(ServerFeatures.Views))
+  .shuffle('view query', { timeout: 20_000, retry: 2 }, async () => {
     const getMapFunction = (testUid: string) => `
       function(doc, meta){
         if(meta.id.indexOf("${testUid}")==0){
@@ -122,7 +120,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
           .viewIndexes()
           .upsertDesignDocument(doc, DesignDocumentNamespace.Development);
 
-        (task as Test<ViewQueryContext>).context.sampleData = sampleData;
+        (task as RunnerTestCase<ViewQueryContext>).context.sampleData = sampleData;
       }
     );
 
@@ -448,9 +446,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Views)).shuffle(
         })
       ).rejects.toThrowError(InvalidArgumentError);
     });
-  },
-  { timeout: 20_000, retry: 2 }
-);
+  });
 
 function* getTestUidKeys(testUid: string, keySize: number) {
   for (let i = 0; i < testUid.length; i += keySize) {

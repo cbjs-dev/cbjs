@@ -22,7 +22,6 @@ export default defineProject({
     environment: 'node',
     testTimeout: 5_000,
     hookTimeout: 30_000,
-    slowTestThreshold: 5_000,
     restoreMocks: true,
     mockReset: true,
     unstubGlobals: true,
@@ -36,8 +35,6 @@ export default defineProject({
       },
     },
     pool: 'forks',
-    minWorkers: 1,
-    maxWorkers: 1,
     env: {
       CB_CONNECTION_STRING: process.env.CB_CONNECTION_STRING ?? 'couchbase://127.0.0.1',
       CB_USER: process.env.CB_USER ?? 'Administrator',

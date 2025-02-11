@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 import { Use } from '@vitest/runner';
-import { TaskContext, Test, TestAPI } from 'vitest';
+import { TestAPI, TestContext } from 'vitest';
 
 import { cbjsTest } from '../extendedTests/cbjsTest.js';
-import {
-  useApiConfig,
-  useDocumentKey,
-  useLogger,
-  useServerTestContext,
-} from './couchbase/index.js';
+import { useApiConfig, useDocumentKey, useLogger, useServerTestContext } from './couchbase/index.js';
 
 /**
  * Represents the value of the fixture within the test.
@@ -50,7 +45,7 @@ export type CbjsTestContext = {
  * Utility type to create a fixture function that has access to the context of a {@link cbjsTest}.
  */
 export type CbjsFixtureFn<UseValue> = (
-  ctx: TaskContext<Test> & CbjsTestContext,
+  ctx: TestContext & CbjsTestContext,
   use: Use<UseValue>
 ) => Promise<void>;
 
@@ -61,4 +56,4 @@ export type CbjsFixtureFn<UseValue> = (
  * beforeEach<CbjsTestContext<typeof test>(() => { ... });
  */
 export type CbjsExtendedTestContext<T> =
-  T extends TestAPI<infer F extends TaskContext<Test>> ? F : never;
+  T extends TestAPI<infer F extends TestContext> ? F : never;
