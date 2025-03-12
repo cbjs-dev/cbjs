@@ -48,6 +48,7 @@ export const ServerFeatures = {
   ScopeEventingFunctionManagement: 'scope_eventing_function_management',
   NotLockedKVStatus: 'kv_not_locked',
   BinaryTransactions: 'binary_transactions',
+  ServerGroups: 'server_groups',
 } as const;
 
 export type ServerFeature = (typeof ServerFeatures)[keyof typeof ServerFeatures];
@@ -100,6 +101,7 @@ export function versionSupports(version: string, feature: ServerFeature) {
     case ServerFeatures.ScopeEventingFunctionManagement:
       return gte(version, '7.6.0');
     case ServerFeatures.BinaryTransactions:
+    case ServerFeatures.ServerGroups:
       return gte(version, '7.6.2');
   }
 

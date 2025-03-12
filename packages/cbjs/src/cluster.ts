@@ -160,6 +160,38 @@ export type DnsConfig = {
   dnsSrvTimeout?: number;
 };
 
+/**
+ * Specifies Application Telemetry options for the client.
+ *
+ * @category Core
+ */
+export interface AppTelemetryConfig {
+  /**
+   * Specifies if application telemetry feature should be enabled or not.
+   */
+  enabled?: boolean;
+
+  /**
+   * Specifies an endpoint to override the application metrics endpoint discovered during configuration.
+   */
+  endpoint?: string;
+
+  /**
+   * Specifies the time to wait before attempting a websocket reconnection, specified in milliseconds.
+   */
+  backoff?: number;
+
+  /**
+   * Specifies the time to wait between sending consecutive websocket PING commands to the server, specified in milliseconds.
+   */
+  pingInterval?: number;
+
+  /**
+   * Specifies the time allowed for the server to respond to websocket PING command, specified in milliseconds.
+   */
+  pingTimeout?: number;
+}
+
 export type Hooks<T extends CouchbaseClusterTypes> = {
   /**
    * Any error thrown in a hook will be swallowed and this function will be called
@@ -259,6 +291,18 @@ export type ConnectOptions<T extends CouchbaseClusterTypes = any> = {
    *
    */
   configProfile?: string;
+
+  /**
+   * Specifies the preferred server group to use for replica operations that specify a non-default
+   * read preference.
+   */
+  preferredServerGroup?: string;
+
+  /**
+   * Specifies the Application Telemetry config for connections of this cluster.
+   *
+   */
+  appTelemetryConfig?: AppTelemetryConfig;
 };
 
 /**
@@ -290,6 +334,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _transactions?: Transactions<T>;
   private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
   private _dnsConfig: DnsConfig | null;
+  private _preferredServerGroup: string | undefined;
+  private _appTelemetryConfig: AppTelemetryConfig | null;
 
   /**
    * @internal
@@ -443,6 +489,10 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._queryResultParser = options.queryResultParser ?? JSON.parse;
     this._hooks = options.hooks;
 
+    if (options.preferredServerGroup) {
+      this._preferredServerGroup = options.preferredServerGroup;
+    }
+
     if (options.transactions) {
       this._txnConfig = options.transactions;
     } else {
@@ -480,6 +530,18 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       };
     } else {
       this._dnsConfig = null;
+    }
+
+    if (options.appTelemetryConfig) {
+      this._appTelemetryConfig = {
+        enabled: options.appTelemetryConfig.enabled,
+        endpoint: options.appTelemetryConfig.endpoint,
+        backoff: options.appTelemetryConfig.backoff,
+        pingInterval: options.appTelemetryConfig.pingInterval,
+        pingTimeout: options.appTelemetryConfig.pingTimeout,
+      };
+    } else {
+      this._appTelemetryConfig = null;
     }
 
     this._openBuckets = new Map();
@@ -913,6 +975,10 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         dsnObj.options.resolve_timeout = this.resolveTimeout.toString();
       }
 
+      if (this._preferredServerGroup) {
+        dsnObj.options.server_group = this._preferredServerGroup;
+      }
+
       const connStr = dsnObj.toString();
 
       const authOpts: CppClusterCredentials = {};
@@ -948,13 +1014,19 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         }
       }
 
-      this.conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
-        if (cppErr) {
-          const err = errorFromCpp(cppErr);
-          return reject(err);
+      this._conn.connect(
+        connStr,
+        authOpts,
+        this._dnsConfig,
+        this._appTelemetryConfig,
+        (cppErr) => {
+          if (cppErr) {
+            const err = errorFromCpp(cppErr);
+            return reject(err);
+          }
+          resolve(null);
         }
-        resolve(null);
-      });
+      );
     });
   }
 }

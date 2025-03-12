@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-export * from './MapEntry.js';
-export * from './RecordEntry.js';
-export * from './OneOf.js';
-export * from './OptionalMerge.js';
-export * from './UnionKeys.js';
-export * from './TupleToUnion.js';
+export type RecordEntry<
+  T extends Record<string | symbol, unknown>,
+  K extends keyof T = keyof T,
+> = {
+  [R in K]: [R, T[R]];
+}[K];

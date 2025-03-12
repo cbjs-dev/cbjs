@@ -21,6 +21,7 @@ import {
   BucketNotFoundError,
   DocumentExistsError,
   DocumentNotFoundError,
+  DocumentUnretrievableError,
   FeatureNotAvailableError,
   keyspacePath,
   KeyValueErrorContext,
@@ -941,4 +942,30 @@ describe
         expect(err.stack).toContain('document not found');
       }
     });
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.ServerGroups))(
+      'should throw when getting the document from the preferred group server when no preferred group has been defined',
+      async ({ expect, serverTestContext }) => {
+        expect.hasAssertions();
+
+        try {
+          await expect(
+            serverTestContext.cluster.transactions().run(async (ctx) => {
+              await expect(
+                ctx.getReplicaFromPreferredServerGroup(
+                  serverTestContext.collection,
+                  'missingDocKey'
+                )
+              ).rejects.toThrowError(DocumentUnretrievableError);
+            })
+          ).rejects.toThrowError();
+        } catch (err) {
+          expect(err).toBeInstanceOf(TransactionFailedError);
+          invariant(err instanceof TransactionFailedError);
+          expect(err.stack).toContain('TransactionFailedError');
+          expect(err.stack).toContain('document not found');
+          expect(err.cause).toBeInstanceOf(DocumentUnretrievableError);
+        }
+      }
+    );
   });

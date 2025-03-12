@@ -16,13 +16,22 @@
  */
 import { EventEmitter } from 'events';
 
-import type { EventMap, TypedEmitter } from './utils/TypedEmitter.js';
+import { RecordEntry } from '@cbjsdev/shared';
+
+import type { EventKey, EventMap, TypedEmitter } from './utils/TypedEmitter.js';
+
+/**
+ * @internal
+ */
+type PromisifyEmitter<EM extends EventMap> = {
+  on<Event extends keyof EventMap>(eventName: Event, listener: EM[Event]): void;
+};
 
 /**
  * @internal
  */
 type PromisifyFunc<T, EM extends EventMap> = (
-  emitter: StreamablePromise<T, EM>,
+  emitter: PromisifyEmitter<EM>,
   resolve: (result: T) => void,
   reject: (err: Error) => void
 ) => void;
@@ -38,7 +47,9 @@ export class StreamablePromise<T, EM extends EventMap>
   implements Promise<T>
 {
   private _promise: Promise<T> | null = null;
-  private _promiseifyFn: PromisifyFunc<T, EM>;
+  private _promiseOns: RecordEntry<EM>[];
+
+  // private catchFn: [undefined | ((err: unknown) => void)];
 
   /**
    * @internal
@@ -46,16 +57,51 @@ export class StreamablePromise<T, EM extends EventMap>
   constructor(promisefyFn: PromisifyFunc<T, EM>) {
     super();
 
-    this._promiseifyFn = promisefyFn;
+    this._promiseOns = [];
+    this._promise = new Promise((resolve, reject) => {
+      promisefyFn(
+        {
+          on: <EventName extends EventKey<EM>>(
+            eventName: EventName,
+            listener: EM[EventName]
+          ) => {
+            this._promiseOns.push([eventName, listener]);
+            void super.on(eventName, listener);
+          },
+        },
+        resolve,
+        reject
+      );
+    });
   }
 
   private get promise(): Promise<T> {
     if (!this._promise) {
-      this._promise = new Promise((resolve, reject) =>
-        this._promiseifyFn(this, resolve, reject)
-      );
+      throw new Error('Cannot await a promise that is already registered for events');
     }
     return this._promise;
+  }
+
+  private _depromisify() {
+    this._promiseOns.forEach((e: [any, any]) => void this.off(...e));
+
+    this._promise = null;
+  }
+
+  override addListener<EventName extends EventKey<EM>>(
+    eventName: EventName,
+    listener: EM[EventName]
+  ) {
+    this._depromisify();
+    return super.on(eventName, listener);
+  }
+
+  override on<EventName extends EventKey<EM>>(
+    eventName: EventName,
+    listener: EM[EventName]
+  ): this {
+    this._depromisify();
+    return super.on(eventName, listener);
   }
 
   then<TResult1 = T, TResult2 = never>(
@@ -84,8 +130,8 @@ export class StreamablePromise<T, EM extends EventMap>
 }
 
 /**
- * Provides the ability to be used as both a promise, or an event emitter.  Enabling
- * an application to easily retrieve all results using async/await, while also enabling
+ * Provides the ability to be used as either a promise or an event emitter.
+ * Enabling an application to easily retrieve all results using async/await or enabling
  * streaming of results by listening for the row and meta events.
  */
 export class StreamableRowPromise<T, TRow, TMeta> extends StreamablePromise<
@@ -118,9 +164,9 @@ export class StreamableRowPromise<T, TRow, TMeta> extends StreamablePromise<
 }
 
 /**
- * Provides the ability to be used as both a promise, or an event emitter.  Enabling
- * an application to easily retrieve all results using async/await, while also enabling
- * streaming of results by listening for the replica event.
+ * Provides the ability to be used as either a promise or an event emitter.
+ * Enabling an application to easily retrieve all replicas using async/await or enabling
+ * streaming of replicas by listening for the replica event.
  */
 export class StreamableReplicasPromise<T, TRep> extends StreamablePromise<
   T,
@@ -148,6 +194,11 @@ export class StreamableReplicasPromise<T, TRep> extends StreamablePromise<
   }
 }
 
+/**
+ * Provides the ability to be used as either a promise or an event emitter.
+ * Enabling an application to easily retrieve all scan results using async/await or enabling
+ * streaming of scan results by listening for the result event.
+ */
 export class StreamableScanPromise<T, TRes> extends StreamablePromise<
   T,
   {

@@ -36,6 +36,14 @@ export interface CppDnsConfig {
   dnsSrvTimeout?: number;
 }
 
+export interface CppAppTelemetryConfig {
+  enabled?: boolean;
+  endpoint?: string;
+  backoff?: number;
+  pingInterval?: number;
+  pingTimeout?: number;
+}
+
 export interface CppDocumentId {
   bucket: string;
   scope: string;
@@ -529,6 +537,7 @@ export interface CppGetAllReplicasResponseEntry {
 export interface CppGetAllReplicasRequest {
   id: CppDocumentId;
   timeout?: number;
+  read_preference: CppReadPreference;
 }
 export interface CppUpsertResponse {
   // ctx
@@ -572,6 +581,7 @@ export interface CppGetAnyReplicaResponse {
 export interface CppGetAnyReplicaRequest {
   id: CppDocumentId;
   timeout?: number;
+  read_preference: CppReadPreference;
 }
 export interface CppAppendResponse {
   // ctx
@@ -774,6 +784,7 @@ export interface CppLookupInAllReplicasRequest {
   specs: CppImplSubdocCommand[];
   timeout?: number;
   // parent_span
+  read_preference: CppReadPreference;
 }
 export interface CppAnalyticsResponse {
   // ctx
@@ -1114,6 +1125,7 @@ export interface CppLookupInAnyReplicaRequest {
   specs: CppImplSubdocCommand[];
   timeout?: number;
   // parent_span
+  read_preference: CppReadPreference;
 }
 export interface CppMutateInResponse {
   // ctx
@@ -3410,6 +3422,7 @@ export interface CppConnection extends CppConnectionAutogen {
     connStr: string,
     credentials: CppClusterCredentials,
     dnsOptions: CppDnsConfig | null,
+    appTelemetryOptions: CppAppTelemetryConfig | null,
     callback: (err: CppError | null) => void
   ): void;
   shutdown(callback: (err: CppError | null) => void): void;
@@ -3551,6 +3564,13 @@ export interface CppTransaction {
   newAttempt(callback: (err: CppError | null) => void): void;
 
   get(
+    options: {
+      id: CppDocumentId;
+    },
+    callback: (err: CppError | null, result: CppTransactionGetResult | null) => void
+  ): void;
+
+  getReplicaFromPreferredServerGroup(
     options: {
       id: CppDocumentId;
     },

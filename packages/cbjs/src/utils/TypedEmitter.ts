@@ -16,30 +16,30 @@
  */
 import type { EventEmitter } from 'events';
 
-export type EventKey<T extends EventMap> = string & keyof T;
+export type EventKey<T extends EventMap> = keyof T;
 export type EventListener<T extends ReadonlyArray<any>> = (...params: T) => void;
 
-export type EventMap = Record<string, EventListener<ReadonlyArray<any>>>;
+export type EventMap = Record<string | symbol, EventListener<ReadonlyArray<any>>>;
 
-export interface TypedEmitter<T extends EventMap> extends EventEmitter {
+export interface TypedEmitter<EM extends EventMap> extends EventEmitter {
   eventNames(): (string | symbol)[];
 
   getMaxListeners(): number;
   setMaxListeners(n: number): this;
 
-  on<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
-  off<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
-  once<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
+  on<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
+  off<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
+  once<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
 
-  addListener<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
-  prependListener<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
-  prependOnceListener<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
-  removeListener<K extends EventKey<T>>(eventName: K, fn: T[K]): this;
-  removeAllListeners<K extends EventKey<T>>(eventName?: K): this;
+  addListener<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
+  prependListener<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
+  prependOnceListener<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
+  removeListener<K extends EventKey<EM>>(eventName: K, fn: EM[K]): this;
+  removeAllListeners<K extends EventKey<EM>>(eventName?: K): this;
 
-  emit<K extends EventKey<T>>(eventName: K, ...args: Parameters<T[K]>): boolean;
+  emit<K extends EventKey<EM>>(eventName: K, ...args: Parameters<EM[K]>): boolean;
 
-  listenerCount<K extends EventKey<T>>(eventName: K): number;
-  listeners<K extends EventKey<T>>(eventName: K): T[K][];
-  rawListeners<K extends EventKey<T>>(eventName: K): T[K][];
+  listenerCount<K extends EventKey<EM>>(eventName: K): number;
+  listeners<K extends EventKey<EM>>(eventName: K): EM[K][];
+  rawListeners<K extends EventKey<EM>>(eventName: K): EM[K][];
 }

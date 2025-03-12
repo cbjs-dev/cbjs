@@ -55,7 +55,11 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
       callback: (err: CppError | null, resp: CppQueryResponse | undefined) => void
     ) => void,
     parser?: (value: string) => any
-  ): StreamableRowPromise<QueryResult<TRow, WithMetrics>, TRow, QueryMetaData> {
+  ): StreamableRowPromise<
+    QueryResult<TRow, WithMetrics>,
+    TRow,
+    QueryMetaData<WithMetrics>
+  > {
     const emitter = new StreamableRowPromise<
       QueryResult<TRow, WithMetrics>,
       TRow,
@@ -79,9 +83,20 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
 
       const rowParser = parser ?? JSON.parse;
 
-      resp.rows.forEach((row) => {
-        emitter.emit('row', rowParser(row) as TRow);
-      });
+      for (const row of resp.rows) {
+        try {
+          const parsedRow = rowParser(row) as TRow;
+          emitter.emit('row', parsedRow);
+        } catch (err) {
+          if (err instanceof Error) {
+            emitter.emit('error', err);
+          } else {
+            emitter.emit('error', new Error('Row parser error', { cause: err }));
+          }
+
+          emitter.emit('end');
+        }
+      }
 
       {
         const metaData = resp.meta;

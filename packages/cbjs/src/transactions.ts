@@ -518,6 +518,16 @@ export interface TransactionGetOptions {
 /**
  * @category Transactions
  */
+export interface TransactionGetReplicaFromPreferredServerGroupOptions {
+  /**
+   * Specifies an explicit transcoder to use for this specific operation.
+   */
+  transcoder?: Transcoder;
+}
+
+/**
+ * @category Transactions
+ */
 export interface TransactionInsertOptions {
   /**
    * Specifies an explicit transcoder to use for this specific operation.
@@ -682,6 +692,67 @@ export class TransactionAttemptContext<
 
     try {
       const get = promisify(this._impl.get).bind(this._impl);
+      const id = collection.getDocId(key);
+      const result = await get({ id });
+
+      invariant(result);
+
+      return translateGetResult(result, transcoder) as never;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
+  }
+
+  /**
+   * Retrieves the value of a document from the collection.
+   *
+   * @param collection The collection the document lives in.
+   * @param key The document key to retrieve.
+   * @param options Optional parameters for this operation.
+   */
+  async getReplicaFromPreferredServerGroup<
+    LInstance extends AnyCollection,
+    CKS extends CollectionKeyspace<LInstance>,
+    const LKey extends KeyspaceDocDef<
+      T,
+      CKS['bucket'],
+      CKS['scope'],
+      CKS['collection']
+    >['Key'],
+    const Key extends KeyspaceDocDef<T, B, S, C>['Key'],
+  >(
+    ...args: If<
+      IsNever<Instance>,
+      [
+        collection: LInstance,
+        key: LKey,
+        options?: TransactionGetReplicaFromPreferredServerGroupOptions,
+      ],
+      [key: Key, options?: TransactionGetReplicaFromPreferredServerGroupOptions]
+    >
+  ): Promise<
+    If<
+      IsNever<Instance>,
+      TransactionGetResult<
+        CKS['clusterTypes'],
+        CKS['bucket'],
+        CKS['scope'],
+        CKS['collection'],
+        LKey
+      >,
+      TransactionGetResult<T, B, S, C, Key>
+    >
+  > {
+    const [collection, key, options] = args as [LInstance, LKey, TransactionGetOptions?];
+    const transcoder = options?.transcoder ?? this.transcoder;
+
+    invariant(collection);
+
+    try {
+      const get = promisify(this._impl.getReplicaFromPreferredServerGroup).bind(
+        this._impl
+      );
       const id = collection.getDocId(key);
       const result = await get({ id });
 
