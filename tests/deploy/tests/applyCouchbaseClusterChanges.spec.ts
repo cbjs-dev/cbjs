@@ -32,13 +32,14 @@ import {
 } from '@cbjsdev/shared';
 
 import { serverSupportsFeatures } from '../../cbjs/utils/serverFeature.js';
+import { serverVersionSatisfies } from '../../cbjs/utils/testConditions/serverVersionSatisfies.js';
 import { apiConfig } from '../setupTests.js';
 
 describe.runIf(
   serverSupportsFeatures(
     ServerFeatures.ScopeSearch,
     ServerFeatures.ScopeSearchIndexManagement
-  )
+  ) && serverVersionSatisfies('>= 8.0.0') // Issue MB-65021
 )('applyCouchbaseClusterChanges', { sequential: true, timeout: 180_000 }, async () => {
   if (process.env.GITHUB_ACTIONS === 'true') {
     await sleep(15_000);
