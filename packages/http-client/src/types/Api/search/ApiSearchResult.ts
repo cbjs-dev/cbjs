@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-export * from './ApiSearchGetAllIndexes.js';
-export * from './ApiSearchGetIndex.js';
-export * from './ApiSearchIndexAnalyzeDocument.js';
-export * from './ApiSearchIndexCountDocuments.js';
-export * from './ApiSearchQuery.js';
-export * from './ApiSearchResult.js';
-export * from './types.js';
+export type ApiSearchResult = {
+  status: {
+    total: number;
+    failed: number;
+    successful: number;
+  };
+  hits: Array<{
+    index: string;
+    id: string;
+    score: number;
+    sort: string[];
+  }>;
+  total_hits: number;
+  cost: number;
+  max_score: number;
+  took: number;
+
+  /**
+   * Please submit a PR for this 🙏
+   */
+  facets: unknown;
+};

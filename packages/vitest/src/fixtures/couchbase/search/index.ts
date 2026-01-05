@@ -15,3 +15,4 @@
  */
 
 export * from './SearchIndexFixture.js';
+export * from './ScopedSearchIndexFixture.js';

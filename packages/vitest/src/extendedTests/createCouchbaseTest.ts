@@ -35,7 +35,10 @@ import {
 } from '../fixtures/couchbase/kv/index.js';
 import { IndexFixture, PrimaryIndexFixture } from '../fixtures/couchbase/query/index.js';
 import { UserFixture, UserGroupFixture } from '../fixtures/couchbase/rbac/index.js';
-import { SearchIndexFixture } from '../fixtures/couchbase/search/index.js';
+import {
+  ScopedSearchIndexFixture,
+  SearchIndexFixture,
+} from '../fixtures/couchbase/search/index.js';
 import { ViewDocumentKeyFixture } from '../fixtures/couchbase/views/index.js';
 import { LoggerFixture } from '../fixtures/misc/LoggerFixture.js';
 import { ServerTestContext } from '../ServerTestContext.js';
@@ -58,6 +61,7 @@ const couchbaseTestFixtures = {
   usePrimaryIndex: PrimaryIndexFixture,
   useIndex: IndexFixture,
   useSearchIndex: SearchIndexFixture,
+  useScopedSearchIndex: ScopedSearchIndexFixture,
 } as const;
 
 export type CouchbaseTestContext = {

@@ -19,16 +19,16 @@ import { Keyspace } from '@cbjsdev/shared';
 
 export function getSearchIndexConfig(name: string, keyspace: Keyspace): ISearchIndex {
   return {
-    name,
-    sourceName: keyspace.bucket,
     type: 'fulltext-index',
+    name,
     sourceType: 'couchbase',
+    sourceName: keyspace.bucket,
     params: {
       doc_config: {
-        docid_prefix_delim: '::',
+        docid_prefix_delim: '',
         docid_regexp: '',
-        mode: 'scope.collection.docid_prefix',
-        type_field: '',
+        mode: 'scope.collection.type_field',
+        type_field: 'type',
       },
       mapping: {
         default_analyzer: 'standard',

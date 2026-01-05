@@ -13,11 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export * from './ApiSearchGetAllIndexes.js';
-export * from './ApiSearchGetIndex.js';
-export * from './ApiSearchIndexAnalyzeDocument.js';
-export * from './ApiSearchIndexCountDocuments.js';
-export * from './ApiSearchQuery.js';
-export * from './ApiSearchResult.js';
-export * from './types.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiPOST } from '../../../utils/apiPOST.js';
+
+export async function requestGetScopedSearchIndexDocumentsByIds(
+  params: CouchbaseHttpApiConfig,
+  index: {
+    bucket: string;
+    scope: string;
+    index: string;
+  },
+  docIds: string[]
+) {
+  return apiPOST(
+    { ...params },
+    `/api/bucket/${index.bucket}/scope/${index.scope}/index/${index.index}/query`,
+    JSON.stringify({
+      query: {
+        ids: docIds,
+      },
+    }),
+    'search'
+  );
+}

@@ -17,3 +17,4 @@
 export * from './getSearchIndex.js';
 export * from './getSearchIndexes.js';
 export * from './getQuerySearchIndexes.js';
+export * from './getSearchIndexDocumentsByIds.js';

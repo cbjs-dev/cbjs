@@ -15,22 +15,19 @@
  */
 import { ISearchIndex } from '@cbjsdev/cbjs';
 import { waitForSearchIndex } from '@cbjsdev/http-client';
-import { getRandomId, OptionalProps } from '@cbjsdev/shared';
+import { getRandomId, invariant, OptionalProps } from '@cbjsdev/shared';
 
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
 
-export type SearchIndexFixtureParams = ISearchIndex & {
-  /**
-   * Name of the SearchIndex.
-   *
-   * @default Auto-generated
-   */
-  name?: string;
+export type ScopedSearchIndexFixtureParams = ISearchIndex & {
+  bucketName: string;
+  scopeName: string;
+  collectionName: string;
 };
 
-export type SearchIndexFixtureOptions = {
+export type ScopedSearchIndexFixtureOptions = {
   /**
    * Wait for the searchIndex to be built.
    * Set to 0 to return immediately after the searchIndex creation.
@@ -42,33 +39,36 @@ export type SearchIndexFixtureOptions = {
   awaitQueryVisibility?: boolean;
 };
 
-export class SearchIndexFixture extends FixtureFunctionValue<
-  [SearchIndexFixtureParams, SearchIndexFixtureOptions?],
+export class ScopedSearchIndexFixture extends FixtureFunctionValue<
+  [ScopedSearchIndexFixtureParams, ScopedSearchIndexFixtureOptions?],
   Promise<string>,
   CouchbaseTestContext
 > {
   public readonly fixtureName = 'SearchIndexFixture';
-  private params?: SearchIndexFixtureParams;
+  private params?: ScopedSearchIndexFixtureParams;
 
   override async use(
     { serverTestContext, logger, apiConfig }: FixtureContext<CouchbaseTestContext>,
-    params: OptionalProps<SearchIndexFixtureParams, 'name'>,
-    fixtureOptions: SearchIndexFixtureOptions = {}
+    params: ScopedSearchIndexFixtureParams,
+    fixtureOptions: ScopedSearchIndexFixtureOptions = {}
   ) {
+    this.params = params;
+
     await serverTestContext.start();
     const timeout = fixtureOptions.waitSearchIndexTimeout ?? 10_000;
     const awaitMutations = fixtureOptions.awaitMutations ?? true;
-    const searchIndexName = params.name ?? `searchIndex_${getRandomId()}`;
-    const { sourceName } = params;
+    const searchIndexName = params.name;
+    const { sourceName, scopeName, collectionName } = params;
 
-    this.params = {
-      ...params,
-      name: searchIndexName,
-    } as ISearchIndex;
+    logger?.trace(
+      `Creating scoped search index '${searchIndexName}' on '${sourceName}.${scopeName}'`
+    );
 
-    logger?.trace(`Creating search index '${searchIndexName}' on '${sourceName}'`);
-
-    await serverTestContext.c.searchIndexes().upsertIndex(this.params);
+    await serverTestContext.c
+      .bucket(sourceName)
+      .scope(scopeName)
+      .searchIndexes()
+      .upsertIndex(this.params);
 
     if (timeout === 0) {
       return this.params.name;
@@ -77,7 +77,11 @@ export class SearchIndexFixture extends FixtureFunctionValue<
     await waitForSearchIndex(
       apiConfig,
       searchIndexName,
-      {},
+      {
+        bucket: sourceName,
+        scope: scopeName,
+        collection: collectionName,
+      },
       {
         timeout,
         awaitMutations,
@@ -93,6 +97,10 @@ export class SearchIndexFixture extends FixtureFunctionValue<
   }: FixtureContext<CouchbaseTestContext>) {
     if (!this.params) return;
 
-    await serverTestContext.c.searchIndexes().dropIndex(this.params.name);
+    await serverTestContext.c
+      .bucket(this.params.sourceName)
+      .scope(this.params.scopeName)
+      .searchIndexes()
+      .dropIndex(this.params.name);
   }
 }

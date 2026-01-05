@@ -26,3 +26,4 @@ export * from './waitForViewDesignDocument.js';
 export * from './waitForQueryIndexer.js';
 export * from './waitForQueryIndex.js';
 export * from './waitForAnalyticsCluster.js';
+export * from './waitForDocumentsInSearchIndex.js';
