@@ -2428,7 +2428,7 @@ export class Collection<
     ThrowOnSpecError extends boolean = false,
   >(
     key: Key,
-    options?: LookupInOptions<ThrowOnSpecError>
+    options?: LookupInAllReplicasOptions<ThrowOnSpecError>
   ): ChainableLookupIn<
     this,
     'lookupInAllReplicas',
