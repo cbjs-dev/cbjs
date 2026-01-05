@@ -259,6 +259,12 @@ export type ConnectOptions<T extends CouchbaseClusterTypes = any> = {
    *
    */
   configProfile?: string;
+
+  /**
+   * Specifies the preferred server group to use for replica operations that specify a non-default
+   * read preference.
+   */
+  preferredServerGroup?: string;
 };
 
 /**
@@ -290,6 +296,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _transactions?: Transactions<T>;
   private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
   private _dnsConfig: DnsConfig | null;
+  private _preferredServerGroup: string | undefined;
 
   /**
    * @internal
@@ -438,10 +445,13 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._bootstrapTimeout = options.timeouts?.bootstrapTimeout;
     this._connectTimeout = options.timeouts?.connectTimeout;
     this._resolveTimeout = options.timeouts?.resolveTimeout;
-
     this._transcoder = options.transcoder ?? new DefaultTranscoder();
     this._queryResultParser = options.queryResultParser ?? JSON.parse;
     this._hooks = options.hooks;
+
+    if (options.preferredServerGroup) {
+      this._preferredServerGroup = options.preferredServerGroup;
+    }
 
     if (options.transactions) {
       this._txnConfig = options.transactions;
@@ -911,6 +921,10 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       }
       if (this.resolveTimeout) {
         dsnObj.options.resolve_timeout = this.resolveTimeout.toString();
+      }
+
+      if (this._preferredServerGroup) {
+        dsnObj.options['server_group'] = this._preferredServerGroup;
       }
 
       const connStr = dsnObj.toString();

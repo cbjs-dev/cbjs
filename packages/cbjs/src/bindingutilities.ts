@@ -50,6 +50,7 @@ import binding, {
   CppQueryProfile,
   CppQueryScanConsistency,
   CppRangeScan,
+  CppReadPreference,
   CppReplicateTo,
   CppSamplingScan,
   CppSearchHighlightStyle,
@@ -171,7 +172,12 @@ import {
   EventingFunctionProcessingStatus,
   EventingFunctionStatus,
 } from './eventingfunctionmanager.js';
-import { DurabilityLevel, ServiceType, StoreSemantics } from './generaltypes.js';
+import {
+  DurabilityLevel,
+  ReadPreference,
+  ServiceType,
+  StoreSemantics,
+} from './generaltypes.js';
 import { MutationState } from './mutationstate.js';
 import { QueryProfileMode, QueryScanConsistency } from './querytypes.js';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
@@ -1648,4 +1654,24 @@ export function authDomainFromCpp(domain: CppManagementRbacAuthDomain): string {
     return 'external';
   }
   throw new InvalidArgumentError('Unrecognized CppManagementRbacAuthDomain.');
+}
+
+/**
+ * @internal
+ */
+export function readPreferenceToCpp(
+  preference: ReadPreference | undefined
+): CppReadPreference {
+  // Unspecified is allowed, and means no preference.
+  if (preference === null || preference === undefined) {
+    return binding.read_preference.no_preference;
+  }
+
+  if (preference === ReadPreference.NoPreference) {
+    return binding.read_preference.no_preference;
+  } else if (preference === ReadPreference.SelectedServerGroup) {
+    return binding.read_preference.selected_server_group;
+  }
+
+  throw new InvalidArgumentError('Unrecognized ReadPreference.');
 }

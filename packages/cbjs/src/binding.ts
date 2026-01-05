@@ -529,6 +529,7 @@ export interface CppGetAllReplicasResponseEntry {
 export interface CppGetAllReplicasRequest {
   id: CppDocumentId;
   timeout?: number;
+  read_preference: CppReadPreference;
 }
 export interface CppUpsertResponse {
   // ctx
@@ -572,6 +573,7 @@ export interface CppGetAnyReplicaResponse {
 export interface CppGetAnyReplicaRequest {
   id: CppDocumentId;
   timeout?: number;
+  read_preference: CppReadPreference;
 }
 export interface CppAppendResponse {
   // ctx
@@ -773,7 +775,7 @@ export interface CppLookupInAllReplicasRequest {
   id: CppDocumentId;
   specs: CppImplSubdocCommand[];
   timeout?: number;
-  // parent_span
+  read_preference: CppReadPreference;
 }
 export interface CppAnalyticsResponse {
   // ctx
@@ -1113,7 +1115,7 @@ export interface CppLookupInAnyReplicaRequest {
   id: CppDocumentId;
   specs: CppImplSubdocCommand[];
   timeout?: number;
-  // parent_span
+  read_preference: CppReadPreference;
 }
 export interface CppMutateInResponse {
   // ctx
@@ -3551,6 +3553,13 @@ export interface CppTransaction {
   newAttempt(callback: (err: CppError | null) => void): void;
 
   get(
+    options: {
+      id: CppDocumentId;
+    },
+    callback: (err: CppError | null, result: CppTransactionGetResult | null) => void
+  ): void;
+
+  getReplicaFromPreferredServerGroup(
     options: {
       id: CppDocumentId;
     },

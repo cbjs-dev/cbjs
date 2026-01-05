@@ -21,6 +21,7 @@ import {
   LookupInReplicaResult,
   LookupInSpec,
   PathNotFoundError,
+  ReadPreference,
 } from '@cbjsdev/cbjs';
 import { ChainableLookupIn } from '@cbjsdev/cbjs/internal';
 import { getPool } from '@cbjsdev/http-client';
@@ -272,4 +273,24 @@ describe
         )
       ).rejects.toThrowError(PathNotFoundError);
     });
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.ServerGroups))(
+      'should raise DocumentUnretrievableError for lookupInAnyReplica with read preference but no cluster preference',
+      async ({ serverTestContext, testDocKey, expect }) => {
+        // the cluster setup does not set a preferred server group, so executing lookupInAnyReplica
+        // with a ReadPreference should fail.
+        await expect(
+          serverTestContext.collection.lookupInAnyReplica(
+            testDocKey,
+            [
+              LookupInSpec.get('str'),
+              LookupInSpec.get('int'),
+              LookupInSpec.get('missingPath'),
+              LookupInSpec.exists('missingPath'),
+            ],
+            { readPreference: ReadPreference.SelectedServerGroup }
+          )
+        ).rejects.toThrowError(DocumentUnretrievableError);
+      }
+    );
   });

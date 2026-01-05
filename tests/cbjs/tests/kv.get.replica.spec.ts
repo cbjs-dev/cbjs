@@ -21,6 +21,7 @@ import {
   DocumentNotFoundError,
   DocumentUnretrievableError,
   DurabilityLevel,
+  ReadPreference,
 } from '@cbjsdev/cbjs';
 import { getPool } from '@cbjsdev/http-client';
 import { ServerFeatures } from '@cbjsdev/http-client';
@@ -207,4 +208,30 @@ describe
 
       expect(result).toBeUndefined();
     });
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.ServerGroups))(
+      'should throw DocumentUnretrievableError for getAnyReplica with read preference but no cluster preference',
+      async ({ expect, serverTestContext, testDocKey }) => {
+        // the cluster setup does not set a preferred server group, so executing getAnyReplica
+        // with a ReadPreference should fail.
+        await expect(() =>
+          serverTestContext.collection.getAnyReplica(testDocKey, {
+            readPreference: ReadPreference.SelectedServerGroup,
+          })
+        ).rejects.toThrow(DocumentUnretrievableError);
+      }
+    );
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.ServerGroups))(
+      'should throw DocumentUnretrievableError for getAnyReplica with read preference but no cluster preference',
+      async ({ expect, serverTestContext, testDocKey }) => {
+        // the cluster setup does not set a preferred server group, so executing getAllReplicas
+        // with a ReadPreference should fail.
+        await expect(() =>
+          serverTestContext.collection.getAllReplicas(testDocKey, {
+            readPreference: ReadPreference.SelectedServerGroup,
+          })
+        ).rejects.toThrow(DocumentUnretrievableError);
+      }
+    );
   });

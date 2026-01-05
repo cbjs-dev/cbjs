@@ -21,6 +21,7 @@ import {
   BucketNotFoundError,
   DocumentExistsError,
   DocumentNotFoundError,
+  DocumentUnretrievableError,
   FeatureNotAvailableError,
   keyspacePath,
   KeyValueErrorContext,
@@ -941,4 +942,45 @@ describe
         expect(err.stack).toContain('document not found');
       }
     });
+
+    test.runIf(serverSupportsFeatures(ServerFeatures.ServerGroups))(
+      'should raise DocumentUnretrievableError only in lambda with read preference but no cluster preference',
+      async ({ serverTestContext, useDocumentKey, expect }) => {
+        expect.hasAssertions();
+
+        const docKey = useDocumentKey();
+
+        await serverTestContext.collection.insert(docKey, {
+          title: 'cbjs',
+        });
+
+        // the cluster setup does not set a preferred server group, so executing
+        // getReplicaFromPreferredServerGroup should fail
+
+        let numAttempts = 0;
+
+        try {
+          await serverTestContext.cluster.transactions().run(
+            async (ctx) => {
+              numAttempts++;
+              // await expect(async () => {
+              const fn = ctx.getReplicaFromPreferredServerGroup;
+              await ctx.getReplicaFromPreferredServerGroup(
+                serverTestContext.collection,
+                docKey
+              );
+              // }).rejects.toThrow(DocumentUnretrievableError);
+            },
+            { timeout: 2000 }
+          );
+        } catch (err) {
+          expect(err).toBeInstanceOf(TransactionFailedError);
+          invariant(err instanceof TransactionFailedError);
+          console.log(err.cause);
+          expect(err.cause).toBeInstanceOf(DocumentUnretrievableError);
+        }
+
+        expect(numAttempts).toEqual(0);
+      }
+    );
   });

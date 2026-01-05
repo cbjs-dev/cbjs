@@ -69,6 +69,7 @@ import {
   errorFromCpp,
   mutationStateToCpp,
   persistToToCpp,
+  readPreferenceToCpp,
   replicateToToCpp,
   scanTypeToCpp,
   storeSemanticToCpp,
@@ -112,7 +113,7 @@ import {
   DocumentUnretrievableError,
   InvalidArgumentError,
 } from './errors.js';
-import { DurabilityLevel, StoreSemantics } from './generaltypes.js';
+import { DurabilityLevel, ReadPreference, StoreSemantics } from './generaltypes.js';
 import { MutationState } from './mutationstate.js';
 import { CollectionQueryIndexManager } from './queryindexmanager.js';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
@@ -289,6 +290,11 @@ export interface GetAnyReplicaOptions<ThrowIfMissing extends boolean = boolean> 
    * @default true
    */
   throwIfMissing?: ThrowIfMissing;
+
+  /**
+   * Specifies how replica nodes will be filtered.
+   */
+  readPreference?: ReadPreference;
 }
 
 /**
@@ -304,6 +310,11 @@ export interface GetAllReplicasOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * Specifies how replica nodes will be filtered.
+   */
+  readPreference?: ReadPreference;
 }
 
 /**
@@ -402,6 +413,11 @@ export interface LookupInAnyReplicaOptions<ThrowOnSpecError extends boolean = fa
    * @default false
    */
   throwOnSpecError?: ThrowOnSpecError;
+
+  /**
+   * Specifies how replica nodes will be filtered.
+   */
+  readPreference?: ReadPreference;
 }
 
 /**
@@ -420,6 +436,11 @@ export interface LookupInAllReplicasOptions<ThrowOnSpecError extends boolean = f
    * @default false
    */
   throwOnSpecError?: ThrowOnSpecError;
+
+  /**
+   * Specifies how replica nodes will be filtered.
+   */
+  readPreference?: ReadPreference;
 }
 
 /**
@@ -857,7 +878,11 @@ export class Collection<
   private _getReplica(
     key: string,
     getAllReplicas: boolean,
-    options: { transcoder?: Transcoder; timeout?: number }
+    options: {
+      transcoder?: Transcoder;
+      timeout?: number;
+      readPreference?: ReadPreference;
+    }
   ): StreamableReplicasPromise<
     [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]],
     GetReplicaResult<unknown>
@@ -872,7 +897,11 @@ export class Collection<
   private _getReplica(
     key: string,
     getAllReplicas: boolean,
-    options?: { transcoder?: Transcoder; timeout?: number }
+    options?: {
+      transcoder?: Transcoder;
+      timeout?: number;
+      readPreference?: ReadPreference;
+    }
   ): StreamableReplicasPromise<
     [GetReplicaResult<unknown>, ...GetReplicaResult<unknown>[]],
     GetReplicaResult<unknown>
@@ -893,6 +922,7 @@ export class Collection<
     const request = {
       id: this.getDocId(key),
       timeout: timeout,
+      read_preference: readPreferenceToCpp(options.readPreference),
     };
 
     const getReplicas = getAllReplicas
@@ -2184,6 +2214,7 @@ export class Collection<
         id: this.getDocId(key),
         specs: cppSpecs,
         timeout: timeout,
+        read_preference: readPreferenceToCpp(options.readPreference),
       },
       (cppErr, res) => {
         if (cppErr) {
