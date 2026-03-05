@@ -17,6 +17,7 @@
 import { promisify } from 'node:util';
 
 import {
+  ArrayMap,
   BucketName,
   Cas,
   CasInput,
@@ -33,9 +34,12 @@ import {
 } from '@cbjsdev/shared';
 
 import binding, {
+  CppDocumentId,
   type CppError,
   CppTransaction,
   CppTransactionGetMetaData,
+  CppTransactionGetMultiReplicasFromPreferredServerGroupResult,
+  CppTransactionGetMultiResult,
   CppTransactionGetResult,
   CppTransactionLinks,
   CppTransactions,
@@ -45,14 +49,24 @@ import {
   errorFromCpp,
   queryProfileToCpp,
   queryScanConsistencyToCpp,
+  transactionGetMultiModeToCpp,
+  transactionGetMultiReplicasFromPreferredServerGroupModeToCpp,
   transactionKeyspaceToCpp,
 } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
-import { CollectionKeyspace } from './clusterTypes/clusterTypes.js';
+import {
+  AnyBucket,
+  ClusterBucket,
+  ClusterCollection,
+  ClusterScope,
+  CollectionKeyspace,
+} from './clusterTypes/clusterTypes.js';
 import { AnyCollection } from './clusterTypes/index.js';
 import { Collection } from './collection.js';
 import {
   DocumentNotFoundError,
+  TransactionCommitAmbiguousError,
+  TransactionExpiredError,
   TransactionFailedError,
   TransactionOperationFailedError,
 } from './errors.js';
@@ -128,6 +142,46 @@ export type TransactionKeyspace = {
    */
   collection?: string;
 };
+
+/**
+ * Represents the mode of the Transactional GetMulti operation.
+ *
+ * @category Transactions
+ */
+export enum TransactionGetMultiMode {
+  /**
+   * Indicates that the Transactional GetMulti op should prioritise latency.
+   */
+  PrioritiseLatency = 'prioritise_latency',
+  /**
+   * Indicates that the Transactional GetMulti op should disable read skew detection.
+   */
+  DisableReadSkewDetection = 'disable_read_skew_detection',
+  /**
+   * Indicates that the Transactional GetMulti op should prioritise read skew detection.
+   */
+  PrioritiseReadSkewDetection = 'prioritise_read_skew_detection',
+}
+
+/**
+ * Represents the mode of the Transactional GetMultiReplicasFromPreferredServerGroup operation.
+ *
+ * @category Transactions
+ */
+export enum TransactionGetMultiReplicasFromPreferredServerGroupMode {
+  /**
+   * Indicates that the Transactional GetMultiReplicasFromPreferredServerGroup op should prioritise latency.
+   */
+  PrioritiseLatency = 'prioritise_latency',
+  /**
+   * Indicates that the Transactional GetMultiReplicasFromPreferredServerGroup op should disable read skew detection.
+   */
+  DisableReadSkewDetection = 'disable_read_skew_detection',
+  /**
+   * Indicates that the Transactional GetMultiReplicasFromPreferredServerGroup op should prioritise read skew detection.
+   */
+  PrioritiseReadSkewDetection = 'prioritise_read_skew_detection',
+}
 
 /**
  * Specifies the configuration options for Transactions cleanup.
@@ -218,6 +272,98 @@ export type TransactionOptions = {
    */
   timeout?: number;
 };
+
+/**
+ * Represents the path to a document.
+ *
+ * @category Transactions
+ */
+export class TransactionGetMultiSpec<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+> {
+  constructor(collection: Collection<T, B, S, C>, id: Key, transcoder?: Transcoder) {
+    this.collection = collection;
+    this.id = id;
+    this.transcoder = transcoder;
+  }
+
+  /**
+   * The Collection where the document belongs.
+   */
+  collection: Collection<T, B, S, C>;
+
+  /**
+   * The id (or key) of the document.
+   */
+  id: Key;
+
+  /**
+   * The Transcoder to encode/decode the document.
+   */
+  transcoder?: Transcoder;
+
+  /**
+   * @internal
+   */
+  _toCppDocumentId(): CppDocumentId {
+    return {
+      bucket: this.collection.scope.bucket.name,
+      scope: this.collection.scope.name || '_default',
+      collection: this.collection.name || '_default',
+      key: this.id,
+    };
+  }
+}
+
+/**
+ * Represents the path to a document.
+ *
+ * @category Transactions
+ */
+export class TransactionGetMultiReplicasFromPreferredServerGroupSpec<
+  T extends CouchbaseClusterTypes,
+  B extends BucketName<T>,
+  S extends ScopeName<T, B>,
+  C extends CollectionName<T, B, S>,
+  const Key extends KeyspaceDocDef<T, B, S, C>['Key'] = KeyspaceDocDef<T, B, S, C>['Key'],
+> {
+  constructor(collection: Collection<T, B, S, C>, id: Key, transcoder?: Transcoder) {
+    this.collection = collection;
+    this.id = id;
+    this.transcoder = transcoder;
+  }
+
+  /**
+   * The Collection where the document belongs.
+   */
+  collection: Collection<T, B, S, C>;
+
+  /**
+   * The id (or key) of the document.
+   */
+  id: Key;
+
+  /**
+   * The Transcoder to encode/decode the document.
+   */
+  transcoder?: Transcoder;
+
+  /**
+   * @internal
+   */
+  _toCppDocumentId(): CppDocumentId {
+    return {
+      bucket: this.collection.scope.bucket.name,
+      scope: this.collection.scope.name || '_default',
+      collection: this.collection.name || '_default',
+      key: this.id,
+    };
+  }
+}
 
 /**
  * Contains the results of a Transaction.
@@ -320,6 +466,162 @@ export class TransactionGetResult<
     this.cas = data.cas;
     this._links = data._links;
     this._metadata = data._metadata;
+  }
+}
+
+/**
+ * Contains the results of a specific sub-operation within a transactional GetMulti operation.
+ *
+ * @category Transactions
+ */
+export class TransactionGetMultiResultEntry<
+  Value = any,
+  Err extends Error | undefined = Error | undefined,
+> {
+  /**
+   * The error, if any, which occured when attempting to perform this sub-operation.
+   */
+  error: Err;
+
+  /**
+   * The value returned by the sub-operation.
+   */
+  value: Value;
+
+  /**
+   * @internal
+   */
+  constructor(data: { value: Value; error: Err }) {
+    this.error = data.error;
+    this.value = data.value;
+  }
+}
+
+/**
+ * Contains the results of a transactional GetMulti operation.
+ *
+ * @category Transactions
+ */
+export class TransactionGetMultiResult<
+  Entries extends ReadonlyArray<TransactionGetMultiResultEntry>,
+> {
+  /**
+   * The content of the document.
+   */
+  content: Entries;
+
+  /**
+   * @internal
+   */
+  constructor(data: { content: Entries }) {
+    this.content = data.content;
+  }
+
+  /**
+   * Indicates whether the document at the specified index exists.
+   *
+   * @param index The result index to check.
+   */
+  exists(index: number): boolean {
+    if (index < 0 || index >= this.content.length) {
+      throw new Error(`Index (${index}) out of bounds.`);
+    }
+
+    return this.content[index].error === undefined || this.content[index].error === null;
+  }
+
+  /**
+   * Provides the content at the specified index, if it exists.
+   *
+   * @param index The result index to check.
+   */
+  contentAt<Index extends number>(index: Index): ArrayMap<Entries, 'value'>[Index] {
+    if (!this.exists(index)) {
+      throw (
+        this.content[index].error ??
+        new DocumentNotFoundError(new Error(`Document does not exist at index=${index}.`))
+      );
+    }
+    return this.content[index].value;
+  }
+}
+
+/**
+ * Contains the results of a specific sub-operation within
+ * a transactional GetMultiReplicasFromPreferredServerGroup operation.
+ *
+ * @category Transactions
+ */
+export class TransactionGetMultiReplicasFromPreferredServerGroupResultEntry<
+  Value = any,
+  Err extends Error | undefined = Error | undefined,
+> {
+  /**
+   * The error, if any, which occured when attempting to access the document.
+   */
+  error: Err;
+
+  /**
+   * The value of the document.
+   */
+  value: Value;
+
+  /**
+   * @internal
+   */
+  constructor(data: { value: Value; error: Err }) {
+    this.error = data.error;
+    this.value = data.value;
+  }
+}
+
+/**
+ * Contains the results of a transactional GetMultiReplicasFromPreferredServerGroup operation.
+ *
+ * @category Transactions
+ */
+export class TransactionGetMultiReplicasFromPreferredServerGroupResult<
+  Entries extends
+    ReadonlyArray<TransactionGetMultiReplicasFromPreferredServerGroupResultEntry>,
+> {
+  /**
+   * The content of the document.
+   */
+  content: Entries;
+
+  /**
+   * @internal
+   */
+  constructor(data: { content: Entries }) {
+    this.content = data.content;
+  }
+
+  /**
+   * Indicates whether the document at the specified index exists.
+   *
+   * @param index The result index to check.
+   */
+  exists(index: number): boolean {
+    if (index < 0 || index >= this.content.length) {
+      throw new Error(`Index (${index}) out of bounds.`);
+    }
+
+    return this.content[index].error === undefined || this.content[index].error === null;
+  }
+
+  /**
+   * Provides the content at the specified index, if it exists.
+   *
+   * @param index The result index to check.
+   */
+  contentAt<Index extends number>(index: Index): ArrayMap<Entries, 'value'>[Index] {
+    if (!this.exists(index)) {
+      throw (
+        this.content[index].error ??
+        new DocumentNotFoundError(new Error(`Document does not exist at index=${index}.`))
+      );
+    }
+    return this.content[index].value;
   }
 }
 
@@ -528,6 +830,26 @@ export interface TransactionGetReplicaFromPreferredServerGroupOptions {
 /**
  * @category Transactions
  */
+export interface TransactionGetMultiOptions {
+  /**
+   * Specifies a mode to use for this specific operation.
+   */
+  mode?: TransactionGetMultiMode;
+}
+
+/**
+ * @category Transactions
+ */
+export interface TransactionGetMultiReplicasFromPreferredServerGroupOptions {
+  /**
+   * Specifies a mode to use for this specific operation.
+   */
+  mode?: TransactionGetMultiReplicasFromPreferredServerGroupMode;
+}
+
+/**
+ * @category Transactions
+ */
 export interface TransactionInsertOptions {
   /**
    * Specifies an explicit transcoder to use for this specific operation.
@@ -581,12 +903,92 @@ function translateGetResult<
 }
 
 /**
+ * @internal
+ */
+function translateGetMultiResult(
+  cppRes: CppTransactionGetMultiResult | null,
+  transcoders: Transcoder[]
+): TransactionGetMultiResult<any> | null {
+  if (!cppRes) {
+    return null;
+  }
+  const content: TransactionGetMultiResultEntry[] = [];
+  for (let i = 0; i < cppRes.content.length; ++i) {
+    const cppEntry = cppRes.content[i];
+    let resultEntry, resultError;
+    if (cppEntry?.data && cppEntry.data.length > 0) {
+      resultEntry = transcoders[i].decode(cppEntry.data, cppEntry.flags);
+    } else {
+      resultError = new DocumentNotFoundError(
+        new Error(`Document not found at index=${i}.`)
+      );
+    }
+    content.push(
+      new TransactionGetMultiResultEntry({
+        value: resultEntry,
+        error: resultError,
+      })
+    );
+  }
+  return new TransactionGetMultiResult({
+    content,
+  });
+}
+
+/**
+ * @internal
+ */
+function translateGetMultiReplicasFromPreferredServerGroupResult(
+  cppRes: CppTransactionGetMultiReplicasFromPreferredServerGroupResult | null,
+  transcoders: Transcoder[]
+): TransactionGetMultiReplicasFromPreferredServerGroupResult<any> | null {
+  if (!cppRes) {
+    return null;
+  }
+  const content: TransactionGetMultiReplicasFromPreferredServerGroupResultEntry[] = [];
+  for (let i = 0; i < cppRes.content.length; ++i) {
+    const cppEntry = cppRes.content[i];
+    let resultEntry, resultError;
+    if (cppEntry?.data && cppEntry.data.length > 0) {
+      resultEntry = transcoders[i].decode(cppEntry.data, cppEntry.flags);
+    } else {
+      resultError = new DocumentNotFoundError(
+        new Error(`Document not found at index=${i}.`)
+      );
+    }
+    content.push(
+      new TransactionGetMultiReplicasFromPreferredServerGroupResultEntry({
+        value: resultEntry,
+        error: resultError,
+      })
+    );
+  }
+  return new TransactionGetMultiReplicasFromPreferredServerGroupResult({
+    content,
+  });
+}
+
+/**
  * Represents a {@link TransactionAttemptContext} where the bucket has been defined.
  */
 export type TransactionAttemptContextBucket<
   T extends CouchbaseClusterTypes,
   B extends BucketName<T> = never,
 > = ReturnType<TransactionAttemptContext<T, never, B>['bucket']>;
+
+// prettier-ignore
+type SpecsToEntries<Specs> = 
+  Specs extends readonly [TransactionGetMultiSpec<infer T, infer B, infer S, infer C, infer Key>, ...infer Rest] ? 
+    [TransactionGetMultiResultEntry<DocDefMatchingKey<Key, T, B, S, C>['Body']>, ...SpecsToEntries<Rest>] : 
+  []
+;
+
+// prettier-ignore
+type SpecsToPreferredEntries<Specs> = 
+  Specs extends readonly [TransactionGetMultiReplicasFromPreferredServerGroupSpec<infer T, infer B, infer S, infer C, infer Key>, ...infer Rest] ? 
+    [TransactionGetMultiReplicasFromPreferredServerGroupResultEntry<DocDefMatchingKey<Key, T, B, S, C>['Body']>, ...SpecsToPreferredEntries<Rest>] :
+  []
+;
 
 /**
  * Represents a {@link TransactionAttemptContext} where the bucket and the scope have been defined.
@@ -745,6 +1147,79 @@ export class TransactionAttemptContext<
       invariant(result);
 
       return translateGetResult(result, transcoder) as never;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
+  }
+
+  /**
+   * Retrieves the documents specified in the list of specs.
+   *
+   * @param specs The documents to retrieve.
+   * @param options Optional parameters for this operation.
+   */
+  async getMulti<
+    const Specs extends ReadonlyArray<TransactionGetMultiSpec<any, any, any, any>>,
+  >(
+    specs: Specs,
+    options?: TransactionGetMultiOptions
+  ): Promise<TransactionGetMultiResult<SpecsToEntries<Specs>>> {
+    const ids = specs.map((spec) => spec._toCppDocumentId());
+    const transcoders = specs.map((spec) => spec.transcoder ?? this.transcoder);
+
+    const getMulti = promisify(this._impl.getMulti).bind(this._impl);
+
+    try {
+      const result = await getMulti({
+        ids,
+        mode: transactionGetMultiModeToCpp(options?.mode),
+      });
+
+      return translateGetMultiResult(result, transcoders) as TransactionGetMultiResult<
+        SpecsToEntries<Specs>
+      >;
+    } catch (cppError: unknown) {
+      const err = errorFromCpp(cppError as CppError);
+      throw err;
+    }
+  }
+
+  /**
+   *
+   * @param specs The documents to retrieve.
+   * @param options Optional parameters for this operation.
+   */
+  async getMultiReplicasFromPreferredServerGroup<
+    const Specs extends ReadonlyArray<
+      TransactionGetMultiReplicasFromPreferredServerGroupSpec<any, any, any, any>
+    >,
+  >(
+    specs: Specs,
+    options?: TransactionGetMultiReplicasFromPreferredServerGroupOptions
+  ): Promise<
+    TransactionGetMultiReplicasFromPreferredServerGroupResult<
+      SpecsToPreferredEntries<Specs>
+    >
+  > {
+    const ids = specs.map((spec) => spec._toCppDocumentId());
+    const transcoders = specs.map((spec) => spec.transcoder ?? this.transcoder);
+    const getMultiReplicasFromPreferredServerGroup = promisify(
+      this._impl.getMultiReplicasFromPreferredServerGroup
+    ).bind(this._impl);
+
+    try {
+      const result = await getMultiReplicasFromPreferredServerGroup({
+        ids,
+        mode: transactionGetMultiReplicasFromPreferredServerGroupModeToCpp(options?.mode),
+      });
+
+      return translateGetMultiReplicasFromPreferredServerGroupResult(
+        result,
+        transcoders
+      ) as TransactionGetMultiReplicasFromPreferredServerGroupResult<
+        SpecsToPreferredEntries<Specs>
+      >;
     } catch (cppError: unknown) {
       const err = errorFromCpp(cppError as CppError);
       throw err;
@@ -1217,7 +1692,13 @@ export class Transactions<T extends CouchbaseClusterTypes> {
           );
           swapStack(transformedError, e);
           throw transformedError;
+        } else if (
+          e instanceof TransactionExpiredError ||
+          e instanceof TransactionCommitAmbiguousError
+        ) {
+          throw e;
         }
+
         invariant(e instanceof Error);
         const transformedError = new TransactionFailedError(e.message, e);
         swapStack(transformedError, e);

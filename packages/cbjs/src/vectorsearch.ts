@@ -1,4 +1,5 @@
 import { InvalidArgumentError } from './errors.js';
+import { SearchQuery } from './searchquery.js';
 
 /**
  * Specifies how multiple vector searches are combined.
@@ -38,6 +39,7 @@ export class VectorQuery {
   private _vectorBase64: string | undefined;
   private _numCandidates: number | undefined;
   private _boost: number | undefined;
+  private _prefilter: SearchQuery | undefined;
 
   constructor(fieldName: string, vector: number[] | string) {
     if (!fieldName) {
@@ -81,6 +83,9 @@ export class VectorQuery {
     if (this._boost) {
       output.boost = this._boost;
     }
+    if (this._prefilter) {
+      output.filter = this._prefilter.toJSON();
+    }
     return output;
   }
 
@@ -104,6 +109,21 @@ export class VectorQuery {
       throw new InvalidArgumentError('Provided value for numCandidates must be >= 1.');
     }
     this._numCandidates = numCandidates;
+    return this;
+  }
+
+  /**
+   * Adds prefilter option to vector query.
+   *
+   * @param prefilter A SearchQuery.
+   */
+  prefilter(prefilter: SearchQuery): VectorQuery {
+    if (!(prefilter instanceof SearchQuery)) {
+      throw new InvalidArgumentError(
+        'Provided value for prefilter must be a SearchQuery.'
+      );
+    }
+    this._prefilter = prefilter;
     return this;
   }
 

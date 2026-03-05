@@ -9,6 +9,12 @@ import {
   DocumentId,
   QueryMetrics,
   TransactionDocInfo,
+  TransactionGetMultiReplicasFromPreferredServerGroupResult,
+  TransactionGetMultiReplicasFromPreferredServerGroupResultEntry,
+  TransactionGetMultiReplicasFromPreferredServerGroupSpec,
+  TransactionGetMultiResult,
+  TransactionGetMultiResultEntry,
+  TransactionGetMultiSpec,
   TransactionGetResult,
 } from './index.js';
 
@@ -49,6 +55,7 @@ type UserClusterTypes = {
 describe('transactions', async () => {
   const cluster = await connect<UserClusterTypes>('');
   const collection = cluster.bucket('store').scope('library').collection('books');
+  const collection2 = cluster.bucket('store').scope('library').collection('authors');
 
   describe('get', () => {
     it('should validate the document key based on the cluster types', async () => {
@@ -76,6 +83,91 @@ describe('transactions', async () => {
             'author::001'
           >
         >();
+      });
+    });
+  });
+
+  describe('getMulti', () => {
+    it('should validate the document key based on the cluster types', async () => {
+      const tx = cluster.transactions();
+      await tx.run(async (attempt) => {
+        await attempt.getMulti([
+          new TransactionGetMultiSpec(collection, 'book::001'),
+          // @ts-expect-error Invalid key
+          new TransactionGetMultiSpec(collection2, 'book::002'),
+        ]);
+      });
+    });
+
+    it('should infer the result type based on the cluster types', async () => {
+      const tx = cluster.transactions();
+      await tx.run(async (attempt) => {
+        const result = await attempt.getMulti([
+          new TransactionGetMultiSpec(collection, 'book::001'),
+          new TransactionGetMultiSpec(collection2, 'author::001'),
+        ]);
+
+        expectTypeOf(result).toEqualTypeOf<
+          TransactionGetMultiResult<
+            [TransactionGetMultiResultEntry<Book>, TransactionGetMultiResultEntry<Author>]
+          >
+        >();
+
+        const r0 = result.contentAt(0);
+        const r1 = result.contentAt(1);
+
+        expectTypeOf(r0).toEqualTypeOf<Book>();
+        expectTypeOf(r1).toEqualTypeOf<Author>();
+      });
+    });
+  });
+
+  describe('getMultiReplicasFromPreferredServerGroup', () => {
+    it('should validate the document key based on the cluster types', async () => {
+      const tx = cluster.transactions();
+      await tx.run(async (attempt) => {
+        await attempt.getMultiReplicasFromPreferredServerGroup([
+          new TransactionGetMultiReplicasFromPreferredServerGroupSpec(
+            collection,
+            'book::001'
+          ),
+          new TransactionGetMultiReplicasFromPreferredServerGroupSpec(
+            collection2,
+            // @ts-expect-error Invalid key
+            'book::002'
+          ),
+        ]);
+      });
+    });
+
+    it('should infer the result type based on the cluster types', async () => {
+      const tx = cluster.transactions();
+      await tx.run(async (attempt) => {
+        const result = await attempt.getMultiReplicasFromPreferredServerGroup([
+          new TransactionGetMultiReplicasFromPreferredServerGroupSpec(
+            collection,
+            'book::001'
+          ),
+          new TransactionGetMultiReplicasFromPreferredServerGroupSpec(
+            collection2,
+            'author::001'
+          ),
+        ]);
+
+        expectTypeOf(result).toEqualTypeOf<
+          TransactionGetMultiReplicasFromPreferredServerGroupResult<
+            [
+              TransactionGetMultiReplicasFromPreferredServerGroupResultEntry<Book>,
+              TransactionGetMultiReplicasFromPreferredServerGroupResultEntry<Author>,
+            ]
+          >
+        >();
+
+        const r0 = result.contentAt(0);
+        const r1 = result.contentAt(1);
+
+        expectTypeOf(r0).toEqualTypeOf<Book>();
+        expectTypeOf(r1).toEqualTypeOf<Author>();
       });
     });
   });

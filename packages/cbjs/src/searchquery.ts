@@ -114,6 +114,10 @@ export class SearchQuery {
     return new DateRangeSearchQuery();
   }
 
+  static termRange(): TermRangeSearchQuery {
+    return new TermRangeSearchQuery();
+  }
+
   /**
    * Creates a ConjunctionSearchQuery from a set of other SearchQuery's.
    *
@@ -206,7 +210,7 @@ export class SearchQuery {
     return new MatchNoneSearchQuery();
   }
 
-  static geoDistance(lon: number, lat: number, distance: number): GeoDistanceSearchQuery {
+  static geoDistance(lon: number, lat: number, distance: string): GeoDistanceSearchQuery {
     return new GeoDistanceSearchQuery(lon, lat, distance);
   }
 
@@ -485,6 +489,50 @@ export class DateRangeSearchQuery extends SearchQuery {
   }
 
   boost(boost: number): DateRangeSearchQuery {
+    this._data.boost = boost;
+    return this;
+  }
+}
+
+/**
+ * Represents a term-range search query.
+ *
+ * @category Full Text Search
+ */
+export class TermRangeSearchQuery extends SearchQuery {
+  /**
+   * @internal
+   */
+  constructor() {
+    super({});
+  }
+
+  min(min: string, inclusive?: boolean): TermRangeSearchQuery {
+    if (inclusive === undefined) {
+      inclusive = true;
+    }
+
+    this._data.min = min;
+    this._data.inclusive_min = inclusive;
+    return this;
+  }
+
+  max(max: string, inclusive?: boolean): TermRangeSearchQuery {
+    if (inclusive === undefined) {
+      inclusive = false;
+    }
+
+    this._data.max = max;
+    this._data.inclusive_max = inclusive;
+    return this;
+  }
+
+  field(field: string): TermRangeSearchQuery {
+    this._data.field = field;
+    return this;
+  }
+
+  boost(boost: number): TermRangeSearchQuery {
     this._data.boost = boost;
     return this;
   }
@@ -953,7 +1001,7 @@ export class MatchNoneSearchQuery extends SearchQuery {
 export class GeoDistanceSearchQuery extends SearchQuery {
   declare _data: {
     location: [number, number];
-    distance: number;
+    distance: string;
     field?: string;
     boost?: number;
   };
@@ -961,7 +1009,7 @@ export class GeoDistanceSearchQuery extends SearchQuery {
   /**
    * @internal
    */
-  constructor(lon: number, lat: number, distance: number) {
+  constructor(lon: number, lat: number, distance: string) {
     super({
       location: [lon, lat],
       distance: distance,

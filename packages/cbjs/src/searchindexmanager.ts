@@ -286,10 +286,6 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
     this._cluster = cluster;
   }
 
-  private get _http() {
-    return new HttpExecutor(this._cluster.conn);
-  }
-
   /**
    * Returns an index by it's name.
    *
@@ -412,35 +408,22 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
       options = {};
     }
 
-    const indexName = indexDefinition.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return await PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Put,
-        path: `/api/index/${indexName}`,
-        contentType: 'application/json',
-        body: JSON.stringify(indexDefinition),
-        timeout: timeout,
-      });
-
-      if (res.statusCode === 400) {
-        const body = JSON.parse(res.body.toString()) as {
-          status: 'ok' | 'fail';
-          error?: string;
-        };
-
-        throw new SearchIndexManagementError(
-          `failed to create index: ${body.error}`,
-          undefined,
-          HttpExecutor.errorContextFromResponse(res)
-        );
-      }
-
-      if (res.statusCode !== 200) {
-        throw new SearchIndexManagementError('failed to create index');
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexUpsert(
+        {
+          index: SearchIndex._toCppData(indexDefinition),
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -472,26 +455,20 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Delete,
-        path: `/api/index/${indexName}`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode === 400) {
-        throw new SearchIndexNotFoundError(
-          indexName,
-          HttpExecutor.errorContextFromResponse(res)
-        );
-      }
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to delete search index');
-      }
-
-      return JSON.parse(res.body.toString());
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexDrop(
+        {
+          index_name: indexName,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -571,17 +548,21 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Post,
-        path: `/api/index/${indexName}/ingestControl/pause`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to pause search index ingestion');
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexControlIngest(
+        {
+          index_name: indexName,
+          pause: true,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -613,17 +594,21 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Post,
-        path: `/api/index/${indexName}/ingestControl/resume`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to resume search index ingestion');
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexControlIngest(
+        {
+          index_name: indexName,
+          pause: false,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -655,17 +640,21 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Post,
-        path: `/api/index/${indexName}/queryControl/allow`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to allow search index quering');
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexControlQuery(
+        {
+          index_name: indexName,
+          allow: true,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -697,17 +686,21 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Post,
-        path: `/api/index/${indexName}/queryControl/disallow`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to disallow search index quering');
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexControlQuery(
+        {
+          index_name: indexName,
+          allow: false,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 
@@ -739,17 +732,21 @@ export class SearchIndexManager<T extends CouchbaseClusterTypes = CouchbaseClust
 
     const timeout = options.timeout ?? this._cluster.managementTimeout;
 
-    return PromiseHelper.wrapAsync(async () => {
-      const res = await this._http.request({
-        type: HttpServiceType.Search,
-        method: HttpMethod.Post,
-        path: `/api/index/${indexName}/planFreezeControl/freeze`,
-        timeout: timeout,
-      });
-
-      if (res.statusCode !== 200) {
-        throw new Error('failed to freeze search index plan');
-      }
+    return PromiseHelper.wrap((wrapCallback) => {
+      this._cluster.conn.managementSearchIndexControlPlanFreeze(
+        {
+          index_name: indexName,
+          freeze: false,
+          timeout: timeout,
+        },
+        (cppErr) => {
+          const err = errorFromCpp(cppErr);
+          if (err) {
+            return wrapCallback(err);
+          }
+          wrapCallback(err);
+        }
+      );
     }, callback);
   }
 

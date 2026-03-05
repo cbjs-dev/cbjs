@@ -138,9 +138,9 @@ import {
 } from './streamablepromises.js';
 import type { Transcoder } from './transcoders.js';
 import {
-  expiryToTimestamp,
   getDocId,
   NodeCallback,
+  parseExpiry,
   PromiseHelper,
   VoidNodeCallback,
 } from './utilities.js';
@@ -221,9 +221,15 @@ export type DurabilityOptions = OneOf<[ClientDurabilityOptions, ServerDurability
 
 export type MutationOptions = Partial<DurabilityOptions> & {
   /**
-   * Specifies the expiry time for this document, specified in seconds.
+   * Specifies the expiry time for the document.
+   *
+   * The expiry can be provided as:
+   * - A `number` of seconds relative to the current time.
+   * - A `Date` object for an absolute expiry time.
+   *
+   * **IMPORTANT:** To use a Unix timestamp for expiry, construct a Date from it ( new Date(UNIX_TIMESTAMP * 1000) ).
    */
-  expiry?: number;
+  expiry?: number | Date;
 
   /**
    * Specifies that any existing expiry on the document should be preserved.
@@ -1155,7 +1161,7 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
+    const expiry = parseExpiry(options.expiry);
     const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
@@ -1252,7 +1258,7 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
+    const expiry = parseExpiry(options.expiry);
     const preserve_expiry = options.preserveExpiry ?? false;
     const transcoder = options.transcoder ?? this.transcoder;
     const durabilityLevel = options.durabilityLevel;
@@ -1349,7 +1355,7 @@ export class Collection<
       options = {};
     }
 
-    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
+    const expiry = parseExpiry(options.expiry);
     const cas = options.cas ?? zeroCas;
     const preserve_expiry = options.preserveExpiry ?? false;
     const transcoder = options.transcoder ?? this.transcoder;
@@ -1495,7 +1501,12 @@ export class Collection<
    * for the same document.
    *
    * @param key The document to fetch and touch.
-   * @param expiry The new expiry to apply to the document, specified in seconds.
+   * @param expiry The new expiry to apply to the document.
+   *   The expiry can be provided as:
+   *   - A `number` of seconds relative to the current time.
+   *   - A `Date` object for an absolute expiry time.
+   *
+   *   **IMPORTANT:** To use a Unix timestamp for expiry, construct a Date from it ( new Date(UNIX_TIMESTAMP * 1000) ).
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
@@ -1504,7 +1515,7 @@ export class Collection<
     Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    expiry: number,
+    expiry: number | Date,
     options: GetAndTouchOptions,
     callback?: NodeCallback<GetResult<Def['Body']>>
   ): Promise<GetResult<Def['Body']>>;
@@ -1513,12 +1524,12 @@ export class Collection<
     Def extends DocDefMatchingKey<Key, T, B, S, C>,
   >(
     key: Key,
-    expiry: number,
+    expiry: number | Date,
     callback?: NodeCallback<GetResult<Def['Body']>>
   ): Promise<GetResult<Def['Body']>>;
   async getAndTouch(
     key: string,
-    expiry: number,
+    expiry: number | Date,
     options?: GetAndTouchOptions | NodeCallback<GetResult<unknown>>,
     callback?: NodeCallback<GetResult<unknown>>
   ): Promise<GetResult<unknown>> {
@@ -1538,7 +1549,7 @@ export class Collection<
 
       const response = await getAndTouch({
         id: this.getDocId(key),
-        expiry: expiryToTimestamp(expiry),
+        expiry: parseExpiry(expiry),
         timeout,
         partition: 0,
         opaque: 0,
@@ -1571,24 +1582,29 @@ export class Collection<
    * Updates the expiry on an existing document.
    *
    * @param key The document key to touch.
-   * @param expiry The new expiry to set for the document, specified in seconds.
+   * @param expiry The new expiry to apply to the document.
+   * The expiry can be provided as:
+   * - A `number` of seconds relative to the current time.
+   * - A `Date` object for an absolute expiry time.
+   *
+   * **IMPORTANT:** To use a Unix timestamp for expiry, construct a Date from it ( new Date(UNIX_TIMESTAMP * 1000) ).
    * @param options Optional parameters for this operation.
    * @param callback A node-style callback to be invoked after execution.
    */
   async touch<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
-    expiry: number,
+    expiry: number | Date,
     options: TouchOptions,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>>;
   async touch<Key extends CollectionDocDef<this>['Key']>(
     key: Key,
-    expiry: number,
+    expiry: number | Date,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>>;
   async touch(
     key: string,
-    expiry: number,
+    expiry: number | Date,
     options?: TouchOptions | NodeCallback<MutationResult<undefined>>,
     callback?: NodeCallback<MutationResult<undefined>>
   ): Promise<MutationResult<undefined>> {
@@ -1607,7 +1623,7 @@ export class Collection<
 
       const response = await touch({
         id: this.getDocId(key),
-        expiry: expiryToTimestamp(expiry),
+        expiry: parseExpiry(expiry),
         timeout,
         partition: 0,
         opaque: 0,
@@ -2057,6 +2073,10 @@ export class Collection<
       ThrowOnSpecError
     >
   > {
+    if (specs.length === 0) {
+      throw new InvalidArgumentError('At least one lookup spec must be provided.');
+    }
+
     try {
       const defaultOptions = {
         timeout: this.cluster.kvTimeout,
@@ -2179,6 +2199,10 @@ export class Collection<
       ThrowOnSpecError
     >
   > {
+    if (specs.length === 0) {
+      throw new InvalidArgumentError('At least one lookup spec must be provided.');
+    }
+
     type ResultFromReplica = LookupInReplicaResult<
       LookupInSpecResults<
         CollectionOptions<this>,
@@ -2526,6 +2550,10 @@ export class Collection<
     options: MutateInOptions,
     callback?: NodeCallback<MutateInResult<MutateInSpecResults<SpecDefinitions>>>
   ): Promise<MutateInResult<MutateInSpecResults<SpecDefinitions>>> {
+    if (specs.length === 0) {
+      throw new InvalidArgumentError('At least one mutation spec must be provided.');
+    }
+
     const cppSpecs: CppImplSubdocCommand[] = specs.map((spec) => ({
       opcode_: spec._op,
       flags_: spec._flags,
@@ -2537,7 +2565,7 @@ export class Collection<
     const storeSemantics = options.upsertDocument
       ? StoreSemantics.Upsert
       : options.storeSemantics;
-    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : undefined;
+    const expiry = parseExpiry(options.expiry);
     const preserveExpiry = options.preserveExpiry ?? false;
     const cas = options.cas ?? zeroCas;
     const durabilityLevel = options.durabilityLevel;
@@ -2695,7 +2723,7 @@ export class Collection<
     }
 
     const initial_value = options.initial;
-    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
+    const expiry = parseExpiry(options.expiry);
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
@@ -2779,7 +2807,7 @@ export class Collection<
     }
 
     const initial_value = options.initial;
-    const expiry = options.expiry ? expiryToTimestamp(options.expiry) : 0;
+    const expiry = parseExpiry(options.expiry);
     const durabilityLevel = options.durabilityLevel;
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
@@ -2866,6 +2894,7 @@ export class Collection<
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
     const timeout = options.timeout ?? this.cluster.kvTimeout;
+    const cas = options.cas ?? zeroCas;
 
     try {
       if (!Buffer.isBuffer(value)) {
@@ -2875,6 +2904,7 @@ export class Collection<
       const appendReq = {
         id: this.getDocId(key),
         value,
+        cas,
         timeout,
         partition: 0,
         opaque: 0,
@@ -2949,6 +2979,7 @@ export class Collection<
     const persistTo = options.durabilityPersistTo;
     const replicateTo = options.durabilityReplicateTo;
     const timeout = options.timeout ?? this.cluster.kvTimeout;
+    const cas = options.cas ?? zeroCas;
 
     try {
       if (!Buffer.isBuffer(value)) {
@@ -2958,6 +2989,7 @@ export class Collection<
       const prependReq = {
         id: this.getDocId(key),
         value,
+        cas,
         timeout,
         partition: 0,
         opaque: 0,

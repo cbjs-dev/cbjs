@@ -396,8 +396,8 @@ export class CollectionManager<T extends CouchbaseClusterTypes, B extends Bucket
 
     const bucketName = this._bucket.name;
     const timeout = options.timeout ?? this._cluster.managementTimeout;
-    const maxExpiry = settings.maxExpiry ?? 0;
-    const history = settings.history ?? undefined;
+    const maxExpiry = settings.maxExpiry;
+    const history = settings.history;
 
     return PromiseHelper.wrap((wrapCallback) => {
       this._cluster.conn.managementCollectionCreate(

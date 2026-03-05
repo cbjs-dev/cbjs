@@ -43,7 +43,7 @@ import {
   PingOptions,
   PingResult,
 } from './diagnosticstypes.js';
-import { CouchbaseError } from './errors.js';
+import { AuthenticationFailureError, CouchbaseError } from './errors.js';
 import { EventingFunctionManager } from './eventingfunctionmanager.js';
 import { QueryExecutor } from './queryexecutor.js';
 import { QueryIndexManager } from './queryindexmanager.js';
@@ -160,6 +160,38 @@ export type DnsConfig = {
   dnsSrvTimeout?: number;
 };
 
+/**
+ * Specifies Application Telemetry options for the client.
+ *
+ * @category Core
+ */
+export interface AppTelemetryConfig {
+  /**
+   * Specifies if application telemetry feature should be enabled or not.
+   */
+  enabled?: boolean;
+
+  /**
+   * Specifies an endpoint to override the application metrics endpoint discovered during configuration.
+   */
+  endpoint?: string;
+
+  /**
+   * Specifies the time to wait before attempting a websocket reconnection, specified in millseconds.
+   */
+  backoff?: number;
+
+  /**
+   * Specifies the time to wait between sending consecutive websocket PING commands to the server, specified in millseconds.
+   */
+  pingInterval?: number;
+
+  /**
+   * Specifies the time allowed for the server to respond to websocket PING command, specified in millseconds.
+   */
+  pingTimeout?: number;
+}
+
 export type Hooks<T extends CouchbaseClusterTypes> = {
   /**
    * Any error thrown in a hook will be swallowed and this function will be called
@@ -185,6 +217,117 @@ export type Hooks<T extends CouchbaseClusterTypes> = {
     returnOfOnQueryStart: unknown
   ) => void;
 };
+
+/**
+ * Specifies threshold logging options for the client.
+ *
+ * NOTE:  These options are used to configure the underlying C++ core threshold logging.
+ *
+ * @category Core
+ */
+export interface TracingConfig {
+  /**
+   * Specifies to enable or disable threshold logging.
+   * Defaults to true (enabled) if not specified.
+   */
+  enableTracing?: boolean;
+
+  /**
+   * Specifies the interval after which the aggregated trace information is logged, specified in millseconds.
+   * Defaults to 10000 (10 seconds) if not specified.
+   */
+  emitInterval?: number;
+
+  /**
+   * Specifies how many entries to sample per service in each emit interval.
+   * Defaults to 64 if not specified.
+   */
+  sampleSize?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the KV service, specified in millseconds.
+   * Defaults to 500ms if not specified.
+   */
+  kvThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the query service, specified in millseconds.
+   * Defaults to 1000ms if not specified.
+   */
+  queryThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the search service, specified in millseconds.
+   * Defaults to 1000ms if not specified.
+   */
+  searchThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the analytics service, specified in millseconds.
+   * Defaults to 1000ms if not specified.
+   */
+  analyticsThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for management operations, specified in millseconds.
+   * Defaults to 1000ms if not specified.
+   */
+  managementThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for eventing service, specified in millseconds.
+   * Defaults to 1000ms if not specified.
+   */
+  eventingThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the views service, specified in millseconds.
+   * Defaults to 1000ms if not specified.
+   */
+  viewsThreshold?: number;
+}
+
+/**
+ * Specifies orphan report logging options for the client.
+ *
+ * NOTE:  These options are used to configure the underlying C++ core orphan report logging.
+ *
+ * @category Core
+ */
+export interface OrphanReporterConfig {
+  /**
+   * Specifies the interval after which the aggregated orphaned response information is logged, specified in millseconds.
+   * Defaults to 10000 (10 seconds) if not specified.
+   */
+  emitInterval?: number;
+
+  /**
+   * Specifies how many orphaned response entries to sample per service in each emit interval.
+   * Defaults to 64 if not specified.
+   */
+  sampleSize?: number;
+}
+
+/**
+ * Specifies metrics logging options for the client.
+ *
+ * NOTE:  These options are used to configure the underlying C++ core metrics logging.
+ *
+ * @category Core
+ */
+export interface MetricsConfig {
+  /**
+   * Specifies to enable or disable metrics logging.
+   * Defaults to true (enabled) if not specified.
+   */
+  enableMetrics?: boolean;
+
+  /**
+   * Specifies the interval after which metrics information is logged, specified in millseconds.
+   * Defaults to 10 minutes if not specified.
+   */
+  emitInterval?: number;
+}
 
 /**
  * Specifies the options which can be specified when connecting
@@ -265,6 +408,26 @@ export type ConnectOptions<T extends CouchbaseClusterTypes = any> = {
    * read preference.
    */
   preferredServerGroup?: string;
+
+  /**
+   * Specifies the Application Telemetry config for connections of this cluster.
+   */
+  appTelemetryConfig?: AppTelemetryConfig;
+
+  /**
+   * Specifies the tracing (threshold logging) config for connections of this cluster.
+   */
+  tracingConfig?: TracingConfig;
+
+  /**
+   * Specifies the orphan report logging config for connections of this cluster.
+   */
+  orphanReporterConfig?: OrphanReporterConfig;
+
+  /**
+   * Specifies the metrics config for connections of this cluster.
+   */
+  metricsConfig?: MetricsConfig;
 };
 
 /**
@@ -297,6 +460,10 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private readonly _openBuckets: Map<BucketName<T>, Promise<void>>;
   private _dnsConfig: DnsConfig | null;
   private _preferredServerGroup: string | undefined;
+  private _appTelemetryConfig: AppTelemetryConfig | null;
+  private _tracingConfig: TracingConfig | null;
+  private _orphanReporterConfig: OrphanReporterConfig | null;
+  private _metricsConfig: MetricsConfig | null;
 
   /**
    * @internal
@@ -492,6 +659,54 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       this._dnsConfig = null;
     }
 
+    if (options.appTelemetryConfig) {
+      this._appTelemetryConfig = {
+        enabled: options.appTelemetryConfig.enabled,
+        endpoint: options.appTelemetryConfig.endpoint,
+        backoff: options.appTelemetryConfig.backoff,
+        pingInterval: options.appTelemetryConfig.pingInterval,
+        pingTimeout: options.appTelemetryConfig.pingTimeout,
+      };
+    } else {
+      this._appTelemetryConfig = null;
+    }
+
+    if (options.tracingConfig) {
+      this._tracingConfig = {
+        enableTracing: options.tracingConfig.enableTracing,
+        emitInterval: options.tracingConfig.emitInterval,
+        sampleSize: options.tracingConfig.sampleSize,
+        kvThreshold: options.tracingConfig.kvThreshold,
+        queryThreshold: options.tracingConfig.queryThreshold,
+        searchThreshold: options.tracingConfig.searchThreshold,
+        analyticsThreshold: options.tracingConfig.analyticsThreshold,
+        managementThreshold: options.tracingConfig.managementThreshold,
+        eventingThreshold: options.tracingConfig.eventingThreshold,
+        viewsThreshold: options.tracingConfig.viewsThreshold,
+      };
+    } else {
+      this._tracingConfig = null;
+    }
+
+    if (options.orphanReporterConfig) {
+      // TODO(JSCBC-1364):  Add enableReporting to config when supported in C++ core
+      this._orphanReporterConfig = {
+        emitInterval: options.orphanReporterConfig.emitInterval,
+        sampleSize: options.orphanReporterConfig.sampleSize,
+      };
+    } else {
+      this._orphanReporterConfig = null;
+    }
+
+    if (options.metricsConfig) {
+      this._metricsConfig = {
+        enableMetrics: options.metricsConfig.enableMetrics,
+        emitInterval: options.metricsConfig.emitInterval,
+      };
+    } else {
+      this._metricsConfig = null;
+    }
+
     this._openBuckets = new Map();
     this._conn = new binding.Connection();
   }
@@ -499,17 +714,30 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   /**
     @internal
     @throws AuthenticationFailureError
+    @throws InvalidArgumentError
   */
   static async connect<T extends CouchbaseClusterTypes = DefaultClusterTypes>(
     connStr: string,
     options?: ConnectOptions<T>,
     callback?: NodeCallback<Cluster<T>>
   ): Promise<Cluster<T>> {
-    return await PromiseHelper.wrapAsync(async () => {
+    try {
       const cluster = new Cluster<T>(connStr, options);
       await cluster._connect();
+
+      if (callback) {
+        callback(null, cluster);
+      }
+
       return cluster;
-    }, callback);
+    } catch (err) {
+      if (callback) {
+        callback(err as Error, null);
+        return undefined as never;
+      }
+
+      throw err;
+    }
   }
 
   /**
@@ -892,6 +1120,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
 
   /**
    * @throws AuthenticationFailureError
+   * @throws InvalidArgumentError
    * @private
    */
   private async _connect() {
@@ -924,7 +1153,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       }
 
       if (this._preferredServerGroup) {
-        dsnObj.options['server_group'] = this._preferredServerGroup;
+        dsnObj.options.server_group = this._preferredServerGroup;
       }
 
       const connStr = dsnObj.toString();
@@ -962,13 +1191,22 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         }
       }
 
-      this.conn.connect(connStr, authOpts, this._dnsConfig, (cppErr) => {
-        if (cppErr) {
-          const err = errorFromCpp(cppErr);
-          return reject(err);
+      this.conn.connect(
+        connStr,
+        authOpts,
+        this._dnsConfig,
+        this._appTelemetryConfig,
+        this._tracingConfig,
+        this._orphanReporterConfig,
+        this._metricsConfig,
+        (cppErr) => {
+          if (cppErr) {
+            const err = errorFromCpp(cppErr);
+            return reject(err);
+          }
+          resolve(null);
         }
-        resolve(null);
-      });
+      );
     });
   }
 }

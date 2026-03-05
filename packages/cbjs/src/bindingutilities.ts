@@ -52,13 +52,16 @@ import binding, {
   CppRangeScan,
   CppReadPreference,
   CppReplicateTo,
+  CppRetryReason,
   CppSamplingScan,
   CppSearchHighlightStyle,
   CppSearchScanConsistency,
   CppServiceType,
   CppStoreSemantics,
   CppTransactionKeyspace,
-  CppTxnExternalException,
+  CppTransactionsExternalException,
+  CppTransactionsTransactionGetMultiMode,
+  CppTransactionsTransactionGetMultiReplicasFromPreferredServerGroupMode,
   CppTxnOpException,
   CppVectorQueryCombination,
   CppViewScanConsistency,
@@ -153,6 +156,7 @@ import {
   ServiceNotAvailableError,
   TemporaryFailureError,
   TransactionExpiredError,
+  TransactionFailedError,
   TransactionOperationFailedError,
   UnambiguousTimeoutError,
   UnsupportedOperationError,
@@ -182,7 +186,11 @@ import { MutationState } from './mutationstate.js';
 import { QueryProfileMode, QueryScanConsistency } from './querytypes.js';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
 import { HighlightStyle, SearchScanConsistency } from './searchtypes.js';
-import { TransactionKeyspace } from './transactions.js';
+import {
+  TransactionGetMultiMode,
+  TransactionGetMultiReplicasFromPreferredServerGroupMode,
+  TransactionKeyspace,
+} from './transactions.js';
 import { nsServerStrToDuraLevel } from './utilities.js';
 import { VectorQueryCombination } from './vectorsearch.js';
 import {
@@ -240,23 +248,6 @@ export function durabilityFromCpp(
   }
 
   throw new InvalidDurabilityLevel();
-}
-
-/**
- * @internal
- */
-export function queryScanConsistencyFromCpp(
-  mode: CppQueryScanConsistency | undefined
-): QueryScanConsistency | undefined {
-  if (!mode) return undefined;
-
-  if (mode === binding.query_scan_consistency.not_bounded) {
-    return QueryScanConsistency.NotBounded;
-  } else if (mode === binding.query_scan_consistency.request_plus) {
-    return QueryScanConsistency.RequestPlus;
-  }
-
-  throw new InvalidArgumentError('Failed to parse query scan_consistency from cpp');
 }
 
 /**
@@ -383,6 +374,23 @@ export function queryScanConsistencyToCpp(
     return binding.query_scan_consistency.not_bounded;
   } else if (mode === QueryScanConsistency.RequestPlus) {
     return binding.query_scan_consistency.request_plus;
+  }
+
+  throw new InvalidArgumentError();
+}
+
+/**
+ * @internal
+ */
+export function queryScanConsistencyFromCpp(
+  mode: CppQueryScanConsistency | undefined
+): QueryScanConsistency | undefined {
+  if (!mode) return undefined;
+
+  if (mode === binding.query_scan_consistency.not_bounded) {
+    return QueryScanConsistency.NotBounded;
+  } else if (mode === binding.query_scan_consistency.request_plus) {
+    return QueryScanConsistency.RequestPlus;
   }
 
   throw new InvalidArgumentError();
@@ -568,14 +576,97 @@ export function endpointStateFromCpp(service: CppDiagEndpointState): EndpointSta
  * @internal
  */
 export function txnExternalExceptionStringFromCpp(
-  cause: CppTxnExternalException
+  cause: CppTransactionsExternalException,
+  message?: string
 ): string {
-  const knownCauses = Object.entries(binding.txn_external_exception);
-  const matchingCause = knownCauses.find(([key, value]) => value === cause);
+  if (cause === binding.transactions_external_exception.UNKNOWN) {
+    if (message) {
+      return message;
+    }
 
-  if (matchingCause) return matchingCause[0];
+    return 'unknown';
+  } else if (
+    cause ===
+    binding.transactions_external_exception.ACTIVE_TRANSACTION_RECORD_ENTRY_NOT_FOUND
+  ) {
+    return 'active_transaction_record_entry_not_found';
+  } else if (
+    cause === binding.transactions_external_exception.ACTIVE_TRANSACTION_RECORD_FULL
+  ) {
+    return 'active_transaction_record_full';
+  } else if (
+    cause === binding.transactions_external_exception.ACTIVE_TRANSACTION_RECORD_NOT_FOUND
+  ) {
+    return 'active_transaction_record_not_found';
+  } else if (
+    cause === binding.transactions_external_exception.DOCUMENT_ALREADY_IN_TRANSACTION
+  ) {
+    return 'document_already_in_transaction';
+  } else if (
+    cause === binding.transactions_external_exception.DOCUMENT_EXISTS_EXCEPTION
+  ) {
+    return 'document_exists_exception';
+  } else if (
+    cause === binding.transactions_external_exception.DOCUMENT_NOT_FOUND_EXCEPTION
+  ) {
+    return 'document_not_found_exception';
+  } else if (cause === binding.transactions_external_exception.NOT_SET) {
+    return 'not_set';
+  } else if (
+    cause === binding.transactions_external_exception.FEATURE_NOT_AVAILABLE_EXCEPTION
+  ) {
+    return 'feature_not_available_exception';
+  } else if (
+    cause === binding.transactions_external_exception.TRANSACTION_ABORTED_EXTERNALLY
+  ) {
+    return 'transaction_aborted_externally';
+  } else if (
+    cause === binding.transactions_external_exception.PREVIOUS_OPERATION_FAILED
+  ) {
+    return 'previous_operation_failed';
+  } else if (
+    cause === binding.transactions_external_exception.FORWARD_COMPATIBILITY_FAILURE
+  ) {
+    return 'forward_compatibility_failure';
+  } else if (cause === binding.transactions_external_exception.PARSING_FAILURE) {
+    return 'parsing_failure';
+  } else if (cause === binding.transactions_external_exception.ILLEGAL_STATE_EXCEPTION) {
+    return 'illegal_state_exception';
+  } else if (cause === binding.transactions_external_exception.COUCHBASE_EXCEPTION) {
+    return 'couchbase_exception';
+  } else if (
+    cause === binding.transactions_external_exception.SERVICE_NOT_AVAILABLE_EXCEPTION
+  ) {
+    return 'service_not_available_exception';
+  } else if (
+    cause === binding.transactions_external_exception.REQUEST_CANCELED_EXCEPTION
+  ) {
+    return 'request_canceled_exception';
+  } else if (
+    cause ===
+    binding.transactions_external_exception
+      .CONCURRENT_OPERATIONS_DETECTED_ON_SAME_DOCUMENT
+  ) {
+    return 'concurrent_operations_detected_on_same_document';
+  } else if (cause === binding.transactions_external_exception.COMMIT_NOT_PERMITTED) {
+    return 'commit_not_permitted';
+  } else if (cause === binding.transactions_external_exception.ROLLBACK_NOT_PERMITTED) {
+    return 'rollback_not_permitted';
+  } else if (
+    cause === binding.transactions_external_exception.TRANSACTION_ALREADY_ABORTED
+  ) {
+    return 'transaction_already_aborted';
+  } else if (
+    cause === binding.transactions_external_exception.TRANSACTION_ALREADY_COMMITTED
+  ) {
+    return 'transaction_already_committed';
+  } else if (
+    cause === binding.transactions_external_exception.DOCUMENT_UNRETRIEVABLE_EXCEPTION
+  ) {
+    return 'document_unretrievable_exception';
+  }
 
-  throw new InvalidArgumentError();
+  return 'unknown';
 }
 
 /**
@@ -592,19 +683,32 @@ export function txnOpExceptionFromCpp(
   invariant(err instanceof Error);
 
   switch (err.cause) {
-    case binding.txn_external_exception.document_exists_exception:
-      return new DocumentExistsError(err, context);
+    case binding.transactions_external_exception.DOCUMENT_EXISTS_EXCEPTION:
+      return new DocumentExistsError(
+        new Error(txnExternalExceptionStringFromCpp(err.cause, err.message)),
+        context
+      );
 
-    case binding.txn_external_exception.document_not_found_exception:
-      return new DocumentNotFoundError(err, context);
+    case binding.transactions_external_exception.DOCUMENT_NOT_FOUND_EXCEPTION:
+      return new DocumentNotFoundError(
+        new Error(txnExternalExceptionStringFromCpp(err.cause, err.message)),
+        context
+      );
 
-    case binding.txn_external_exception.parsing_failure:
-      return new ParsingFailureError(err, context);
+    case binding.transactions_external_exception.PARSING_FAILURE:
+      return new ParsingFailureError(
+        new Error(txnExternalExceptionStringFromCpp(err.cause, err.message)),
+        context
+      );
 
-    case binding.txn_external_exception.couchbase_exception:
-      return new CouchbaseError(
-        txnExternalExceptionStringFromCpp(err.cause),
-        err,
+    case binding.transactions_external_exception.COUCHBASE_EXCEPTION: {
+      const cause = txnExternalExceptionStringFromCpp(err.cause, err.message);
+      return new CouchbaseError(cause, new Error(cause), context);
+    }
+
+    case binding.transactions_external_exception.DOCUMENT_UNRETRIEVABLE_EXCEPTION:
+      return new DocumentUnretrievableError(
+        new Error(txnExternalExceptionStringFromCpp(err.cause, err.message)),
         context
       );
 
@@ -641,6 +745,11 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
     return;
   }
 
+  let retry_reasons: string[] = [];
+  if ('retry_reasons' in err) {
+    retry_reasons = err.retry_reasons.map(retryReasonFromCpp);
+  }
+
   switch (err.ctxtype) {
     case 'key_value':
       return new KeyValueErrorContext({
@@ -653,6 +762,10 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
         scope: err.id ? err.id.scope : '',
         context: err.enhanced_error_info ? err.enhanced_error_info.context : '',
         ref: err.enhanced_error_info ? err.enhanced_error_info.reference : '',
+        last_dispatched_from: err.last_dispatched_from ? err.last_dispatched_from : '',
+        last_dispatched_to: err.last_dispatched_to ? err.last_dispatched_to : '',
+        retry_attempts: err.retry_attempts ? err.retry_attempts : 0,
+        retry_reasons: retry_reasons,
       });
 
     case 'view':
@@ -662,6 +775,10 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
         parameters: err.query_string,
         http_response_code: err.http_status,
         http_response_body: err.http_body,
+        last_dispatched_from: err.last_dispatched_from ? err.last_dispatched_from : '',
+        last_dispatched_to: err.last_dispatched_to ? err.last_dispatched_to : '',
+        retry_attempts: err.retry_attempts ? err.retry_attempts : 0,
+        retry_reasons: retry_reasons,
       });
 
     case 'query':
@@ -671,6 +788,10 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
         parameters: err.parameters,
         http_response_code: err.http_status,
         http_response_body: err.http_body,
+        last_dispatched_from: err.last_dispatched_from ? err.last_dispatched_from : '',
+        last_dispatched_to: err.last_dispatched_to ? err.last_dispatched_to : '',
+        retry_attempts: err.retry_attempts ? err.retry_attempts : 0,
+        retry_reasons: retry_reasons,
       });
 
     case 'search':
@@ -680,6 +801,10 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
         parameters: err.parameters,
         http_response_code: err.http_status,
         http_response_body: err.http_body,
+        last_dispatched_from: err.last_dispatched_from ? err.last_dispatched_from : '',
+        last_dispatched_to: err.last_dispatched_to ? err.last_dispatched_to : '',
+        retry_attempts: err.retry_attempts ? err.retry_attempts : 0,
+        retry_reasons: retry_reasons,
       });
 
     case 'analytics':
@@ -689,6 +814,10 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
         parameters: err.parameters,
         http_response_code: err.http_status,
         http_response_body: err.http_body,
+        last_dispatched_from: err.last_dispatched_from ? err.last_dispatched_from : '',
+        last_dispatched_to: err.last_dispatched_to ? err.last_dispatched_to : '',
+        retry_attempts: err.retry_attempts ? err.retry_attempts : 0,
+        retry_reasons: retry_reasons,
       });
 
     case 'http':
@@ -697,7 +826,62 @@ export function contextFromCpp(err: unknown): ServiceErrorContext | undefined {
         request_path: err.path,
         response_code: err.http_status,
         response_body: err.http_body,
+        last_dispatched_from: err.last_dispatched_from ? err.last_dispatched_from : '',
+        last_dispatched_to: err.last_dispatched_to ? err.last_dispatched_to : '',
+        retry_attempts: err.retry_attempts ? err.retry_attempts : 0,
+        retry_reasons: retry_reasons,
       });
+  }
+}
+
+/**
+ * @internal
+ */
+function retryReasonFromCpp(reason: CppRetryReason): string {
+  if (reason === binding.retry_reason.do_not_retry) {
+    return 'do_not_retry';
+  } else if (reason === binding.retry_reason.unknown) {
+    return 'unknown';
+  } else if (reason === binding.retry_reason.socket_not_available) {
+    return 'socket_not_available';
+  } else if (reason === binding.retry_reason.service_not_available) {
+    return 'service_not_available';
+  } else if (reason === binding.retry_reason.node_not_available) {
+    return 'node_not_available';
+  } else if (reason === binding.retry_reason.key_value_not_my_vbucket) {
+    return 'key_value_not_my_vbucket';
+  } else if (reason === binding.retry_reason.key_value_collection_outdated) {
+    return 'key_value_collection_outdated';
+  } else if (reason === binding.retry_reason.key_value_error_map_retry_indicated) {
+    return 'key_value_error_map_retry_indicated';
+  } else if (reason === binding.retry_reason.key_value_locked) {
+    return 'key_value_locked';
+  } else if (reason === binding.retry_reason.key_value_temporary_failure) {
+    return 'key_value_temporary_failure';
+  } else if (reason === binding.retry_reason.key_value_sync_write_in_progress) {
+    return 'key_value_sync_write_in_progress';
+  } else if (reason === binding.retry_reason.key_value_sync_write_re_commit_in_progress) {
+    return 'key_value_sync_write_re_commit_in_progress';
+  } else if (reason === binding.retry_reason.service_response_code_indicated) {
+    return 'service_response_code_indicated';
+  } else if (reason === binding.retry_reason.socket_closed_while_in_flight) {
+    return 'socket_closed_while_in_flight';
+  } else if (reason === binding.retry_reason.circuit_breaker_open) {
+    return 'circuit_breaker_open';
+  } else if (reason === binding.retry_reason.query_prepared_statement_failure) {
+    return 'query_prepared_statement_failure';
+  } else if (reason === binding.retry_reason.query_index_not_found) {
+    return 'query_index_not_found';
+  } else if (reason === binding.retry_reason.analytics_temporary_failure) {
+    return 'analytics_temporary_failure';
+  } else if (reason === binding.retry_reason.search_too_many_requests) {
+    return 'search_too_many_requests';
+  } else if (reason === binding.retry_reason.views_temporary_failure) {
+    return 'views_temporary_failure';
+  } else if (reason === binding.retry_reason.views_no_active_partition) {
+    return 'views_no_active_partition';
+  } else {
+    return 'unknown';
   }
 }
 
@@ -716,7 +900,7 @@ export function errorFromCpp(cppError: unknown): Error | null {
   if (isCppTxnError(cppError)) {
     const args = [
       txnExternalExceptionStringFromCpp(cppError.cause),
-      new Error(txnExternalExceptionStringFromCpp(cppError.cause)),
+      new Error(txnExternalExceptionStringFromCpp(cppError.cause, cppError.message)),
     ] as const;
 
     switch (cppError.ctxtype) {
@@ -738,14 +922,14 @@ export function errorFromCpp(cppError: unknown): Error | null {
         );
       case 'transaction_exception': {
         switch (cppError.type) {
-          case binding.txn_failure_type.fail:
+          case binding.transactions_failure_type.FAIL:
             return new TransactionExpiredError(...args);
-          case binding.txn_failure_type.expiry:
+          case binding.transactions_failure_type.EXPIRY:
             return new TransactionExpiredError(...args);
-          case binding.txn_failure_type.commit_ambiguous:
+          case binding.transactions_failure_type.COMMIT_AMBIGUOUS:
             return new TransactionExpiredError(...args);
           default:
-            throw new InvalidArgumentError();
+            return new TransactionFailedError(...args);
         }
       }
     }
@@ -758,6 +942,10 @@ export function errorFromCpp(cppError: unknown): Error | null {
   }
 
   const context = contextFromCpp(cppError);
+
+  if ('retry_reasons' in cppError && Array.isArray(cppError.retry_reasons)) {
+    cppError.retry_reasons = cppError.retry_reasons.map(retryReasonFromCpp);
+  }
 
   switch (cppError.code) {
     case binding.errc_common.request_canceled:
@@ -1674,4 +1862,60 @@ export function readPreferenceToCpp(
   }
 
   throw new InvalidArgumentError('Unrecognized ReadPreference.');
+}
+
+/**
+ * @internal
+ */
+export function transactionGetMultiModeToCpp(
+  mode: TransactionGetMultiMode | undefined
+): CppTransactionsTransactionGetMultiMode | undefined {
+  if (mode === null || mode === undefined) {
+    return undefined;
+  }
+
+  if (mode === TransactionGetMultiMode.PrioritiseLatency) {
+    return binding.transactions_transaction_get_multi_mode.prioritise_latency;
+  } else if (mode === TransactionGetMultiMode.DisableReadSkewDetection) {
+    return binding.transactions_transaction_get_multi_mode.disable_read_skew_detection;
+  } else if (mode === TransactionGetMultiMode.PrioritiseReadSkewDetection) {
+    return binding.transactions_transaction_get_multi_mode.prioritise_read_skew_detection;
+  }
+  throw new InvalidArgumentError('Unrecognized TransactionGetMultiMode.');
+}
+
+/**
+ * @internal
+ */
+export function transactionGetMultiReplicasFromPreferredServerGroupModeToCpp(
+  mode: TransactionGetMultiReplicasFromPreferredServerGroupMode | undefined
+): CppTransactionsTransactionGetMultiReplicasFromPreferredServerGroupMode | undefined {
+  if (mode === null || mode === undefined) {
+    return undefined;
+  }
+
+  if (
+    mode === TransactionGetMultiReplicasFromPreferredServerGroupMode.PrioritiseLatency
+  ) {
+    return binding
+      .transactions_transaction_get_multi_replicas_from_preferred_server_group_mode
+      .prioritise_latency;
+  } else if (
+    mode ===
+    TransactionGetMultiReplicasFromPreferredServerGroupMode.DisableReadSkewDetection
+  ) {
+    return binding
+      .transactions_transaction_get_multi_replicas_from_preferred_server_group_mode
+      .disable_read_skew_detection;
+  } else if (
+    mode ===
+    TransactionGetMultiReplicasFromPreferredServerGroupMode.PrioritiseReadSkewDetection
+  ) {
+    return binding
+      .transactions_transaction_get_multi_replicas_from_preferred_server_group_mode
+      .prioritise_read_skew_detection;
+  }
+  throw new InvalidArgumentError(
+    'Unrecognized TransactionGetMultiReplicasFromPreferredServerGroupMode.'
+  );
 }

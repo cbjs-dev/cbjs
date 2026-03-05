@@ -18,6 +18,7 @@ import { beforeEach, describe, expectTypeOf } from 'vitest';
 
 import {
   DocumentNotFoundError,
+  InvalidArgumentError,
   LookupInResult,
   LookupInSpec,
   PathNotFoundError,
@@ -289,4 +290,32 @@ describe.shuffle('kv lookupIn', async () => {
       expect(res.content[0].value).toEqual(true);
     }
   );
+
+  test.skip('should throw InvalidArgumentError when specs are empty', async ({
+    serverTestContext,
+    expect,
+  }) => {
+    expect.hasAssertions();
+
+    try {
+      await serverTestContext.collection.lookupIn('missingDoc', []);
+    } catch (err) {
+      expect(err).toBeInstanceOf(InvalidArgumentError);
+      invariant(err instanceof DocumentNotFoundError);
+    }
+  });
+
+  test.skip('should throw InvalidArgumentError when specs are empty (chainable)', async ({
+    serverTestContext,
+    expect,
+  }) => {
+    expect.hasAssertions();
+
+    try {
+      await serverTestContext.collection.lookupIn('missingDoc');
+    } catch (err) {
+      expect(err).toBeInstanceOf(InvalidArgumentError);
+      invariant(err instanceof DocumentNotFoundError);
+    }
+  });
 });

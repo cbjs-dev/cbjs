@@ -19,7 +19,6 @@ import { EventEmitter } from 'events';
 import binding from './binding.js';
 import { CppConnection } from './binding.js';
 import { errorFromCpp } from './bindingutilities.js';
-import { HttpErrorContext } from './errorcontexts.js';
 import { TypedEmitter } from './utils/TypedEmitter.js';
 
 /**
@@ -199,15 +198,6 @@ export class HttpExecutor {
           body: dataCache,
         });
       });
-    });
-  }
-
-  static errorContextFromResponse(resp: HttpResponse): HttpErrorContext {
-    return new HttpErrorContext({
-      method: resp.requestOptions.method,
-      request_path: resp.requestOptions.path,
-      response_code: resp.statusCode,
-      response_body: resp.body.toString(),
     });
   }
 }

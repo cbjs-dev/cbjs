@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CasInput } from '@cbjsdev/shared';
+
+import { CppCasInput } from './binding.js';
 import type { AnyCollection } from './clusterTypes/index.js';
 import type { Collection } from './collection.js';
 import { CounterResult, MutationResult } from './crudoptypes.js';
@@ -32,9 +35,15 @@ export interface IncrementOptions {
   initial?: number;
 
   /**
-   * The expiry time that should be set for the document, expressed in seconds.
+   * Specifies the expiry time for the document.
+   *
+   * The expiry can be provided as:
+   * - A `number` of seconds relative to the current time.
+   * - A `Date` object for an absolute expiry time.
+   *
+   * **IMPORTANT:** To use a Unix timestamp for expiry, construct a Date from it ( new Date(UNIX_TIMESTAMP * 1000) ).
    */
-  expiry?: number;
+  expiry?: number | Date;
 
   /**
    * Specifies the level of synchronous durability for this operation.
@@ -73,9 +82,15 @@ export interface DecrementOptions {
   initial?: number;
 
   /**
-   * The expiry time that should be set for the document, expressed in seconds.
+   * Specifies the expiry time for the document.
+   *
+   * The expiry can be provided as:
+   * - A `number` of seconds relative to the current time.
+   * - A `Date` object for an absolute expiry time.
+   *
+   * **IMPORTANT:** To use a Unix timestamp for expiry, construct a Date from it ( new Date(UNIX_TIMESTAMP * 1000) ).
    */
-  expiry?: number;
+  expiry?: number | Date;
 
   /**
    * Specifies the level of synchronous durability for this operation.
@@ -129,6 +144,12 @@ export interface AppendOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * If specified, indicates that operation should be failed if the CAS
+   * has changed from this value, indicating that the document has changed.
+   */
+  cas?: CasInput;
 }
 
 /**
@@ -158,6 +179,12 @@ export interface PrependOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * If specified, indicates that operation should be failed if the CAS
+   * has changed from this value, indicating that the document has changed.
+   */
+  cas?: CasInput;
 }
 
 /**
