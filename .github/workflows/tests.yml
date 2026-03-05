@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 30
     runs-on:
       group: couchbase-runners
-      labels: ubuntu-latest-m
+      labels: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
       matrix:
