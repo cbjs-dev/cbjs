@@ -16,13 +16,20 @@
  */
 import { EventEmitter } from 'events';
 
-import type { EventMap, TypedEmitter } from './utils/TypedEmitter.js';
+import { EventKey, EventListener, EventMap, TypedEmitter } from './utils/TypedEmitter.js';
+
+/**
+ * @internal
+ */
+interface PromisifyEmitter<EM extends EventMap> {
+  on<K extends EventKey<EM>>(eventName: K, fn: EM[K]): void;
+}
 
 /**
  * @internal
  */
 type PromisifyFunc<T, EM extends EventMap> = (
-  emitter: StreamablePromise<T, EM>,
+  emitter: PromisifyEmitter<EM>,
   resolve: (result: T) => void,
   reject: (err: Error) => void
 ) => void;
@@ -38,7 +45,7 @@ export class StreamablePromise<T, EM extends EventMap>
   implements Promise<T>
 {
   private _promise: Promise<T> | null = null;
-  private _promiseifyFn: PromisifyFunc<T, EM>;
+  private _promiseOns: [string | symbol, EventListener<any[]>][];
 
   /**
    * @internal
@@ -46,16 +53,31 @@ export class StreamablePromise<T, EM extends EventMap>
   constructor(promisefyFn: PromisifyFunc<T, EM>) {
     super();
 
-    this._promiseifyFn = promisefyFn;
+    this._promiseOns = [];
+    this._promise = new Promise((resolve, reject) => {
+      promisefyFn(
+        {
+          on: <T extends EventKey<EM>>(eventName: T, listener: EM[T]) => {
+            this._promiseOns.push([eventName, listener]);
+            void super.on(eventName, listener);
+          },
+        },
+        resolve,
+        reject
+      );
+    });
   }
 
   private get promise(): Promise<T> {
     if (!this._promise) {
-      this._promise = new Promise((resolve, reject) =>
-        this._promiseifyFn(this, resolve, reject)
-      );
+      throw new Error('Cannot await a promise that is already registered for events');
     }
     return this._promise;
+  }
+
+  private _depromisify() {
+    this._promiseOns.forEach((e) => void this.off(...(e as [never, never])));
+    this._promise = null;
   }
 
   then<TResult1 = T, TResult2 = never>(
@@ -73,6 +95,16 @@ export class StreamablePromise<T, EM extends EventMap>
 
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     return this.promise.finally(onfinally);
+  }
+
+  override addListener<T extends EventKey<EM>>(eventName: T, listener: EM[T]): this {
+    this._depromisify();
+    return super.on(eventName, listener);
+  }
+
+  override on<T extends EventKey<EM>>(eventName: T, listener: EM[T]): this {
+    this._depromisify();
+    return super.on(eventName, listener);
   }
 
   /**

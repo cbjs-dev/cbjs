@@ -25,8 +25,6 @@ import { CouchbaseClusterTypes } from '@cbjsdev/shared';
 import { CppError, CppManagementSearchIndex } from './binding.js';
 import { errorFromCpp } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
-import { SearchIndexManagementError, SearchIndexNotFoundError } from './errors.js';
-import { HttpExecutor, HttpMethod, HttpServiceType } from './httpexecutor.js';
 import { NodeCallback, PromiseHelper, VoidNodeCallback } from './utilities.js';
 
 /**

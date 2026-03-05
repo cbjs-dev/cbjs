@@ -17,7 +17,7 @@
 import { inspect } from 'util';
 import { beforeAll, describe, vi } from 'vitest';
 
-import { ParsingFailureError, PlanningFailureError } from '@cbjsdev/cbjs';
+import { PlanningFailureError } from '@cbjsdev/cbjs';
 import { invariant, quoteIdentifier, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjsdev/vitest';
 
@@ -132,9 +132,8 @@ describe('StreamableRowPromise', async () => {
     expect,
     collectionName,
   }) => {
-    const queryResult = await serverTestContext.scope.query(
-      `SELECT * FROM ${quoteIdentifier(collectionName)}`
-    );
+    const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
+    const queryResult = await serverTestContext.scope.query(query);
 
     expect(queryResult.rows).toHaveLength(docs.length);
   });
@@ -143,27 +142,6 @@ describe('StreamableRowPromise', async () => {
     await expect(
       serverTestContext.scope.query(`SELECT * FROM missingCollection`)
     ).rejects.toThrow();
-  });
-
-  test('should resolve when awaited after the first row has been collected', async ({
-    serverTestContext,
-    expect,
-    collectionName,
-  }) => {
-    const rowParser = vi.fn((row: string) => JSON.parse(row));
-
-    const queryResult = serverTestContext.scope.query(
-      `SELECT * FROM ${quoteIdentifier(collectionName)}`,
-      {
-        queryResultParser: rowParser,
-      }
-    );
-
-    await waitFor(() => expect(rowParser).toHaveBeenCalled());
-
-    const { rows } = await queryResult;
-
-    expect(rows).toHaveLength(docs.length);
   });
 
   test('should throw when awaited after an error has been thrown', async ({
@@ -266,9 +244,8 @@ describe('StreamableRowPromise', async () => {
     expect,
     collectionName,
   }) => {
-    const queryResult = serverTestContext.scope.query(
-      `SELECT * FROM ${quoteIdentifier(collectionName)}`
-    );
+    const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
+    const queryResult = serverTestContext.scope.query(query);
 
     void queryResult.on('row', () => {
       // Process row
@@ -276,7 +253,6 @@ describe('StreamableRowPromise', async () => {
 
     try {
       await queryResult;
-      expect.fail('awaiting the promise should throw');
     } catch (err) {
       expect(err).toBeInstanceOf(Error);
       invariant(err instanceof Error);

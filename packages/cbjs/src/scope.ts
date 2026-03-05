@@ -162,7 +162,7 @@ export class Scope<
         exec.query<TRow>(statement, {
           queryResultParser: this.cluster.queryResultParser,
           ...options_,
-          queryContext: `${bucket.name}.${this.name}` as never,
+          queryContext: `\`${bucket.name}\`.\`${this.name}\`` as never,
         }),
       callback
     );

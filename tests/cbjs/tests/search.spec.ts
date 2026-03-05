@@ -19,7 +19,7 @@ import { afterAll, beforeAll, describe } from 'vitest';
 import {
   HighlightStyle,
   HttpErrorContext,
-  SearchIndexNotFoundError,
+  IndexNotFoundError,
   SearchQuery,
 } from '@cbjsdev/cbjs';
 import {
@@ -356,8 +356,8 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search))(
       try {
         await serverTestContext.cluster.searchIndexes().dropIndex('missingIndex');
       } catch (err) {
-        expect(err).toBeInstanceOf(SearchIndexNotFoundError);
-        invariant(err instanceof SearchIndexNotFoundError);
+        expect(err).toBeInstanceOf(IndexNotFoundError);
+        invariant(err instanceof IndexNotFoundError);
         expect(err.context).toBeInstanceOf(HttpErrorContext);
       }
     });

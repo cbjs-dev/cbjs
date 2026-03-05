@@ -35,6 +35,7 @@ import { getConnectionParams, invariant, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies.js';
 
 describe
   .runIf(serverSupportsFeatures(ServerFeatures.Transactions))
@@ -753,7 +754,14 @@ describe
         );
 
         expect(encodeSpy).toHaveBeenCalledTimes(2); // insert + replace
-        expect(decodeSpy).toHaveBeenCalledTimes(1); // get
+
+        if (serverVersionSatisfies('< 7.6.0')) {
+          expect(decodeSpy).toHaveBeenCalledTimes(1); // get
+        }
+
+        if (serverVersionSatisfies('>= 7.6.0')) {
+          expect(decodeSpy).toHaveBeenCalledTimes(3); // insert result + replace result + get
+        }
       }
     );
 
@@ -963,13 +971,10 @@ describe
           await serverTestContext.cluster.transactions().run(
             async (ctx) => {
               numAttempts++;
-              // await expect(async () => {
-              const fn = ctx.getReplicaFromPreferredServerGroup;
               await ctx.getReplicaFromPreferredServerGroup(
                 serverTestContext.collection,
                 docKey
               );
-              // }).rejects.toThrow(DocumentUnretrievableError);
             },
             { timeout: 2000 }
           );
@@ -980,7 +985,7 @@ describe
           expect(err.cause).toBeInstanceOf(DocumentUnretrievableError);
         }
 
-        expect(numAttempts).toEqual(0);
+        expect(numAttempts).toEqual(1);
       }
     );
   });

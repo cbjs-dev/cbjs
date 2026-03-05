@@ -1162,23 +1162,3 @@ export class TransactionCommitAmbiguousError extends CouchbaseError {
     super(`transaction commit ambiguous${appendReason(reason)}`, cause);
   }
 }
-
-export class SearchIndexManagementError extends CouchbaseError {
-  declare cause: undefined;
-  declare context: HttpErrorContext;
-
-  constructor(message: string, cause?: Error, context?: HttpErrorContext) {
-    super(message, cause, context);
-  }
-}
-
-/**
- * Indicates that the referenced search index does not exist.
- *
- * @category Error Handling
- */
-export class SearchIndexNotFoundError extends SearchIndexManagementError {
-  constructor(indexName: string, context?: HttpErrorContext) {
-    super(`search index '${indexName}' not found`, undefined, context);
-  }
-}
