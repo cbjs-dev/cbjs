@@ -82,6 +82,7 @@ describe.shuffle('bucket manager', async () => {
       historyRetentionCollectionDefault: undefined,
       historyRetentionBytes: undefined,
       historyRetentionDuration: undefined,
+      numVBuckets: 1024,
     };
     if (!serverSupportsFeatures(ServerFeatures.StorageBackend)) {
       expected.storageBackend = undefined;
@@ -264,6 +265,7 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionCollectionDefault: undefined,
         historyRetentionBytes: undefined,
         historyRetentionDuration: undefined,
+        numVBuckets: 1024,
       };
 
       if (!serverSupportsFeatures(ServerFeatures.StorageBackend)) {
@@ -305,6 +307,7 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionCollectionDefault: true,
         historyRetentionBytes: 2147483648,
         historyRetentionDuration: 13000,
+        numVBuckets: 1024,
       };
 
       expect(res).toEqual(expected);
@@ -347,6 +350,7 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionCollectionDefault: false,
         historyRetentionBytes: 0,
         historyRetentionDuration: 14000,
+        numVBuckets: 1024,
       };
 
       expect(res).toEqual(expected);
