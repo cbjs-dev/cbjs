@@ -17,7 +17,7 @@ jobs:
       github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on:
-      labels: blacksmith-8vcpu-ubuntu-2404
+      labels: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
       matrix:
@@ -73,9 +73,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./node_modules/.vite/results.json
-          key: vitest-cache-${{ github.ref_name }}
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}
           restore-keys: |
-            vitest-cache-main
+            vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}
+            vitest-cache-${{ matrix.couchbase-server-version }}-main
 
       - name: Run all tests
         run: pnpm vitest --run --bail 5
