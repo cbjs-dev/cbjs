@@ -18,6 +18,7 @@ import { beforeEach, describe, expectTypeOf } from 'vitest';
 
 import {
   DocumentNotFoundError,
+  DocumentUnretrievableError,
   LookupInReplicaResult,
   LookupInSpec,
   PathNotFoundError,
@@ -292,7 +293,7 @@ describe
             ],
             { readPreference: ReadPreference.SelectedServerGroup }
           )
-        ).rejects.toThrowError(PathNotFoundError);
+        ).rejects.toThrowError(DocumentUnretrievableError);
       }
     );
   });
