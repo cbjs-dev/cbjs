@@ -67,73 +67,71 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
       });
     });
 
-    queueMicrotask(() => {
-      exec((cppErr, resp) => {
-        const err = errorFromCpp(cppErr);
-        if (err) {
-          emitter.emit('error', err);
-          emitter.emit('end');
-          return;
-        }
-
-        invariant(resp);
-
-        const rowParser = parser ?? JSON.parse;
-
-        resp.rows.forEach((row) => {
-          emitter.emit('row', rowParser(row) as TRow);
-        });
-
-        {
-          const metaData = resp.meta;
-
-          let warnings: QueryWarning[];
-          if (metaData.warnings) {
-            warnings = metaData.warnings.map(
-              (warningData) =>
-                new QueryWarning({
-                  code: warningData.code,
-                  message: warningData.message,
-                })
-            );
-          } else {
-            warnings = [];
-          }
-
-          let metrics: QueryMetrics | undefined;
-          if (metaData.metrics) {
-            const metricsData = metaData.metrics;
-
-            metrics = new QueryMetrics({
-              elapsedTime: metricsData.elapsed_time,
-              executionTime: metricsData.execution_time,
-              sortCount: metricsData.sort_count || 0,
-              resultCount: metricsData.result_count || 0,
-              resultSize: metricsData.result_size || 0,
-              mutationCount: metricsData.mutation_count || 0,
-              errorCount: metricsData.error_count || 0,
-              warningCount: metricsData.warning_count || 0,
-            });
-          } else {
-            metrics = undefined;
-          }
-
-          const meta = new QueryMetaData<WithMetrics>({
-            requestId: metaData.request_id,
-            clientContextId: metaData.client_context_id,
-            status: metaData.status as QueryStatus,
-            signature: metaData.signature ? JSON.parse(metaData.signature) : undefined,
-            warnings,
-            metrics: metrics as If<WithMetrics, QueryMetrics, undefined>,
-            profile: metaData.profile ? JSON.parse(metaData.profile) : undefined,
-          });
-
-          emitter.emit('meta', meta);
-        }
-
+    exec((cppErr, resp) => {
+      const err = errorFromCpp(cppErr);
+      if (err) {
+        emitter.emit('error', err);
         emitter.emit('end');
         return;
+      }
+
+      invariant(resp);
+
+      const rowParser = parser ?? JSON.parse;
+
+      resp.rows.forEach((row) => {
+        emitter.emit('row', rowParser(row) as TRow);
       });
+
+      {
+        const metaData = resp.meta;
+
+        let warnings: QueryWarning[];
+        if (metaData.warnings) {
+          warnings = metaData.warnings.map(
+            (warningData) =>
+              new QueryWarning({
+                code: warningData.code,
+                message: warningData.message,
+              })
+          );
+        } else {
+          warnings = [];
+        }
+
+        let metrics: QueryMetrics | undefined;
+        if (metaData.metrics) {
+          const metricsData = metaData.metrics;
+
+          metrics = new QueryMetrics({
+            elapsedTime: metricsData.elapsed_time,
+            executionTime: metricsData.execution_time,
+            sortCount: metricsData.sort_count || 0,
+            resultCount: metricsData.result_count || 0,
+            resultSize: metricsData.result_size || 0,
+            mutationCount: metricsData.mutation_count || 0,
+            errorCount: metricsData.error_count || 0,
+            warningCount: metricsData.warning_count || 0,
+          });
+        } else {
+          metrics = undefined;
+        }
+
+        const meta = new QueryMetaData<WithMetrics>({
+          requestId: metaData.request_id,
+          clientContextId: metaData.client_context_id,
+          status: metaData.status as QueryStatus,
+          signature: metaData.signature ? JSON.parse(metaData.signature) : undefined,
+          warnings,
+          metrics: metrics as If<WithMetrics, QueryMetrics, undefined>,
+          profile: metaData.profile ? JSON.parse(metaData.profile) : undefined,
+        });
+
+        emitter.emit('meta', meta);
+      }
+
+      emitter.emit('end');
+      return;
     });
 
     return emitter;
