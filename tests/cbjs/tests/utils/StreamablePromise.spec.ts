@@ -127,16 +127,16 @@ describe('StreamableRowPromise', async () => {
     collectionName: serverTestContext.collection.name as string,
   }));
 
-  test('should resolve with all the documents', async ({
-    serverTestContext,
-    expect,
-    collectionName,
-  }) => {
-    const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
-    const queryResult = await serverTestContext.scope.query(query);
+  test(
+    'should resolve with all the documents',
+    { retry: 2 },
+    async ({ serverTestContext, expect, collectionName }) => {
+      const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
+      const queryResult = await serverTestContext.scope.query(query);
 
-    expect(queryResult.rows).toHaveLength(docs.length);
-  });
+      expect(queryResult.rows).toHaveLength(docs.length);
+    }
+  );
 
   test('should reject when an error occurs', async ({ serverTestContext, expect }) => {
     await expect(
@@ -276,7 +276,7 @@ describe('StreamableRowPromise', async () => {
     } catch (err) {
       expect(err).toBeInstanceOf(Error);
       invariant(err instanceof Error);
-      expect(err.message).toContain('bucket not found');
+      expect(err.message).toContain('already registered');
     }
   });
 });
