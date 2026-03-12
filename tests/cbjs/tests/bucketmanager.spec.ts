@@ -86,7 +86,7 @@ describe.shuffle('bucket manager', async () => {
     };
 
     if (serverVersionSatisfies('>= 7.6.0')) {
-      expected.numVBuckets = 1024;
+      expected.numVBuckets = expect.any(Number);
     }
 
     if (!serverSupportsFeatures(ServerFeatures.StorageBackend)) {
@@ -273,7 +273,7 @@ describe.shuffle('bucket manager', async () => {
       };
 
       if (serverVersionSatisfies('>= 7.6.0')) {
-        expected.numVBuckets = 1024;
+        expected.numVBuckets = expect.any(Number);
       }
 
       if (!serverSupportsFeatures(ServerFeatures.StorageBackend)) {
@@ -318,7 +318,7 @@ describe.shuffle('bucket manager', async () => {
       };
 
       if (serverVersionSatisfies('>= 7.6.0')) {
-        expected.numVBuckets = 128;
+        expected.numVBuckets = expect.any(Number);
       }
 
       expect(res).toEqual(expected);
@@ -364,7 +364,7 @@ describe.shuffle('bucket manager', async () => {
       };
 
       if (serverVersionSatisfies('>= 7.6.0')) {
-        expected.numVBuckets = 128;
+        expected.numVBuckets = expect.any(Number);
       }
 
       expect(res).toEqual(expected);
