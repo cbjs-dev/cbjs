@@ -129,12 +129,17 @@ describe('StreamableRowPromise', async () => {
 
   test(
     'should resolve with all the documents',
-    { retry: 2 },
+    { timeout: 30_000 },
     async ({ serverTestContext, expect, collectionName }) => {
       const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
-      const queryResult = await serverTestContext.scope.query(query);
 
-      expect(queryResult.rows).toHaveLength(docs.length);
+      await waitFor(
+        async () => {
+          const queryResult = await serverTestContext.scope.query(query);
+          expect(queryResult.rows).toHaveLength(docs.length);
+        },
+        { timeout: 30_000 }
+      );
     }
   );
 
@@ -158,13 +163,13 @@ describe('StreamableRowPromise', async () => {
     expect,
     collectionName,
   }) => {
-    const queryResult = serverTestContext.scope.query(
-      `SELECT * FROM ${quoteIdentifier(collectionName)}`
-    );
-
     const rowListenerMock = vi.fn();
     const metaListenerMock = vi.fn();
     const endListenerMock = vi.fn();
+
+    const queryResult = serverTestContext.scope.query(
+      `SELECT * FROM ${quoteIdentifier(collectionName)}`
+    );
 
     void queryResult.on('row', rowListenerMock);
     void queryResult.on('meta', metaListenerMock);
