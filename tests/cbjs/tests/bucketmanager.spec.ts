@@ -307,7 +307,7 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionCollectionDefault: true,
         historyRetentionBytes: 2147483648,
         historyRetentionDuration: 13000,
-        numVBuckets: 1024,
+        numVBuckets: 128,
       };
 
       expect(res).toEqual(expected);
@@ -350,7 +350,7 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionCollectionDefault: false,
         historyRetentionBytes: 0,
         historyRetentionDuration: 14000,
-        numVBuckets: 1024,
+        numVBuckets: 128,
       };
 
       expect(res).toEqual(expected);
