@@ -31,6 +31,7 @@ import { invariant } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
+import { serverVersionSatisfies } from '../utils/testConditions/serverVersionSatisfies.js';
 
 describe.shuffle('bucket manager', async () => {
   const test = await createCouchbaseTest();
@@ -83,6 +84,11 @@ describe.shuffle('bucket manager', async () => {
       historyRetentionBytes: undefined,
       historyRetentionDuration: undefined,
     };
+
+    if (serverVersionSatisfies('>= 7.6.0')) {
+      expected.numVBuckets = expect.any(Number);
+    }
+
     if (!serverSupportsFeatures(ServerFeatures.StorageBackend)) {
       expected.storageBackend = undefined;
     }
@@ -266,6 +272,10 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionDuration: undefined,
       };
 
+      if (serverVersionSatisfies('>= 7.6.0')) {
+        expected.numVBuckets = expect.any(Number);
+      }
+
       if (!serverSupportsFeatures(ServerFeatures.StorageBackend)) {
         expected.storageBackend = undefined;
       }
@@ -290,7 +300,7 @@ describe.shuffle('bucket manager', async () => {
 
       expect(res).toBeTypeOf('object');
 
-      const expected = {
+      const expected: IBucketSettings = {
         name: bucketName,
         bucketType: 'membase',
         compressionMode: 'passive',
@@ -306,6 +316,10 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionBytes: 2147483648,
         historyRetentionDuration: 13000,
       };
+
+      if (serverVersionSatisfies('>= 7.6.0')) {
+        expected.numVBuckets = expect.any(Number);
+      }
 
       expect(res).toEqual(expected);
     }
@@ -332,7 +346,7 @@ describe.shuffle('bucket manager', async () => {
 
       expect(res).toBeTypeOf('object');
 
-      const expected = {
+      const expected: IBucketSettings = {
         name: bucket,
         bucketType: 'membase',
         compressionMode: 'passive',
@@ -348,6 +362,10 @@ describe.shuffle('bucket manager', async () => {
         historyRetentionBytes: 0,
         historyRetentionDuration: 14000,
       };
+
+      if (serverVersionSatisfies('>= 7.6.0')) {
+        expected.numVBuckets = expect.any(Number);
+      }
 
       expect(res).toEqual(expected);
     }

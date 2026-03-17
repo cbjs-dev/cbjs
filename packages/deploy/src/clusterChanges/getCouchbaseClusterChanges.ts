@@ -685,12 +685,26 @@ function getObsoleteSearchIndexes(
 
   return currentIndexes
     .filter((b) => !requestedIndexes.includes(b))
-    .map((b) => ({
-      type: 'dropSearchIndex',
-      name: b,
-      bucket: bucketName,
-      scope: scopeName,
-    }));
+    .map((b) => {
+      const currentIndexFn =
+        currentConfig[bucketName]?.scopes[scopeName]?.searchIndexes?.[b];
+
+      invariant(currentIndexFn, 'Search index definition not found.');
+
+      const config = currentIndexFn({
+        sourceName: bucketName,
+        bucketName,
+        scopeName,
+      });
+
+      return {
+        type: 'dropSearchIndex' as const,
+        name: b,
+        indexName: config.name,
+        bucket: bucketName,
+        scope: scopeName,
+      };
+    });
 }
 
 function getNewSearchIndexes(

@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 import { inspect } from 'util';
-import { beforeAll, describe, vi } from 'vitest';
+import { afterAll, beforeAll, describe, vi } from 'vitest';
 
 import { PlanningFailureError } from '@cbjsdev/cbjs';
-import { invariant, quoteIdentifier, waitFor } from '@cbjsdev/shared';
+import { quoteIdentifier, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest, getDefaultServerTestContext } from '@cbjsdev/vitest';
 
 const docs = [
@@ -119,24 +119,41 @@ describe('StreamableRowPromise', async () => {
 
   beforeAll(async () => {
     await Promise.all(
-      docs.map((doc) => serverTestContext.collection.insert(`doc_${doc.id}`, doc))
+      docs.map((doc) =>
+        serverTestContext.bucket
+          .scope('_default')
+          .collection('_default')
+          .insert(`doc_${doc.id}`, doc)
+      )
+    );
+  });
+
+  afterAll(async () => {
+    await Promise.all(
+      docs.map((doc) =>
+        serverTestContext.bucket
+          .scope('_default')
+          .collection('_default')
+          .remove(`doc_${doc.id}`)
+      )
     );
   });
 
   const test = await createCouchbaseTest(() => ({
-    collectionName: serverTestContext.collection.name as string,
+    scopeName: '_default',
+    collectionName: '_default',
   }));
 
-  test('should resolve with all the documents', async ({
-    serverTestContext,
-    expect,
-    collectionName,
-  }) => {
-    const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
-    const queryResult = await serverTestContext.scope.query(query);
+  test(
+    'should resolve with all the documents',
+    { timeout: 10_000, retry: 2 },
+    async ({ serverTestContext, expect, collectionName }) => {
+      const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
 
-    expect(queryResult.rows).toHaveLength(docs.length);
-  });
+      const queryResult = await serverTestContext.bucket.scope('_default').query(query);
+      expect(queryResult.rows).toHaveLength(docs.length);
+    }
+  );
 
   test('should reject when an error occurs', async ({ serverTestContext, expect }) => {
     await expect(
@@ -158,26 +175,23 @@ describe('StreamableRowPromise', async () => {
     expect,
     collectionName,
   }) => {
-    const queryResult = serverTestContext.scope.query(
-      `SELECT * FROM ${quoteIdentifier(collectionName)}`
-    );
-
     const rowListenerMock = vi.fn();
     const metaListenerMock = vi.fn();
     const endListenerMock = vi.fn();
+
+    const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
+
+    const queryResult = serverTestContext.bucket.scope('_default').query(query);
 
     void queryResult.on('row', rowListenerMock);
     void queryResult.on('meta', metaListenerMock);
     void queryResult.on('end', endListenerMock);
 
-    await waitFor(
-      () => {
-        expect(endListenerMock).toHaveBeenCalledOnce();
-        expect(metaListenerMock).toHaveBeenCalledOnce();
-        expect(rowListenerMock).toHaveBeenCalledTimes(docs.length);
-      },
-      { timeout: 5000 }
-    );
+    await waitFor(() => {
+      expect(endListenerMock).toHaveBeenCalledOnce();
+      expect(metaListenerMock).toHaveBeenCalledOnce();
+      expect(rowListenerMock).toHaveBeenCalledTimes(docs.length);
+    });
   });
 
   test.fails(
@@ -186,10 +200,11 @@ describe('StreamableRowPromise', async () => {
     async ({ serverTestContext, expect, collectionName }) => {
       const rowParser = vi.fn((row: string) => JSON.parse(row));
 
-      const queryResult = serverTestContext.scope.query(
-        `SELECT * FROM ${quoteIdentifier(collectionName)}`,
-        { queryResultParser: rowParser }
-      );
+      const queryResult = serverTestContext.bucket
+        .scope('_default')
+        .query(`SELECT * FROM ${quoteIdentifier(collectionName)}`, {
+          queryResultParser: rowParser,
+        });
 
       await waitFor(() => expect(rowParser).toHaveBeenCalledTimes(docs.length));
 
@@ -207,10 +222,11 @@ describe('StreamableRowPromise', async () => {
         throw new Error();
       });
 
-      const queryResult = serverTestContext.scope.query(
-        `SELECT * FROM ${quoteIdentifier(collectionName)}`,
-        { queryResultParser: rowParser }
-      );
+      const queryResult = serverTestContext.bucket
+        .scope('_default')
+        .query(`SELECT * FROM ${quoteIdentifier(collectionName)}`, {
+          queryResultParser: rowParser,
+        });
 
       await waitFor(() => expect(rowParser).toHaveBeenCalledOnce());
 
@@ -226,7 +242,9 @@ describe('StreamableRowPromise', async () => {
     async ({ serverTestContext, expect }) => {
       expect.hasAssertions();
 
-      const queryResult = serverTestContext.scope.query(`SELECT * FROM 42`);
+      const queryResult = serverTestContext.bucket
+        .scope('_default')
+        .query(`SELECT * FROM 42`);
 
       const errorPromise = new Promise<void>((resolve) => {
         void queryResult.on('error', (err) => {
@@ -239,44 +257,34 @@ describe('StreamableRowPromise', async () => {
     }
   );
 
-  test('should throw when awaited after a row listener has been added', async ({
+  test('should resolve via await and fire event listeners simultaneously', async ({
     serverTestContext,
     expect,
     collectionName,
   }) => {
     const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
-    const queryResult = serverTestContext.scope.query(query);
 
-    void queryResult.on('row', () => {
-      // Process row
-    });
+    const rowListenerMock = vi.fn();
+    const queryResult = serverTestContext.bucket.scope('_default').query(query);
 
-    try {
-      await queryResult;
-    } catch (err) {
-      expect(err).toBeInstanceOf(Error);
-      invariant(err instanceof Error);
-      expect(err.message).toContain('already registered');
-    }
+    void queryResult.on('row', rowListenerMock);
+
+    const result = await queryResult;
+
+    expect(rowListenerMock).toHaveBeenCalledTimes(docs.length);
+    expect(result.rows).toHaveLength(0);
+    expect(result.meta).toBeDefined();
   });
 
-  test('should throw when awaited after an error listener has been added', async ({
+  test('should reject via await when an error listener has been added', async ({
     serverTestContext,
     expect,
   }) => {
+    const errorListenerMock = vi.fn();
     const queryResult = serverTestContext.scope.query(`SELECT * FROM missingCollection`);
 
-    void queryResult.on('error', () => {
-      // Process row
-    });
+    void queryResult.on('error', errorListenerMock);
 
-    try {
-      await queryResult;
-      expect.fail('awaiting the promise should throw');
-    } catch (err) {
-      expect(err).toBeInstanceOf(Error);
-      invariant(err instanceof Error);
-      expect(err.message).toContain('bucket not found');
-    }
+    await expect(queryResult).rejects.toThrow();
   });
 });

@@ -29,7 +29,7 @@ export async function getCollections(
   }
 
   const body = (await response.json()) as ApiBucketScopes;
-  const scope = body.scopes.find((s) => s.name);
+  const scope = body.scopes.find((s) => s.name === scopeName);
 
   if (scope === undefined) {
     throw new Error(`Scope '${bucketName}'.'${scopeName}' not found`);

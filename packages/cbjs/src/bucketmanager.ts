@@ -374,6 +374,8 @@ export class BucketSettings implements IBucketSettings {
 
   /**
    * Specifies the number of vBuckets in this bucket
+   *
+   * @since Couchbase Server 7.6
    */
   numVBuckets?: number;
 

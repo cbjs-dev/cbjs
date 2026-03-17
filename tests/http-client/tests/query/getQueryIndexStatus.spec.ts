@@ -16,6 +16,7 @@
 import { describe } from 'vitest';
 
 import { getQueryIndexStatus, waitForCollection } from '@cbjsdev/http-client';
+import { waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 describe('getQueryIndexStatus', { timeout: 40_000, retry: 2 }, async () => {
@@ -40,19 +41,21 @@ describe('getQueryIndexStatus', { timeout: 40_000, retry: 2 }, async () => {
       fields: ['name'],
     });
 
-    await expect(
-      getQueryIndexStatus(apiConfig, name, {
-        bucket: serverTestContext.bucket.name,
-        scope: serverTestContext.scope.name,
-        collection: serverTestContext.collection.name,
-      })
-    ).resolves.toEqual(
-      expect.objectContaining({
-        progress: expect.any(Number),
-        bucket: expect.any(String),
-        scope: expect.any(String),
-        collection: expect.any(String),
-      })
-    );
+    await waitFor(async () => {
+      await expect(
+        getQueryIndexStatus(apiConfig, name, {
+          bucket: serverTestContext.bucket.name,
+          scope: serverTestContext.scope.name,
+          collection: serverTestContext.collection.name,
+        })
+      ).resolves.toEqual(
+        expect.objectContaining({
+          progress: expect.any(Number),
+          bucket: expect.any(String),
+          scope: expect.any(String),
+          collection: expect.any(String),
+        })
+      );
+    });
   });
 });

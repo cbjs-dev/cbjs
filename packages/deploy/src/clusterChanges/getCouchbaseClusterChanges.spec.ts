@@ -681,6 +681,7 @@ describe('getCouchbaseClusterChanges', () => {
       {
         type: 'dropSearchIndex',
         name: 'searchIndex1',
+        indexName: 'searchIndex1',
         bucket: 'bucket1',
         scope: 'scope1',
       },

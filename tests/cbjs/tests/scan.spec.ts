@@ -17,6 +17,7 @@
 import { describe, vi } from 'vitest';
 
 import {
+  Cas,
   CollectionNotFoundError,
   InvalidArgumentError,
   MutationState,
@@ -29,6 +30,7 @@ import {
 import { ServerFeatures } from '@cbjsdev/http-client';
 import { couchbaseFixture, createCouchbaseTest } from '@cbjsdev/vitest';
 
+import { defer } from '../utils/defer.js';
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe
@@ -178,10 +180,13 @@ describe
       });
 
       test('should be able to stream the results ', async ({ expect, data }) => {
+        const results: Array<{ id: string; cas: Cas; content: { id: string } }> = [];
+
         const onResult = vi.fn((result: ScanResult) => {
           expect(result.id).toBeTypeOf('string');
           expect(result.cas).toBeNonZeroCAS();
           expect(result.content).toEqual({ id: result.id });
+          results.push(result as never);
         });
 
         const scanType = new PrefixScan('doc::');
@@ -189,13 +194,14 @@ describe
           consistentWith: data.mutationState,
         });
 
-        void resultsStream.on('result', onResult);
+        const deferredResults = defer<void>();
 
-        const results = await resultsStream;
+        void resultsStream.on('result', onResult);
+        void resultsStream.on('end', deferredResults.resolve);
+
+        await deferredResults.promise;
 
         expect(onResult).toHaveBeenCalledTimes(100);
-
-        expect(results).toBeInstanceOf(Array);
         expect(results).toHaveLength(100);
 
         results.forEach((result) => {
@@ -222,14 +228,14 @@ describe
           }
         });
 
-        void resultsStream.on('result', onResult);
+        const deferredResult = defer<void>();
 
-        const results = await resultsStream;
+        void resultsStream.on('result', onResult);
+        void resultsStream.on('end', deferredResult.resolve);
+
+        await deferredResult.promise;
 
         expect(onResult).toHaveBeenCalledTimes(5);
-
-        expect(results).toBeInstanceOf(Array);
-        expect(results).toHaveLength(5);
       });
     });
 

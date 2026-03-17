@@ -1,6 +1,6 @@
 import { retry } from 'ts-retry-promise';
 
-import { AnyCluster, Cluster, keyspacePath } from '@cbjsdev/cbjs';
+import { AnyCluster, keyspacePath } from '@cbjsdev/cbjs';
 import {
   CouchbaseHttpApiConfig,
   createQueryIndex,
@@ -651,7 +651,7 @@ async function applyUpsertSearchIndex(
     .searchIndexes()
     .getAllIndexes();
 
-  const searchIndex = searchIndexes.find((s) => s.name === change.name);
+  const searchIndex = searchIndexes.find((s) => s.name === config.name);
 
   if (searchIndex) {
     config.uuid = searchIndex.uuid;
@@ -659,7 +659,7 @@ async function applyUpsertSearchIndex(
   }
 
   console.log(
-    `${getTimePrefix()} Requesting creation of search index "${change.bucket} # ${change.name}"`
+    `${getTimePrefix()} Requesting upsert of search index "${change.bucket} # ${config.name}"`
   );
 
   await cluster
@@ -669,11 +669,11 @@ async function applyUpsertSearchIndex(
     .upsertIndex(config, opts);
 
   console.log(
-    `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be created`
+    `${getTimePrefix()} Waiting for search index "${change.bucket} # ${config.name}" to be ready`
   );
   await waitForSearchIndex(
     apiConfig,
-    change.name,
+    config.name,
     {
       bucket: change.bucket,
       scope: change.scope,
@@ -681,7 +681,7 @@ async function applyUpsertSearchIndex(
     opts
   );
   console.log(
-    `${getTimePrefix()} Search index "${change.bucket} # ${change.name}" created`
+    `${getTimePrefix()} Search index "${change.bucket} # ${config.name}" ready`
   );
 }
 
@@ -692,23 +692,24 @@ async function applyDropSearchIndex(
   opts: ChangeOptions
 ) {
   console.log(
-    `${getTimePrefix()} Requesting deletion of search index "${change.bucket} # ${change.name}"`
+    `${getTimePrefix()} Requesting deletion of search index "${change.bucket} # ${change.indexName}"`
   );
 
   await cluster
     .bucket(change.bucket)
     .scope(change.scope)
     .searchIndexes()
-    .dropIndex(change.name);
+    .dropIndex(change.indexName);
 
   console.log(
-    `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.name}" to be deleted`
+    `${getTimePrefix()} Waiting for search index "${change.bucket} # ${change.indexName}" to be deleted`
   );
   await waitForSearchIndex(
     apiConfig,
-    change.name,
+    change.indexName,
     {
       bucket: change.bucket,
+      scope: change.scope,
     },
     {
       ...opts,
@@ -716,6 +717,6 @@ async function applyDropSearchIndex(
     }
   );
   console.log(
-    `${getTimePrefix()} Search index "${change.bucket} # ${change.name}" deleted`
+    `${getTimePrefix()} Search index "${change.bucket} # ${change.indexName}" deleted`
   );
 }

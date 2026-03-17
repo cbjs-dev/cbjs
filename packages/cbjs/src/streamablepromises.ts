@@ -16,7 +16,7 @@
  */
 import { EventEmitter } from 'events';
 
-import { EventKey, EventListener, EventMap, TypedEmitter } from './utils/TypedEmitter.js';
+import { EventKey, EventMap, TypedEmitter } from './utils/TypedEmitter.js';
 
 /**
  * @internal
@@ -44,8 +44,8 @@ export class StreamablePromise<T, EM extends EventMap>
   })<EM>
   implements Promise<T>
 {
-  private _promise: Promise<T> | null = null;
-  private _promiseOns: [string | symbol, EventListener<any[]>][];
+  private _promise: Promise<T>;
+  protected _collectResults = true;
 
   /**
    * @internal
@@ -53,12 +53,10 @@ export class StreamablePromise<T, EM extends EventMap>
   constructor(promisefyFn: PromisifyFunc<T, EM>) {
     super();
 
-    this._promiseOns = [];
     this._promise = new Promise((resolve, reject) => {
       promisefyFn(
         {
           on: <T extends EventKey<EM>>(eventName: T, listener: EM[T]) => {
-            this._promiseOns.push([eventName, listener]);
             void super.on(eventName, listener);
           },
         },
@@ -68,42 +66,30 @@ export class StreamablePromise<T, EM extends EventMap>
     });
   }
 
-  private get promise(): Promise<T> {
-    if (!this._promise) {
-      throw new Error('Cannot await a promise that is already registered for events');
-    }
-    return this._promise;
-  }
-
-  private _depromisify() {
-    this._promiseOns.forEach((e) => void this.off(...(e as [never, never])));
-    this._promise = null;
-  }
-
   then<TResult1 = T, TResult2 = never>(
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): Promise<TResult1 | TResult2> {
-    return this.promise.then<TResult1, TResult2>(onfulfilled, onrejected);
+    return this._promise.then<TResult1, TResult2>(onfulfilled, onrejected);
   }
 
   catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
   ): Promise<T | TResult> {
-    return this.promise.catch<TResult>(onrejected);
+    return this._promise.catch<TResult>(onrejected);
   }
 
   finally(onfinally?: (() => void) | undefined | null): Promise<T> {
-    return this.promise.finally(onfinally);
+    return this._promise.finally(onfinally);
   }
 
   override addListener<T extends EventKey<EM>>(eventName: T, listener: EM[T]): this {
-    this._depromisify();
+    this._collectResults = false;
     return super.on(eventName, listener);
   }
 
   override on<T extends EventKey<EM>>(eventName: T, listener: EM[T]): this {
-    this._depromisify();
+    this._collectResults = false;
     return super.on(eventName, listener);
   }
 
@@ -135,7 +121,9 @@ export class StreamableRowPromise<T, TRow, TMeta> extends StreamablePromise<
       const rows: TRow[] = [];
       let meta: TMeta | undefined;
 
-      void emitter.on('row', (r) => rows.push(r));
+      void emitter.on('row', (r) => {
+        if (this._collectResults) rows.push(r);
+      });
       void emitter.on('meta', (m) => (meta = m));
       void emitter.on('error', (e) => (err = e));
       void emitter.on('end', () => {
@@ -167,7 +155,9 @@ export class StreamableReplicasPromise<T, TRep> extends StreamablePromise<
       let err: Error | undefined;
       const replicas: TRep[] = [];
 
-      void emitter.on('replica', (r) => replicas.push(r));
+      void emitter.on('replica', (r) => {
+        if (this._collectResults) replicas.push(r);
+      });
       void emitter.on('error', (e) => (err = e));
       void emitter.on('end', () => {
         if (err) {
@@ -195,7 +185,9 @@ export class StreamableScanPromise<T, TRes> extends StreamablePromise<
       let err: Error | undefined;
       const results: TRes[] = [];
 
-      void emitter.on('result', (r) => results.push(r));
+      void emitter.on('result', (r) => {
+        if (this._collectResults) results.push(r);
+      });
       void emitter.on('error', (e) => (err = e));
       void emitter.on('end', () => {
         if (err) {

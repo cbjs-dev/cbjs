@@ -1,6 +1,17 @@
 name: Tests
 on:
   workflow_dispatch:
+    inputs:
+      couchbase-server-version:
+        description: 'Couchbase Server version to test against'
+        type: choice
+        required: false
+        default: 'all'
+        options:
+          - 'all'
+          - 'enterprise-7.2.4'
+          - 'enterprise-7.6.4'
+          - 'enterprise-8.0.0'
   push:
     branches:
       - main
@@ -10,8 +21,8 @@ on:
 jobs:
   test:
     if: >
-      (github.event_name == 'push' 
-      && !contains(github.event.head_commit.message, 'skip ci') 
+      (github.event_name == 'push'
+      && !contains(github.event.head_commit.message, 'skip ci')
       && !startsWith(github.event.head_commit.message, 'docs')) ||
       (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun') ||
       github.event_name == 'workflow_dispatch'
@@ -21,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        couchbase-server-version: [ 'enterprise-7.2.4', 'enterprise-7.6.4', 'enterprise-8.0.0' ]
+        couchbase-server-version: ${{ github.event_name == 'workflow_dispatch' && inputs.couchbase-server-version != 'all' && fromJSON(format('["{0}"]', inputs.couchbase-server-version)) || fromJSON('["enterprise-7.2.4","enterprise-7.6.4","enterprise-8.0.0"]') }}
     services:
       couchbase:
         image: couchbase:${{ matrix.couchbase-server-version }}
@@ -69,16 +80,24 @@ jobs:
       - name: Initialize Couchbase cluster
         run: pnpm dlx tsx tests/scripts/initTestCluster.ts
 
-      - name: Vitest cache
-        uses: actions/cache@v4
+      - name: Restore vitest cache
+        uses: actions/cache/restore@v4
         with:
-          path: ./node_modules/.vite/vitest/results.json
-          key: vitest-cache-${{ github.ref_name }}
+          path: ./node_modules/.vite/results.json
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            vitest-cache-main
+            vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-
+            vitest-cache-${{ matrix.couchbase-server-version }}-main-
 
       - name: Run all tests
         run: pnpm vitest --run --bail 5
+
+      - name: Save vitest cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ./node_modules/.vite/results.json
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload Tests Report
         if: always()
