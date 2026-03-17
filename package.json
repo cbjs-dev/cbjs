@@ -30,7 +30,7 @@
     "eslint-plugin-vitest": "^0.3.9",
     "glob": "^10.3.10",
     "husky": "^9.0.10",
-    "lerna": "^8.1.2",
+    "lerna": "^9.0.7",
     "patch-package": "^8.0.0",
     "pino": "^8.21.0",
     "prettier": "3.2.5",
