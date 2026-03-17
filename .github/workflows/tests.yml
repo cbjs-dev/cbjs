@@ -80,17 +80,24 @@ jobs:
       - name: Initialize Couchbase cluster
         run: pnpm dlx tsx tests/scripts/initTestCluster.ts
 
-      - name: Vitest cache
-        uses: actions/cache@v4
+      - name: Restore vitest cache
+        uses: actions/cache/restore@v4
         with:
           path: ./node_modules/.vite/results.json
-          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}
-            vitest-cache-${{ matrix.couchbase-server-version }}-main
+            vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-
+            vitest-cache-${{ matrix.couchbase-server-version }}-main-
 
       - name: Run all tests
         run: pnpm vitest --run --bail 5
+
+      - name: Save vitest cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ./node_modules/.vite/results.json
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Upload Tests Report
         if: always()
