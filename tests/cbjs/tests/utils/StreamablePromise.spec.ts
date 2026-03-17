@@ -119,12 +119,18 @@ describe('StreamableRowPromise', async () => {
 
   beforeAll(async () => {
     await Promise.all(
-      docs.map((doc) => serverTestContext.collection.insert(`doc_${doc.id}`, doc))
+      docs.map((doc) =>
+        serverTestContext.bucket
+          .scope('_default')
+          .collection('_default')
+          .insert(`doc_${doc.id}`, doc)
+      )
     );
   });
 
   const test = await createCouchbaseTest(() => ({
-    collectionName: serverTestContext.collection.name as string,
+    scopeName: '_default',
+    collectionName: '_default',
   }));
 
   test('should resolve with all the documents', async ({
@@ -134,7 +140,7 @@ describe('StreamableRowPromise', async () => {
   }) => {
     const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
 
-    const queryResult = await serverTestContext.scope.query(query);
+    const queryResult = await serverTestContext.bucket.scope('_default').query(query);
     expect(queryResult.rows).toHaveLength(docs.length);
   });
 
@@ -164,7 +170,7 @@ describe('StreamableRowPromise', async () => {
 
     const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
 
-    const queryResult = serverTestContext.scope.query(query);
+    const queryResult = serverTestContext.bucket.scope('_default').query(query);
 
     void queryResult.on('row', rowListenerMock);
     void queryResult.on('meta', metaListenerMock);
@@ -183,12 +189,11 @@ describe('StreamableRowPromise', async () => {
     async ({ serverTestContext, expect, collectionName }) => {
       const rowParser = vi.fn((row: string) => JSON.parse(row));
 
-      const queryResult = serverTestContext.scope.query(
-        `SELECT * FROM ${quoteIdentifier(collectionName)}`,
-        {
+      const queryResult = serverTestContext.bucket
+        .scope('_default')
+        .query(`SELECT * FROM ${quoteIdentifier(collectionName)}`, {
           queryResultParser: rowParser,
-        }
-      );
+        });
 
       await waitFor(() => expect(rowParser).toHaveBeenCalledTimes(docs.length));
 
@@ -206,12 +211,11 @@ describe('StreamableRowPromise', async () => {
         throw new Error();
       });
 
-      const queryResult = serverTestContext.scope.query(
-        `SELECT * FROM ${quoteIdentifier(collectionName)}`,
-        {
+      const queryResult = serverTestContext.bucket
+        .scope('_default')
+        .query(`SELECT * FROM ${quoteIdentifier(collectionName)}`, {
           queryResultParser: rowParser,
-        }
-      );
+        });
 
       await waitFor(() => expect(rowParser).toHaveBeenCalledOnce());
 
@@ -227,7 +231,9 @@ describe('StreamableRowPromise', async () => {
     async ({ serverTestContext, expect }) => {
       expect.hasAssertions();
 
-      const queryResult = serverTestContext.scope.query(`SELECT * FROM 42`);
+      const queryResult = serverTestContext.bucket
+        .scope('_default')
+        .query(`SELECT * FROM 42`);
 
       const errorPromise = new Promise<void>((resolve) => {
         void queryResult.on('error', (err) => {
@@ -248,7 +254,7 @@ describe('StreamableRowPromise', async () => {
     const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
 
     const rowListenerMock = vi.fn();
-    const queryResult = serverTestContext.scope.query(query);
+    const queryResult = serverTestContext.bucket.scope('_default').query(query);
 
     void queryResult.on('row', rowListenerMock);
 
