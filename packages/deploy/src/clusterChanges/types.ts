@@ -187,6 +187,10 @@ export type CouchbaseClusterChangeDropSearchIndex = {
    * The config alias for the search index.
    */
   name: string;
+  /**
+   * The actual index name on the cluster.
+   */
+  indexName: string;
 };
 
 export type CouchbaseClusterConfig = {

@@ -32,14 +32,13 @@ import {
 } from '@cbjsdev/shared';
 
 import { serverSupportsFeatures } from '../../cbjs/utils/serverFeature.js';
-import { serverVersionSatisfies } from '../../cbjs/utils/testConditions/serverVersionSatisfies.js';
 import { apiConfig } from '../setupTests.js';
 
 describe.runIf(
   serverSupportsFeatures(
     ServerFeatures.ScopeSearch,
     ServerFeatures.ScopeSearchIndexManagement
-  ) && serverVersionSatisfies('>= 8.0.0') // Issue MB-65021
+  )
 )('applyCouchbaseClusterChanges', { sequential: true, timeout: 180_000 }, async () => {
   if (process.env.GITHUB_ACTIONS === 'true') {
     await sleep(15_000);
@@ -275,6 +274,9 @@ describe.runIf(
           numReplicas: 0,
           scopes: {
             [scopeName]: {
+              searchIndexes: {
+                searchIndex1: searchIndexConfigFn1(collectionName1),
+              },
               collections: {
                 [collectionName1]: {
                   indexes: {
@@ -339,7 +341,7 @@ describe.runIf(
     clusterConfig.keyspaces = nextClusterConfig.keyspaces;
   });
 
-  it('should upsert search indexes when they change', async ({ expect }) => {
+  it('should detect and apply search index definition changes', async ({ expect }) => {
     const params = getConnectionParams();
     const cluster = await connect(params.connectionString, params.credentials);
 
@@ -377,6 +379,13 @@ describe.runIf(
     };
 
     const changes = getCouchbaseClusterChanges(clusterConfig, nextClusterConfig);
+
+    // Verify the change is detected as an update, not a create
+    const searchIndexChanges = changes.filter(
+      (c) => c.type === 'updateSearchIndex' || c.type === 'createSearchIndex'
+    );
+    expect(searchIndexChanges).toHaveLength(1);
+    expect(searchIndexChanges[0].type).toEqual('updateSearchIndex');
 
     console.log(
       `The following changes have been detected in the cluster : \n\t${changes.map((c) => JSON.stringify(c)).join('\n\t')}`
