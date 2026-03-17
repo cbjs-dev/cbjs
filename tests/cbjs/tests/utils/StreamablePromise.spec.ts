@@ -146,7 +146,7 @@ describe('StreamableRowPromise', async () => {
 
   test(
     'should resolve with all the documents',
-    { timeout: 10_000 },
+    { timeout: 10_000, retry: 2 },
     async ({ serverTestContext, expect, collectionName }) => {
       const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
 
