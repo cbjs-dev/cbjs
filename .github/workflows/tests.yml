@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./node_modules/.vite/results.json
-          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-
             vitest-cache-${{ matrix.couchbase-server-version }}-main-
@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ./node_modules/.vite/results.json
-          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: vitest-cache-${{ matrix.couchbase-server-version }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload Tests Report
         if: always()
