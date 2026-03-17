@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { inspect } from 'util';
-import { beforeAll, describe, vi } from 'vitest';
+import { afterAll, beforeAll, describe, vi } from 'vitest';
 
 import { PlanningFailureError } from '@cbjsdev/cbjs';
 import { quoteIdentifier, waitFor } from '@cbjsdev/shared';
@@ -128,21 +128,32 @@ describe('StreamableRowPromise', async () => {
     );
   });
 
+  afterAll(async () => {
+    await Promise.all(
+      docs.map((doc) =>
+        serverTestContext.bucket
+          .scope('_default')
+          .collection('_default')
+          .remove(`doc_${doc.id}`)
+      )
+    );
+  });
+
   const test = await createCouchbaseTest(() => ({
     scopeName: '_default',
     collectionName: '_default',
   }));
 
-  test('should resolve with all the documents', async ({
-    serverTestContext,
-    expect,
-    collectionName,
-  }) => {
-    const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
+  test(
+    'should resolve with all the documents',
+    { timeout: 10_000 },
+    async ({ serverTestContext, expect, collectionName }) => {
+      const query = `SELECT * FROM ${quoteIdentifier(collectionName)} USE KEYS [${docs.map((d) => `"doc_${d.id}"`).join(',')}]`;
 
-    const queryResult = await serverTestContext.bucket.scope('_default').query(query);
-    expect(queryResult.rows).toHaveLength(docs.length);
-  });
+      const queryResult = await serverTestContext.bucket.scope('_default').query(query);
+      expect(queryResult.rows).toHaveLength(docs.length);
+    }
+  );
 
   test('should reject when an error occurs', async ({ serverTestContext, expect }) => {
     await expect(
