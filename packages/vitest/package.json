@@ -60,7 +60,6 @@
     "@cbjsdev/cbjs": "workspace:*",
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
-    "segfault-handler": "^1.3.0",
     "ts-retry-promise": "^0.8.0"
   },
   "devDependencies": {
