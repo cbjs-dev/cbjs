@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/deploy",
-  "version": "1.27.0",
+  "version": "1.28.0",
   "description": "Utils to manage Couchbase deployment",
   "keywords": [
     "couchbase",
