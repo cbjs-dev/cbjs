@@ -1,10 +1,10 @@
 import {
   IBucketSettings,
-  ICreateBucketSettings, ISearchIndex,
+  ICreateBucketSettings,
+  ISearchIndex,
   IUser,
   UpdateBucketSettings,
 } from '@cbjsdev/cbjs';
-import { ApiSearchIndexDefinition } from '@cbjsdev/http-client';
 
 export type CouchbaseClusterChange =
   | CouchbaseClusterChangeCreateBucket
@@ -27,8 +27,7 @@ export type CouchbaseClusterChange =
   | CouchbaseClusterChangeDropUser
   | CouchbaseClusterChangeCreateSearchIndex
   | CouchbaseClusterChangeUpdateSearchIndex
-  | CouchbaseClusterChangeDropSearchIndex
-;
+  | CouchbaseClusterChangeDropSearchIndex;
 
 export type CouchbaseClusterChangeCreateBucket = {
   type: 'createBucket';

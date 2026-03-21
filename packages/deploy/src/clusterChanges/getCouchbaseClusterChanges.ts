@@ -29,21 +29,15 @@ import {
 } from './types.js';
 
 /**
- * Return the changes required to meet the nextConfig, given the currentConfig.
- * All changes are given in the order they should be applied, in order to minimize operational risks.
- *
- * @param currentConfig
- * @param nextConfig
+ * Return the keyspace changes (buckets, scopes, collections, indexes) required
+ * to meet the nextConfig, given the currentConfig.
  */
-export function getCouchbaseClusterChanges(
+export function getCouchbaseKeyspaceChanges(
   currentConfig: Partial<CouchbaseClusterConfig>,
   nextConfig: Partial<CouchbaseClusterConfig>
 ): CouchbaseClusterChange[] {
   const changes: CouchbaseClusterChange[] = [];
 
-  ///////////////
-  // KEYSPACES //
-  ///////////////
   const currentKeyspaceConfig = currentConfig.keyspaces ?? {};
   const nextKeyspaceConfig = nextConfig.keyspaces ?? {};
 
@@ -147,9 +141,17 @@ export function getCouchbaseClusterChanges(
     );
   });
 
-  ///////////
-  // USERS //
-  ///////////
+  return changes;
+}
+
+/**
+ * Return the access changes (users, and later roles) required
+ * to meet the nextConfig, given the currentConfig.
+ */
+export function getCouchbaseAccessChanges(
+  currentConfig: Partial<CouchbaseClusterConfig>,
+  nextConfig: Partial<CouchbaseClusterConfig>
+): CouchbaseClusterChange[] {
   const currentUsersConfig = currentConfig.users ?? [];
   const nextUsersConfig = nextConfig.users ?? [];
 
@@ -157,9 +159,24 @@ export function getCouchbaseClusterChanges(
   const updatedUsers = getUpdatedUsers(currentUsersConfig, nextUsersConfig);
   const obsoleteUsers = getObsoleteUsers(currentUsersConfig, nextUsersConfig);
 
-  changes.push(...newUsers, ...updatedUsers, ...obsoleteUsers);
+  return [...newUsers, ...updatedUsers, ...obsoleteUsers];
+}
 
-  return changes;
+/**
+ * Return all changes required to meet the nextConfig, given the currentConfig.
+ * All changes are given in the order they should be applied, in order to minimize operational risks.
+ *
+ * @param currentConfig
+ * @param nextConfig
+ */
+export function getCouchbaseClusterChanges(
+  currentConfig: Partial<CouchbaseClusterConfig>,
+  nextConfig: Partial<CouchbaseClusterConfig>
+): CouchbaseClusterChange[] {
+  return [
+    ...getCouchbaseKeyspaceChanges(currentConfig, nextConfig),
+    ...getCouchbaseAccessChanges(currentConfig, nextConfig),
+  ];
 }
 
 /**
