@@ -177,8 +177,8 @@ describe.runIf(
     expect(bucket.numReplicas).toBe(0);
 
     // Default scope and collection are always present
-    expect(bucket.scopes['_default']).toBeDefined();
-    expect(bucket.scopes['_default'].collections['_default']).toBeDefined();
+    expect(bucket.scopes._default).toBeDefined();
+    expect(bucket.scopes._default.collections._default).toBeDefined();
 
     // Custom scope
     const scope = bucket.scopes[scopeName];
@@ -192,26 +192,26 @@ describe.runIf(
     const c1Indexes = scope.collections[collectionName1].indexes;
     expect(c1Indexes).toBeDefined();
 
-    expect(c1Indexes!['idx_title']).toBeDefined();
-    expect(c1Indexes!['idx_title'].keys).toEqual(['title']);
+    expect(c1Indexes!.idx_title).toBeDefined();
+    expect(c1Indexes!.idx_title.keys).toEqual(['title']);
 
-    expect(c1Indexes!['idx_title_status']).toBeDefined();
-    expect(c1Indexes!['idx_title_status'].keys).toEqual(['title', 'status']);
-    expect(c1Indexes!['idx_title_status'].where).toBeDefined();
+    expect(c1Indexes!.idx_title_status).toBeDefined();
+    expect(c1Indexes!.idx_title_status.keys).toEqual(['title', 'status']);
+    expect(c1Indexes!.idx_title_status.where).toBeDefined();
 
     // Query indexes — collection2
     const c2Indexes = scope.collections[collectionName2].indexes;
     expect(c2Indexes).toBeDefined();
-    expect(c2Indexes!['idx_group']).toBeDefined();
-    expect(c2Indexes!['idx_group'].keys).toEqual(['groupId']);
+    expect(c2Indexes!.idx_group).toBeDefined();
+    expect(c2Indexes!.idx_group.keys).toEqual(['groupId']);
 
     // Search indexes
     const searchIndexes = scope.searchIndexes;
     expect(searchIndexes).toBeDefined();
-    expect(searchIndexes!['si_test']).toBeDefined();
-    expect(typeof searchIndexes!['si_test']).toBe('function');
+    expect(searchIndexes!.si_test).toBeDefined();
+    expect(typeof searchIndexes!.si_test).toBe('function');
 
-    const indexDef = searchIndexes!['si_test']({
+    const indexDef = searchIndexes!.si_test({
       sourceName: bucketName,
       bucketName,
       scopeName,
