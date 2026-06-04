@@ -25,10 +25,28 @@ export async function downloadBinary(
   const download = new Promise((resolve, reject) => {
     https
       .get(url, (response) => {
+        if (response.statusCode !== 200) {
+          response.resume();
+          reject(
+            new Error(
+              `Failed to download Couchbase binary ${packageName}@${packageVersion} ` +
+                `(HTTP ${response.statusCode}). This platform/arch combination may not ` +
+                `be published on npm. URL: ${url}`
+            )
+          );
+          return;
+        }
+        
+        let writeComplete;
+
         const extractor = new tar.Parse({
           onentry: (entry) => {
             if (entry.path === binarySourcePath) {
               const output = fs.createWriteStream(binaryDestinationPath);
+              writeComplete = new Promise((resolveWrite, rejectWrite) => {
+                output.on('finish', resolveWrite);
+                output.on('error', rejectWrite);
+              });
               entry.pipe(output);
             } else {
               entry.resume();
@@ -37,7 +55,19 @@ export async function downloadBinary(
         });
 
         extractor.on('error', reject);
-        extractor.on('end', resolve);
+        extractor.on('end', () => {
+          if (!writeComplete) {
+            reject(
+              new Error(
+                `Couchbase binary ${binarySourcePath} was not found in ` +
+                  `${packageName}@${packageVersion}.`
+              )
+            );
+            return;
+          }
+
+          writeComplete.then(resolve, reject);
+        });
 
         response.pipe(extractor);
       })

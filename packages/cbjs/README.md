@@ -30,6 +30,17 @@ Built on top of the official library, Cbjs is a drop-in replacement for the `cou
 The package that is specific to your platform is downloaded during the install process.  
 Cbjs is also full **ESM native**.
 
+### Cross-platform install
+
+By default the native binary is selected from `process.platform` / `process.arch` of the
+machine running the install. When you bundle for a different target than your build machine
+— for example building a Linux/x64 AWS Lambda artifact from a darwin/arm64 Mac — set these
+environment variables so the matching binary is downloaded instead:
+
+```bash
+COUCHBASE_BINARY_PLATFORM=linux COUCHBASE_BINARY_ARCH=x64 npm install
+```
+
 Cbjs is your new [Couchbase SDK for Node.js with TypeScript](https://cbjs.dev/guide/features.html#compatible-with-the-official-client).
 
 ## Exclusive Features

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { downloadBinary } from './utils/downloadBinary.mjs';
+import { resolveBinaryTarget } from './utils/resolveBinaryTarget.mjs';
 
 const packageAbsolutePath = process.cwd();
 const packageRelative = 'packages/cbjs';
@@ -13,14 +14,12 @@ const isProjectDev =
   packageAbsolutePath === process.env.INIT_CWD ||
   packageAbsolutePath.substring(process.env.INIT_CWD.length) === `/${packageRelative}`;
 
-const arch = process.arch;
-const platform = process.platform;
-const sslType = 'boringssl';
+const target = resolveBinaryTarget({ version: process.argv[2] });
 
-const binaryPackageName = `couchbase-${platform}-${arch}-napi`;
-
-const binaryPackageVersion = process.env.COUCHBASE_BINARY_VERSION || process.argv[2];
-const binarySourcePath = `package/couchbase-v${binaryPackageVersion}-napi-v6-${platform}-${arch}-${sslType}.node`;
+console.info(
+  `Resolving Couchbase binary for ${target.platform}/${target.arch}` +
+    (target.isOverridden ? ' (override)' : '')
+);
 
 const buildOutputDirectory = path.resolve(packageAbsolutePath, 'dist/src');
 
@@ -38,15 +37,17 @@ if (isProjectDev) {
   );
 }
 
-if (binaryDestinationPaths.every((path) => fs.existsSync(path))) {
+// Skip the download only when no override is set: a forced cross-platform install
+// must re-download, otherwise a stale binary from the build machine would be kept.
+if (!target.isOverridden && binaryDestinationPaths.every((path) => fs.existsSync(path))) {
   console.info(`Couchbase binary is already installed.`);
   process.exit(0);
 }
 
 downloadBinary(
-  binaryPackageName,
-  binaryPackageVersion,
-  binarySourcePath,
+  target.binaryPackageName,
+  target.version,
+  target.binarySourcePath,
   binaryDestinationPaths
 )
   .then(() => console.info(`Couchbase binary has been installed.`))

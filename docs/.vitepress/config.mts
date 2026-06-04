@@ -159,6 +159,10 @@ export default defineConfig({
               ]
             },
             {
+              text: 'AWS Lambda',
+              link: '/guide/lambda',
+            },
+            {
               text: 'FAQ',
               link: '/guide/faq',
             }
