@@ -3,6 +3,17 @@ import https from 'node:https';
 import tar from 'tar';
 
 /**
+ * Build the npm registry tarball URL for a given native package.
+ *
+ * @param packageName {string}
+ * @param packageVersion {string}
+ * @returns {string}
+ */
+export function buildBinaryUrl(packageName, packageVersion) {
+  return `https://registry.npmjs.org/@couchbase/${packageName}/-/${packageName}-${packageVersion}.tgz`;
+}
+
+/**
  *
  * @param packageName {string}
  * @param packageVersion {string}
