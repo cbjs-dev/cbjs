@@ -1923,7 +1923,7 @@ export class Collection<
     const timeout = options.timeout ?? this.kvScanTimeout;
     const idsOnly = options.idsOnly ?? false;
     const batchByteLimit = options.batchByteLimit ?? this.scanBatchByteLimit;
-    const batchItemLimit = options.batchByteLimit ?? this.scanBatchItemLimit;
+    const batchItemLimit = options.batchItemLimit ?? this.scanBatchItemLimit;
 
     if (typeof options.concurrency !== 'undefined' && options.concurrency < 1) {
       throw new InvalidArgumentError('Concurrency option must be positive');

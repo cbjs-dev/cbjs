@@ -18,6 +18,7 @@ import { describe, vi } from 'vitest';
 
 import {
   Cas,
+  Collection,
   CollectionNotFoundError,
   InvalidArgumentError,
   MutationState,
@@ -556,5 +557,28 @@ describe
           consistentWith: data.mutationState,
         })
       ).toThrowError(InvalidArgumentError);
+    });
+
+    test('should forward batchByteLimit and batchItemLimit independently', async ({
+      expect,
+      data,
+    }) => {
+      const doScanSpy = vi.spyOn(Collection.prototype, '_doScan');
+
+      try {
+        await data.collection.scan(new RangeScan(), {
+          consistentWith: data.mutationState,
+          batchByteLimit: 1234,
+          batchItemLimit: 7,
+        });
+
+        expect(doScanSpy).toHaveBeenCalledTimes(1);
+
+        const orchestratorOptions = doScanSpy.mock.calls[0][1];
+        expect(orchestratorOptions.batch_byte_limit).toBe(1234);
+        expect(orchestratorOptions.batch_item_limit).toBe(7);
+      } finally {
+        doScanSpy.mockRestore();
+      }
     });
   });
