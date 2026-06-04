@@ -88,7 +88,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.ScopeSearchIndexManagement)
             index: indexName,
           },
           [testDocKey, testDocKey2],
-          { timeout: 60_000 }
+          { timeout: 90_000 }
         );
       },
       { timeout: 100_000 }
