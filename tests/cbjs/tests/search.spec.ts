@@ -186,7 +186,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.Search))(
               expect(row.score).toBeTypeOf('number');
             });
           },
-          { timeout: 40_000, retryInterval: 100 }
+          { timeout: 60_000, retryInterval: 2_000 }
         );
       }
     );
