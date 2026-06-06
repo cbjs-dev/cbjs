@@ -1,0 +1,130 @@
+
+4.7.0
+
+OK: 7378b6e1d2681b9b52f547c36eb3df1971f98fbc (nothing to do - npm audit)
+OK: 90d43b50c45be32002f35f710a500ce9a74854e5 (nothing to do - tests)
+WIP: 5cde36f472437bde13da9c7beb359b6cfbb6a3cc (OTel adapters deferred to follow-up pass)
+WIP: 227618b07b06cef27708b11d87d9e552f8163ac3 (LoggingMeter + KV metrics done; non-KV pending)
+WIP: 609e09b441f41b146210df14424ee7aaa9884991 (KV + query ops traced; search/analytics/views/mgmt + replica streaming pending)
+OK: cd9019c855169a52d4b665efc0f0298600ccbb1f (nothing to do - C++ core)
+OK: 6398c054433def35f73d7017acb5f0a6c127e811 (nothing to do - build scripts)
+OK: ed46502c32a3e04286b175463c42f5e9754dd363 (skipped - ESLint v9 reformat only, cbjs has its own)
+OK: e736e5987ea069245044c2b4d4a80808117e6d04 (nothing to do - cmake-js)
+OK: e516eed93ad66e791c1a8547806e0a340b764502 (JWT authenticator)
+OK: cd641f95f787a25366e9f15c21f9e85327a0eadd (observability binding ABI)
+OK: 098d3d8d149e99fbdc57a6d25b03f81e0af8eeb7 (public Logger interface)
+OK: 9cdba366f2b911b0c162e3b689e778808228ab1f (deprecate MapReduce Views)
+OK: f6717268a871aedcf77bc5f82bce2f72132cd529 (binding ABI: access_deleted)
+OK: 683efbfee5c74cd83224278a13feb5fb11a9e3b7 (nothing to do - C++ only)
+OK: 9a11bfb7e80b18d522f0b72dba2f061390834874 (mTLS updateCredentials)
+OK: 7bcad34e8742938a2bf6171577b5deaf18dbb195 (nothing to do - test only)
+OK: d6e746e139a570b3a4729e8451d7daf8b8838617 (OrphanReporter enableOrphanReporting)
+
+4.6.1
+
+note: release-branch patch (not on master); incorporated via PR #10 (cherry-picks)
+
+4.6.0
+
+OK: 568c499d96bcffe1d99476b8d34dd41f36f62ca4
+OK: 0925b1c7824881b1c7e5aef045d8524536a86c22
+OK: 7d2933f19e7fe6070f2c9ebe85e6b17c8a8c47d5
+
+4.5.0
+
+OK: 15a72e9a8df92cca32bc780d98935d22bc26f523 (nothing to do)
+OK: 7b92f05426b35909b5f8bb5cd4fff04379e5b0b9
+OK: 4397ae3c03592722c1a70ad9900f457398da7eeb (nothing to do)
+OK: b208b09a0ea884744f4f251b0babfef6ae40aa49
+OK: e44f281f69d46bc18bcc6129308101b48c0e2159 (nothing to do)
+OK: 0ecc78055e98d87939ee511daedfcaaa0bc63eba (nothing to do)
+OK: 07667f9096fd24a7b03c64effb4fa3123fcba511 (claude WIP test)
+OK: 1adf2fd81c55cb72f3bf81f70d82adfdcd256c2b (runtime tests pending)
+OK: 655de86da77a82b5ca4ba0202ec7a7a6fcb86d64 (nothing to do)
+OK: 3721afda5839418c53de09db252adc441e75ecd0
+OK: eb59e7d915cd7b61a8f720adea988bc957c05c43 (runtime tests pending)
+OK: 94797b66de5bb525f85bdcb1a2588c162f4a3d10 (runtime tests pending)
+OK: a8fd5dfb75a606caab8cf23c1648150bda96eaca (runtime tests pending)
+OK: 4babe51601082235d60123901dbcade6ece32157 (nothing to do)
+OK: e9b125d97e4c3178a708bd434cf814e603335b8b (nothing to do)
+OK: ffe52f4b577de90068b22ce4e6a77390b1a2fa5b (nothing to do)
+OK: d6351de7435fdecd2e1fc2ceb56f8c9f0b8c586f
+OK: 6a3a6c9b7849422d49bcaa9a7288f79e9533a59e (nothing to do)
+OK: bab89e2fdf8f6e3ab45d81c24796ffed9b7b2955 (nothing to do)
+OK: 8c5257b9dcb7250ab5ab74e6b72ef2efbe7dfec3 (skipped - only tests)
+OK: 29878eab4264d3c551182bd7f645056467f7956e
+OK: 387071ef8f2ecc3fffc0a6b4e94d12850ee21c7a (nothing to do)
+OK: a94d2801cff28d1fe3b34145cc18a047a4484f88
+OK: 6f7698734f88449940b1b39af0d70cafb9496a60
+OK: 48bd92f8ea7ca413b4d02d863d65015e5f1f016a (nothing to do)
+WIP: d5725277fc555b87e0cf448ca0f244fdb881cc47 (missing tests - waiting resolution)
+OK: da43bf6c136fbad2be47e112657774066f8d888e (skipped - only tests)
+OK: 5c63acb6ef4f068ab6fb0bc6102f6bdfd6fe6243
+WIP: b4924ee9219475b74b0da53339239c85d6829f30
+OK: c8d20498c5eb4a93fb818919cea7eea304411162
+OK: 8c9f95ad7af92fb15234e2784682fa34072b7f16
+OK: 7b25c3dd3b614ab6f34822a4452243d4c7a7b6aa (nothing to do)
+
+4.4.5
+
+OK: 57b869d093d185deec53d36e833bb6c9751c7269 (nothing to do)
+OK: acb496c4baca35a5c863fbd020f7960355b30229 (nothing to do)
+OK: 8c9f95ad7af92fb15234e2784682fa34072b7f16
+OK: 63b4704f6950684a91e124278bfd8c64ffed1b98 (nothing to do)
+OK: f726f33ba3e0483d1a8a4756234d9362ee6192e2
+OK: bae7f78d9fef919c12f9e6960afd50d8f2395d0d (nothing to do)
+OK: b0558af75a44e0b66462128dfa73c90a59ae4487 (skipped - only tests)
+OK: 4637b0655a74db347ec7f6de5cd67aa5ccd74f4c (skipped - only tests)
+OK: 3707c88a90acd7a37505ea5d35b63f730ee9114d (skipped - only tests)
+OK: 9e3e1f1174d5e3aa29f6499c08fafd2ccbf8dbdf (nothing to do)
+OK: e39359464cae7eec54277da43c5b0b0dd43ac9b5 (nothing to do)
+
+4.4.4
+
+OK: 6dff6a9582eb5312cdd71f17641147bb7e13583a (nothing to do)
+OK: a704a232c33b61b981206d70b1c731fbcfac1388
+OK: 7566df080234ed407bf1031d74e9aafb0cef2c8c (nothing to do)
+OK: c70e9011f75c5d3577018ab299055d2338e6a282 (skipped - ill change)
+OK: 7f17078d6d5a8927c5c185e4b1160fb499e3820c (skipped - only tests)
+OK: 1c4fc1d030c38ff38080c78677a6e72503ade2ee
+OK: e505e4e7314ec707093957b4ca8af27665a8737a
+OK: 225d39562ad55d0e9509fbb0d5759a0315b809d3 (tests skipped)
+OK: e8bdc086d2e66c942c3cdeb9b977a9d286cc0b98
+OK: e134684fac187455b6efb64d98be3d4c25895973
+OK: 770cc2bbc17b5b4d60a976dab3269be3f5c42f15
+OK: 88b906c2f56b0cd476b96b5bd63e60beb12d46ff
+OK: b8118b8dd05c710e0f0d898ba8e16372028ea294 (upstream interfaces are wrong, so we keep ours)
+OK: 9b54de962392f9d8d3395f0c8a665932a06eef90
+OK: a1f0f559aec6c166ee59a999ce2477418d5b38b5
+OK: c50ed96d99841e55d1a25b7db9a3328784a5cd4b (nothing to do)
+
+4.4.3
+OK: 2317bb6a1fc4cf66cef6621f3b60f5122097291c
+
+4.4.2
+OK: fb68d41b0855acc98f3d6ea3490e5f32f6175931 (nothing to do)
+
+4.4.0
+OK: 12deee1c383900f65bfd4d70b63b8cf87ad18d86
+
+4.3.2
+OK: ab478ed2019501cdbb94992fb3aee6f15c83b6ef
+OK: 5edf59620aa0ee9d9b45fd6e187793c580b6bb3a
+OK: 761e9a140c5fa6e14f1357dbc414bf3b70379c68
+OK: 8ab8b49af787f053835f83b4399d36ecfe80d88e
+OK: 8a837b1cca7c4c397f7f5fd784f48146689073e3
+OK: a8e21e1
+
+4.3.1
+OK: c6205352
+OK: 824fe6ff
+OK: a37928a3
+OK: 3f470fc4
+OK: 8e0d606f
+OK: 34102d2e
+
+4.3.0
+OK: 8cb6e5f5
+OK: 1c7ca8b9
+OK: 2c62a688
+OK: 21530c332af118b4147bb91ff2745a3a3d35a758

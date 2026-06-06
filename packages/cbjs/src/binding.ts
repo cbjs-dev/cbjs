@@ -24,12 +24,113 @@ import { OneOf, ReplicaNumber } from '@cbjsdev/shared';
 
 export type CppJsonString = string | Buffer;
 
+import type { HiResTime } from '@cbjsdev/shared';
+export type { HiResTime };
+
+/**
+ * A wrapper-SDK span tree emitted by the C++ core on a response.
+ *
+ * @internal
+ */
+export interface CppWrapperSdkSpan {
+  attributes: { [key: string]: number | string };
+  children?: CppWrapperSdkChildSpan[];
+}
+
+/**
+ * @internal
+ */
+export interface CppWrapperSdkChildSpan {
+  name: string;
+  start: HiResTime;
+  end: HiResTime;
+  attributes: { [key: string]: number | string };
+  children?: CppWrapperSdkChildSpan[];
+}
+
+/**
+ * Base shape for every C++ core request that carries an observability
+ * (wrapper) span name down to the core.
+ *
+ * @internal
+ */
+export interface CppObservableRequest {
+  wrapper_span_name?: string;
+}
+
+/**
+ * Base shape for every C++ core response that carries a core span tree back up
+ * to the wrapper SDK.
+ *
+ * @internal
+ */
+export interface CppObservableResponse {
+  cpp_core_span?: CppWrapperSdkSpan;
+}
+
+export interface CppClusterLabelsResponse {
+  clusterName?: string;
+  clusterUUID?: string;
+}
+
+/**
+ * A C++ core binding function whose request/response participate in observability.
+ *
+ * @internal
+ */
+export type ObservableBindingFunc<
+  TReq extends CppObservableRequests,
+  TResp extends CppObservableResponse,
+> = (req: TReq, cb: (err: CppError | null, res: TResp) => void) => void;
+
+/**
+ * Union of all C++ core requests wired for observability (wrapper span) handling.
+ *
+ * KV operations are covered first; query/search/analytics/views and management
+ * requests are added as their wrappers are threaded through the handler.
+ *
+ * @internal
+ */
+export type CppObservableRequests =
+  | CppGetRequest
+  | CppGetProjectedRequest
+  | CppExistsRequest
+  | CppGetAllReplicasRequest
+  | CppGetAnyReplicaRequest
+  | CppUpsertRequest
+  | CppUpsertWithLegacyDurabilityRequest
+  | CppInsertRequest
+  | CppInsertWithLegacyDurabilityRequest
+  | CppReplaceRequest
+  | CppReplaceWithLegacyDurabilityRequest
+  | CppRemoveRequest
+  | CppRemoveWithLegacyDurabilityRequest
+  | CppGetAndTouchRequest
+  | CppTouchRequest
+  | CppGetAndLockRequest
+  | CppUnlockRequest
+  | CppAppendRequest
+  | CppAppendWithLegacyDurabilityRequest
+  | CppPrependRequest
+  | CppPrependWithLegacyDurabilityRequest
+  | CppIncrementRequest
+  | CppIncrementWithLegacyDurabilityRequest
+  | CppDecrementRequest
+  | CppDecrementWithLegacyDurabilityRequest
+  | CppLookupInRequest
+  | CppLookupInAllReplicasRequest
+  | CppLookupInAnyReplicaRequest
+  | CppMutateInRequest
+  | CppMutateInWithLegacyDurabilityRequest
+  | CppQueryRequest;
+
 export interface CppClusterCredentials {
   username?: string;
   password?: string;
   certificate_path?: string;
   key_path?: string;
   allowed_sasl_mechanisms?: string[];
+  jwt_token?: string;
 }
 
 export interface CppDnsConfig {
@@ -60,6 +161,7 @@ export interface CppTracingConfig {
 }
 
 export interface CppOrphanReporterConfig {
+  enableOrphanReporting?: boolean;
   emitInterval?: number;
   sampleSize?: number;
 }
@@ -489,12 +591,12 @@ export interface CppDiagPingResult {
   services: { [key: string /*CppServiceType*/]: CppDiagEndpointPingInfo[] };
   version: number;
 }
-export interface CppPrependResponse {
+export interface CppPrependResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppPrependRequest {
+export interface CppPrependRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -505,7 +607,7 @@ export interface CppPrependRequest {
   // retries
   // parent_span
 }
-export interface CppPrependWithLegacyDurabilityRequest {
+export interface CppPrependWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -517,7 +619,7 @@ export interface CppPrependWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppExistsResponse {
+export interface CppExistsResponse extends CppObservableResponse {
   // ctx
   deleted: boolean;
   cas: CppCas;
@@ -527,7 +629,7 @@ export interface CppExistsResponse {
   datatype: number;
   document_exists: boolean;
 }
-export interface CppExistsRequest {
+export interface CppExistsRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -543,11 +645,11 @@ export interface CppHttpNoopRequest {
   client_context_id?: string;
   timeout?: number;
 }
-export interface CppUnlockResponse {
+export interface CppUnlockResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
 }
-export interface CppUnlockRequest {
+export interface CppUnlockRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -556,7 +658,7 @@ export interface CppUnlockRequest {
   // retries
   // parent_span
 }
-export interface CppGetAllReplicasResponse {
+export interface CppGetAllReplicasResponse extends CppObservableResponse {
   // ctx
   entries: CppGetAllReplicasResponseEntry[];
 }
@@ -566,17 +668,17 @@ export interface CppGetAllReplicasResponseEntry {
   flags: number;
   replica: boolean;
 }
-export interface CppGetAllReplicasRequest {
+export interface CppGetAllReplicasRequest extends CppObservableRequest {
   id: CppDocumentId;
   timeout?: number;
   read_preference: CppReadPreference;
 }
-export interface CppUpsertResponse {
+export interface CppUpsertResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppUpsertRequest {
+export interface CppUpsertRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -589,7 +691,7 @@ export interface CppUpsertRequest {
   preserve_expiry: boolean;
   // parent_span
 }
-export interface CppUpsertWithLegacyDurabilityRequest {
+export interface CppUpsertWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -603,24 +705,24 @@ export interface CppUpsertWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppGetAnyReplicaResponse {
+export interface CppGetAnyReplicaResponse extends CppObservableResponse {
   // ctx
   value: Buffer;
   cas: CppCas;
   flags: number;
   replica: boolean;
 }
-export interface CppGetAnyReplicaRequest {
+export interface CppGetAnyReplicaRequest extends CppObservableRequest {
   id: CppDocumentId;
   timeout?: number;
   read_preference: CppReadPreference;
 }
-export interface CppAppendResponse {
+export interface CppAppendResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppAppendRequest {
+export interface CppAppendRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -631,7 +733,7 @@ export interface CppAppendRequest {
   // retries
   // parent_span
 }
-export interface CppAppendWithLegacyDurabilityRequest {
+export interface CppAppendWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -643,7 +745,7 @@ export interface CppAppendWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppQueryResponse {
+export interface CppQueryResponse extends CppObservableResponse {
   // ctx
   meta: CppQueryResponseQueryMetaData;
   prepared?: string;
@@ -676,7 +778,7 @@ export interface CppQueryResponseQueryMetaData {
   warnings?: CppQueryResponseQueryProblem[];
   errors?: CppQueryResponseQueryProblem[];
 }
-export interface CppQueryRequest {
+export interface CppQueryRequest extends CppObservableRequest {
   statement: string;
   adhoc: boolean;
   metrics: boolean;
@@ -705,12 +807,12 @@ export interface CppQueryRequest {
   body_str: string;
   // parent_span
 }
-export interface CppReplaceResponse {
+export interface CppReplaceResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppReplaceRequest {
+export interface CppReplaceRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -724,7 +826,7 @@ export interface CppReplaceRequest {
   preserve_expiry: boolean;
   // parent_span
 }
-export interface CppReplaceWithLegacyDurabilityRequest {
+export interface CppReplaceWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -739,13 +841,13 @@ export interface CppReplaceWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppGetAndTouchResponse {
+export interface CppGetAndTouchResponse extends CppObservableResponse {
   // ctx
   value: Buffer;
   cas: CppCas;
   flags: number;
 }
-export interface CppGetAndTouchRequest {
+export interface CppGetAndTouchRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -754,12 +856,12 @@ export interface CppGetAndTouchRequest {
   // retries
   // parent_span
 }
-export interface CppRemoveResponse {
+export interface CppRemoveResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppRemoveRequest {
+export interface CppRemoveRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -769,7 +871,7 @@ export interface CppRemoveRequest {
   // retries
   // parent_span
 }
-export interface CppRemoveWithLegacyDurabilityRequest {
+export interface CppRemoveWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -780,13 +882,13 @@ export interface CppRemoveWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppGetResponse {
+export interface CppGetResponse extends CppObservableResponse {
   // ctx
   value: Buffer;
   cas: CppCas;
   flags: number;
 }
-export interface CppGetRequest {
+export interface CppGetRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -794,7 +896,7 @@ export interface CppGetRequest {
   // retries
   // parent_span
 }
-export interface CppLookupInAllReplicasResponse {
+export interface CppLookupInAllReplicasResponse extends CppObservableResponse {
   // ctx
   entries: CppLookupInAllReplicasResponseEntry[];
 }
@@ -813,11 +915,12 @@ export interface CppLookupInAllReplicasResponseEntryLookupInEntry {
   status: CppKeyValueStatusCode;
   ec: CppError;
 }
-export interface CppLookupInAllReplicasRequest {
+export interface CppLookupInAllReplicasRequest extends CppObservableRequest {
   id: CppDocumentId;
   specs: CppImplSubdocCommand[];
   timeout?: number;
   read_preference: CppReadPreference;
+  access_deleted: boolean;
 }
 export interface CppAnalyticsResponse {
   // ctx
@@ -863,14 +966,14 @@ export interface CppAnalyticsRequest {
   body_str: string;
   // parent_span
 }
-export interface CppGetProjectedResponse {
+export interface CppGetProjectedResponse extends CppObservableResponse {
   // ctx
   value: Buffer;
   cas: CppCas;
   flags: number;
   expiry?: number;
 }
-export interface CppGetProjectedRequest {
+export interface CppGetProjectedRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -882,13 +985,13 @@ export interface CppGetProjectedRequest {
   // retries
   // parent_span
 }
-export interface CppDecrementResponse {
+export interface CppDecrementResponse extends CppObservableResponse {
   // ctx
   content: number;
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppDecrementRequest {
+export interface CppDecrementRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -900,7 +1003,7 @@ export interface CppDecrementRequest {
   // retries
   // parent_span
 }
-export interface CppDecrementWithLegacyDurabilityRequest {
+export interface CppDecrementWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1006,11 +1109,11 @@ export interface CppSearchRequest {
   body_str: string;
   // parent_span
 }
-export interface CppTouchResponse {
+export interface CppTouchResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
 }
-export interface CppTouchRequest {
+export interface CppTouchRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1019,7 +1122,7 @@ export interface CppTouchRequest {
   // retries
   // parent_span
 }
-export interface CppLookupInResponse {
+export interface CppLookupInResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   fields: CppLookupInResponseEntry[];
@@ -1034,7 +1137,7 @@ export interface CppLookupInResponseEntry {
   status: CppKeyValueStatusCode;
   ec: CppError;
 }
-export interface CppLookupInRequest {
+export interface CppLookupInRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1092,13 +1195,13 @@ export interface CppDocumentViewRequest {
   timeout?: number;
   // parent_span
 }
-export interface CppGetAndLockResponse {
+export interface CppGetAndLockResponse extends CppObservableResponse {
   // ctx
   value: Buffer;
   cas: CppCas;
   flags: number;
 }
-export interface CppGetAndLockRequest {
+export interface CppGetAndLockRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1107,12 +1210,12 @@ export interface CppGetAndLockRequest {
   // retries
   // parent_span
 }
-export interface CppInsertResponse {
+export interface CppInsertResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppInsertRequest {
+export interface CppInsertRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -1124,7 +1227,7 @@ export interface CppInsertRequest {
   // retries
   // parent_span
 }
-export interface CppInsertWithLegacyDurabilityRequest {
+export interface CppInsertWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   value: Buffer;
   partition: number;
@@ -1137,7 +1240,7 @@ export interface CppInsertWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppLookupInAnyReplicaResponse {
+export interface CppLookupInAnyReplicaResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   fields: CppLookupInAnyReplicaResponseEntry[];
@@ -1153,13 +1256,14 @@ export interface CppLookupInAnyReplicaResponseEntry {
   status: CppKeyValueStatusCode;
   ec: CppError;
 }
-export interface CppLookupInAnyReplicaRequest {
+export interface CppLookupInAnyReplicaRequest extends CppObservableRequest {
   id: CppDocumentId;
   specs: CppImplSubdocCommand[];
   timeout?: number;
   read_preference: CppReadPreference;
+  access_deleted: boolean;
 }
-export interface CppMutateInResponse {
+export interface CppMutateInResponse extends CppObservableResponse {
   // ctx
   cas: CppCas;
   token: CppMutationToken;
@@ -1174,7 +1278,7 @@ export interface CppMutateInResponseEntry {
   status: CppKeyValueStatusCode;
   ec: CppError;
 }
-export interface CppMutateInRequest {
+export interface CppMutateInRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1191,7 +1295,7 @@ export interface CppMutateInRequest {
   // parent_span
   flags?: number;
 }
-export interface CppMutateInWithLegacyDurabilityRequest {
+export interface CppMutateInWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1208,13 +1312,13 @@ export interface CppMutateInWithLegacyDurabilityRequest {
   persist_to: CppPersistTo;
   replicate_to: CppReplicateTo;
 }
-export interface CppIncrementResponse {
+export interface CppIncrementResponse extends CppObservableResponse {
   // ctx
   content: number;
   cas: CppCas;
   token: CppMutationToken;
 }
-export interface CppIncrementRequest {
+export interface CppIncrementRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -1226,7 +1330,7 @@ export interface CppIncrementRequest {
   // retries
   // parent_span
 }
-export interface CppIncrementWithLegacyDurabilityRequest {
+export interface CppIncrementWithLegacyDurabilityRequest extends CppObservableRequest {
   id: CppDocumentId;
   partition: number;
   opaque: number;
@@ -3329,7 +3433,7 @@ export type CppErrc =
 
 // This type intentionally does not inherit from Error so that it will
 // not be trivially castable to error and forces us to convert the errors.
-export interface CppCodedError {
+export interface CppCodedError extends CppObservableResponse {
   code: CppErrc;
 }
 
@@ -3436,7 +3540,7 @@ export interface CppHttpError extends CppCodedError {
 
 export type CppTxnAnyError = CppTxnOperationFailed | CppTxnOpException | CppTxnError;
 
-export interface CppTxnOperationFailed {
+export interface CppTxnOperationFailed extends CppObservableResponse {
   ctxtype: 'transaction_operation_failed';
   ctx: CppTransactionErrorContext;
   should_not_retry: boolean;
@@ -3445,14 +3549,14 @@ export interface CppTxnOperationFailed {
   message?: string;
 }
 
-export interface CppTxnOpException {
+export interface CppTxnOpException extends CppObservableResponse {
   ctxtype: 'transaction_op_exception';
   ctx: CppTransactionOpErrorContext | undefined;
   cause: CppTransactionsExternalException;
   message?: string;
 }
 
-export interface CppTxnError {
+export interface CppTxnError extends CppObservableResponse {
   ctxtype: 'transaction_exception';
   result: CppTransactionResult;
   cause: CppTransactionsExternalException;
@@ -3486,11 +3590,15 @@ export interface CppConnection extends CppConnectionAutogen {
     credentials: CppClusterCredentials,
     dnsOptions: CppDnsConfig | null,
     appTelemetryOptions: CppAppTelemetryConfig | null,
-    tracingOptions: CppTracingConfig | null,
+    enableTracing: boolean,
     orphanReporterOptions: CppOrphanReporterConfig | null,
-    metricsOptions: CppMetricsConfig | null,
     callback: (err: CppError | null) => void
   ): void;
+
+  updateCredentials(credentials: CppClusterCredentials): CppError | null;
+
+  getClusterLabels(): CppClusterLabelsResponse;
+
   shutdown(callback: (err: CppError | null) => void): void;
 
   openBucket(bucketName: string, callback: (err: CppError | null) => void): void;

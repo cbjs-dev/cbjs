@@ -1162,3 +1162,15 @@ export class TransactionCommitAmbiguousError extends CouchbaseError {
     super(`transaction commit ambiguous${appendReason(reason)}`, cause);
   }
 }
+
+/**
+ * Indicates that an error occurred while recording or reporting a metric
+ * through the configured {@link Meter}.
+ *
+ * @category Error Handling
+ */
+export class MeterError extends CouchbaseError {
+  constructor(cause?: Error) {
+    super('An error occurred during a metrics operation', cause);
+  }
+}

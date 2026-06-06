@@ -22,6 +22,7 @@ import {
 } from '@cbjsdev/shared';
 
 import { MutationState } from './mutationstate.js';
+import { RequestSpan } from './tracing.js';
 import { Transcoder } from './transcoders.js';
 
 /**
@@ -433,4 +434,10 @@ export interface QueryOptions<
    * @default {@link JSON.parse}
    */
   queryResultParser?: (value: string) => any;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }

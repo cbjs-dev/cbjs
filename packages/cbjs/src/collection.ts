@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { promisify } from 'node:util';
-
 import {
   ArrayElement,
   BucketName,
@@ -51,17 +49,21 @@ import type {
   CppConnection,
   CppDecrementResponse,
   CppDocumentId,
+  CppDurabilityLevel,
   CppError,
   CppImplSubdocCommand,
   CppIncrementResponse,
   CppInsertResponse,
   CppMutateInResponse,
+  CppObservableRequests,
+  CppObservableResponse,
   CppPrependResponse,
   CppRangeScanOrchestratorOptions,
   CppRemoveResponse,
   CppReplaceResponse,
   CppScanIterator,
   CppUpsertResponse,
+  ObservableBindingFunc,
 } from './binding.js';
 import binding, { zeroCas } from './binding.js';
 import {
@@ -115,6 +117,9 @@ import {
 } from './errors.js';
 import { DurabilityLevel, ReadPreference, StoreSemantics } from './generaltypes.js';
 import { MutationState } from './mutationstate.js';
+import { wrapObservableBindingCall } from './observability.js';
+import { ObservableRequestHandler } from './observabilityhandler.js';
+import { KeyValueOp } from './observabilitytypes.js';
 import { CollectionQueryIndexManager } from './queryindexmanager.js';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
 import type { Scope } from './scope.js';
@@ -136,6 +141,7 @@ import {
   StreamableReplicasPromise,
   StreamableScanPromise,
 } from './streamablepromises.js';
+import { RequestSpan } from './tracing.js';
 import type { Transcoder } from './transcoders.js';
 import {
   getDocId,
@@ -182,6 +188,12 @@ export interface GetOptions<
    * @default true
    */
   throwIfMissing?: ThrowIfMissing;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -192,6 +204,12 @@ export interface ExistsOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 export type ClientDurabilityOptions = {
@@ -251,6 +269,12 @@ export type MutationOptions = Partial<DurabilityOptions> & {
    * Specifies an explicit transcoder to use for this specific operation.
    */
   transcoder?: Transcoder;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 };
 
 /**
@@ -336,6 +360,12 @@ export interface TouchOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -351,6 +381,12 @@ export interface GetAndTouchOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -366,6 +402,12 @@ export interface GetAndLockOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -376,6 +418,12 @@ export interface UnlockOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -401,6 +449,12 @@ export interface LookupInOptions<ThrowOnSpecError extends boolean = false> {
    * @default false
    */
   throwOnSpecError?: ThrowOnSpecError;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -424,6 +478,12 @@ export interface LookupInAnyReplicaOptions<ThrowOnSpecError extends boolean = fa
    * Specifies how replica nodes will be filtered.
    */
   readPreference?: ReadPreference;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -447,6 +507,12 @@ export interface LookupInAllReplicasOptions<ThrowOnSpecError extends boolean = f
    * Specifies how replica nodes will be filtered.
    */
   readPreference?: ReadPreference;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -594,6 +660,50 @@ export class Collection<
     return getDocId(this as AnyCollection, key);
   }
 
+  /**
+   * Invokes a C++ core KV binding function while creating, populating and ending
+   * the observability span (and recording the operation metric) for the call.
+   *
+   * It rejects with the raw {@link CppError} — exactly like the previous
+   * `promisify` calls — so each operation keeps its existing `errorFromCpp`
+   * error handling unchanged.
+   *
+   * @internal
+   */
+  private _observeKvCall<
+    Req extends CppObservableRequests,
+    Resp extends CppObservableResponse,
+  >(
+    op: KeyValueOp,
+    parentSpan: RequestSpan | undefined,
+    docId: CppDocumentId,
+    fn: ObservableBindingFunc<Req, Resp>,
+    request: Req,
+    durability?: CppDurabilityLevel
+  ): Promise<Resp> {
+    const handler = new ObservableRequestHandler(
+      op,
+      this.cluster.observabilityInstruments,
+      parentSpan
+    );
+    handler.setRequestKeyValueAttributes(docId, durability);
+    request.wrapper_span_name = handler.wrapperSpanName;
+
+    return new Promise<Resp>((resolve, reject) => {
+      fn(request, (cppErr, res) => {
+        if (cppErr) {
+          handler.processCoreSpan(cppErr.cpp_core_span);
+          handler.endWithError(errorFromCpp(cppErr));
+          reject(cppErr);
+          return;
+        }
+        handler.processCoreSpan(res.cpp_core_span);
+        handler.end();
+        resolve(res);
+      });
+    });
+  }
+
   private encodeSubDocument(value: any): any {
     return Buffer.from(value);
   }
@@ -666,15 +776,19 @@ export class Collection<
     const timeout = options.timeout ?? this.cluster.kvTimeout;
     const docId = this.getDocId(key);
 
-    const get = promisify(this.conn.get).bind(this.conn);
-
     try {
-      const response = await get({
-        id: docId,
-        timeout,
-        partition: 0,
-        opaque: 0,
-      });
+      const response = await this._observeKvCall(
+        KeyValueOp.Get,
+        options.parentSpan,
+        docId,
+        this.conn.get.bind(this.conn),
+        {
+          id: docId,
+          timeout,
+          partition: 0,
+          opaque: 0,
+        }
+      );
 
       const docBody = transcoder.decode(response.value, response.flags);
       const result = new GetResult({
@@ -847,15 +961,21 @@ export class Collection<
     }
 
     const timeout = options.timeout ?? this.cluster.kvTimeout;
-    const exists = promisify(this.conn.exists).bind(this.conn);
+    const docId = this.getDocId(key);
 
     try {
-      const response = await exists({
-        id: this.getDocId(key),
-        partition: 0,
-        opaque: 0,
-        timeout,
-      });
+      const response = await this._observeKvCall(
+        KeyValueOp.Exists,
+        options.parentSpan,
+        docId,
+        this.conn.exists.bind(this.conn),
+        {
+          id: docId,
+          partition: 0,
+          opaque: 0,
+          timeout,
+        }
+      );
 
       const result = new ExistsResult({
         cas: response.deleted ? undefined : response.cas,
@@ -1181,22 +1301,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let insert: (() => Promise<CppInsertResponse>) | undefined = undefined;
+      let response: CppInsertResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        insert = promisify(this.conn.insertWithLegacyDurability).bind(this.conn, {
-          ...insertReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Insert,
+          options.parentSpan,
+          insertReq.id,
+          this.conn.insertWithLegacyDurability.bind(this.conn),
+          {
+            ...insertReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        insert = promisify(this.conn.insert).bind(this.conn, {
-          ...insertReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Insert,
+          options.parentSpan,
+          insertReq.id,
+          this.conn.insert.bind(this.conn),
+          {
+            ...insertReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await insert();
       const result = new MutationResult({
         cas: response.cas,
         token: response.token,
@@ -1279,22 +1410,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let upsert: (() => Promise<CppUpsertResponse>) | undefined = undefined;
+      let response: CppUpsertResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        upsert = promisify(this.conn.upsertWithLegacyDurability).bind(this.conn, {
-          ...upsertReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Upsert,
+          options.parentSpan,
+          upsertReq.id,
+          this.conn.upsertWithLegacyDurability.bind(this.conn),
+          {
+            ...upsertReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        upsert = promisify(this.conn.upsert).bind(this.conn, {
-          ...upsertReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Upsert,
+          options.parentSpan,
+          upsertReq.id,
+          this.conn.upsert.bind(this.conn),
+          {
+            ...upsertReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await upsert();
       const result = new MutationResult({
         cas: response.cas,
         token: response.token,
@@ -1378,22 +1520,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let replace: (() => Promise<CppReplaceResponse>) | undefined = undefined;
+      let response: CppReplaceResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        replace = promisify(this.conn.replaceWithLegacyDurability).bind(this.conn, {
-          ...replaceReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Replace,
+          options.parentSpan,
+          replaceReq.id,
+          this.conn.replaceWithLegacyDurability.bind(this.conn),
+          {
+            ...replaceReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        replace = promisify(this.conn.replace).bind(this.conn, {
-          ...replaceReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Replace,
+          options.parentSpan,
+          replaceReq.id,
+          this.conn.replace.bind(this.conn),
+          {
+            ...replaceReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await replace();
       const result = new MutationResult({
         cas: response.cas,
         token: response.token,
@@ -1459,22 +1612,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let remove: (() => Promise<CppRemoveResponse>) | undefined = undefined;
+      let response: CppRemoveResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        remove = promisify(this.conn.removeWithLegacyDurability).bind(this.conn, {
-          ...removeReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Remove,
+          options.parentSpan,
+          removeReq.id,
+          this.conn.removeWithLegacyDurability.bind(this.conn),
+          {
+            ...removeReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        remove = promisify(this.conn.remove).bind(this.conn, {
-          ...removeReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Remove,
+          options.parentSpan,
+          removeReq.id,
+          this.conn.remove.bind(this.conn),
+          {
+            ...removeReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await remove();
       const result = new MutationResult({
         cas: response.cas,
         token: response.token,
@@ -1544,16 +1708,22 @@ export class Collection<
     const transcoder = options.transcoder ?? this.transcoder;
     const timeout = options.timeout ?? this.cluster.kvTimeout;
 
-    try {
-      const getAndTouch = promisify(this.conn.getAndTouch).bind(this.conn);
+    const docId = this.getDocId(key);
 
-      const response = await getAndTouch({
-        id: this.getDocId(key),
-        expiry: parseExpiry(expiry),
-        timeout,
-        partition: 0,
-        opaque: 0,
-      });
+    try {
+      const response = await this._observeKvCall(
+        KeyValueOp.GetAndTouch,
+        options.parentSpan,
+        docId,
+        this.conn.getAndTouch.bind(this.conn),
+        {
+          id: docId,
+          expiry: parseExpiry(expiry),
+          timeout,
+          partition: 0,
+          opaque: 0,
+        }
+      );
 
       const docBody = transcoder.decode(response.value, response.flags);
 
@@ -1618,16 +1788,22 @@ export class Collection<
 
     const timeout = options.timeout ?? this.cluster.kvTimeout;
 
-    try {
-      const touch = promisify(this.conn.touch).bind(this.conn);
+    const docId = this.getDocId(key);
 
-      const response = await touch({
-        id: this.getDocId(key),
-        expiry: parseExpiry(expiry),
-        timeout,
-        partition: 0,
-        opaque: 0,
-      });
+    try {
+      const response = await this._observeKvCall(
+        KeyValueOp.Touch,
+        options.parentSpan,
+        docId,
+        this.conn.touch.bind(this.conn),
+        {
+          id: docId,
+          expiry: parseExpiry(expiry),
+          timeout,
+          partition: 0,
+          opaque: 0,
+        }
+      );
 
       const result = new MutationResult({
         cas: response.cas,
@@ -1692,15 +1868,22 @@ export class Collection<
     const transcoder = options.transcoder ?? this.transcoder;
     const timeout = options.timeout ?? this.cluster.kvTimeout;
 
+    const docId = this.getDocId(key);
+
     try {
-      const getAndLock = promisify(this.conn.getAndLock).bind(this.conn);
-      const response = await getAndLock({
-        id: this.getDocId(key),
-        lock_time: lockTime,
-        timeout,
-        partition: 0,
-        opaque: 0,
-      });
+      const response = await this._observeKvCall(
+        KeyValueOp.GetAndLock,
+        options.parentSpan,
+        docId,
+        this.conn.getAndLock.bind(this.conn),
+        {
+          id: docId,
+          lock_time: lockTime,
+          timeout,
+          partition: 0,
+          opaque: 0,
+        }
+      );
 
       const docBody = transcoder.decode(response.value, response.flags);
       const result = new GetResult({
@@ -1758,16 +1941,22 @@ export class Collection<
     }
 
     const timeout = options.timeout ?? this.cluster.kvTimeout;
-    const unlock = promisify(this.conn.unlock).bind(this.conn);
+    const docId = this.getDocId(key);
 
     try {
-      await unlock({
-        id: this.getDocId(key),
-        cas,
-        timeout,
-        partition: 0,
-        opaque: 0,
-      });
+      await this._observeKvCall(
+        KeyValueOp.Unlock,
+        options.parentSpan,
+        docId,
+        this.conn.unlock.bind(this.conn),
+        {
+          id: docId,
+          cas,
+          timeout,
+          partition: 0,
+          opaque: 0,
+        }
+      );
 
       if (callback) {
         callback(null);
@@ -2090,7 +2279,7 @@ export class Collection<
       };
 
       const { timeout, accessDeleted } = resolvedOptions;
-      const lookupIn = promisify(this.conn.lookupIn).bind(this.conn);
+      const docId = this.getDocId(key);
 
       const cppSpecs: CppImplSubdocCommand[] = specs.map((spec, i) => ({
         opcode_: spec._op,
@@ -2099,14 +2288,20 @@ export class Collection<
         original_index_: i,
       }));
 
-      const response = await lookupIn({
-        id: this.getDocId(key),
-        specs: cppSpecs,
-        timeout,
-        partition: 0,
-        opaque: 0,
-        access_deleted: accessDeleted,
-      });
+      const response = await this._observeKvCall(
+        KeyValueOp.LookupIn,
+        resolvedOptions.parentSpan,
+        docId,
+        this.conn.lookupIn.bind(this.conn),
+        {
+          id: docId,
+          specs: cppSpecs,
+          timeout,
+          partition: 0,
+          opaque: 0,
+          access_deleted: accessDeleted,
+        }
+      );
 
       const content: LookupInResultEntry[] = [];
 
@@ -2239,6 +2434,7 @@ export class Collection<
         specs: cppSpecs,
         timeout: timeout,
         read_preference: readPreferenceToCpp(options.readPreference),
+        access_deleted: false, // only used in core transactions; false otherwise
       },
       (cppErr, res) => {
         if (cppErr) {
@@ -2588,22 +2784,33 @@ export class Collection<
         create_as_deleted: false,
       };
 
-      let mutateIn: (() => Promise<CppMutateInResponse>) | undefined = undefined;
+      let response: CppMutateInResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        mutateIn = promisify(this.conn.mutateInWithLegacyDurability).bind(this.conn, {
-          ...mutateInReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.MutateIn,
+          options.parentSpan,
+          mutateInReq.id,
+          this.conn.mutateInWithLegacyDurability.bind(this.conn),
+          {
+            ...mutateInReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        mutateIn = promisify(this.conn.mutateIn).bind(this.conn, {
-          ...mutateInReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.MutateIn,
+          options.parentSpan,
+          mutateInReq.id,
+          this.conn.mutateIn.bind(this.conn),
+          {
+            ...mutateInReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await mutateIn();
 
       const resultEntries = response.fields.map(({ value }) => {
         return new MutateInResultEntry({
@@ -2740,22 +2947,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let increment: (() => Promise<CppIncrementResponse>) | undefined = undefined;
+      let response: CppIncrementResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        increment = promisify(this.conn.incrementWithLegacyDurability).bind(this.conn, {
-          ...incrementReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Increment,
+          options.parentSpan,
+          incrementReq.id,
+          this.conn.incrementWithLegacyDurability.bind(this.conn),
+          {
+            ...incrementReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        increment = promisify(this.conn.increment).bind(this.conn, {
-          ...incrementReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Increment,
+          options.parentSpan,
+          incrementReq.id,
+          this.conn.increment.bind(this.conn),
+          {
+            ...incrementReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await increment();
       const result = new CounterResult({
         cas: response.cas,
         value: response.content,
@@ -2824,22 +3042,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let decrement: (() => Promise<CppDecrementResponse>) | undefined = undefined;
+      let response: CppDecrementResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        decrement = promisify(this.conn.decrementWithLegacyDurability).bind(this.conn, {
-          ...decrementReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Decrement,
+          options.parentSpan,
+          decrementReq.id,
+          this.conn.decrementWithLegacyDurability.bind(this.conn),
+          {
+            ...decrementReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        decrement = promisify(this.conn.decrement).bind(this.conn, {
-          ...decrementReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Decrement,
+          options.parentSpan,
+          decrementReq.id,
+          this.conn.decrement.bind(this.conn),
+          {
+            ...decrementReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await decrement();
       const result = new CounterResult({
         cas: response.cas,
         value: response.content,
@@ -2910,22 +3139,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let append: (() => Promise<CppAppendResponse>) | undefined = undefined;
+      let response: CppAppendResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        append = promisify(this.conn.appendWithLegacyDurability).bind(this.conn, {
-          ...appendReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Append,
+          options.parentSpan,
+          appendReq.id,
+          this.conn.appendWithLegacyDurability.bind(this.conn),
+          {
+            ...appendReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        append = promisify(this.conn.append).bind(this.conn, {
-          ...appendReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Append,
+          options.parentSpan,
+          appendReq.id,
+          this.conn.append.bind(this.conn),
+          {
+            ...appendReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await append();
       const result = new MutationResult({
         cas: response.cas,
         token: response.token,
@@ -2995,22 +3235,33 @@ export class Collection<
         opaque: 0,
       };
 
-      let prepend: (() => Promise<CppPrependResponse>) | undefined = undefined;
+      let response: CppPrependResponse;
 
       if (persistTo !== undefined || replicateTo !== undefined) {
-        prepend = promisify(this.conn.prependWithLegacyDurability).bind(this.conn, {
-          ...prependReq,
-          persist_to: persistToToCpp(persistTo),
-          replicate_to: replicateToToCpp(replicateTo),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Prepend,
+          options.parentSpan,
+          prependReq.id,
+          this.conn.prependWithLegacyDurability.bind(this.conn),
+          {
+            ...prependReq,
+            persist_to: persistToToCpp(persistTo),
+            replicate_to: replicateToToCpp(replicateTo),
+          }
+        );
       } else {
-        prepend = promisify(this.conn.prepend).bind(this.conn, {
-          ...prependReq,
-          durability_level: durabilityToCpp(durabilityLevel),
-        });
+        response = await this._observeKvCall(
+          KeyValueOp.Prepend,
+          options.parentSpan,
+          prependReq.id,
+          this.conn.prepend.bind(this.conn),
+          {
+            ...prependReq,
+            durability_level: durabilityToCpp(durabilityLevel),
+          },
+          durabilityToCpp(durabilityLevel)
+        );
       }
-
-      const response = await prepend();
       const result = new MutationResult({
         cas: response.cas,
         token: response.token,

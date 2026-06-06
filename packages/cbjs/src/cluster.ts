@@ -28,6 +28,7 @@ import {
 import {
   Authenticator,
   CertificateAuthenticator,
+  JwtAuthenticator,
   PasswordAuthenticator,
 } from './authenticators.js';
 import binding, { CppClusterCredentials, CppConnection } from './binding.js';
@@ -45,6 +46,17 @@ import {
 } from './diagnosticstypes.js';
 import { AuthenticationFailureError, CouchbaseError } from './errors.js';
 import { EventingFunctionManager } from './eventingfunctionmanager.js';
+import {
+  CouchbaseLogger,
+  createConsoleLogger,
+  Logger,
+  NoOpLogger,
+  parseLogLevel,
+} from './logger.js';
+import { LoggingMeter } from './loggingmeter.js';
+import { Meter } from './metrics.js';
+import { NoOpMeter, NoOpTracer } from './observability.js';
+import { ObservabilityInstruments } from './observabilitytypes.js';
 import { QueryExecutor } from './queryexecutor.js';
 import { QueryIndexManager } from './queryindexmanager.js';
 import { QueryMetaData, QueryOptions, QueryResult } from './querytypes.js';
@@ -59,6 +71,8 @@ import {
   SearchRow,
 } from './searchtypes.js';
 import { StreamableRowPromise } from './streamablepromises.js';
+import { ThresholdLoggingTracer } from './thresholdlogging.js';
+import { RequestTracer } from './tracing.js';
 import { Transactions, TransactionsConfig } from './transactions.js';
 import { DefaultTranscoder, Transcoder } from './transcoders.js';
 import { UserManager } from './usermanager.js';
@@ -296,6 +310,12 @@ export interface TracingConfig {
  */
 export interface OrphanReporterConfig {
   /**
+   * Specifies to enable or disable orphaned response logging.
+   * Defaults to true (enabled) if not specified.
+   */
+  enableOrphanReporting?: boolean;
+
+  /**
    * Specifies the interval after which the aggregated orphaned response information is logged, specified in millseconds.
    * Defaults to 10000 (10 seconds) if not specified.
    */
@@ -428,6 +448,28 @@ export type ConnectOptions<T extends CouchbaseClusterTypes = any> = {
    * Specifies the metrics config for connections of this cluster.
    */
   metricsConfig?: MetricsConfig;
+
+  /**
+   * Specifies the request tracer to use for this cluster. When omitted, a
+   * {@link ThresholdLoggingTracer} is used unless tracing is explicitly disabled
+   * via {@link TracingConfig.enableTracing}.
+   */
+  tracer?: RequestTracer;
+
+  /**
+   * Specifies the meter to use for this cluster. When omitted, a
+   * {@link LoggingMeter} is used unless metrics are explicitly disabled via
+   * {@link MetricsConfig.enableMetrics}.
+   */
+  meter?: Meter;
+
+  /**
+   * Provides an implementation of the {@link Logger} interface to be used by the SDK.
+   *
+   * When omitted, the log level is read from the `CNLOGLEVEL` environment variable
+   * (falling back to a no-op logger).
+   */
+  logger?: Logger;
 };
 
 /**
@@ -464,6 +506,10 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   private _tracingConfig: TracingConfig | null;
   private _orphanReporterConfig: OrphanReporterConfig | null;
   private _metricsConfig: MetricsConfig | null;
+  private _tracer: RequestTracer | undefined;
+  private _meter: Meter | undefined;
+  private _observabilityInstruments: ObservabilityInstruments | undefined;
+  private _logger: CouchbaseLogger;
 
   /**
    * @internal
@@ -477,6 +523,20 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
   */
   get transcoder(): Transcoder {
     return this._transcoder;
+  }
+
+  /**
+   * @internal
+   */
+  get logger(): CouchbaseLogger {
+    return this._logger;
+  }
+
+  /**
+   * @internal
+   */
+  get observabilityInstruments(): ObservabilityInstruments {
+    return this._observabilityInstruments as ObservabilityInstruments;
   }
 
   /**
@@ -689,8 +749,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     }
 
     if (options.orphanReporterConfig) {
-      // TODO(JSCBC-1364):  Add enableReporting to config when supported in C++ core
       this._orphanReporterConfig = {
+        enableOrphanReporting: options.orphanReporterConfig.enableOrphanReporting,
         emitInterval: options.orphanReporterConfig.emitInterval,
         sampleSize: options.orphanReporterConfig.sampleSize,
       };
@@ -705,6 +765,28 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       };
     } else {
       this._metricsConfig = null;
+    }
+
+    if (options.tracer) {
+      this._tracer = options.tracer;
+    }
+
+    if (options.meter) {
+      this._meter = options.meter;
+    }
+
+    if (!options.logger) {
+      const envLogLevel = process.env.CNLOGLEVEL;
+      const level = envLogLevel ? parseLogLevel(envLogLevel) : undefined;
+      this._logger =
+        level !== undefined
+          ? createConsoleLogger(level)
+          : new CouchbaseLogger(new NoOpLogger());
+    } else {
+      this._logger =
+        options.logger instanceof CouchbaseLogger
+          ? options.logger
+          : new CouchbaseLogger(options.logger);
     }
 
     this._openBuckets = new Map();
@@ -1093,6 +1175,14 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       this._transactions = undefined;
     }
 
+    if (this._tracer instanceof ThresholdLoggingTracer) {
+      this._tracer.cleanup();
+    }
+
+    if (this._meter instanceof LoggingMeter) {
+      this._meter.cleanup();
+    }
+
     return await PromiseHelper.wrap((wrapCallback) => {
       this.conn.shutdown((cppErr) => {
         wrapCallback(errorFromCpp(cppErr));
@@ -1116,6 +1206,118 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
 
   async waitForBuckets() {
     await Promise.allSettled(this._openBuckets.values());
+  }
+
+  /**
+   * Update the credentials used by this cluster.
+   *
+   * This is primarily useful to refresh the certificate and key used for mutual TLS (mTLS)
+   * authentication without having to reconnect the cluster.
+   *
+   * @param auth The new credentials to use.
+   * @throws AuthenticationFailureError
+   */
+  updateCredentials(auth: Authenticator): void {
+    const cppErr = this._conn.updateCredentials(this._getCppCredentials(auth));
+    if (cppErr) {
+      throw errorFromCpp(cppErr);
+    }
+  }
+
+  /**
+   * Builds the C++ core credentials from an {@link Authenticator}.
+   *
+   * @internal
+   */
+  private _getCppCredentials(
+    auth: Authenticator,
+    saslMechanisms?: string[]
+  ): CppClusterCredentials {
+    const authOpts: CppClusterCredentials = {};
+
+    if (auth) {
+      const passAuth = auth as PasswordAuthenticator;
+      if (passAuth.username || passAuth.password) {
+        authOpts.username = passAuth.username;
+        authOpts.password = passAuth.password;
+
+        // An authenticator that pins its own SASL mechanisms (e.g.
+        // `PasswordAuthenticator.ldapCompatible`) takes precedence over the ones
+        // derived from the connection string.
+        if (passAuth.allowed_sasl_mechanisms) {
+          authOpts.allowed_sasl_mechanisms = passAuth.allowed_sasl_mechanisms;
+        } else if (saslMechanisms) {
+          authOpts.allowed_sasl_mechanisms = saslMechanisms;
+        }
+      }
+
+      const certAuth = auth as CertificateAuthenticator;
+      if (certAuth.certificatePath || certAuth.keyPath) {
+        authOpts.certificate_path = certAuth.certificatePath;
+        authOpts.key_path = certAuth.keyPath;
+      }
+
+      const jwtAuth = auth as JwtAuthenticator;
+      if (jwtAuth.token) {
+        authOpts.jwt_token = jwtAuth.token;
+      }
+    }
+
+    return authOpts;
+  }
+
+  /**
+   * @internal
+   */
+  _getClusterLabels(): Record<string, string | undefined> {
+    const resp = this._conn.getClusterLabels();
+    return { clusterName: resp.clusterName, clusterUUID: resp.clusterUUID };
+  }
+
+  /**
+   * Resolves the effective tracer and meter for this cluster and builds the
+   * {@link ObservabilityInstruments} threaded through every operation.
+   *
+   * Tracing/metrics are considered explicitly disabled only when the relevant
+   * config is present AND its `enable*` flag is `false`. A user-provided
+   * tracer/meter always wins; otherwise we default to the threshold-logging
+   * tracer / logging meter, falling back to no-op implementations when disabled.
+   *
+   * @returns A `[enableTracing, enableMetrics]` tuple.
+   * @internal
+   */
+  private _setupObservability(): [boolean, boolean] {
+    const tracingExplicitlyDisabled =
+      (this._tracingConfig ?? false) && !this._tracingConfig?.enableTracing;
+    const enableTracing =
+      typeof this._tracer !== 'undefined' || !tracingExplicitlyDisabled;
+
+    if (enableTracing && !this._tracer) {
+      this._tracer = new ThresholdLoggingTracer(this._logger, this._tracingConfig);
+    }
+    if (!this._tracer) {
+      this._tracer = new NoOpTracer();
+    }
+
+    const metricsExplicitlyDisabled =
+      (this._metricsConfig ?? false) && !this._metricsConfig?.enableMetrics;
+    const enableMetrics =
+      typeof this._meter !== 'undefined' || !metricsExplicitlyDisabled;
+
+    if (enableMetrics && !this._meter) {
+      this._meter = new LoggingMeter(this._logger, this._metricsConfig?.emitInterval);
+    }
+    if (!this._meter) {
+      this._meter = new NoOpMeter();
+    }
+
+    this._observabilityInstruments = new ObservabilityInstruments(
+      this._tracer,
+      this._meter,
+      () => this._getClusterLabels()
+    );
+
+    return [enableTracing, enableMetrics];
   }
 
   /**
@@ -1158,47 +1360,34 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
 
       const connStr = dsnObj.toString();
 
-      const authOpts: CppClusterCredentials = {};
-
       // lets allow `allowed_sasl_mechanisms` to override legacy connstr option
+      let saslMechanisms: string[] | undefined;
       for (const saslKey of ['sasl_mech_force', 'allowed_sasl_mechanisms']) {
         if (!(saslKey in dsnObj.options)) {
           continue;
         }
         if (typeof dsnObj.options[saslKey] === 'string') {
-          authOpts.allowed_sasl_mechanisms = [dsnObj.options[saslKey] as string];
+          saslMechanisms = [dsnObj.options[saslKey] as string];
         } else {
-          authOpts.allowed_sasl_mechanisms = dsnObj.options[saslKey] as string[];
+          saslMechanisms = dsnObj.options[saslKey] as string[];
         }
         delete dsnObj.options[saslKey];
       }
 
-      if (this._auth) {
-        const passAuth = this._auth as PasswordAuthenticator;
-        if (passAuth.username || passAuth.password) {
-          authOpts.username = passAuth.username;
-          authOpts.password = passAuth.password;
+      const authOpts = this._getCppCredentials(this._auth, saslMechanisms);
 
-          if (passAuth.allowed_sasl_mechanisms) {
-            authOpts.allowed_sasl_mechanisms = passAuth.allowed_sasl_mechanisms;
-          }
-        }
-
-        const certAuth = this._auth as CertificateAuthenticator;
-        if (certAuth.certificatePath || certAuth.keyPath) {
-          authOpts.certificate_path = certAuth.certificatePath;
-          authOpts.key_path = certAuth.keyPath;
-        }
-      }
+      // Tracing/metrics are handled in the wrapper SDK (this layer). The C++ core
+      // only needs to know whether to emit its own spans; the full tracing/metrics
+      // configs are consumed by the threshold-logging tracer / logging meter.
+      const [enableTracing] = this._setupObservability();
 
       this.conn.connect(
         connStr,
         authOpts,
         this._dnsConfig,
         this._appTelemetryConfig,
-        this._tracingConfig,
+        enableTracing,
         this._orphanReporterConfig,
-        this._metricsConfig,
         (cppErr) => {
           if (cppErr) {
             const err = errorFromCpp(cppErr);
