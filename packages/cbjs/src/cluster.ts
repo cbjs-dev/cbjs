@@ -660,17 +660,45 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * @internal
    */
   [inspect.custom](): Record<string, any> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _auth, ...rest } = this;
-    return { ...rest, _auth: '***hidden***' };
+    return this._toSafeRepresentation(inspect.custom);
   }
   /**
    * @internal
    */
   toJSON(): Record<string, any> {
+    return this._toSafeRepresentation('toJSON');
+  }
+
+  /**
+   * Builds a serialization-safe snapshot of the cluster: the authenticator is
+   * masked, and the tracer/meter are rendered without recursing into their
+   * internals — which commonly include a timer handle (a circular structure that
+   * breaks `JSON.stringify` and floods `util.inspect`). If the implementation
+   * defines the serializer for the current path — `toJSON` for `JSON.stringify`,
+   * `[inspect.custom]` for `util.inspect` — the instance is kept as-is so the
+   * native machinery invokes it; otherwise it falls back to the class name.
+   *
+   * @internal
+   */
+  private _toSafeRepresentation(
+    serializerKey: 'toJSON' | typeof inspect.custom
+  ): Record<string, any> {
+    const describe = (observer: RequestTracer | Meter | undefined): unknown => {
+      if (observer === undefined || observer === null) return undefined;
+      const definesSerializer =
+        typeof (observer as unknown as Record<PropertyKey, unknown>)[serializerKey] ===
+        'function';
+      return definesSerializer ? observer : observer.constructor?.name;
+    };
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _auth, ...rest } = this;
-    return { ...rest, _auth: '***hidden***' };
+    const { _auth, _tracer, _meter, ...rest } = this;
+    return {
+      ...rest,
+      _auth: '***hidden***',
+      _tracer: describe(_tracer),
+      _meter: describe(_meter),
+    };
   }
 
   /**

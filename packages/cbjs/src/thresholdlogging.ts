@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { inspect } from 'util';
+
 import { HiResTime } from './binding.js';
 import { TracingConfig } from './cluster.js';
 import { ServiceType } from './generaltypes.js';
@@ -693,6 +695,36 @@ export class ThresholdLoggingTracer implements RequestTracer {
    */
   get reporter(): ThresholdLoggingReporter {
     return this._reporter;
+  }
+
+  /**
+   * @internal
+   */
+  [inspect.custom](): Record<string, any> {
+    return this._toConfigSnapshot();
+  }
+
+  /**
+   * @internal
+   */
+  toJSON(): Record<string, any> {
+    return this._toConfigSnapshot();
+  }
+
+  /**
+   * Exposes only the tracer's configuration. The reporter is deliberately
+   * omitted: it holds a periodic-flush timer handle (`setInterval`), a circular
+   * structure that breaks `JSON.stringify` and produces noisy `util.inspect`
+   * output. Custom tracers should do the same — see the observability guide.
+   *
+   * @internal
+   */
+  private _toConfigSnapshot(): Record<string, any> {
+    return {
+      emitInterval: this._emitInterval,
+      sampleSize: this._sampleSize,
+      serviceThresholds: Object.fromEntries(this._serviceThresholds),
+    };
   }
 
   /**

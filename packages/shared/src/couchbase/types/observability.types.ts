@@ -144,6 +144,45 @@ export interface RequestSpan {
  *
  * A RequestTracer is responsible for creating new spans to track operations.
  *
+ * @remarks
+ * Implementations commonly hold non-serializable runtime state — most often a
+ * periodic-flush timer handle from `setInterval`, a circular structure that
+ * throws on `JSON.stringify` and floods `console.log` / `util.inspect`.
+ *
+ * cbjs guards its own boundary: serializing a {@link Cluster} calls the tracer's
+ * `toJSON()` (for `JSON.stringify`) or `[inspect.custom]()` (for `util.inspect`)
+ * when defined, and otherwise falls back to just the class name — it never
+ * recurses into the tracer. To get a useful — and individually safe —
+ * representation of your own tracer, define both to expose only config:
+ *
+ * ```ts
+ * import { inspect } from 'util';
+ *
+ * class MyTracer implements RequestTracer {
+ *   // a real tracer usually flushes on a timer — keep it out of serialization
+ *   #timer = setInterval(() => this.flush(), 10_000).unref();
+ *   constructor(private readonly endpoint: string) {}
+ *
+ *   requestSpan(name: string, parent?: RequestSpan): RequestSpan {
+ *     // ...forward to your backend
+ *   }
+ *   flush() {
+ *     // ...
+ *   }
+ *
+ *   toJSON() {
+ *     return { endpoint: this.endpoint };
+ *   }
+ *   [inspect.custom]() {
+ *     return { endpoint: this.endpoint };
+ *   }
+ * }
+ * ```
+ *
+ * `toJSON` / `[inspect.custom]` are intentionally **not** on this interface — it
+ * stays structurally identical to the official SDK's — so cbjs can't add them
+ * for you.
+ *
  * @category Observability
  */
 export interface RequestTracer {
@@ -184,6 +223,45 @@ export interface ValueRecorder {
  *
  * Implementations should allow creating value recorders with specific names
  * and tags for organizing and categorizing metrics.
+ *
+ * @remarks
+ * Implementations commonly hold non-serializable runtime state — most often a
+ * periodic-flush timer handle from `setInterval`, a circular structure that
+ * throws on `JSON.stringify` and floods `console.log` / `util.inspect`.
+ *
+ * cbjs guards its own boundary: serializing a {@link Cluster} calls the meter's
+ * `toJSON()` (for `JSON.stringify`) or `[inspect.custom]()` (for `util.inspect`)
+ * when defined, and otherwise falls back to just the class name — it never
+ * recurses into the meter. To get a useful — and individually safe —
+ * representation of your own meter, define both to expose only config:
+ *
+ * ```ts
+ * import { inspect } from 'util';
+ *
+ * class MyMeter implements Meter {
+ *   // a real meter usually flushes on a timer — keep it out of serialization
+ *   #timer = setInterval(() => this.flush(), 10_000).unref();
+ *   constructor(private readonly endpoint: string) {}
+ *
+ *   valueRecorder(name: string, tags: Record<string, string>): ValueRecorder {
+ *     // ...return a recorder bound to your backend
+ *   }
+ *   flush() {
+ *     // ...
+ *   }
+ *
+ *   toJSON() {
+ *     return { endpoint: this.endpoint };
+ *   }
+ *   [inspect.custom]() {
+ *     return { endpoint: this.endpoint };
+ *   }
+ * }
+ * ```
+ *
+ * `toJSON` / `[inspect.custom]` are intentionally **not** on this interface — it
+ * stays structurally identical to the official SDK's — so cbjs can't add them
+ * for you.
  *
  * @category Observability
  */

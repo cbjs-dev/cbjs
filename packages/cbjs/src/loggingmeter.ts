@@ -19,6 +19,7 @@
  * @internal
  */
 import * as hdr from 'hdr-histogram-js';
+import { inspect } from 'util';
 
 import { MeterError } from './errors.js';
 import { CouchbaseLogger, createDefaultLogger } from './logger.js';
@@ -289,7 +290,26 @@ export class LoggingMeter implements Meter {
   /**
    * @internal
    */
+  [inspect.custom](): Record<string, any> {
+    return this._toConfigSnapshot();
+  }
+
+  /**
+   * @internal
+   */
   toJSON(): Record<string, any> {
+    return this._toConfigSnapshot();
+  }
+
+  /**
+   * Exposes only the meter's configuration. The reporter is deliberately
+   * omitted: it holds a periodic-flush timer handle (`setInterval`), a circular
+   * structure that breaks `JSON.stringify` and produces noisy `util.inspect`
+   * output. Custom meters should do the same — see the observability guide.
+   *
+   * @internal
+   */
+  private _toConfigSnapshot(): Record<string, any> {
     return { emitInterval: this._emitInterval };
   }
 }
