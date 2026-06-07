@@ -169,7 +169,7 @@ class ObservableRequestHandlerTracerImpl {
   /**
    * @internal
    */
-  reset(opType: OpType, parentSpan?: RequestSpan, withError: boolean = false): void {
+  reset(opType: OpType, parentSpan?: RequestSpan, withError = false): void {
     if (withError) {
       this.endWithError();
     }
@@ -257,9 +257,7 @@ class ObservableRequestHandlerNoOpTracerImpl {
   /**
    * @internal
    */
-  get wrapperSpanName(): string {
-    return '';
-  }
+  readonly wrapperSpanName = '';
 
   /**
    * @internal
@@ -271,12 +269,16 @@ class ObservableRequestHandlerNoOpTracerImpl {
   /**
    * @internal
    */
-  end(): void {}
+  end(): void {
+    // noop
+  }
 
   /**
    * @internal
    */
-  endWithError(_error?: any): void {}
+  endWithError(_error?: any): void {
+    // noop
+  }
 
   /**
    * @internal
@@ -295,17 +297,23 @@ class ObservableRequestHandlerNoOpTracerImpl {
   /**
    * @internal
    */
-  processCoreSpan(_coreSpan?: CppWrapperSdkSpan): void {}
+  processCoreSpan(_coreSpan?: CppWrapperSdkSpan): void {
+    // noop
+  }
 
   /**
    * @internal
    */
-  reset(_opType: OpType, _parentSpan?: RequestSpan, _withError: boolean = false): void {}
+  reset(_opType: OpType, _parentSpan?: RequestSpan, _withError = false): void {
+    // noop
+  }
 
   /**
    * @internal
    */
-  setRequestHttpAttributes(_options?: HttpOpAttributesOptions): void {}
+  setRequestHttpAttributes(_options?: HttpOpAttributesOptions): void {
+    // noop
+  }
 
   /**
    * @internal
@@ -313,7 +321,9 @@ class ObservableRequestHandlerNoOpTracerImpl {
   setRequestKeyValueAttributes(
     _cppDocId: CppDocumentId,
     _durability?: CppDurabilityLevel
-  ): void {}
+  ): void {
+    // noop
+  }
 }
 
 /**
@@ -331,17 +341,23 @@ class ObservableRequestHandlerNoOpMeterImpl {
   setRequestKeyValueAttributes(
     _cppDocId: CppDocumentId,
     _durability?: CppDurabilityLevel
-  ): void {}
+  ): void {
+    // noop
+  }
 
   /**
    * @internal
    */
-  setRequestHttpAttributes(_options?: HttpOpAttributesOptions): void {}
+  setRequestHttpAttributes(_options?: HttpOpAttributesOptions): void {
+    // noop
+  }
 
   /**
    * @internal
    */
-  processEnd(_clusterName?: string, _clusterUUID?: string, _error?: any): void {}
+  processEnd(_clusterName?: string, _clusterUUID?: string, _error?: any): void {
+    // noop
+  }
 
   /**
    * @internal
@@ -351,7 +367,9 @@ class ObservableRequestHandlerNoOpMeterImpl {
     _clusterName?: string,
     _clusterUUID?: string,
     _error?: any
-  ): void {}
+  ): void {
+    // noop
+  }
 }
 
 /**
@@ -409,8 +427,8 @@ class ObservableRequestHandlerMeterImpl {
       (clusterName === undefined || clusterUUID === undefined)
     ) {
       const clusterLabels = this._getClusterLabelsFn();
-      clusterName = clusterName || clusterLabels.clusterName;
-      clusterUUID = clusterUUID || clusterLabels.clusterUUID;
+      clusterName = clusterName ?? clusterLabels.clusterName;
+      clusterUUID = clusterUUID ?? clusterLabels.clusterUUID;
     }
 
     // Build final tags
@@ -467,7 +485,8 @@ class ObservableRequestHandlerMeterImpl {
       return;
     }
 
-    let errorType = error?.name || error?.constructor?.name || '_OTHER';
+    const errObj = error as { name?: string; constructor?: { name?: string } };
+    let errorType: string = errObj.name ?? errObj.constructor?.name ?? '_OTHER';
 
     if (errorType.endsWith('Error')) {
       errorType = errorType.slice(0, -5);
@@ -613,7 +632,7 @@ export class ObservableRequestHandler {
   /**
    * @internal
    */
-  reset(opType: OpType, parentSpan?: RequestSpan, withError: boolean = false): void {
+  reset(opType: OpType, parentSpan?: RequestSpan, withError = false): void {
     this._opType = opType;
     this._tracerImpl.reset(opType, parentSpan, withError);
     this._meterImpl.reset(
@@ -863,7 +882,7 @@ export class WrappedSpan implements RequestSpan {
     parentSpan?: RequestSpan | WrappedSpan
   ): void {
     for (const span of coreSpans) {
-      if (span.name === OpAttributeName.DispatchSpanName) {
+      if (span.name === (OpAttributeName.DispatchSpanName as string)) {
         this._buildDispatchCoreSpan(span, parentSpan);
       } else {
         this._buildNonDispatchCoreSpan(span, parentSpan);
@@ -973,14 +992,16 @@ export class WrappedSpan implements RequestSpan {
   /**
    * @internal
    */
-  setRetryAttribute(retrCount: number = 0): void {
+  setRetryAttribute(retrCount = 0): void {
     this._setAttributeOnAllSpans(OpAttributeName.RetryCount, retrCount, true);
   }
 
   /**
    * @internal
    */
-  addEvent(): void {}
+  addEvent(): void {
+    // noop
+  }
 
   /**
    * @internal
@@ -998,9 +1019,9 @@ export class WrappedSpan implements RequestSpan {
    * @internal
    */
   setAttribute(key: string, value: AttributeValue): void {
-    if (key === OpAttributeName.ClusterName) {
+    if (key === (OpAttributeName.ClusterName as string)) {
       this._clusterName = value as string;
-    } else if (key === OpAttributeName.ClusterUUID) {
+    } else if (key === (OpAttributeName.ClusterUUID as string)) {
       this._clusterUUID = value as string;
     }
     this._requestSpan.setAttribute(key, value);

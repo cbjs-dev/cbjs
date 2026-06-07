@@ -167,27 +167,37 @@ export class NoOpLogger implements Logger {
   /**
    * No-op implementation of trace logging.
    */
-  trace(): void {}
+  trace(...args: unknown[]): void {
+    // noop
+  }
 
   /**
    * No-op implementation of debug logging.
    */
-  debug(): void {}
+  debug(...args: unknown[]): void {
+    // noop
+  }
 
   /**
    * No-op implementation of info logging.
    */
-  info(): void {}
+  info(...args: unknown[]): void {
+    // noop
+  }
 
   /**
    * No-op implementation of warn logging.
    */
-  warn(): void {}
+  warn(...args: unknown[]): void {
+    // noop
+  }
 
   /**
    * No-op implementation of error logging.
    */
-  error(): void {}
+  error(...args: unknown[]): void {
+    // noop
+  }
 }
 
 /**

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, it, vi } from 'vitest';
 
 import {
   CouchbaseLogger,
@@ -26,12 +26,12 @@ import {
 } from './logger.js';
 
 describe('parseLogLevel', () => {
-  it('returns the level when given a valid enum value', () => {
+  it('returns the level when given a valid enum value', ({ expect }) => {
     expect(parseLogLevel(LogLevel.TRACE)).toBe(LogLevel.TRACE);
     expect(parseLogLevel(LogLevel.ERROR)).toBe(LogLevel.ERROR);
   });
 
-  it('parses level names case-insensitively', () => {
+  it('parses level names case-insensitively', ({ expect }) => {
     expect(parseLogLevel('trace')).toBe(LogLevel.TRACE);
     expect(parseLogLevel('DEBUG')).toBe(LogLevel.DEBUG);
     expect(parseLogLevel('Info')).toBe(LogLevel.INFO);
@@ -39,19 +39,21 @@ describe('parseLogLevel', () => {
     expect(parseLogLevel('error')).toBe(LogLevel.ERROR);
   });
 
-  it('returns undefined for unknown names', () => {
+  it('returns undefined for unknown names', ({ expect }) => {
     expect(parseLogLevel('verbose')).toBeUndefined();
     expect(parseLogLevel('')).toBeUndefined();
   });
 
-  it('returns undefined for out-of-range numbers', () => {
+  it('returns undefined for out-of-range numbers', ({ expect }) => {
+    // @ts-expect-error invalid level
     expect(parseLogLevel(-1)).toBeUndefined();
+    // @ts-expect-error invalid level
     expect(parseLogLevel(5)).toBeUndefined();
   });
 });
 
 describe('NoOpLogger', () => {
-  it('implements every level as a no-op', () => {
+  it('implements every level as a no-op', ({ expect }) => {
     const logger = new NoOpLogger();
     expect(logger.trace('a')).toBeUndefined();
     expect(logger.debug('a')).toBeUndefined();
@@ -62,7 +64,7 @@ describe('NoOpLogger', () => {
 });
 
 describe('CouchbaseLogger', () => {
-  it('delegates each level to the wrapped logger with all arguments', () => {
+  it('delegates each level to the wrapped logger with all arguments', ({ expect }) => {
     const inner: Required<Logger> = {
       trace: vi.fn(),
       debug: vi.fn(),
@@ -85,7 +87,9 @@ describe('CouchbaseLogger', () => {
     expect(inner.error).toHaveBeenCalledWith('e', 5);
   });
 
-  it('is safe when the wrapped logger only implements a subset of levels', () => {
+  it('is safe when the wrapped logger only implements a subset of levels', ({
+    expect,
+  }) => {
     const info = vi.fn();
     const logger = new CouchbaseLogger({ info });
 
@@ -95,16 +99,16 @@ describe('CouchbaseLogger', () => {
     expect(info).toHaveBeenCalledWith('hello');
   });
 
-  it('is safe when no logger is provided', () => {
+  it('is safe when no logger is provided', ({ expect }) => {
     const logger = new CouchbaseLogger();
     expect(() => logger.info('noop')).not.toThrow();
   });
 });
 
 describe('createConsoleLogger', () => {
-  it('only enables levels at or above the configured threshold', () => {
-    const debug = vi.spyOn(console, 'debug').mockImplementation(() => {});
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it('only enables levels at or above the configured threshold', ({ expect }) => {
+    const debug = vi.spyOn(console, 'debug').mockImplementation(() => undefined);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     const logger = createConsoleLogger(LogLevel.WARN);
 
@@ -117,8 +121,8 @@ describe('createConsoleLogger', () => {
     expect(warn).toHaveBeenCalledWith('keep me');
   });
 
-  it('prepends the prefix to forwarded messages', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('prepends the prefix to forwarded messages', ({ expect }) => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     const logger = createConsoleLogger(LogLevel.ERROR, '[cbjs]');
     logger.error('boom', { code: 1 });

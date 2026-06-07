@@ -34,7 +34,6 @@ import {
 } from './observabilityutilities.js';
 import { RequestSpan, RequestTracer } from './tracing.js';
 
-/* eslint-disable jsdoc/require-jsdoc */
 /**
  * @internal
  */
@@ -279,7 +278,6 @@ class ThresholdLoggingReporter {
   }
 }
 
-/* eslint-enable jsdoc/require-jsdoc */
 /**
  * @internal
  */
@@ -579,7 +577,9 @@ export class ThresholdLoggingSpan implements RequestSpan {
   /**
    * Adds a timestamped event to the span.
    */
-  addEvent(): void {}
+  addEvent(): void {
+    // noop
+  }
 
   /**
    * Sets the status of the span.
@@ -610,9 +610,9 @@ export class ThresholdLoggingSpan implements RequestSpan {
 
     this._snapshot = new ThresholdLoggingSpanSnapshot(this);
 
-    if (this._name == OpAttributeName.EncodingSpanName) {
+    if (this._name === (OpAttributeName.EncodingSpanName as string)) {
       this.encodeDuration = this._totalDuration;
-    } else if (this._name == OpAttributeName.DispatchSpanName) {
+    } else if (this._name === (OpAttributeName.DispatchSpanName as string)) {
       this.dispatchDuration = this._totalDuration;
     } else if (
       this._parentSpan &&

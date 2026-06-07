@@ -32,29 +32,35 @@ export class NoOpSpan implements RequestSpan {
   /**
    * @internal
    */
-  setAttribute(): void {}
-
-  /**
-   * @internal
-   */
-  addEvent(): void {}
-
-  /**
-   * @internal
-   */
-  setStatus(): void {}
-
-  /**
-   * @internal
-   */
-  end(): void {}
-
-  /**
-   * @internal
-   */
-  get name(): string {
-    return '';
+  setAttribute(): void {
+    // noop
   }
+
+  /**
+   * @internal
+   */
+  addEvent(): void {
+    // noop
+  }
+
+  /**
+   * @internal
+   */
+  setStatus(): void {
+    // noop
+  }
+
+  /**
+   * @internal
+   */
+  end(): void {
+    // noop
+  }
+
+  /**
+   * @internal
+   */
+  readonly name = '';
 }
 
 /**
@@ -102,7 +108,9 @@ export class NoOpValueRecorder implements ValueRecorder {
   /**
    * @internal
    */
-  recordValue(_value: number): void {}
+  recordValue(_value: number): void {
+    // noop
+  }
 }
 
 /**

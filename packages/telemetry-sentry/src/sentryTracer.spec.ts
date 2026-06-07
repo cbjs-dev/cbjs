@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, it } from 'vitest';
 
 import { SpanStatusCode } from '@cbjsdev/shared';
 
@@ -40,7 +40,9 @@ class CapturingSpan implements SentrySpanLike {
     this.startTime = startTime;
   }
 
-  setAttribute(): void {}
+  setAttribute(): void {
+    // noop
+  }
   setStatus(status: { code: number; message?: string }): void {
     this.status = status;
   }
@@ -66,23 +68,23 @@ function capturingSentry(): { sentry: SentryTracingApi; spans: CapturingSpan[] }
 }
 
 describe('timeInputToDate', () => {
-  it('passes a Date through unchanged', () => {
+  it('passes a Date through unchanged', ({ expect }) => {
     const date = new Date('2026-01-01T00:00:00.000Z');
     expect(timeInputToDate(date)).toBe(date);
   });
 
-  it('treats a bare number as Unix milliseconds', () => {
+  it('treats a bare number as Unix milliseconds', ({ expect }) => {
     expect(timeInputToDate(1500)).toEqual(new Date(1500));
   });
 
-  it('converts a HiResTime [seconds, nanoseconds] tuple to a Date', () => {
+  it('converts a HiResTime [seconds, nanoseconds] tuple to a Date', ({ expect }) => {
     // 2s + 500_000_000ns = 2500ms
     expect(timeInputToDate([2, 500_000_000])).toEqual(new Date(2500));
   });
 });
 
 describe('SentryRequestSpan mapping', () => {
-  it('maps the Cbjs span status codes onto Sentry (shared OTel codes)', () => {
+  it('maps the Cbjs span status codes onto Sentry (shared OTel codes)', ({ expect }) => {
     const { sentry, spans } = capturingSentry();
     const tracer = new SentryRequestTracer(sentry);
 
@@ -98,7 +100,7 @@ describe('SentryRequestSpan mapping', () => {
     });
   });
 
-  it('converts Cbjs TimeInput start/end times to Dates for Sentry', () => {
+  it('converts Cbjs TimeInput start/end times to Dates for Sentry', ({ expect }) => {
     const { sentry, spans } = capturingSentry();
     const tracer = new SentryRequestTracer(sentry);
 
@@ -110,18 +112,18 @@ describe('SentryRequestSpan mapping', () => {
     expect(spans[0].endedAt).toEqual(new Date(3000));
   });
 
-  it('forwards events to the Sentry span when supported', () => {
+  it('forwards events to the Sentry span when supported', ({ expect }) => {
     const { sentry, spans } = capturingSentry();
     new SentryRequestTracer(sentry).requestSpan('mutate_in').addEvent('request_encoding');
     expect(spans[0].events).toEqual([{ name: 'request_encoding', timestamp: undefined }]);
   });
 
-  it('does not throw when the Sentry span has no addEvent support', () => {
+  it('does not throw when the Sentry span has no addEvent support', ({ expect }) => {
     const sentry: SentryTracingApi = {
       startInactiveSpan: () => ({
-        setAttribute: () => {},
-        setStatus: () => {},
-        end: () => {},
+        setAttribute: () => undefined,
+        setStatus: () => undefined,
+        end: () => undefined,
       }),
       withActiveSpan: (_span, cb) => cb(),
     };
@@ -130,13 +132,15 @@ describe('SentryRequestSpan mapping', () => {
     ).not.toThrow();
   });
 
-  it('ignores a foreign RequestSpan parent it cannot map to a Sentry span', () => {
+  it('ignores a foreign RequestSpan parent it cannot map to a Sentry span', ({
+    expect,
+  }) => {
     let withActiveSpanCalls = 0;
     const sentry: SentryTracingApi = {
       startInactiveSpan: () => ({
-        setAttribute: () => {},
-        setStatus: () => {},
-        end: () => {},
+        setAttribute: () => undefined,
+        setStatus: () => undefined,
+        end: () => undefined,
       }),
       withActiveSpan: (_span, cb) => {
         withActiveSpanCalls++;
@@ -147,10 +151,10 @@ describe('SentryRequestSpan mapping', () => {
 
     const foreignParent = {
       name: 'foreign',
-      setAttribute: () => {},
-      addEvent: () => {},
-      setStatus: () => {},
-      end: () => {},
+      setAttribute: () => undefined,
+      addEvent: () => undefined,
+      setStatus: () => undefined,
+      end: () => undefined,
     };
     tracer.requestSpan('get', foreignParent);
 

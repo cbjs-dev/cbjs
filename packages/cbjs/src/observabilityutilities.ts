@@ -17,7 +17,6 @@
 
 /*
 eslint
-jsdoc/require-jsdoc: off,
 @typescript-eslint/no-empty-interface: off
 */
 import { AnalyticsQueryOptions } from './analyticstypes.js';

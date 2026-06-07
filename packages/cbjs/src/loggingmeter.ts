@@ -176,8 +176,7 @@ class LoggingMeterReporter {
  * @internal
  */
 export class LoggingMeter implements Meter {
-  private readonly _recorders: Map<ServiceName, Map<string, LoggingValueRecorder>> =
-    new Map();
+  private readonly _recorders = new Map<ServiceName, Map<string, LoggingValueRecorder>>();
   private readonly _reporter: LoggingMeterReporter;
   private readonly _emitInterval: number;
 

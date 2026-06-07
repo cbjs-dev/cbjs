@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, it } from 'vitest';
 
 import { MeterError } from './errors.js';
 import { CouchbaseLogger, NoOpLogger } from './logger.js';
@@ -30,7 +30,9 @@ function kvTags(operation: string): Record<string, string> {
 }
 
 describe('LoggingMeter', () => {
-  it('aggregates recorded values into a report keyed by service and operation', () => {
+  it('aggregates recorded values into a report keyed by service and operation', ({
+    expect,
+  }) => {
     const meter = new LoggingMeter(new CouchbaseLogger(new NoOpLogger()), 60_000);
 
     try {
@@ -49,7 +51,7 @@ describe('LoggingMeter', () => {
     }
   });
 
-  it('returns the same recorder for the same service/operation pair', () => {
+  it('returns the same recorder for the same service/operation pair', ({ expect }) => {
     const meter = new LoggingMeter(new CouchbaseLogger(new NoOpLogger()), 60_000);
 
     try {
@@ -67,7 +69,7 @@ describe('LoggingMeter', () => {
     }
   });
 
-  it('returns null when nothing has been recorded', () => {
+  it('returns null when nothing has been recorded', ({ expect }) => {
     const meter = new LoggingMeter(new CouchbaseLogger(new NoOpLogger()), 60_000);
     try {
       expect(meter.createReport()).toBeNull();
@@ -76,7 +78,7 @@ describe('LoggingMeter', () => {
     }
   });
 
-  it('throws a MeterError for an unknown service tag', () => {
+  it('throws a MeterError for an unknown service tag', ({ expect }) => {
     const meter = new LoggingMeter(new CouchbaseLogger(new NoOpLogger()), 60_000);
     try {
       expect(() =>
@@ -90,7 +92,7 @@ describe('LoggingMeter', () => {
     }
   });
 
-  it('cleanup() stops the reporter without throwing', () => {
+  it('cleanup() stops the reporter without throwing', ({ expect }) => {
     const meter = new LoggingMeter(new CouchbaseLogger(new NoOpLogger()));
     expect(() => meter.cleanup()).not.toThrow();
   });

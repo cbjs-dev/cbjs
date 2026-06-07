@@ -56,7 +56,6 @@ export type HttpOpType =
   | UserMgmtOp
   | ViewIndexMgmtOp;
 
-/* eslint-disable jsdoc/require-jsdoc */
 /**
  * @internal
  */
@@ -362,8 +361,6 @@ export function serviceNameFromOpType(opType: OpType): ServiceName {
   }
   throw new Error(`Unknown OpType: ${opType}`);
 }
-
-/* eslint-enable jsdoc/require-jsdoc */
 
 /**
  * @internal

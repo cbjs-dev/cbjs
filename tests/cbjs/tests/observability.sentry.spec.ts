@@ -46,7 +46,9 @@ class RecordingSpan implements SentrySpanLike {
   setStatus(status: { code: number; message?: string }): void {
     this.status = status;
   }
-  addEvent(): void {}
+  addEvent(): void {
+    // noop
+  }
   end(): void {
     this.ended = true;
   }

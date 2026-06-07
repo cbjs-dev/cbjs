@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, it } from 'vitest';
 
 import {
   type Authenticator,
@@ -24,12 +24,12 @@ import {
 } from './authenticators.js';
 
 describe('JwtAuthenticator', () => {
-  it('stores the token it was constructed with', () => {
+  it('stores the token it was constructed with', ({ expect }) => {
     const auth = new JwtAuthenticator('header.payload.signature');
     expect(auth.token).toBe('header.payload.signature');
   });
 
-  it('is a valid member of the Authenticator union', () => {
+  it('is a valid member of the Authenticator union', ({ expect }) => {
     const authenticators: Authenticator[] = [
       new PasswordAuthenticator('user', 'pass'),
       new CertificateAuthenticator('/cert.pem', '/key.pem'),
@@ -40,7 +40,9 @@ describe('JwtAuthenticator', () => {
 });
 
 describe('PasswordAuthenticator.ldapCompatible', () => {
-  it('pins the PLAIN sasl mechanism (preserved through the mTLS credential refactor)', () => {
+  it('pins the PLAIN sasl mechanism (preserved through the mTLS credential refactor)', ({
+    expect,
+  }) => {
     const auth = PasswordAuthenticator.ldapCompatible('user', 'pass');
     expect(auth.username).toBe('user');
     expect(auth.password).toBe('pass');

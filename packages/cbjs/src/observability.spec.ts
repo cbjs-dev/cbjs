@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, it, vi } from 'vitest';
 
 import type { CppDocumentId } from './binding.js';
 import type { Meter, ValueRecorder } from './metrics.js';
@@ -97,7 +97,7 @@ const docId: CppDocumentId = {
 };
 
 describe('ObservableRequestHandler', () => {
-  it('sets the standard KV attributes on the operation span', () => {
+  it('sets the standard KV attributes on the operation span', ({ expect }) => {
     const { tracer, instruments } = makeInstruments();
 
     const handler = new ObservableRequestHandler(KeyValueOp.Get, instruments);
@@ -113,7 +113,7 @@ describe('ObservableRequestHandler', () => {
     expect(span.attributes[OpAttributeName.CollectionName]).toBe('airline');
   });
 
-  it('ends the span and records a latency measurement on success', () => {
+  it('ends the span and records a latency measurement on success', ({ expect }) => {
     const { tracer, meter, instruments } = makeInstruments();
 
     const handler = new ObservableRequestHandler(KeyValueOp.Upsert, instruments);
@@ -126,7 +126,7 @@ describe('ObservableRequestHandler', () => {
     expect(recorded[0]).toBeGreaterThanOrEqual(0);
   });
 
-  it('marks the span as errored with the error message', () => {
+  it('marks the span as errored with the error message', ({ expect }) => {
     const { tracer, instruments } = makeInstruments();
 
     const handler = new ObservableRequestHandler(KeyValueOp.Remove, instruments);
@@ -138,7 +138,9 @@ describe('ObservableRequestHandler', () => {
     expect(span.ended).toBe(true);
   });
 
-  it('ends the span exactly once (end() then endWithError() is a no-op)', () => {
+  it('ends the span exactly once (end() then endWithError() is a no-op)', ({
+    expect,
+  }) => {
     const { tracer, instruments } = makeInstruments();
 
     const handler = new ObservableRequestHandler(KeyValueOp.Get, instruments);
@@ -151,7 +153,7 @@ describe('ObservableRequestHandler', () => {
     expect(span.status?.code).not.toBe(SpanStatusCode.ERROR);
   });
 
-  it('nests the operation span under the provided parent span', () => {
+  it('nests the operation span under the provided parent span', ({ expect }) => {
     const { tracer, instruments } = makeInstruments();
     const parent = new RecordingSpan('parent');
 
@@ -162,7 +164,9 @@ describe('ObservableRequestHandler', () => {
 });
 
 describe('wrapObservableBindingCall', () => {
-  it('stamps the wrapper span name on the request and returns the response', async () => {
+  it('stamps the wrapper span name on the request and returns the response', async ({
+    expect,
+  }) => {
     const { instruments } = makeInstruments();
     const handler = new ObservableRequestHandler(KeyValueOp.Get, instruments);
 
@@ -177,6 +181,8 @@ describe('wrapObservableBindingCall', () => {
     expect(err).toBeNull();
     expect(resp).toBe(response);
     expect(fn).toHaveBeenCalledOnce();
-    expect(request.wrapper_span_name).toBe(handler.wrapperSpanName);
+    expect((request as { wrapper_span_name?: unknown }).wrapper_span_name).toBe(
+      handler.wrapperSpanName
+    );
   });
 });

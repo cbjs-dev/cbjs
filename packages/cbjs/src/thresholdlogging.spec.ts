@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, it, vi } from 'vitest';
 
 import { CouchbaseLogger, NoOpLogger } from './logger.js';
 import { OpAttributeName, ServiceName } from './observabilitytypes.js';
@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe('ThresholdLoggingTracer', () => {
-  it('returns a usable RequestSpan from requestSpan()', () => {
+  it('returns a usable RequestSpan from requestSpan()', ({ expect }) => {
     const tracer = new ThresholdLoggingTracer(
       new CouchbaseLogger(new NoOpLogger()),
       null
@@ -43,7 +43,7 @@ describe('ThresholdLoggingTracer', () => {
     }
   });
 
-  it('emits a threshold report through the logger for a slow operation', () => {
+  it('emits a threshold report through the logger for a slow operation', ({ expect }) => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     const logged: string[] = [];
     const logger = new CouchbaseLogger({
@@ -71,7 +71,7 @@ describe('ThresholdLoggingTracer', () => {
     tracer.cleanup();
   });
 
-  it('treats a threshold of 0 as "trace everything" (not disabled)', () => {
+  it('treats a threshold of 0 as "trace everything" (not disabled)', ({ expect }) => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     const logged: string[] = [];
     const logger = new CouchbaseLogger({
@@ -98,7 +98,7 @@ describe('ThresholdLoggingTracer', () => {
     tracer.cleanup();
   });
 
-  it('does not report fast operations below the threshold', () => {
+  it('does not report fast operations below the threshold', ({ expect }) => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     const logged: string[] = [];
     const logger = new CouchbaseLogger({
