@@ -17,7 +17,7 @@
 import { HiResTime } from './binding.js';
 import { TracingConfig } from './cluster.js';
 import { ServiceType } from './generaltypes.js';
-import { CouchbaseLogger } from './logger.js';
+import { CouchbaseLogger, createDefaultLogger } from './logger.js';
 import {
   AttributeValue,
   DispatchAttributeName,
@@ -653,27 +653,31 @@ export class ThresholdLoggingTracer implements RequestTracer {
   /**
    * Creates a new threshold logging tracer.
    *
-   * @param logger - The logger to be used by the ThresholdLoggingReporter.
-   * @param config - Tracing configuration with thresholds and reporting settings.
-   *                 If null, default values are used for all settings.
+   * @param logger - The logger used by the reporter; falls back to
+   *                 {@link createDefaultLogger} when omitted.
+   * @param config - Tracing configuration; see {@link TracingConfig} for the
+   *                 per-field defaults applied when a value is omitted.
    */
-  constructor(logger: CouchbaseLogger, config: TracingConfig | null) {
-    this._emitInterval = config?.emitInterval ?? 10000;
+  constructor(
+    logger: CouchbaseLogger = createDefaultLogger(),
+    config?: TracingConfig | null
+  ) {
+    this._emitInterval = config?.emitInterval ?? 10_000;
     this._sampleSize = config?.sampleSize ?? 10;
     this._serviceThresholds = new Map<ServiceType, number>();
     this._serviceThresholds.set(ServiceType.KeyValue, config?.kvThreshold ?? 500);
-    this._serviceThresholds.set(ServiceType.Query, config?.queryThreshold ?? 1000);
-    this._serviceThresholds.set(ServiceType.Search, config?.searchThreshold ?? 1000);
+    this._serviceThresholds.set(ServiceType.Query, config?.queryThreshold ?? 1_000);
+    this._serviceThresholds.set(ServiceType.Search, config?.searchThreshold ?? 1_000);
     this._serviceThresholds.set(
       ServiceType.Analytics,
-      config?.analyticsThreshold ?? 1000
+      config?.analyticsThreshold ?? 1_000
     );
-    this._serviceThresholds.set(ServiceType.Views, config?.viewsThreshold ?? 1000);
+    this._serviceThresholds.set(ServiceType.Views, config?.viewsThreshold ?? 1_000);
     this._serviceThresholds.set(
       ServiceType.Management,
-      config?.managementThreshold ?? 1000
+      config?.managementThreshold ?? 1_000
     );
-    this._serviceThresholds.set(ServiceType.Eventing, config?.eventingThreshold ?? 1000);
+    this._serviceThresholds.set(ServiceType.Eventing, config?.eventingThreshold ?? 1_000);
     this._reporter = new ThresholdLoggingReporter(
       logger,
       this._emitInterval,
@@ -846,7 +850,7 @@ export class ThresholdLoggingTracer implements RequestTracer {
    * Gets the configured threshold for a specific service type.
    *
    * @param serviceType - The Couchbase service type.
-   * @returns The threshold in microseconds (millisecond config value * 1000).
+   * @returns The threshold in microseconds (millisecond config value * 1_000).
    *
    * @internal
    */
@@ -858,6 +862,6 @@ export class ThresholdLoggingTracer implements RequestTracer {
       return undefined;
     }
     // convert to micros
-    return baseThreshold * 1000;
+    return baseThreshold * 1_000;
   }
 }

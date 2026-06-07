@@ -17,3 +17,6 @@
 
 // The public metrics contract lives in @cbjsdev/shared (see ./tracing.ts).
 export type { Meter, ValueRecorder } from '@cbjsdev/shared';
+// MeterGroup is a pure composition over the contract, so it also lives in
+// shared and works with the official SDK too.
+export { MeterGroup, type MeterGroupEntry } from '@cbjsdev/shared';

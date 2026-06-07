@@ -331,3 +331,24 @@ export function createConsoleLogger(
 
   return new CouchbaseLogger(consoleImpl);
 }
+
+/**
+ * Creates the logger a {@link Cluster} uses when none is supplied: a console
+ * logger honouring the `CNLOGLEVEL` environment variable, falling back to a
+ * no-op logger when it is unset or invalid.
+ *
+ * The built-in default tracer / meter use this too, so constructing one
+ * standalone (e.g. to drop into a `TracerGroup`) behaves like the cluster
+ * default.
+ *
+ * @returns {CouchbaseLogger} The default CouchbaseLogger for the environment.
+ *
+ * @category Logging
+ */
+export function createDefaultLogger(): CouchbaseLogger {
+  const envLogLevel = process.env.CNLOGLEVEL;
+  const level = envLogLevel ? parseLogLevel(envLogLevel) : undefined;
+  return level !== undefined
+    ? createConsoleLogger(level)
+    : new CouchbaseLogger(new NoOpLogger());
+}

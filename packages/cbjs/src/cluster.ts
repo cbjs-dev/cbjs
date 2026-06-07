@@ -46,15 +46,9 @@ import {
 } from './diagnosticstypes.js';
 import { AuthenticationFailureError, CouchbaseError } from './errors.js';
 import { EventingFunctionManager } from './eventingfunctionmanager.js';
-import {
-  CouchbaseLogger,
-  createConsoleLogger,
-  Logger,
-  NoOpLogger,
-  parseLogLevel,
-} from './logger.js';
+import { CouchbaseLogger, createDefaultLogger, Logger } from './logger.js';
 import { LoggingMeter } from './loggingmeter.js';
-import { Meter } from './metrics.js';
+import { Meter, MeterGroup } from './metrics.js';
 import { NoOpMeter, NoOpTracer } from './observability.js';
 import { ObservabilityInstruments } from './observabilitytypes.js';
 import { QueryExecutor } from './queryexecutor.js';
@@ -72,7 +66,7 @@ import {
 } from './searchtypes.js';
 import { StreamableRowPromise } from './streamablepromises.js';
 import { ThresholdLoggingTracer } from './thresholdlogging.js';
-import { RequestTracer } from './tracing.js';
+import { RequestTracer, TracerGroup } from './tracing.js';
 import { Transactions, TransactionsConfig } from './transactions.js';
 import { DefaultTranscoder, Transcoder } from './transcoders.js';
 import { UserManager } from './usermanager.js';
@@ -242,61 +236,80 @@ export type Hooks<T extends CouchbaseClusterTypes> = {
 export interface TracingConfig {
   /**
    * Specifies to enable or disable threshold logging.
-   * Defaults to true (enabled) if not specified.
+   *
+   * @default true
    */
   enableTracing?: boolean;
 
   /**
-   * Specifies the interval after which the aggregated trace information is logged, specified in millseconds.
-   * Defaults to 10000 (10 seconds) if not specified.
+   * Specifies the interval after which the aggregated trace information is
+   * logged, specified in milliseconds (10 seconds).
+   *
+   * @default 10_000
    */
   emitInterval?: number;
 
   /**
-   * Specifies how many entries to sample per service in each emit interval.
-   * Defaults to 64 if not specified.
+   * Specifies how many entries to sample per service in each emit interval
+   * (the slowest requests are kept).
+   *
+   * @default 10
    */
   sampleSize?: number;
 
   /**
-   * Threshold over which the request is taken into account for the KV service, specified in millseconds.
-   * Defaults to 500ms if not specified.
+   * Threshold over which the request is taken into account for the KV service,
+   * specified in milliseconds.
+   *
+   * @default 500
    */
   kvThreshold?: number;
 
   /**
-   * Threshold over which the request is taken into account for the query service, specified in millseconds.
-   * Defaults to 1000ms if not specified.
+   * Threshold over which the request is taken into account for the query
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
    */
   queryThreshold?: number;
 
   /**
-   * Threshold over which the request is taken into account for the search service, specified in millseconds.
-   * Defaults to 1000ms if not specified.
+   * Threshold over which the request is taken into account for the search
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
    */
   searchThreshold?: number;
 
   /**
-   * Threshold over which the request is taken into account for the analytics service, specified in millseconds.
-   * Defaults to 1000ms if not specified.
+   * Threshold over which the request is taken into account for the analytics
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
    */
   analyticsThreshold?: number;
 
   /**
-   * Threshold over which the request is taken into account for management operations, specified in millseconds.
-   * Defaults to 1000ms if not specified.
+   * Threshold over which the request is taken into account for management
+   * operations, specified in milliseconds.
+   *
+   * @default 1_000
    */
   managementThreshold?: number;
 
   /**
-   * Threshold over which the request is taken into account for eventing service, specified in millseconds.
-   * Defaults to 1000ms if not specified.
+   * Threshold over which the request is taken into account for eventing
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
    */
   eventingThreshold?: number;
 
   /**
-   * Threshold over which the request is taken into account for the views service, specified in millseconds.
-   * Defaults to 1000ms if not specified.
+   * Threshold over which the request is taken into account for the views
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
    */
   viewsThreshold?: number;
 
@@ -306,7 +319,9 @@ export interface TracingConfig {
    * spans.
    *
    * These values are frequently sensitive (PII) and may be exported to whichever
-   * tracing backend is configured, so capture is opt-in. Defaults to `false`.
+   * tracing backend is configured, so capture is opt-in.
+   *
+   * @default false
    */
   recordRequestArguments?: boolean;
 }
@@ -321,19 +336,24 @@ export interface TracingConfig {
 export interface OrphanReporterConfig {
   /**
    * Specifies to enable or disable orphaned response logging.
-   * Defaults to true (enabled) if not specified.
+   *
+   * @default true
    */
   enableOrphanReporting?: boolean;
 
   /**
-   * Specifies the interval after which the aggregated orphaned response information is logged, specified in millseconds.
-   * Defaults to 10000 (10 seconds) if not specified.
+   * Specifies the interval after which the aggregated orphaned response
+   * information is logged, specified in milliseconds (10 seconds).
+   *
+   * @default 10_000
    */
   emitInterval?: number;
 
   /**
-   * Specifies how many orphaned response entries to sample per service in each emit interval.
-   * Defaults to 64 if not specified.
+   * Specifies how many orphaned response entries to sample per service in each
+   * emit interval.
+   *
+   * @default 64
    */
   sampleSize?: number;
 }
@@ -348,13 +368,16 @@ export interface OrphanReporterConfig {
 export interface MetricsConfig {
   /**
    * Specifies to enable or disable metrics logging.
-   * Defaults to true (enabled) if not specified.
+   *
+   * @default true
    */
   enableMetrics?: boolean;
 
   /**
-   * Specifies the interval after which metrics information is logged, specified in millseconds.
-   * Defaults to 10 minutes if not specified.
+   * Specifies the interval after which metrics information is logged, specified
+   * in milliseconds (10 minutes).
+   *
+   * @default 600_000
    */
   emitInterval?: number;
 }
@@ -787,12 +810,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     }
 
     if (!options.logger) {
-      const envLogLevel = process.env.CNLOGLEVEL;
-      const level = envLogLevel ? parseLogLevel(envLogLevel) : undefined;
-      this._logger =
-        level !== undefined
-          ? createConsoleLogger(level)
-          : new CouchbaseLogger(new NoOpLogger());
+      this._logger = createDefaultLogger();
     } else {
       this._logger =
         options.logger instanceof CouchbaseLogger
@@ -1186,11 +1204,14 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       this._transactions = undefined;
     }
 
-    if (this._tracer instanceof ThresholdLoggingTracer) {
+    if (
+      this._tracer instanceof ThresholdLoggingTracer ||
+      this._tracer instanceof TracerGroup
+    ) {
       this._tracer.cleanup();
     }
 
-    if (this._meter instanceof LoggingMeter) {
+    if (this._meter instanceof LoggingMeter || this._meter instanceof MeterGroup) {
       this._meter.cleanup();
     }
 

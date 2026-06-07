@@ -18,3 +18,6 @@
 // The public tracing contract lives in @cbjsdev/shared so that lightweight,
 // SDK-agnostic tracer adapters can depend on it without pulling in cbjs.
 export type { RequestSpan, RequestTracer } from '@cbjsdev/shared';
+// TracerGroup is a pure composition over the contract, so it also lives in
+// shared and works with the official SDK too.
+export { TracerGroup, type TracerGroupEntry } from '@cbjsdev/shared';

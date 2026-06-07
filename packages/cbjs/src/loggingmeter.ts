@@ -21,7 +21,7 @@
 import * as hdr from 'hdr-histogram-js';
 
 import { MeterError } from './errors.js';
-import { CouchbaseLogger } from './logger.js';
+import { CouchbaseLogger, createDefaultLogger } from './logger.js';
 import { Meter, ValueRecorder } from './metrics.js';
 import { OpAttributeName, ServiceName } from './observabilitytypes.js';
 
@@ -173,7 +173,10 @@ class LoggingMeterReporter {
  * A logging-based meter implementation that records metrics using HDR histograms
  * and periodically reports percentile statistics.
  *
- * @internal
+ * This is the meter a {@link Cluster} uses by default. It is exported so it can
+ * be combined with other meters in a {@link MeterGroup}.
+ *
+ * @category Observability
  */
 export class LoggingMeter implements Meter {
   private readonly _recorders = new Map<ServiceName, Map<string, LoggingValueRecorder>>();
@@ -183,10 +186,12 @@ export class LoggingMeter implements Meter {
   /**
    * Creates a new LoggingMeter with the specified flush interval.
    *
-   * @param logger - The logger to be used by the LoggingMeter.
-   * @param emitInterval - The interval in milliseconds between reports (default: 600000ms = 10 minutes).
+   * @param logger - The logger to be used by the LoggingMeter; falls back to
+   *                 {@link createDefaultLogger} when omitted.
+   * @param emitInterval - The interval in milliseconds between reports.
+   *                       Defaults to 600_000 (10 minutes) when omitted.
    */
-  constructor(logger: CouchbaseLogger, emitInterval?: number) {
+  constructor(logger: CouchbaseLogger = createDefaultLogger(), emitInterval?: number) {
     this._emitInterval = emitInterval ?? 600_000; // Default to 10 minutes
 
     // Initialize recorders map for each service type
