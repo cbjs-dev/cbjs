@@ -164,7 +164,7 @@ describe('ThresholdLoggingTracer', () => {
 
     // The kept records are the two slowest (>2.5s), listed slowest-first.
     const durations = kv.top_requests.map((record) => record.total_duration_us as number);
-    expect(durations[0]).toBeGreaterThan(durations[1]!);
+    expect(durations[0]).toBeGreaterThan(durations[1]);
     expect(durations[0]).toBeGreaterThan(2_500_000);
     expect(durations[1]).toBeGreaterThan(2_500_000);
 
