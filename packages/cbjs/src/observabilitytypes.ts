@@ -266,11 +266,13 @@ export enum OpAttributeName {
   ClusterUUID = 'couchbase.cluster.uuid',
   CollectionName = 'couchbase.collection.name',
   DispatchSpanName = 'dispatch_to_server',
+  DocumentId = 'couchbase.document.id',
   DurabilityLevel = 'couchbase.durability',
   EncodingSpanName = 'request_encoding',
   ErrorType = 'error.type',
   MeterNameOpDuration = 'db.client.operation.duration',
   OperationName = 'db.operation.name',
+  QueryParameterPrefix = 'db.query.parameter.',
   QueryStatement = 'db.query.text',
   ReservedUnit = '__unit',
   ReservedUnitSeconds = 's',
@@ -371,15 +373,18 @@ export class ObservabilityInstruments {
   private readonly _getClusterLabelsFn:
     | (() => Record<string, string | undefined>)
     | undefined;
+  private readonly _recordRequestArguments: boolean;
 
   constructor(
     tracer: RequestTracer,
     meter: any,
-    getClusterLabelsFn?: () => Record<string, string | undefined>
+    getClusterLabelsFn?: () => Record<string, string | undefined>,
+    recordRequestArguments = false
   ) {
     this._tracer = tracer;
     this._meter = meter;
     this._getClusterLabelsFn = getClusterLabelsFn;
+    this._recordRequestArguments = recordRequestArguments;
   }
 
   /**
@@ -401,5 +406,12 @@ export class ObservabilityInstruments {
    */
   get clusterLabelsFn(): (() => Record<string, string | undefined>) | undefined {
     return this._getClusterLabelsFn;
+  }
+
+  /**
+   * @internal
+   */
+  get recordRequestArguments(): boolean {
+    return this._recordRequestArguments;
   }
 }

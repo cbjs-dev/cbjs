@@ -160,7 +160,8 @@ export function timeInputToHiResTime(input?: TimeInput): HiResTime {
 export function getAttributesForKeyValueOpType(
   opType: KeyValueOp,
   cppDocId: CppDocumentId,
-  durability?: CppDurabilityLevel
+  durability?: CppDurabilityLevel,
+  recordRequestArguments = false
 ): {
   [key: string]: AttributeValue;
 } {
@@ -180,6 +181,9 @@ export function getAttributesForKeyValueOpType(
     } else if (durability === binding.durability_level.persist_to_majority) {
       attributes[OpAttributeName.DurabilityLevel] = 'persist_to_majority';
     }
+  }
+  if (recordRequestArguments && cppDocId.key) {
+    attributes[OpAttributeName.DocumentId] = cppDocId.key;
   }
   return attributes;
 }
@@ -201,7 +205,8 @@ export interface HttpOpAttributesOptions {
  */
 export function getAttributesForHttpOpType(
   opType: HttpOpType,
-  options?: HttpOpAttributesOptions
+  options?: HttpOpAttributesOptions,
+  recordRequestArguments = false
 ): {
   [key: string]: AttributeValue;
 } {
@@ -211,8 +216,29 @@ export function getAttributesForHttpOpType(
     [OpAttributeName.OperationName]: opType,
   };
 
-  if (options?.queryOptions?.parameters && options.statement) {
+  // DIVERGENCE from couchnode 4.7.0: upstream only records the statement when the
+  // query is parameterized (`queryOptions?.parameters && statement`), which drops
+  // db.query.text for the most common case — an unparameterized query — even though
+  // it is the single most useful query-span attribute. cbjs records the statement
+  // whenever one is present (it is always available; see queryexecutor.ts).
+  if (options?.statement) {
     attributes[OpAttributeName.QueryStatement] = options.statement;
+  }
+
+  if (recordRequestArguments && options?.queryOptions?.parameters) {
+    const params = options.queryOptions.parameters;
+    if (Array.isArray(params)) {
+      params.forEach((v, i) => {
+        attributes[`${OpAttributeName.QueryParameterPrefix}${i}`] = JSON.stringify(
+          v ?? null
+        );
+      });
+    } else {
+      for (const [k, v] of Object.entries(params)) {
+        if (v === undefined) continue;
+        attributes[`${OpAttributeName.QueryParameterPrefix}${k}`] = JSON.stringify(v);
+      }
+    }
   }
 
   if (options?.bucketName) {

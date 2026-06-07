@@ -299,6 +299,16 @@ export interface TracingConfig {
    * Defaults to 1000ms if not specified.
    */
   viewsThreshold?: number;
+
+  /**
+   * When enabled, records the document key (`couchbase.document.id`) on KV spans
+   * and the query parameter values (`db.query.parameter.<key>`) on query/analytics
+   * spans.
+   *
+   * These values are frequently sensitive (PII) and may be exported to whichever
+   * tracing backend is configured, so capture is opt-in. Defaults to `false`.
+   */
+  recordRequestArguments?: boolean;
 }
 
 /**
@@ -743,6 +753,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         managementThreshold: options.tracingConfig.managementThreshold,
         eventingThreshold: options.tracingConfig.eventingThreshold,
         viewsThreshold: options.tracingConfig.viewsThreshold,
+        recordRequestArguments: options.tracingConfig.recordRequestArguments,
       };
     } else {
       this._tracingConfig = null;
@@ -1314,7 +1325,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._observabilityInstruments = new ObservabilityInstruments(
       this._tracer,
       this._meter,
-      () => this._getClusterLabels()
+      () => this._getClusterLabels(),
+      this._tracingConfig?.recordRequestArguments ?? false
     );
 
     return [enableTracing, enableMetrics];

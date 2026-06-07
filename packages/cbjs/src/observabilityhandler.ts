@@ -59,6 +59,7 @@ class ObservableRequestHandlerTracerImpl {
   private readonly _getClusterLabelsFn:
     | (() => Record<string, string | undefined>)
     | undefined;
+  private readonly _recordRequestArguments: boolean;
   private _opType: OpType;
   private _serviceName: ServiceName;
   private _startTime: HiResTime;
@@ -75,6 +76,7 @@ class ObservableRequestHandlerTracerImpl {
     this._serviceName = serviceNameFromOpType(opType);
     this._tracer = observabilityInstruments.tracer;
     this._getClusterLabelsFn = observabilityInstruments.clusterLabelsFn;
+    this._recordRequestArguments = observabilityInstruments.recordRequestArguments;
     this._wrappedSpan = new WrappedSpan(
       this._serviceName,
       this._opType,
@@ -201,7 +203,11 @@ class ObservableRequestHandlerTracerImpl {
    * @internal
    */
   setRequestHttpAttributes(options?: HttpOpAttributesOptions): void {
-    const opAttrs = getAttributesForHttpOpType(this._opType as HttpOpType, options);
+    const opAttrs = getAttributesForHttpOpType(
+      this._opType as HttpOpType,
+      options,
+      this._recordRequestArguments
+    );
     for (const [k, v] of Object.entries(opAttrs)) {
       this._wrappedSpan.setAttribute(k, v);
     }
@@ -217,7 +223,8 @@ class ObservableRequestHandlerTracerImpl {
     const opAttrs = getAttributesForKeyValueOpType(
       this._opType as KeyValueOp,
       cppDocId,
-      durability
+      durability,
+      this._recordRequestArguments
     );
     for (const [k, v] of Object.entries(opAttrs)) {
       this._wrappedSpan.setAttribute(k, v);
