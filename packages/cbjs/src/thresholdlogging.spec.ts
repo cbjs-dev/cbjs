@@ -16,6 +16,7 @@
  */
 import { afterEach, describe, it, vi } from 'vitest';
 
+import { ServiceType } from './generaltypes.js';
 import { CouchbaseLogger, NoOpLogger } from './logger.js';
 import { OpAttributeName, ServiceName } from './observabilitytypes.js';
 import { ThresholdLoggingTracer } from './thresholdlogging.js';
@@ -119,6 +120,87 @@ describe('ThresholdLoggingTracer', () => {
 
     vi.advanceTimersByTime(1000);
     expect(logged).toHaveLength(0);
+
+    tracer.cleanup();
+  });
+
+  it('keeps only the slowest sampleSize operations but still counts the rest', ({
+    expect,
+  }) => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    const logged: string[] = [];
+    const logger = new CouchbaseLogger({
+      info: (message: string) => {
+        logged.push(message);
+      },
+    });
+
+    // Every op is over the 1ms threshold, but only the 2 slowest may be kept.
+    const tracer = new ThresholdLoggingTracer(logger, {
+      kvThreshold: 1,
+      emitInterval: 1000,
+      sampleSize: 2,
+    });
+
+    // Four KV ops of 1s/2s/3s/4s. The 3s and 4s ones are the worst offenders.
+    for (const durationMs of [1000, 2000, 3000, 4000]) {
+      const span = tracer.requestSpan('get');
+      span.setAttribute(OpAttributeName.Service, ServiceName.KeyValue);
+      span.end(new Date(Date.now() + durationMs));
+    }
+
+    vi.advanceTimersByTime(1000);
+
+    const report = JSON.parse(logged[0]) as Record<
+      string,
+      { total_count: number; top_requests: Array<Record<string, number | string>> }
+    >;
+    const kv = report[ServiceType.KeyValue];
+    expect(kv).toBeDefined();
+    // total_count reflects all four ops even though only two were retained, so
+    // an operator can tell sampling dropped data rather than under-counting.
+    expect(kv.total_count).toBe(4);
+    expect(kv.top_requests).toHaveLength(2);
+
+    // The kept records are the two slowest (>2.5s), listed slowest-first.
+    const durations = kv.top_requests.map((record) => record.total_duration_us as number);
+    expect(durations[0]).toBeGreaterThan(durations[1]!);
+    expect(durations[0]).toBeGreaterThan(2_500_000);
+    expect(durations[1]).toBeGreaterThan(2_500_000);
+
+    tracer.cleanup();
+  });
+
+  it('applies thresholds per service: a slow KV op is reported while a fast query op is not', ({
+    expect,
+  }) => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    const logged: string[] = [];
+    const logger = new CouchbaseLogger({
+      info: (message: string) => {
+        logged.push(message);
+      },
+    });
+
+    // KV trips a 1ms threshold; query keeps its 1s default and stays well under.
+    const tracer = new ThresholdLoggingTracer(logger, {
+      kvThreshold: 1,
+      emitInterval: 1000,
+    });
+
+    const slowKv = tracer.requestSpan('get');
+    slowKv.setAttribute(OpAttributeName.Service, ServiceName.KeyValue);
+    slowKv.end(new Date(Date.now() + 2000));
+
+    const fastQuery = tracer.requestSpan('query');
+    fastQuery.setAttribute(OpAttributeName.Service, ServiceName.Query);
+    fastQuery.end();
+
+    vi.advanceTimersByTime(1000);
+
+    const report = JSON.parse(logged[0]) as Record<string, unknown>;
+    expect(report[ServiceType.KeyValue]).toBeDefined();
+    expect(report[ServiceType.Query]).toBeUndefined();
 
     tracer.cleanup();
   });
