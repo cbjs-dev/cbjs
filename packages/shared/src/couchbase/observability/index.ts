@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +15,5 @@
  * limitations under the License.
  */
 
-export * from './CouchbaseCas.js';
-export * from './utils/index.js';
-export * from './types/index.js';
-export * from './observability/index.js';
-export * from './clusterTypes/index.js';
+export * from './MeterGroup.js';
+export * from './TracerGroup.js';
