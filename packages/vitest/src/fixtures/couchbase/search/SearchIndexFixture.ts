@@ -58,6 +58,7 @@ export class SearchIndexFixture extends FixtureFunctionValue<
     await serverTestContext.start();
     const timeout = fixtureOptions.waitSearchIndexTimeout ?? 10_000;
     const awaitMutations = fixtureOptions.awaitMutations ?? true;
+    const awaitQueryVisibility = fixtureOptions.awaitQueryVisibility ?? true;
     const searchIndexName = params.name ?? `searchIndex_${getRandomId()}`;
     const { sourceName } = params;
 
@@ -81,6 +82,7 @@ export class SearchIndexFixture extends FixtureFunctionValue<
       {
         timeout,
         awaitMutations,
+        awaitQueryVisibility,
       }
     );
 

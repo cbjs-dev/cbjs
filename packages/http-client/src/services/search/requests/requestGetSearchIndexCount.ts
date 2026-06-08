@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export * from './getSearchIndex.js';
-export * from './getSearchIndexes.js';
-export * from './getQuerySearchIndexes.js';
-export * from './getSearchIndexCount.js';
-export * from './getSearchIndexDocumentsByIds.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+
+export async function requestGetSearchIndexCount(
+  params: CouchbaseHttpApiConfig,
+  indexName: string
+) {
+  return apiGET({ ...params }, `/api/index/${indexName}/count`, 'search');
+}

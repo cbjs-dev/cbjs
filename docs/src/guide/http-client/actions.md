@@ -549,6 +549,27 @@ declare function getSearchIndexStatistics(
 ): Promise<ApiSearchGetIndex>;
 ```
 
+### getSearchIndexCount
+
+Retrieves the number of documents indexed by a search index. Accepts either a
+global index name or a `{ bucket, scope, index }` triple for a scoped index.
+
+The underlying FTS `count` endpoint only answers with a `200` once **every
+pindex of the index is hosted and available**. While the pindexes are still
+being planned or built, it answers with `pindex not available` — the same error
+a real query would raise. A successful call is therefore a faithful probe of
+whether the index is actually queryable, which is exactly how
+[`waitForSearchIndex`](./wait-for#waitforsearchindex) gates query visibility.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, SearchIndexCount } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getSearchIndexCount(
+  params: CouchbaseHttpApiConfig,
+  index: string | { bucket: string; scope: string; index: string }
+): Promise<SearchIndexCount>;
+```
+
 ## Stats
 
 ### getIndexerStatistics

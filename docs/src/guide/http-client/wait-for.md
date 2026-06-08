@@ -124,9 +124,19 @@ declare function waitForQueryIndex(
 ```
 
 ### waitForSearchIndex
-Wait for the query index to be visible by the query service and wait until no mutations are remaining.  
-You can opt-out waiting for mutations by passing `{ awaitMutations: false }`.  
-You can opt-in waiting for the search index to be visible by the query service by passing `{ awaitQueryVisibility: true }`.
+Wait for the search index to be visible, built, and **queryable**.
+
+By default it waits for three things in order:
+
+1. the index definition to be **visible** to the search query service ;
+2. the index to be **built** (`state: 'online'`), unless you pass `{ awaitMutations: false }` ;
+3. the index to be **queryable** — every pindex hosted and available — unless you pass `{ awaitQueryVisibility: false }`.
+
+::: warning Why the queryability gate matters
+An index can be reported as `online` while its pindexes are still being planned or built. During that window any query fails with `pindex not available`. Waiting only for `online` therefore lets a query race ahead of its pindexes — an intermittent failure that surfaces under load (e.g. a single-node cluster building many indexes at once).
+
+To close that race, `waitForSearchIndex` probes [`getSearchIndexCount`](./actions#getsearchindexcount), whose endpoint only answers `200` once every pindex is available. Pass `{ awaitQueryVisibility: false }` to opt out and return as soon as the definition is visible.
+:::
 
 ```ts twoslash
 import { CouchbaseHttpApiConfig, WaitForOptions, WaitForSearchIndexOptions, Keyspace } from '@cbjsdev/http-client';
@@ -142,6 +152,26 @@ export declare function waitForSearchIndex(
   indexName: string, 
   options?: WaitForSearchIndexOptions
 ): Promise<void>;
+```
+
+`WaitForSearchIndexOptions` extends `WaitForOptions` with:
+
+```ts twoslash
+type WaitForSearchIndexOptions = {
+  /**
+   * Wait for the index to have been built (`state: 'online'`).
+   * @default true
+   */
+  awaitMutations?: boolean;
+
+  /**
+   * Wait for the index to be queryable, i.e. all of its pindexes are hosted
+   * and available. Set to `false` to return as soon as the index definition
+   * is visible, without waiting for it to become queryable.
+   * @default true
+   */
+  awaitQueryVisibility?: boolean;
+};
 ```
 
 ### waitForUser

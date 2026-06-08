@@ -57,6 +57,7 @@ export class ScopedSearchIndexFixture extends FixtureFunctionValue<
     await serverTestContext.start();
     const timeout = fixtureOptions.waitSearchIndexTimeout ?? 10_000;
     const awaitMutations = fixtureOptions.awaitMutations ?? true;
+    const awaitQueryVisibility = fixtureOptions.awaitQueryVisibility ?? true;
     const searchIndexName = params.name;
     const { sourceName, scopeName, collectionName } = params;
 
@@ -85,6 +86,7 @@ export class ScopedSearchIndexFixture extends FixtureFunctionValue<
       {
         timeout,
         awaitMutations,
+        awaitQueryVisibility,
       }
     );
 
