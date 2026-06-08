@@ -222,6 +222,18 @@ describe('quotePath', () => {
       const result = quotePath(path);
       expect(result).toBe('`wei\\`rd`');
     });
+
+    it('should quote the identifier but not the array index', ({ expect }) => {
+      const path = 'a.b[0]';
+      const result = quotePath(path);
+      expect(result).toBe('`a`.`b`[0]');
+    });
+
+    it('should quote a segment following an array index', ({ expect }) => {
+      const path = 'a.b[0].c';
+      const result = quotePath(path);
+      expect(result).toBe('`a`.`b`[0].`c`');
+    });
   });
 
   describe('keyspacePath', () => {

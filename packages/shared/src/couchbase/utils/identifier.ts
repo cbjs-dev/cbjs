@@ -37,6 +37,7 @@ export function quoteIdentifier(name: string) {
  * ```ts
  * quotePath('a.b.c') // `a`.`b`.`c`
  * quotePath('a.`b`.c') // `a`.`b`.`c`
+ * quotePath('a.b[0]') // `a`.`b`[0]
  * ```
  * @param path
  */
@@ -46,11 +47,15 @@ export function quotePath(path: string) {
   return path
     .split('.')
     .map((segment) => {
-      if (segment.startsWith('`') && segment.endsWith('`')) {
-        return segment;
+      const bracketIndex = segment.indexOf('[');
+      const base = bracketIndex === -1 ? segment : segment.slice(0, bracketIndex);
+      const suffix = bracketIndex === -1 ? '' : segment.slice(bracketIndex);
+
+      if (base.startsWith('`') && base.endsWith('`')) {
+        return base + suffix;
       }
 
-      return '`' + segment.replace('`', '\\`') + '`';
+      return '`' + base.replace('`', '\\`') + '`' + suffix;
     })
     .join('.');
 }
