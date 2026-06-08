@@ -129,6 +129,10 @@ export default defineConfig({
               ],
             },
             {
+              text: 'Observability',
+              link: '/guide/observability',
+            },
+            {
               text: 'HTTP Client',
               items: [
                 {

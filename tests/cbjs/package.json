@@ -12,6 +12,7 @@
     "@cbjsdev/cbjs": "workspace:*",
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
+    "@cbjsdev/telemetry-sentry": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
     "json-bigint": "^1.0.0",
     "pino": "^8.16.2",

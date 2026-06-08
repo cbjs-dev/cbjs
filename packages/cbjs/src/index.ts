@@ -38,7 +38,24 @@ export * from './errorcontexts.js';
 export * from './errors.js';
 export * from './eventingfunctionmanager.js';
 export * from './generaltypes.js';
+export {
+  CouchbaseLogger,
+  createConsoleLogger,
+  createDefaultLogger,
+  type Logger,
+  LogLevel,
+  NoOpLogger,
+  parseLogLevel,
+} from './logger.js';
+export * from './loggingmeter.js';
+export * from './metrics.js';
 export * from './mutationstate.js';
+export {
+  type AttributeValue,
+  type SpanStatus,
+  SpanStatusCode,
+  type TimeInput,
+} from './observabilitytypes.js';
 export * from './queryindexmanager.js';
 export * from './querytypes.js';
 export * from './rangeScan.js';
@@ -52,6 +69,8 @@ export * from './searchquery.js';
 export * from './searchsort.js';
 export * from './searchtypes.js';
 export * from './streamablepromises.js';
+export * from './thresholdlogging.js';
+export * from './tracing.js';
 export * from './transactions.js';
 export * from './transcoders.js';
 export * from './usermanager.js';

@@ -21,6 +21,7 @@ import type { AnyCollection } from './clusterTypes/index.js';
 import type { Collection } from './collection.js';
 import { CounterResult, MutationResult } from './crudoptypes.js';
 import { DurabilityLevel } from './generaltypes.js';
+import { RequestSpan } from './tracing.js';
 import type { NodeCallback } from './utilities.js';
 
 /**
@@ -68,6 +69,12 @@ export interface IncrementOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -115,6 +122,12 @@ export interface DecrementOptions {
    * The timeout for this operation, represented in milliseconds.
    */
   timeout?: number;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -150,6 +163,12 @@ export interface AppendOptions {
    * has changed from this value, indicating that the document has changed.
    */
   cas?: CasInput;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**
@@ -185,6 +204,12 @@ export interface PrependOptions {
    * has changed from this value, indicating that the document has changed.
    */
   cas?: CasInput;
+
+  /**
+   * The parent span for this operation, used to establish a trace hierarchy
+   * for observability.
+   */
+  parentSpan?: RequestSpan;
 }
 
 /**

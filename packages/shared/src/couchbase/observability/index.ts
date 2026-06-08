@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
+ * Copyright (c) 2013-Present Couchbase Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +15,5 @@
  * limitations under the License.
  */
 
-export * from './analytics.types.js';
-export * from './bucket.types.js';
-export * from './cluster.types.js';
-export * from './durability.types.js';
-export * from './eventing.types.js';
-export * from './logger.types.js';
-export * from './observability.types.js';
-export * from './query.types.js';
-export * from './rbac.types.js';
+export * from './MeterGroup.js';
+export * from './TracerGroup.js';

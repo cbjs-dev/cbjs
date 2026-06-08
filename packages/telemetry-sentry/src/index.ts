@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export * from './analytics.types.js';
-export * from './bucket.types.js';
-export * from './cluster.types.js';
-export * from './durability.types.js';
-export * from './eventing.types.js';
-export * from './logger.types.js';
-export * from './observability.types.js';
-export * from './query.types.js';
-export * from './rbac.types.js';
+export {
+  SentryRequestSpan,
+  SentryRequestTracer,
+  type SentrySpanLike,
+  type SentryStartSpanOptions,
+  type SentryTracingApi,
+  timeInputToDate,
+} from './sentryTracer.js';

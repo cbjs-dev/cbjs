@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { defineProject, mergeConfig } from 'vitest/config';
 
-export * from './analytics.types.js';
-export * from './bucket.types.js';
-export * from './cluster.types.js';
-export * from './durability.types.js';
-export * from './eventing.types.js';
-export * from './logger.types.js';
-export * from './observability.types.js';
-export * from './query.types.js';
-export * from './rbac.types.js';
+import sharedProjectConfig from '../../vitest.shared.packages.js';
+
+export default mergeConfig(
+  sharedProjectConfig,
+  defineProject({
+    test: {
+      name: 'package:@cbjsdev/telemetry-sentry',
+    },
+  })
+);

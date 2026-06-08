@@ -17,4 +17,5 @@
 export * from './CouchbaseCas.js';
 export * from './utils/index.js';
 export * from './types/index.js';
+export * from './observability/index.js';
 export * from './clusterTypes/index.js';

@@ -24,6 +24,9 @@ import {
   queryScanConsistencyToCpp,
 } from './bindingutilities.js';
 import { Cluster } from './cluster.js';
+import { ObservableRequestHandler } from './observabilityhandler.js';
+import { StreamingOp } from './observabilitytypes.js';
+import type { StreamingOptions } from './observabilityutilities.js';
 import {
   QueryMetaData,
   QueryMetrics,
@@ -147,6 +150,17 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
     const timeout = options.timeout ?? this._cluster.queryTimeout;
     const rowParser = options.queryResultParser ?? this._cluster.queryResultParser;
 
+    const obsReqHandler = new ObservableRequestHandler(
+      StreamingOp.Query,
+      this._cluster.observabilityInstruments,
+      options.parentSpan
+    );
+    obsReqHandler.setRequestHttpAttributes({
+      statement: query,
+      queryOptions: options as StreamingOptions,
+      queryContext: options.queryContext as string | undefined,
+    });
+
     let hookReturnValue: unknown;
 
     try {
@@ -199,8 +213,18 @@ export class QueryExecutor<T extends CouchbaseClusterTypes = CouchbaseClusterTyp
                 )
               : {},
           body_str: '',
+          wrapper_span_name: obsReqHandler.wrapperSpanName,
         },
-        callback
+        (cppErr, resp) => {
+          if (cppErr) {
+            obsReqHandler.processCoreSpan(cppErr.cpp_core_span);
+            obsReqHandler.endWithError(errorFromCpp(cppErr));
+          } else {
+            obsReqHandler.processCoreSpan(resp?.cpp_core_span);
+            obsReqHandler.end();
+          }
+          callback(cppErr, resp);
+        }
       );
     }, rowParser);
 
