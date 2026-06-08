@@ -17,7 +17,6 @@
 import { inspect } from 'util';
 
 import { HiResTime } from './binding.js';
-import { TracingConfig } from './cluster.js';
 import { ServiceType } from './generaltypes.js';
 import { CouchbaseLogger, createDefaultLogger } from './logger.js';
 import {
@@ -35,6 +34,101 @@ import {
   timeInputToHiResTime,
 } from './observabilityutilities.js';
 import { RequestSpan, RequestTracer } from './tracing.js';
+
+/**
+ * Options for the {@link ThresholdLoggingTracer} — the default tracer.
+ *
+ * The cluster's `tracingConfig` is typed after these options (it extends them with
+ * the cluster-level `enableTracing` flag), so `tracingConfig` configures the default
+ * tracer and only that.
+ *
+ * @category Observability
+ */
+export interface ThresholdLoggingOptions {
+  /**
+   * Specifies the interval after which the aggregated trace information is
+   * logged, specified in milliseconds (10 seconds).
+   *
+   * @default 10_000
+   */
+  emitInterval?: number;
+
+  /**
+   * Specifies how many entries to sample per service in each emit interval
+   * (the slowest requests are kept).
+   *
+   * @default 10
+   */
+  sampleSize?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the KV service,
+   * specified in milliseconds.
+   *
+   * @default 500
+   */
+  kvThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the query
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
+   */
+  queryThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the search
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
+   */
+  searchThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the analytics
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
+   */
+  analyticsThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for management
+   * operations, specified in milliseconds.
+   *
+   * @default 1_000
+   */
+  managementThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for eventing
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
+   */
+  eventingThreshold?: number;
+
+  /**
+   * Threshold over which the request is taken into account for the views
+   * service, specified in milliseconds.
+   *
+   * @default 1_000
+   */
+  viewsThreshold?: number;
+
+  /**
+   * When enabled, records the document key (`couchbase.document.id`) on KV spans
+   * and the query parameter values (`db.query.parameter.<key>`) on query/analytics
+   * spans.
+   *
+   * These values are frequently sensitive (PII) and may be exported to whichever
+   * tracing backend is configured, so capture is opt-in.
+   *
+   * @default false
+   */
+  recordRequestArguments?: boolean;
+}
 
 /**
  * @internal
@@ -650,6 +744,7 @@ export class ThresholdLoggingSpan implements RequestSpan {
 export class ThresholdLoggingTracer implements RequestTracer {
   readonly _emitInterval: number;
   readonly _sampleSize: number;
+  readonly _recordRequestArguments: boolean;
   readonly _serviceThresholds: Map<ServiceType, number>;
   readonly _reporter: ThresholdLoggingReporter;
   /**
@@ -657,15 +752,16 @@ export class ThresholdLoggingTracer implements RequestTracer {
    *
    * @param logger - The logger used by the reporter; falls back to
    *                 {@link createDefaultLogger} when omitted.
-   * @param config - Tracing configuration; see {@link TracingConfig} for the
-   *                 per-field defaults applied when a value is omitted.
+   * @param config - Tracing configuration; see {@link ThresholdLoggingOptions} for
+   *                 the per-field defaults applied when a value is omitted.
    */
   constructor(
     logger: CouchbaseLogger = createDefaultLogger(),
-    config?: TracingConfig | null
+    config?: ThresholdLoggingOptions | null
   ) {
     this._emitInterval = config?.emitInterval ?? 10_000;
     this._sampleSize = config?.sampleSize ?? 10;
+    this._recordRequestArguments = config?.recordRequestArguments ?? false;
     this._serviceThresholds = new Map<ServiceType, number>();
     this._serviceThresholds.set(ServiceType.KeyValue, config?.kvThreshold ?? 500);
     this._serviceThresholds.set(ServiceType.Query, config?.queryThreshold ?? 1_000);
@@ -698,6 +794,16 @@ export class ThresholdLoggingTracer implements RequestTracer {
   }
 
   /**
+   * Whether request arguments (KV document keys, query parameter values) are
+   * recorded as span attributes.
+   *
+   * @see ThresholdLoggingOptions.recordRequestArguments
+   */
+  get recordRequestArguments(): boolean {
+    return this._recordRequestArguments;
+  }
+
+  /**
    * @internal
    */
   [inspect.custom](): Record<string, any> {
@@ -723,6 +829,7 @@ export class ThresholdLoggingTracer implements RequestTracer {
     return {
       emitInterval: this._emitInterval,
       sampleSize: this._sampleSize,
+      recordRequestArguments: this._recordRequestArguments,
       serviceThresholds: Object.fromEntries(this._serviceThresholds),
     };
   }

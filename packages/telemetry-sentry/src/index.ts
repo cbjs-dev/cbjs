@@ -16,6 +16,7 @@
 export {
   SentryRequestSpan,
   SentryRequestTracer,
+  type SentryRequestTracerOptions,
   type SentrySpanLike,
   type SentryStartSpanOptions,
   type SentryTracingApi,

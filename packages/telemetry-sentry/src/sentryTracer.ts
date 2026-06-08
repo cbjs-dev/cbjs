@@ -91,6 +91,26 @@ export interface SentryTracingApi {
 }
 
 /**
+ * Options accepted by {@link SentryRequestTracer}.
+ *
+ * @category Observability
+ */
+export interface SentryRequestTracerOptions {
+  /**
+   * When `true`, the SDK records request arguments — KV document keys
+   * (`couchbase.document.id`) and query/analytics parameter values
+   * (`db.query.parameter.<key>`) — as span attributes exported to Sentry.
+   *
+   * These values are frequently sensitive (PII), so recording is opt-in. The flag
+   * is owned by the tracer: unlike the cluster's `tracingConfig` (which configures
+   * the default tracer only), this controls recording for the Sentry tracer.
+   *
+   * @default false
+   */
+  recordRequestArguments?: boolean;
+}
+
+/**
  * Converts a Cbjs {@link TimeInput} into a `Date` that Sentry accepts.
  *
  * @internal
@@ -184,13 +204,29 @@ export class SentryRequestSpan implements RequestSpan {
  * });
  * ```
  *
+ * Pass {@link SentryRequestTracerOptions} to opt into recording request arguments
+ * (KV document keys, query parameters) as span attributes:
+ *
+ * ```ts
+ * new SentryRequestTracer(Sentry, { recordRequestArguments: true });
+ * ```
+ *
  * @category Observability
  */
 export class SentryRequestTracer implements RequestTracer {
   private readonly _sentry: SentryTracingApi;
 
-  constructor(sentry: SentryTracingApi) {
+  /**
+   * Whether request arguments (KV document keys, query parameter values) are
+   * recorded as span attributes.
+   *
+   * @see SentryRequestTracerOptions.recordRequestArguments
+   */
+  readonly recordRequestArguments: boolean;
+
+  constructor(sentry: SentryTracingApi, options: SentryRequestTracerOptions = {}) {
     this._sentry = sentry;
+    this.recordRequestArguments = options.recordRequestArguments ?? false;
   }
 
   requestSpan(

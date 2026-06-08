@@ -373,18 +373,15 @@ export class ObservabilityInstruments {
   private readonly _getClusterLabelsFn:
     | (() => Record<string, string | undefined>)
     | undefined;
-  private readonly _recordRequestArguments: boolean;
 
   constructor(
     tracer: RequestTracer,
     meter: any,
-    getClusterLabelsFn?: () => Record<string, string | undefined>,
-    recordRequestArguments = false
+    getClusterLabelsFn?: () => Record<string, string | undefined>
   ) {
     this._tracer = tracer;
     this._meter = meter;
     this._getClusterLabelsFn = getClusterLabelsFn;
-    this._recordRequestArguments = recordRequestArguments;
   }
 
   /**
@@ -409,9 +406,12 @@ export class ObservabilityInstruments {
   }
 
   /**
+   * Whether request arguments are recorded as span attributes — owned by the
+   * active tracer (default-false when the tracer does not expose the flag).
+   *
    * @internal
    */
   get recordRequestArguments(): boolean {
-    return this._recordRequestArguments;
+    return this._tracer.recordRequestArguments ?? false;
   }
 }

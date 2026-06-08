@@ -44,6 +44,20 @@ describe('ThresholdLoggingTracer', () => {
     }
   });
 
+  it('exposes recordRequestArguments from its options (default false)', ({ expect }) => {
+    const off = new ThresholdLoggingTracer(new CouchbaseLogger(new NoOpLogger()), null);
+    const on = new ThresholdLoggingTracer(new CouchbaseLogger(new NoOpLogger()), {
+      recordRequestArguments: true,
+    });
+    try {
+      expect(off.recordRequestArguments).toBe(false);
+      expect(on.recordRequestArguments).toBe(true);
+    } finally {
+      off.cleanup();
+      on.cleanup();
+    }
+  });
+
   it('emits a threshold report through the logger for a slow operation', ({ expect }) => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     const logged: string[] = [];

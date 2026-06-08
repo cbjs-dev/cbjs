@@ -65,7 +65,7 @@ import {
   SearchRow,
 } from './searchtypes.js';
 import { StreamableRowPromise } from './streamablepromises.js';
-import { ThresholdLoggingTracer } from './thresholdlogging.js';
+import { ThresholdLoggingOptions, ThresholdLoggingTracer } from './thresholdlogging.js';
 import { RequestTracer, TracerGroup } from './tracing.js';
 import { Transactions, TransactionsConfig } from './transactions.js';
 import { DefaultTranscoder, Transcoder } from './transcoders.js';
@@ -231,99 +231,20 @@ export type Hooks<T extends CouchbaseClusterTypes> = {
  *
  * NOTE:  These options are used to configure the underlying C++ core threshold logging.
  *
+ * Typed after {@link ThresholdLoggingOptions} (the default tracer's options) plus the
+ * cluster-level `enableTracing` flag: `tracingConfig` configures the default
+ * {@link ThresholdLoggingTracer} and only that. A custom `tracer` owns its own options
+ * (e.g. `recordRequestArguments`) and is not affected by `tracingConfig`.
+ *
  * @category Core
  */
-export interface TracingConfig {
+export interface TracingConfig extends ThresholdLoggingOptions {
   /**
    * Specifies to enable or disable threshold logging.
    *
    * @default true
    */
   enableTracing?: boolean;
-
-  /**
-   * Specifies the interval after which the aggregated trace information is
-   * logged, specified in milliseconds (10 seconds).
-   *
-   * @default 10_000
-   */
-  emitInterval?: number;
-
-  /**
-   * Specifies how many entries to sample per service in each emit interval
-   * (the slowest requests are kept).
-   *
-   * @default 10
-   */
-  sampleSize?: number;
-
-  /**
-   * Threshold over which the request is taken into account for the KV service,
-   * specified in milliseconds.
-   *
-   * @default 500
-   */
-  kvThreshold?: number;
-
-  /**
-   * Threshold over which the request is taken into account for the query
-   * service, specified in milliseconds.
-   *
-   * @default 1_000
-   */
-  queryThreshold?: number;
-
-  /**
-   * Threshold over which the request is taken into account for the search
-   * service, specified in milliseconds.
-   *
-   * @default 1_000
-   */
-  searchThreshold?: number;
-
-  /**
-   * Threshold over which the request is taken into account for the analytics
-   * service, specified in milliseconds.
-   *
-   * @default 1_000
-   */
-  analyticsThreshold?: number;
-
-  /**
-   * Threshold over which the request is taken into account for management
-   * operations, specified in milliseconds.
-   *
-   * @default 1_000
-   */
-  managementThreshold?: number;
-
-  /**
-   * Threshold over which the request is taken into account for eventing
-   * service, specified in milliseconds.
-   *
-   * @default 1_000
-   */
-  eventingThreshold?: number;
-
-  /**
-   * Threshold over which the request is taken into account for the views
-   * service, specified in milliseconds.
-   *
-   * @default 1_000
-   */
-  viewsThreshold?: number;
-
-  /**
-   * When enabled, records the document key (`couchbase.document.id`) on KV spans
-   * and the query parameter values (`db.query.parameter.<key>`) on query/analytics
-   * spans.
-   *
-   * These values are frequently sensitive (PII) and may be exported to whichever
-   * tracing backend is configured, so capture is opt-in.
-   *
-   * @default false
-   */
-  recordRequestArguments?: boolean;
 }
 
 /**
@@ -1374,8 +1295,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     this._observabilityInstruments = new ObservabilityInstruments(
       this._tracer,
       this._meter,
-      () => this._getClusterLabels(),
-      this._tracingConfig?.recordRequestArguments ?? false
+      () => this._getClusterLabels()
     );
 
     return [enableTracing, enableMetrics];

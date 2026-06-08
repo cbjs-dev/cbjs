@@ -83,6 +83,21 @@ describe('timeInputToDate', () => {
   });
 });
 
+describe('SentryRequestTracer options', () => {
+  it('defaults recordRequestArguments to false', ({ expect }) => {
+    const { sentry } = capturingSentry();
+    expect(new SentryRequestTracer(sentry).recordRequestArguments).toBe(false);
+  });
+
+  it('reads recordRequestArguments from the options object', ({ expect }) => {
+    const { sentry } = capturingSentry();
+    expect(
+      new SentryRequestTracer(sentry, { recordRequestArguments: true })
+        .recordRequestArguments
+    ).toBe(true);
+  });
+});
+
 describe('SentryRequestSpan mapping', () => {
   it('maps the Cbjs span status codes onto Sentry (shared OTel codes)', ({ expect }) => {
     const { sentry, spans } = capturingSentry();

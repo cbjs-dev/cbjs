@@ -180,8 +180,11 @@ export interface RequestSpan {
  * ```
  *
  * `toJSON` / `[inspect.custom]` are intentionally **not** on this interface — it
- * stays structurally identical to the official SDK's — so cbjs can't add them
- * for you.
+ * stays structurally identical to the official SDK's, save for the single
+ * **optional** {@link RequestTracer.recordRequestArguments} member below (absent
+ * from the official SDK). Being optional, it preserves mutual assignability with
+ * the official `RequestTracer`, so a tracer/meter remains interchangeable between
+ * cbjs and `couchbase`.
  *
  * @category Observability
  */
@@ -199,6 +202,21 @@ export interface RequestTracer {
     parentSpan?: RequestSpan,
     startTime?: TimeInput
   ): RequestSpan;
+
+  /**
+   * When `true`, the SDK records request arguments — KV document keys
+   * (`couchbase.document.id`) and query/analytics parameter values
+   * (`db.query.parameter.<key>`) — as span attributes. These are frequently
+   * sensitive (PII), so recording is opt-in.
+   *
+   * The flag is owned by the tracer: the default {@link RequestTracer} built from
+   * the cluster's `tracingConfig` carries it, and a custom tracer sets its own.
+   * Optional and treated as `false` when absent, which keeps existing tracers (and
+   * the official SDK's `RequestTracer`) assignable and interchangeable.
+   *
+   * @default false
+   */
+  readonly recordRequestArguments?: boolean;
 }
 
 /**

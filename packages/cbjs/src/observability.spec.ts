@@ -83,6 +83,7 @@ class RecordingSpan implements RequestSpan {
 
 class RecordingTracer implements RequestTracer {
   spans: RecordingSpan[] = [];
+  constructor(readonly recordRequestArguments = false) {}
   requestSpan(name: string, parentSpan?: RequestSpan): RequestSpan {
     const span = new RecordingSpan(name, parentSpan);
     this.spans.push(span);
@@ -127,17 +128,13 @@ class RecordingMeter implements Meter {
 function makeInstruments({
   recordRequestArguments = false,
 }: { recordRequestArguments?: boolean } = {}) {
-  const tracer = new RecordingTracer();
+  // The flag is owned by the tracer; ObservabilityInstruments derives it from there.
+  const tracer = new RecordingTracer(recordRequestArguments);
   const meter = new RecordingMeter();
-  const instruments = new ObservabilityInstruments(
-    tracer,
-    meter,
-    () => ({
-      clusterName: 'cluster-a',
-      clusterUUID: 'uuid-a',
-    }),
-    recordRequestArguments
-  );
+  const instruments = new ObservabilityInstruments(tracer, meter, () => ({
+    clusterName: 'cluster-a',
+    clusterUUID: 'uuid-a',
+  }));
   return { tracer, meter, instruments };
 }
 
@@ -221,6 +218,28 @@ describe('ObservableRequestHandler — request span attributes', () => {
     new ObservableRequestHandler(KeyValueOp.Get, instruments, parent);
 
     expect(tracer.spans[0]?.parent).toBe(parent);
+  });
+});
+
+describe('ObservabilityInstruments — recordRequestArguments source', () => {
+  it('derives the flag from the active tracer', ({ expect }) => {
+    const on = new ObservabilityInstruments(
+      new RecordingTracer(true),
+      new RecordingMeter()
+    );
+    const off = new ObservabilityInstruments(
+      new RecordingTracer(false),
+      new RecordingMeter()
+    );
+    expect(on.recordRequestArguments).toBe(true);
+    expect(off.recordRequestArguments).toBe(false);
+  });
+
+  it('defaults to false for a tracer that does not expose the flag', ({ expect }) => {
+    // A foreign tracer (e.g. the official SDK's) omits the optional member.
+    const foreign: RequestTracer = { requestSpan: (name) => new RecordingSpan(name) };
+    const instruments = new ObservabilityInstruments(foreign, new RecordingMeter());
+    expect(instruments.recordRequestArguments).toBe(false);
   });
 });
 
