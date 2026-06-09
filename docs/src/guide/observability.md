@@ -244,3 +244,34 @@ const cluster = await connect('couchbase://localhost', {
   metricsConfig: { enableMetrics: false },
 });
 ```
+
+## See which document, fields and values
+
+By default a span identifies an operation **structurally** — service, bucket, scope, collection and operation name — but not the document key, the query parameters, the sub-document field paths, or the values a `mutateIn` writes. Those can be personal data or document content, so cbjs keeps them off spans unless you ask. Two opt-in flags reveal them.
+
+`recordSubDocSpecs` adds the **sub-document paths** of every `lookupIn` / `mutateIn` as `couchbase.subdoc.specs` — so a span reads as the fields it touched instead of an opaque `lookup_in`. Paths are field names (`profile.email`), never values.
+
+`recordRequestArguments` adds the **request arguments**: the document key (`couchbase.document.id`), the query parameters (`db.query.parameter.<n>`), and the values a `mutateIn` writes (`couchbase.subdoc.values`, index-aligned with the paths above — a value-less spec such as a `remove` keeps its slot as `null`). A read-only `lookupIn` has no values to record.
+
+Record the paths alone with `recordSubDocSpecs`. The `mutateIn` values need **both**: a value is only meaningful next to the path it was written to, so `recordRequestArguments` on its own — with `recordSubDocSpecs` off — records neither the paths nor the values. The document key and query parameters it controls are unaffected.
+
+::: warning These attributes can carry PII
+Keys, parameters, paths and values are frequently sensitive — that's the whole reason they're opt-in. Turn them on only where your tracing backend is allowed to hold that data.
+:::
+
+For the **built-in** pair, set them on `tracingConfig`:
+
+```ts twoslash
+import { connect } from '@cbjsdev/cbjs';
+// ---cut-before---
+const cluster = await connect('couchbase://localhost', {
+  username: 'Administrator',
+  password: 'password',
+  tracingConfig: {
+    recordSubDocSpecs: true, // couchbase.subdoc.specs — which fields
+    recordRequestArguments: true, // keys, query params, mutateIn values
+  },
+});
+```
+
+Both flags are **tracer-owned**, so a tracer you pass carries its own. The [Sentry adapter](#reporting-to-sentry) takes them through `SentryRequestTracerOptions` — `new SentryRequestTracer(Sentry, { recordSubDocSpecs: true })` — and a custom `RequestTracer` exposes them as `readonly recordSubDocSpecs` / `recordRequestArguments` members.
