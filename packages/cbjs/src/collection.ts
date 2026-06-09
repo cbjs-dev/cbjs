@@ -120,6 +120,7 @@ import { MutationState } from './mutationstate.js';
 import { wrapObservableBindingCall } from './observability.js';
 import { ObservableRequestHandler } from './observabilityhandler.js';
 import { KeyValueOp } from './observabilitytypes.js';
+import type { SubDocSpecAttribute } from './observabilityutilities.js';
 import { CollectionQueryIndexManager } from './queryindexmanager.js';
 import { PrefixScan, RangeScan, SamplingScan } from './rangeScan.js';
 import type { Scope } from './scope.js';
@@ -679,14 +680,15 @@ export class Collection<
     docId: CppDocumentId,
     fn: ObservableBindingFunc<Req, Resp>,
     request: Req,
-    durability?: CppDurabilityLevel
+    durability?: CppDurabilityLevel,
+    subDocSpecs?: readonly SubDocSpecAttribute[]
   ): Promise<Resp> {
     const handler = new ObservableRequestHandler(
       op,
       this.cluster.observabilityInstruments,
       parentSpan
     );
-    handler.setRequestKeyValueAttributes(docId, durability);
+    handler.setRequestKeyValueAttributes(docId, durability, subDocSpecs);
     request.wrapper_span_name = handler.wrapperSpanName;
 
     return new Promise<Resp>((resolve, reject) => {
@@ -2300,7 +2302,9 @@ export class Collection<
           partition: 0,
           opaque: 0,
           access_deleted: accessDeleted,
-        }
+        },
+        undefined,
+        specs.map((spec) => ({ path: spec._path }))
       );
 
       const content: LookupInResultEntry[] = [];
@@ -2796,7 +2800,9 @@ export class Collection<
             ...mutateInReq,
             persist_to: persistToToCpp(persistTo),
             replicate_to: replicateToToCpp(replicateTo),
-          }
+          },
+          undefined,
+          specs.map((spec) => ({ path: spec._path, value: spec._data }))
         );
       } else {
         response = await this._observeKvCall(
@@ -2808,7 +2814,8 @@ export class Collection<
             ...mutateInReq,
             durability_level: durabilityToCpp(durabilityLevel),
           },
-          durabilityToCpp(durabilityLevel)
+          durabilityToCpp(durabilityLevel),
+          specs.map((spec) => ({ path: spec._path, value: spec._data }))
         );
       }
 

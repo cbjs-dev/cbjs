@@ -726,6 +726,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
         eventingThreshold: options.tracingConfig.eventingThreshold,
         viewsThreshold: options.tracingConfig.viewsThreshold,
         recordRequestArguments: options.tracingConfig.recordRequestArguments,
+        recordSubDocSpecs: options.tracingConfig.recordSubDocSpecs,
       };
     } else {
       this._tracingConfig = null;

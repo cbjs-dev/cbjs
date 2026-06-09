@@ -45,6 +45,7 @@ import {
   getCoreSpanEndTime,
   getLatestTime,
   HttpOpAttributesOptions,
+  SubDocSpecAttribute,
   timeInputToHiResTime,
 } from './observabilityutilities.js';
 import { getHiResTimeDelta, hiResTimeToMicros } from './observabilityutilities.js';
@@ -60,6 +61,7 @@ class ObservableRequestHandlerTracerImpl {
     | (() => Record<string, string | undefined>)
     | undefined;
   private readonly _recordRequestArguments: boolean;
+  private readonly _recordSubDocSpecs: boolean;
   private _opType: OpType;
   private _serviceName: ServiceName;
   private _startTime: HiResTime;
@@ -77,6 +79,7 @@ class ObservableRequestHandlerTracerImpl {
     this._tracer = observabilityInstruments.tracer;
     this._getClusterLabelsFn = observabilityInstruments.clusterLabelsFn;
     this._recordRequestArguments = observabilityInstruments.recordRequestArguments;
+    this._recordSubDocSpecs = observabilityInstruments.recordSubDocSpecs;
     this._wrappedSpan = new WrappedSpan(
       this._serviceName,
       this._opType,
@@ -218,13 +221,16 @@ class ObservableRequestHandlerTracerImpl {
    */
   setRequestKeyValueAttributes(
     cppDocId: CppDocumentId,
-    durability?: CppDurabilityLevel
+    durability?: CppDurabilityLevel,
+    subDocSpecs?: readonly SubDocSpecAttribute[]
   ): void {
     const opAttrs = getAttributesForKeyValueOpType(
       this._opType as KeyValueOp,
       cppDocId,
       durability,
-      this._recordRequestArguments
+      this._recordRequestArguments,
+      subDocSpecs,
+      this._recordSubDocSpecs
     );
     for (const [k, v] of Object.entries(opAttrs)) {
       this._wrappedSpan.setAttribute(k, v);
@@ -327,7 +333,8 @@ class ObservableRequestHandlerNoOpTracerImpl {
    */
   setRequestKeyValueAttributes(
     _cppDocId: CppDocumentId,
-    _durability?: CppDurabilityLevel
+    _durability?: CppDurabilityLevel,
+    _subDocSpecs?: readonly SubDocSpecAttribute[]
   ): void {
     // noop
   }
@@ -670,9 +677,13 @@ export class ObservableRequestHandler {
    */
   setRequestKeyValueAttributes(
     cppDocId: CppDocumentId,
-    durability?: CppDurabilityLevel
+    durability?: CppDurabilityLevel,
+    subDocSpecs?: readonly SubDocSpecAttribute[]
   ): void {
-    this._tracerImpl.setRequestKeyValueAttributes(cppDocId, durability);
+    // Sub-doc paths/values are high-cardinality (per-field), so they are recorded
+    // on the trace span only — never threaded to the meter, where they would
+    // explode metric tag cardinality.
+    this._tracerImpl.setRequestKeyValueAttributes(cppDocId, durability, subDocSpecs);
     this._meterImpl.setRequestKeyValueAttributes(cppDocId, durability);
   }
 }

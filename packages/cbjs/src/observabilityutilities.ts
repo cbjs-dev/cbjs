@@ -155,13 +155,28 @@ export function timeInputToHiResTime(input?: TimeInput): HiResTime {
 }
 
 /**
+ * A single sub-document spec, reduced to what the tracer may record. `path` is the
+ * targeted field (empty for whole-document specs); `value` is the spec's serialized
+ * value for the `mutateIn` specs that carry one (undefined for `lookupIn` and for
+ * value-less mutations such as `remove`).
+ *
+ * @internal
+ */
+export interface SubDocSpecAttribute {
+  path: string;
+  value?: string;
+}
+
+/**
  * @internal
  */
 export function getAttributesForKeyValueOpType(
   opType: KeyValueOp,
   cppDocId: CppDocumentId,
   durability?: CppDurabilityLevel,
-  recordRequestArguments = false
+  recordRequestArguments = false,
+  subDocSpecs?: readonly SubDocSpecAttribute[],
+  recordSubDocSpecs = false
 ): {
   [key: string]: AttributeValue;
 } {
@@ -184,6 +199,24 @@ export function getAttributesForKeyValueOpType(
   }
   if (recordRequestArguments && cppDocId.key) {
     attributes[OpAttributeName.DocumentId] = cppDocId.key;
+  }
+  // Sub-document paths — a whole-document spec carries an empty path, which we keep
+  // so the array index lines up with the spec order (and with the values below).
+  if (recordSubDocSpecs && subDocSpecs && subDocSpecs.length > 0) {
+    attributes[OpAttributeName.SubDocSpecs] = subDocSpecs.map((spec) => spec.path);
+
+    // Mutation values are request arguments (potential PII / document content), so
+    // they take their own opt-in (recordRequestArguments) on top of the paths. A
+    // value is only meaningful next to the path it was written to — with no spec
+    // recorded there is nothing to attach it to — so it is gated on recordSubDocSpecs
+    // as well, hence its place inside this block. Only mutateIn specs carry a value;
+    // lookupIn (read-only) never reaches here. `null` marks a value-less spec (e.g.
+    // remove) to keep alignment with the paths.
+    if (recordRequestArguments && subDocSpecs.some((spec) => spec.value !== undefined)) {
+      attributes[OpAttributeName.SubDocValues] = subDocSpecs.map(
+        (spec) => spec.value ?? null
+      );
+    }
   }
   return attributes;
 }

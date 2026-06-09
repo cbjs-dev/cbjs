@@ -205,9 +205,15 @@ export interface RequestTracer {
 
   /**
    * When `true`, the SDK records request arguments — KV document keys
-   * (`couchbase.document.id`) and query/analytics parameter values
-   * (`db.query.parameter.<key>`) — as span attributes. These are frequently
-   * sensitive (PII), so recording is opt-in.
+   * (`couchbase.document.id`), query/analytics parameter values
+   * (`db.query.parameter.<key>`), and `mutateIn` mutation values
+   * (`couchbase.subdoc.values`) — as span attributes. These are frequently
+   * sensitive (PII / document content), so recording is opt-in.
+   *
+   * The `mutateIn` values additionally require
+   * {@link RequestTracer.recordSubDocSpecs}: a value is only meaningful alongside
+   * the path it was written to, so with no paths recorded there is nothing to
+   * attach it to and the values are omitted.
    *
    * The flag is owned by the tracer: the default {@link RequestTracer} built from
    * the cluster's `tracingConfig` carries it, and a custom tracer sets its own.
@@ -217,6 +223,27 @@ export interface RequestTracer {
    * @default false
    */
   readonly recordRequestArguments?: boolean;
+
+  /**
+   * When `true`, the SDK records the sub-document paths of `lookupIn` / `mutateIn`
+   * operations (`couchbase.subdoc.specs`) as a span attribute, so a trace shows
+   * which fields an operation targeted instead of an opaque `lookup_in`.
+   *
+   * This flag records the field paths (e.g. `profile.email`). The `mutateIn`
+   * values are not recorded by this flag alone: they are request arguments gated
+   * additionally on {@link RequestTracer.recordRequestArguments}, and when both
+   * flags are on they are recorded as `couchbase.subdoc.values`, index-aligned
+   * with these paths. Paths alone can still reveal the document schema, so
+   * capture is opt-in.
+   *
+   * The flag is owned by the tracer: the default {@link RequestTracer} built from
+   * the cluster's `tracingConfig` carries it, and a custom tracer sets its own.
+   * Optional and treated as `false` when absent, which keeps existing tracers (and
+   * the official SDK's `RequestTracer`) assignable and interchangeable.
+   *
+   * @default false
+   */
+  readonly recordSubDocSpecs?: boolean;
 }
 
 /**

@@ -118,16 +118,33 @@ export interface ThresholdLoggingOptions {
   viewsThreshold?: number;
 
   /**
-   * When enabled, records the document key (`couchbase.document.id`) on KV spans
-   * and the query parameter values (`db.query.parameter.<key>`) on query/analytics
-   * spans.
+   * When enabled, records the document key (`couchbase.document.id`) on KV spans,
+   * the query parameter values (`db.query.parameter.<key>`) on query/analytics
+   * spans, and the `mutateIn` mutation values (`couchbase.subdoc.values`) on KV
+   * spans. The `mutateIn` values additionally require
+   * {@link ThresholdLoggingOptions.recordSubDocSpecs} — without the paths there is
+   * nothing to attach a value to, so they are omitted.
    *
-   * These values are frequently sensitive (PII) and may be exported to whichever
-   * tracing backend is configured, so capture is opt-in.
+   * These values are frequently sensitive (PII / document content) and may be
+   * exported to whichever tracing backend is configured, so capture is opt-in.
    *
    * @default false
    */
   recordRequestArguments?: boolean;
+
+  /**
+   * When enabled, records the sub-document paths of `lookupIn` / `mutateIn`
+   * operations (`couchbase.subdoc.specs`) on KV spans, so a trace shows which
+   * fields the operation targeted.
+   *
+   * This flag records the field paths. The `mutateIn` values are gated
+   * additionally on {@link ThresholdLoggingOptions.recordRequestArguments}, and
+   * when both are on they are recorded as `couchbase.subdoc.values`. Paths alone
+   * can still reveal the document schema, so capture is opt-in.
+   *
+   * @default false
+   */
+  recordSubDocSpecs?: boolean;
 }
 
 /**
@@ -745,6 +762,7 @@ export class ThresholdLoggingTracer implements RequestTracer {
   readonly _emitInterval: number;
   readonly _sampleSize: number;
   readonly _recordRequestArguments: boolean;
+  readonly _recordSubDocSpecs: boolean;
   readonly _serviceThresholds: Map<ServiceType, number>;
   readonly _reporter: ThresholdLoggingReporter;
   /**
@@ -762,6 +780,7 @@ export class ThresholdLoggingTracer implements RequestTracer {
     this._emitInterval = config?.emitInterval ?? 10_000;
     this._sampleSize = config?.sampleSize ?? 10;
     this._recordRequestArguments = config?.recordRequestArguments ?? false;
+    this._recordSubDocSpecs = config?.recordSubDocSpecs ?? false;
     this._serviceThresholds = new Map<ServiceType, number>();
     this._serviceThresholds.set(ServiceType.KeyValue, config?.kvThreshold ?? 500);
     this._serviceThresholds.set(ServiceType.Query, config?.queryThreshold ?? 1_000);
@@ -804,6 +823,16 @@ export class ThresholdLoggingTracer implements RequestTracer {
   }
 
   /**
+   * Whether sub-document paths (`couchbase.subdoc.specs`) are recorded on KV
+   * spans.
+   *
+   * @see ThresholdLoggingOptions.recordSubDocSpecs
+   */
+  get recordSubDocSpecs(): boolean {
+    return this._recordSubDocSpecs;
+  }
+
+  /**
    * @internal
    */
   [inspect.custom](): Record<string, any> {
@@ -830,6 +859,7 @@ export class ThresholdLoggingTracer implements RequestTracer {
       emitInterval: this._emitInterval,
       sampleSize: this._sampleSize,
       recordRequestArguments: this._recordRequestArguments,
+      recordSubDocSpecs: this._recordSubDocSpecs,
       serviceThresholds: Object.fromEntries(this._serviceThresholds),
     };
   }

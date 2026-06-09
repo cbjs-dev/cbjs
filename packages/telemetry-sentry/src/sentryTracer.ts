@@ -98,16 +98,35 @@ export interface SentryTracingApi {
 export interface SentryRequestTracerOptions {
   /**
    * When `true`, the SDK records request arguments — KV document keys
-   * (`couchbase.document.id`) and query/analytics parameter values
-   * (`db.query.parameter.<key>`) — as span attributes exported to Sentry.
+   * (`couchbase.document.id`), query/analytics parameter values
+   * (`db.query.parameter.<key>`), and `mutateIn` mutation values
+   * (`couchbase.subdoc.values`) — as span attributes exported to Sentry. The
+   * `mutateIn` values additionally require
+   * {@link SentryRequestTracerOptions.recordSubDocSpecs} — without the paths there
+   * is nothing to attach a value to, so they are omitted.
    *
-   * These values are frequently sensitive (PII), so recording is opt-in. The flag
-   * is owned by the tracer: unlike the cluster's `tracingConfig` (which configures
-   * the default tracer only), this controls recording for the Sentry tracer.
+   * These values are frequently sensitive (PII / document content), so recording
+   * is opt-in. The flag is owned by the tracer: unlike the cluster's
+   * `tracingConfig` (which configures the default tracer only), this controls
+   * recording for the Sentry tracer.
    *
    * @default false
    */
   recordRequestArguments?: boolean;
+
+  /**
+   * When `true`, the Sentry tracer records the sub-document paths of
+   * `lookupIn` / `mutateIn` operations (`couchbase.subdoc.specs`) as a span
+   * attribute, so a trace shows which fields the operation targeted.
+   *
+   * This flag records the field paths. The `mutateIn` values are gated
+   * additionally on {@link SentryRequestTracerOptions.recordRequestArguments}, and
+   * when both are on they are recorded as `couchbase.subdoc.values`. Paths alone
+   * can still reveal the document schema, so recording is opt-in.
+   *
+   * @default false
+   */
+  recordSubDocSpecs?: boolean;
 }
 
 /**
@@ -224,9 +243,18 @@ export class SentryRequestTracer implements RequestTracer {
    */
   readonly recordRequestArguments: boolean;
 
+  /**
+   * Whether sub-document paths (`couchbase.subdoc.specs`) are recorded as a span
+   * attribute.
+   *
+   * @see SentryRequestTracerOptions.recordSubDocSpecs
+   */
+  readonly recordSubDocSpecs: boolean;
+
   constructor(sentry: SentryTracingApi, options: SentryRequestTracerOptions = {}) {
     this._sentry = sentry;
     this.recordRequestArguments = options.recordRequestArguments ?? false;
+    this.recordSubDocSpecs = options.recordSubDocSpecs ?? false;
   }
 
   requestSpan(

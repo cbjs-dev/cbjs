@@ -279,6 +279,8 @@ export enum OpAttributeName {
   RetryCount = 'couchbase.retries',
   ScopeName = 'couchbase.scope.name',
   Service = 'couchbase.service',
+  SubDocSpecs = 'couchbase.subdoc.specs',
+  SubDocValues = 'couchbase.subdoc.values',
   SystemName = 'db.system.name',
 }
 
@@ -413,5 +415,15 @@ export class ObservabilityInstruments {
    */
   get recordRequestArguments(): boolean {
     return this._tracer.recordRequestArguments ?? false;
+  }
+
+  /**
+   * Whether sub-document paths are recorded as a span attribute — owned by the
+   * active tracer (default-false when the tracer does not expose the flag).
+   *
+   * @internal
+   */
+  get recordSubDocSpecs(): boolean {
+    return this._tracer.recordSubDocSpecs ?? false;
   }
 }

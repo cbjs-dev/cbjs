@@ -83,7 +83,10 @@ class RecordingSpan implements RequestSpan {
 
 class RecordingTracer implements RequestTracer {
   spans: RecordingSpan[] = [];
-  constructor(readonly recordRequestArguments = false) {}
+  constructor(
+    readonly recordRequestArguments = false,
+    readonly recordSubDocSpecs = false
+  ) {}
   requestSpan(name: string, parentSpan?: RequestSpan): RequestSpan {
     const span = new RecordingSpan(name, parentSpan);
     this.spans.push(span);
@@ -127,9 +130,10 @@ class RecordingMeter implements Meter {
 
 function makeInstruments({
   recordRequestArguments = false,
-}: { recordRequestArguments?: boolean } = {}) {
-  // The flag is owned by the tracer; ObservabilityInstruments derives it from there.
-  const tracer = new RecordingTracer(recordRequestArguments);
+  recordSubDocSpecs = false,
+}: { recordRequestArguments?: boolean; recordSubDocSpecs?: boolean } = {}) {
+  // The flags are owned by the tracer; ObservabilityInstruments derives them from there.
+  const tracer = new RecordingTracer(recordRequestArguments, recordSubDocSpecs);
   const meter = new RecordingMeter();
   const instruments = new ObservabilityInstruments(tracer, meter, () => ({
     clusterName: 'cluster-a',
@@ -211,6 +215,149 @@ describe('ObservableRequestHandler — request span attributes', () => {
     expect(tracer.spans[0]?.attributes).not.toHaveProperty(OpAttributeName.DocumentId);
   });
 
+  it('records sub-document paths only when recordSubDocSpecs is enabled', ({
+    expect,
+  }) => {
+    const on = makeInstruments({ recordSubDocSpecs: true });
+    new ObservableRequestHandler(
+      KeyValueOp.LookupIn,
+      on.instruments
+    ).setRequestKeyValueAttributes(docId, undefined, [
+      { path: 'profile.name' },
+      { path: 'flags.active' },
+    ]);
+    expect(on.tracer.spans[0]?.attributes[OpAttributeName.SubDocSpecs]).toEqual([
+      'profile.name',
+      'flags.active',
+    ]);
+
+    const off = makeInstruments();
+    new ObservableRequestHandler(
+      KeyValueOp.LookupIn,
+      off.instruments
+    ).setRequestKeyValueAttributes(docId, undefined, [{ path: 'profile.name' }]);
+    expect(off.tracer.spans[0]?.attributes).not.toHaveProperty(
+      OpAttributeName.SubDocSpecs
+    );
+  });
+
+  it('records sub-document paths independently of the document key', ({ expect }) => {
+    // recordSubDocSpecs on, recordRequestArguments off: paths appear, key does not.
+    const { tracer, instruments } = makeInstruments({ recordSubDocSpecs: true });
+    new ObservableRequestHandler(
+      KeyValueOp.LookupIn,
+      instruments
+    ).setRequestKeyValueAttributes(docId, undefined, [{ path: 'profile.name' }]);
+    expect(tracer.spans[0]?.attributes[OpAttributeName.SubDocSpecs]).toEqual([
+      'profile.name',
+    ]);
+    expect(tracer.spans[0]?.attributes).not.toHaveProperty(OpAttributeName.DocumentId);
+  });
+
+  it('records mutateIn values only when both recordSubDocSpecs and recordRequestArguments are enabled', ({
+    expect,
+  }) => {
+    const specs = [
+      { path: 'profile.name', value: '"alice"' },
+      { path: 'profile.age', value: '30' },
+    ];
+
+    const on = makeInstruments({
+      recordSubDocSpecs: true,
+      recordRequestArguments: true,
+    });
+    new ObservableRequestHandler(
+      KeyValueOp.MutateIn,
+      on.instruments
+    ).setRequestKeyValueAttributes(docId, undefined, specs);
+    expect(on.tracer.spans[0]?.attributes[OpAttributeName.SubDocValues]).toEqual([
+      '"alice"',
+      '30',
+    ]);
+
+    const pathsOnly = makeInstruments({ recordSubDocSpecs: true });
+    new ObservableRequestHandler(
+      KeyValueOp.MutateIn,
+      pathsOnly.instruments
+    ).setRequestKeyValueAttributes(docId, undefined, specs);
+    // Paths are recorded (recordSubDocSpecs), but the values are not.
+    expect(pathsOnly.tracer.spans[0]?.attributes[OpAttributeName.SubDocSpecs]).toEqual([
+      'profile.name',
+      'profile.age',
+    ]);
+    expect(pathsOnly.tracer.spans[0]?.attributes).not.toHaveProperty(
+      OpAttributeName.SubDocValues
+    );
+  });
+
+  it('records neither paths nor values when recordRequestArguments is on but recordSubDocSpecs is off', ({
+    expect,
+  }) => {
+    // A value has no spec to attach to without its path, so recordRequestArguments
+    // alone records nothing about the sub-document — neither the paths nor the values.
+    const { tracer, instruments } = makeInstruments({ recordRequestArguments: true });
+    new ObservableRequestHandler(
+      KeyValueOp.MutateIn,
+      instruments
+    ).setRequestKeyValueAttributes(docId, undefined, [
+      { path: 'profile.name', value: '"alice"' },
+      { path: 'profile.age', value: '30' },
+    ]);
+    expect(tracer.spans[0]?.attributes).not.toHaveProperty(OpAttributeName.SubDocSpecs);
+    expect(tracer.spans[0]?.attributes).not.toHaveProperty(OpAttributeName.SubDocValues);
+  });
+
+  it('marks a value-less mutateIn spec with null to keep value/path alignment', ({
+    expect,
+  }) => {
+    const { tracer, instruments } = makeInstruments({
+      recordSubDocSpecs: true,
+      recordRequestArguments: true,
+    });
+    new ObservableRequestHandler(
+      KeyValueOp.MutateIn,
+      instruments
+    ).setRequestKeyValueAttributes(docId, undefined, [
+      { path: 'profile.name', value: '"alice"' },
+      { path: 'profile.legacy' }, // a remove carries no value
+    ]);
+    expect(tracer.spans[0]?.attributes[OpAttributeName.SubDocValues]).toEqual([
+      '"alice"',
+      null,
+    ]);
+  });
+
+  it('never records values for a value-less op such as lookupIn', ({ expect }) => {
+    // Both flags on, but lookupIn specs carry no value.
+    const { tracer, instruments } = makeInstruments({
+      recordSubDocSpecs: true,
+      recordRequestArguments: true,
+    });
+    new ObservableRequestHandler(
+      KeyValueOp.LookupIn,
+      instruments
+    ).setRequestKeyValueAttributes(docId, undefined, [{ path: 'profile.name' }]);
+    expect(tracer.spans[0]?.attributes).not.toHaveProperty(OpAttributeName.SubDocValues);
+  });
+
+  it('keeps sub-document paths and values off the meter tags (cardinality guard)', ({
+    expect,
+  }) => {
+    const { meter, instruments } = makeInstruments({
+      recordSubDocSpecs: true,
+      recordRequestArguments: true,
+    });
+    const handler = new ObservableRequestHandler(KeyValueOp.MutateIn, instruments);
+    handler.setRequestKeyValueAttributes(docId, undefined, [
+      { path: 'profile.name', value: '"alice"' },
+    ]);
+    handler.end();
+    for (const recorder of meter.recorders) {
+      expect(recorder.tags).not.toHaveProperty(OpAttributeName.SubDocSpecs);
+      expect(recorder.tags).not.toHaveProperty(OpAttributeName.SubDocValues);
+    }
+  });
+
   it('nests the operation span under the provided parent span', ({ expect }) => {
     const { tracer, instruments } = makeInstruments();
     const parent = new RecordingSpan('parent');
@@ -240,6 +387,19 @@ describe('ObservabilityInstruments — recordRequestArguments source', () => {
     const foreign: RequestTracer = { requestSpan: (name) => new RecordingSpan(name) };
     const instruments = new ObservabilityInstruments(foreign, new RecordingMeter());
     expect(instruments.recordRequestArguments).toBe(false);
+  });
+
+  it('derives recordSubDocSpecs from the active tracer, defaulting to false', ({
+    expect,
+  }) => {
+    const on = new ObservabilityInstruments(
+      new RecordingTracer(false, true),
+      new RecordingMeter()
+    );
+    const foreign: RequestTracer = { requestSpan: (name) => new RecordingSpan(name) };
+    const off = new ObservabilityInstruments(foreign, new RecordingMeter());
+    expect(on.recordSubDocSpecs).toBe(true);
+    expect(off.recordSubDocSpecs).toBe(false);
   });
 });
 
@@ -631,5 +791,63 @@ describe('getAttributesForKeyValueOpType (durability attribute)', () => {
     expect(getAttributesForKeyValueOpType(KeyValueOp.Upsert, docId)).not.toHaveProperty(
       OpAttributeName.DurabilityLevel
     );
+  });
+
+  it('records sub-document paths only when both specs and the flag are present', ({
+    expect,
+  }) => {
+    const pathsOf = (specs?: readonly { path: string }[], record = false) =>
+      getAttributesForKeyValueOpType(
+        KeyValueOp.LookupIn,
+        docId,
+        undefined,
+        false,
+        specs,
+        record
+      )[OpAttributeName.SubDocSpecs];
+
+    // Whole-document specs carry an empty path, which is preserved so the array
+    // index still lines up with the spec order.
+    expect(pathsOf([{ path: 'profile.name' }, { path: '' }], true)).toEqual([
+      'profile.name',
+      '',
+    ]);
+
+    // Flag off, no specs, or an empty list all leave the attribute off.
+    expect(pathsOf([{ path: 'profile.name' }], false)).toBeUndefined();
+    expect(pathsOf(undefined, true)).toBeUndefined();
+    expect(pathsOf([], true)).toBeUndefined();
+  });
+
+  it('records sub-document values only with recordSubDocSpecs, recordRequestArguments and a value', ({
+    expect,
+  }) => {
+    const valuesOf = (
+      specs?: readonly { path: string; value?: string }[],
+      recordArgs = false,
+      recordSpecs = true
+    ) =>
+      getAttributesForKeyValueOpType(
+        KeyValueOp.MutateIn,
+        docId,
+        undefined,
+        recordArgs,
+        specs,
+        recordSpecs
+      )[OpAttributeName.SubDocValues];
+
+    // Both flags on with values present → recorded, value-less spec → null.
+    expect(valuesOf([{ path: 'a', value: '1' }, { path: 'b' }], true)).toEqual([
+      '1',
+      null,
+    ]);
+
+    // recordRequestArguments off, no spec carries a value, or no specs → attribute off.
+    expect(valuesOf([{ path: 'a', value: '1' }], false)).toBeUndefined();
+    expect(valuesOf([{ path: 'a' }, { path: 'b' }], true)).toBeUndefined();
+    expect(valuesOf(undefined, true)).toBeUndefined();
+
+    // recordSubDocSpecs off: values have no paths to attach to, so nothing is recorded.
+    expect(valuesOf([{ path: 'a', value: '1' }], true, false)).toBeUndefined();
   });
 });
