@@ -15,7 +15,7 @@
  */
 
 /* eslint-disable prettier/prettier */
-import type { TaskContext, TestAPI } from 'vitest';
+import type { TestContext, TestAPI } from 'vitest';
 
 import type { CouchbaseLogger, PromiseValue } from '@cbjsdev/shared';
 
@@ -30,7 +30,7 @@ export type FixtureContext<T> = T extends UnknownContext
 export type UnknownContext = Record<keyof any, unknown>;
 
 export type FixtureFunction<V = unknown> = (
-  ctx: TaskContext,
+  ctx: TestContext,
   use: (v: V) => Promise<void>
 ) => Promise<void>;
 

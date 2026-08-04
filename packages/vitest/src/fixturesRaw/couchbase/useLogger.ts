@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TaskContext } from 'vitest';
+import { TestContext } from 'vitest';
 
 import { CouchbaseLogger } from '@cbjsdev/shared';
 
 import { getTestLogger } from '../../logger.js';
 
 export const useLogger = async (
-  { task }: TaskContext,
+  { task }: TestContext,
   use: (v: CouchbaseLogger | undefined) => Promise<void>
 ) => {
   await use(getTestLogger());

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TaskContext } from 'vitest';
+import { TestContext } from 'vitest';
 
 import { getDefaultServerTestContext } from '../../context.js';
 import { ServerTestContext } from '../../ServerTestContext.js';
 
 export const useServerTestContext = async (
-  { task }: TaskContext,
+  { task }: TestContext,
   use: (v: ServerTestContext) => Promise<void>
 ) => {
   const serverTestContext = await getDefaultServerTestContext().start();

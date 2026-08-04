@@ -134,14 +134,20 @@ export function makeCreateTest<
       testFixtures as never
     );
 
+    // Since vitest 4, `extend` has a scoped-fixtures ($test/$file/$worker) overload that
+    // any record type structurally satisfies, so an explicit type argument resolves to it
+    // and erases the fixture types. The declared return type is the source of truth.
     if (userArg === undefined) {
-      return creatorTest as CreateTestFunction<RawCreatorFixtures, UserFixtures>;
+      return creatorTest as unknown as CreateTestFunction<
+        RawCreatorFixtures,
+        UserFixtures
+      >;
     }
 
     if (typeof userArg === 'object') {
       return creatorTest.extend<FixtureUseValues<UserFixtures>>(
         userArg
-      ) as CreateTestFunction<RawCreatorFixtures, UserFixtures>;
+      ) as unknown as CreateTestFunction<RawCreatorFixtures, UserFixtures>;
     }
 
     const userFixtures =
@@ -160,6 +166,6 @@ export function makeCreateTest<
 
     return creatorTest.extend<FixtureUseValues<UserFixtures>>(
       Object.fromEntries(userFixturesEntries)
-    ) as CreateTestFunction<RawCreatorFixtures, UserFixtures>;
+    ) as unknown as CreateTestFunction<RawCreatorFixtures, UserFixtures>;
   };
 }

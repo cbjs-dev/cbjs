@@ -31,11 +31,11 @@ describe('optimization', async () => {
     const localFilePath = caseFilePath.substring(pathToCases.length + 1);
     test(
       `${localFilePath} should be optimized`,
+      { retry: 5 },
       async ({ expect, serverTestContext }) => {
         const isOptimized = await runCase(localFilePath, serverTestContext.bucket.name);
         expect(isOptimized).toBe(true);
-      },
-      { retry: 5 }
+      }
     );
   }
 });

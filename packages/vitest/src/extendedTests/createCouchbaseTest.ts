@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import '@vitest/runner';
-import type { TaskContext } from 'vitest';
+import type { TestContext } from 'vitest';
 
 import type { CouchbaseApiConfig } from '@cbjsdev/shared';
 import { type PromiseValue } from '@cbjsdev/shared';
@@ -72,7 +72,7 @@ export type CouchbaseTestContext = {
 export type CouchbaseFixtures = TestBodyFixtures<
   typeof couchbaseTestFixtures & CouchbaseTestContext
 > &
-  TaskContext;
+  TestContext;
 
 export type FixtureWithCouchbase<T> = (
   fixtures: CouchbaseFixtures,

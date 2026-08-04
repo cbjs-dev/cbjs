@@ -30,6 +30,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.ScopeSearchIndexManagement)
 
     test(
       'should return all the documents',
+      { timeout: 100_000 },
       async ({
         expect,
         useScopedSearchIndex,
@@ -95,8 +96,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.ScopeSearchIndexManagement)
           },
           { timeout: 60_000, retryInterval: 2_500 }
         );
-      },
-      { timeout: 100_000 }
+      }
     );
   }
 );

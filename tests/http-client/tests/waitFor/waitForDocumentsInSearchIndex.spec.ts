@@ -31,6 +31,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.ScopeSearchIndexManagement)
 
     test(
       'should return once the document are found',
+      { timeout: 100_000 },
       async ({
         expect,
         useScopedSearchIndex,
@@ -90,8 +91,7 @@ describe.runIf(serverSupportsFeatures(ServerFeatures.ScopeSearchIndexManagement)
           [testDocKey, testDocKey2],
           { timeout: 90_000 }
         );
-      },
-      { timeout: 100_000 }
+      }
     );
   }
 );

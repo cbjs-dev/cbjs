@@ -2,9 +2,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    workspace: ['packages/*/vitest.config.ts', 'tests/*/vitest.config.ts'],
+    projects: ['packages/*/vitest.config.ts', 'tests/*/vitest.config.ts'],
     pool: 'forks',
-    minWorkers: 1,
     maxWorkers: 1,
     slowTestThreshold: 5_000,
     sequence: {

@@ -25,8 +25,10 @@ setTestLogger(testLogger);
 export const connectionParams = getConnectionParams();
 export const apiConfig = getApiConfig(false);
 
-beforeAll(async ({ file }) => {
-  testLogger.info(`Executing test file: ${file.filepath}`);
+// Vitest 4 requires the hook context to be a destructuring pattern, even when unused.
+// eslint-disable-next-line no-empty-pattern
+beforeAll(async ({}, suite) => {
+  testLogger.info(`Executing test file: ${suite.file.filepath}`);
 });
 
 beforeEach(({ onTestFailed }) => {

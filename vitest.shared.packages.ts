@@ -15,9 +15,21 @@
  */
 import { defineProject } from 'vitest/config';
 
+/**
+ * Vitest 4 only forwards an allowlist of CLI options to project configs, and `typecheck`
+ * is not part of it. Project configs are loaded in the CLI process, so we read the flag
+ * ourselves to keep `vitest --typecheck run` working from the workspace root.
+ */
+const typecheckEnabled = process.argv.some(
+  (arg) => arg === '--typecheck' || arg.startsWith('--typecheck.')
+);
+
 export default defineProject({
   test: {
     include: ['**/*.spec.ts'],
+    typecheck: {
+      enabled: typecheckEnabled,
+    },
     environment: 'node',
     restoreMocks: true,
     mockReset: true,

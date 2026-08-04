@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TaskContext } from 'vitest';
+import { TestContext } from 'vitest';
 
 import { CouchbaseApiConfig } from '@cbjsdev/shared';
 
 import { CbjsTestContext } from '../types.js';
 
 export const useApiConfig = async (
-  { task, serverTestContext }: TaskContext & Pick<CbjsTestContext, 'serverTestContext'>,
+  { task, serverTestContext }: TestContext & Pick<CbjsTestContext, 'serverTestContext'>,
   use: (apiConfig: CouchbaseApiConfig) => Promise<void>
 ) => {
   const apiConfig = await serverTestContext.getApiConfig();

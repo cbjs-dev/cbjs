@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { TaskContext } from 'vitest';
+import type { TestContext } from 'vitest';
 
 import type { Class } from '@cbjsdev/shared';
 
@@ -53,7 +53,7 @@ export class CreateTestFixtureFunction<
    * @internal
    */
   getFixtureFunction() {
-    return async ({ task }: TaskContext, use: (f: UseValue) => Promise<void>) => {
+    return async ({ task }: TestContext, use: (f: UseValue) => Promise<void>) => {
       this.taskType = 'test';
       this.taskName = task.name;
 
