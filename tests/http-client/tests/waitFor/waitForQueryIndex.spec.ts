@@ -43,59 +43,64 @@ describe('waitForQueryIndex', async () => {
 
   test(
     'wait for the index to be created',
-    { timeout: 15_000 },
-    async ({ expect, serverTestContext, apiConfig }) => {
+    { timeout: 30_000 },
+    async ({ expect, serverTestContext, apiConfig, useCollection }) => {
       const indexName = getRandomId();
+
+      // A dedicated collection, because the index service only builds one index
+      // at a time per keyspace : a build still running would make the next
+      // `createIndex` hang or fail with a transient error.
+      const collectionName = await useCollection();
+      const collection = serverTestContext.s.collection(collectionName);
+      const keyspace = {
+        bucket: serverTestContext.bucket.name,
+        scope: serverTestContext.scope.name,
+        collection: collectionName,
+      };
 
       // Wait for bucket to be visible by the query service
       await sleep(200);
 
-      await serverTestContext.collection.queryIndexes().createIndex(indexName, ['name']);
+      await collection.queryIndexes().createIndex(indexName, ['name']);
 
       await expect(
-        waitForQueryIndex(
-          apiConfig,
-          indexName,
-          {
-            bucket: serverTestContext.bucket.name,
-            scope: serverTestContext.scope.name,
-            collection: serverTestContext.collection.name,
-          },
-          { awaitMutations: false, timeout: 14_000 }
-        )
+        waitForQueryIndex(apiConfig, indexName, keyspace, {
+          awaitMutations: false,
+          timeout: 14_000,
+        })
       ).resolves.toBeUndefined();
     }
   );
 
   test(
     'wait for the index to have no remaining mutations',
-    { timeout: 25_000, retry: 1 },
-    async ({ expect, serverTestContext, apiConfig }) => {
+    { timeout: 60_000, retry: 1 },
+    async ({ expect, serverTestContext, apiConfig, useCollection }) => {
       const indexName = getRandomId();
+
+      // See above : the index build must not compete with another one.
+      const collectionName = await useCollection();
+      const collection = serverTestContext.s.collection(collectionName);
+      const keyspace = {
+        bucket: serverTestContext.bucket.name,
+        scope: serverTestContext.scope.name,
+        collection: collectionName,
+      };
 
       await Promise.all(
         Array(300)
           .fill(null)
-          .map((_, i) =>
-            serverTestContext.collection.insert(`indexMe_${getRandomId()}`, {
+          .map(() =>
+            collection.insert(`indexMe_${getRandomId()}`, {
               name: 'test',
             })
           )
       );
 
-      await serverTestContext.collection.queryIndexes().createIndex(indexName, ['name']);
+      await collection.queryIndexes().createIndex(indexName, ['name']);
 
       await expect(
-        waitForQueryIndex(
-          apiConfig,
-          indexName,
-          {
-            bucket: serverTestContext.bucket.name,
-            scope: serverTestContext.scope.name,
-            collection: serverTestContext.collection.name,
-          },
-          { timeout: 24_000 }
-        )
+        waitForQueryIndex(apiConfig, indexName, keyspace, { timeout: 55_000 })
       ).resolves.toBeUndefined();
     }
   );
