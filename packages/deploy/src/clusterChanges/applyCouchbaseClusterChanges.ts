@@ -381,6 +381,7 @@ async function applyCreateIndex(
     {
       keys: change.keys,
       where: change.where,
+      numReplicas: change.numReplicas,
     }
   );
   console.log(
