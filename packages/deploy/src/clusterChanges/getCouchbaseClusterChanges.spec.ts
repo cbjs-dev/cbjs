@@ -422,6 +422,111 @@ describe('getCouchbaseClusterChanges', () => {
     ]);
   });
 
+  it('should identify indexes which "WITH" options have changed', ({ expect }) => {
+    const currentConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {
+                  indexes: {
+                    index1: {
+                      keys: ['`vector` VECTOR'],
+                      with: {
+                        dimension: 768,
+                        similarity: 'dot',
+                        description: 'IVF,SQ8',
+                        scan_nprobes: 1,
+                      },
+                    },
+                    index2: {
+                      keys: ['`vector` VECTOR'],
+                      with: { dimension: 768, similarity: 'dot' },
+                    },
+                    index3: {
+                      keys: ['title'],
+                    },
+                    index4: {
+                      keys: ['title'],
+                      with: { num_replica: 0 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const nextConfig: Partial<CouchbaseClusterConfig> = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            scope1: {
+              collections: {
+                collection1: {
+                  indexes: {
+                    index1: {
+                      keys: ['vector VECTOR'],
+                      with: { dimension: 768, similarity: 'DOT', description: 'IVF,SQ8' },
+                    },
+                    index2: {
+                      keys: ['`vector` VECTOR'],
+                      with: { dimension: 1536, similarity: 'dot' },
+                    },
+                    index3: {
+                      keys: ['title'],
+                      with: { defer_build: true },
+                    },
+                    index4: {
+                      keys: ['title'],
+                      with: { num_replica: 2 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
+
+    expect(changes).toEqual([
+      {
+        type: 'recreateIndex',
+        name: 'index2',
+        bucket: 'bucket1',
+        scope: 'scope1',
+        collection: 'collection1',
+        keys: ['`vector` VECTOR'],
+        with: { dimension: 1536, similarity: 'dot' },
+      },
+      {
+        type: 'recreateIndex',
+        name: 'index3',
+        bucket: 'bucket1',
+        scope: 'scope1',
+        collection: 'collection1',
+        keys: ['title'],
+        with: { defer_build: true },
+      },
+      {
+        type: 'updateIndex',
+        name: 'index4',
+        bucket: 'bucket1',
+        scope: 'scope1',
+        collection: 'collection1',
+        keys: ['title'],
+        with: { num_replica: 2 },
+      },
+    ]);
+  });
+
   it('should identify users changes', ({ expect }) => {
     const currentConfig: Partial<CouchbaseClusterConfig> = {
       users: [

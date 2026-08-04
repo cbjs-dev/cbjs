@@ -58,6 +58,58 @@ const config: CouchbaseClusterConfig = {
 }
 ```
 
+### Index options
+
+The options of the `WITH` clause of `CREATE INDEX` are declared with `with`.  
+This is how you create a vector index :
+
+```ts twoslash
+import { CouchbaseClusterConfig } from '@cbjsdev/deploy';
+
+const config: CouchbaseClusterConfig = {
+  keyspaces: {
+    myBucket: {
+      ramQuotaMB: 1024,
+      scopes: {
+        scopeOne: {
+          collections: {
+            embedding: {
+              indexes: {
+                idx_embedding_vector: {
+                  keys: ['organizationId', 'sourceCollection', '`vector` VECTOR'],
+                  with: {
+                    dimension: 768,
+                    similarity: 'DOT',
+                    description: 'IVF,SQ8'
+                  }
+                }
+              }
+            },
+          }
+        }
+      }
+    }
+  },
+  users: []
+}
+```
+
+Which creates the following index :
+
+```sql
+CREATE INDEX `idx_embedding_vector`
+  ON `myBucket`.`scopeOne`.`embedding`(organizationId, sourceCollection, `vector` VECTOR)
+  WITH {"dimension":768,"similarity":"DOT","description":"IVF,SQ8"}
+```
+
+The documented options are typed, but any other option is accepted and sent to the server as-is.
+
+::: tip
+Only the options you declare are compared to the cluster : the server reports its own defaults - `num_partition`, `scan_nprobes`, … - and normalizes some values, which would otherwise be seen as a change on every deployment.
+:::
+
+Changing an option requires the index to be recreated. Use `numReplicas` rather than `with.num_replica` : a change of the number of replicas is applied with `ALTER INDEX`, without recreating the index.
+
 ## Behavior
 
 The function `getCouchbaseClusterChanges` will compare the previous configuration with the new one and determine the changes to apply.

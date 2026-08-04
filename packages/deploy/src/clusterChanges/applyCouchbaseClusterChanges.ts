@@ -382,6 +382,7 @@ async function applyCreateIndex(
       keys: change.keys,
       where: change.where,
       numReplicas: change.numReplicas,
+      with: change.with,
     }
   );
   console.log(
@@ -484,7 +485,10 @@ async function applyUpdateIndex(
       scope: change.scope,
       collection: change.collection,
     },
-    { action: 'replica_count', num_replica: change.numReplicas }
+    {
+      action: 'replica_count',
+      num_replica: change.numReplicas ?? change.with?.num_replica,
+    }
   );
 }
 

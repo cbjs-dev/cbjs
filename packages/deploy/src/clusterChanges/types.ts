@@ -5,6 +5,7 @@ import {
   IUser,
   UpdateBucketSettings,
 } from '@cbjsdev/cbjs';
+import { QueryIndexWithClause } from '@cbjsdev/shared';
 
 export type CouchbaseClusterChange =
   | CouchbaseClusterChangeCreateBucket
@@ -95,6 +96,7 @@ export type CouchbaseClusterChangeCreateIndex = {
   keys: string[];
   where?: string;
   numReplicas?: number;
+  with?: QueryIndexWithClause;
 };
 
 export type CouchbaseClusterChangeDropIndex = {
@@ -114,6 +116,7 @@ export type CouchbaseClusterChangeUpdateIndex = {
   keys: string[];
   where?: string;
   numReplicas?: number;
+  with?: QueryIndexWithClause;
 };
 
 export type CouchbaseClusterChangeRecreateIndex = {
@@ -125,6 +128,7 @@ export type CouchbaseClusterChangeRecreateIndex = {
   keys: string[];
   where?: string;
   numReplicas?: number;
+  with?: QueryIndexWithClause;
 };
 
 export type CouchbaseClusterChangeCreateUser = {
@@ -217,9 +221,40 @@ export type CouchbaseClusterCollectionConfig = {
 };
 
 export type CouchbaseClusterCollectionIndexConfig = {
+  /**
+   * The indexed expressions.
+   *
+   * Modifiers are supported : `myArray VECTOR`, `title INCLUDE MISSING DESC`, ...
+   */
   keys: string[];
+
+  /**
+   * Only index the documents matching this predicate.
+   */
   where?: string;
+
+  /**
+   * Number of replicas of the index.
+   *
+   * Takes precedence over `with.num_replica`. Either way, a change of the number of
+   * replicas is applied with `ALTER INDEX`, without recreating the index.
+   */
   numReplicas?: number;
+
+  /**
+   * Options of the `WITH` clause, such as the vector index options.
+   *
+   * Only the options declared here are compared against the cluster : the server
+   * reports its own defaults, which would otherwise be seen as a change on every deployment.
+   * A change requires the index to be recreated.
+   *
+   * @example
+   * {
+   *   keys: ['`scope`.`organizationId`', 'sourceCollection', '`vector` VECTOR'],
+   *   with: { dimension: 768, similarity: 'DOT', description: 'IVF,SQ8' },
+   * }
+   */
+  with?: QueryIndexWithClause;
 };
 
 export type CouchbaseClusterSearchIndexConfig = (sourceParams: {

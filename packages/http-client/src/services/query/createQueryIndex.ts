@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Keyspace, keyspacePath, quoteIdentifier } from '@cbjsdev/shared';
+import {
+  Keyspace,
+  keyspacePath,
+  QueryIndexWithClause,
+  quoteIdentifier,
+} from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types.js';
 import { ApiQueryResponseBody } from '../../types/Api/index.js';
@@ -40,23 +45,29 @@ export async function createQueryIndex(
      * The number of replicas of this index that should be created.
      */
     numReplicas?: number;
+    /**
+     * Options of the `WITH` clause, such as the vector index options.
+     *
+     * `num_replica` is overridden by {@link numReplicas}, when defined.
+     */
+    with?: QueryIndexWithClause;
   },
   options?: CreateQueryIndexOptions
 ): Promise<CreateQueryIndexResponse['results']> {
-  const { keys, where, numReplicas } = config;
+  const { keys, where, numReplicas, with: withClause } = config;
   const { deferred = false } = options ?? {};
 
-  let query = `CREATE INDEX ${quoteIdentifier(indexName)} 
-     ON ${keyspacePath(keyspace)} 
+  let query = `CREATE INDEX ${quoteIdentifier(indexName)}
+     ON ${keyspacePath(keyspace)}
        (${keys.join(',')})`;
 
   if (where) {
     query += ` WHERE ${where} `;
   }
 
-  const withConfig: { num_replica?: number; defer_build?: boolean } = {};
+  const withConfig: QueryIndexWithClause = { ...withClause };
 
-  if (numReplicas) {
+  if (numReplicas !== undefined) {
     withConfig.num_replica = numReplicas;
   }
 

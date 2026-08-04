@@ -3,9 +3,10 @@ import {
   BucketSettings,
   CollectionSpec,
   ISearchIndex,
-  SearchIndex,
   ScopeSpec,
+  SearchIndex,
 } from '@cbjsdev/cbjs';
+import { QueryIndexWithClause } from '@cbjsdev/shared';
 
 import {
   CouchbaseClusterBucketConfig,
@@ -33,7 +34,8 @@ export type BuildCouchbaseClusterConfigOptions = {
  * - Search indexes are keyed by their actual index name (the cluster has no concept of config aliases).
  * - User passwords are never returned by the server; password-related diff changes will always
  *   be emitted when the target config specifies a password.
- * - Query index `numReplicas` is not available through the SDK and is omitted from the config.
+ * - Query index `numReplicas` and `with` options are read from `system:indexes`, since the
+ *   index manager does not expose them.
  */
 export async function buildCouchbaseClusterConfig(
   cluster: AnyCluster,
@@ -44,8 +46,13 @@ export async function buildCouchbaseClusterConfig(
     ? allBuckets.filter((b) => options.buckets!.includes(b.name))
     : allBuckets;
 
+  const indexOptions = await getIndexOptions(
+    cluster,
+    buckets.map((b) => b.name)
+  );
+
   const [keyspaceEntries, users] = await Promise.all([
-    Promise.all(buckets.map((b) => buildBucketEntry(cluster, b))),
+    Promise.all(buckets.map((b) => buildBucketEntry(cluster, b, indexOptions))),
     cluster.users().getAllUsers(),
   ]);
 
@@ -63,13 +70,14 @@ export async function buildCouchbaseClusterConfig(
 
 async function buildBucketEntry(
   cluster: AnyCluster,
-  bucket: BucketSettings
+  bucket: BucketSettings,
+  indexOptions: IndexOptionsMap
 ): Promise<[string, CouchbaseClusterBucketConfig]> {
   const { name, ...settings } = bucket;
   const scopeSpecs = await cluster.bucket(name).collections().getAllScopes();
 
   const scopeEntries = await Promise.all(
-    scopeSpecs.map((scope) => buildScopeEntry(cluster, name, scope))
+    scopeSpecs.map((scope) => buildScopeEntry(cluster, name, scope, indexOptions))
   );
 
   return [name, { ...settings, scopes: Object.fromEntries(scopeEntries) }];
@@ -78,12 +86,13 @@ async function buildBucketEntry(
 async function buildScopeEntry(
   cluster: AnyCluster,
   bucketName: string,
-  scope: ScopeSpec
+  scope: ScopeSpec,
+  indexOptions: IndexOptionsMap
 ): Promise<[string, CouchbaseClusterScopeConfig]> {
   const [collectionEntries, searchIndexes] = await Promise.all([
     Promise.all(
       scope.collections.map((col) =>
-        buildCollectionEntry(cluster, bucketName, scope.name, col)
+        buildCollectionEntry(cluster, bucketName, scope.name, col, indexOptions)
       )
     ),
     cluster.bucket(bucketName).scope(scope.name).searchIndexes().getAllIndexes(),
@@ -106,7 +115,8 @@ async function buildCollectionEntry(
   cluster: AnyCluster,
   bucketName: string,
   scopeName: string,
-  col: CollectionSpec
+  col: CollectionSpec,
+  indexOptions: IndexOptionsMap
 ): Promise<[string, CouchbaseClusterCollectionConfig]> {
   const queryIndexes = await cluster
     .bucket(bucketName)
@@ -123,7 +133,13 @@ async function buildCollectionEntry(
   const secondaryIndexes = queryIndexes.filter((qi) => !qi.isPrimary);
   if (secondaryIndexes.length > 0) {
     config.indexes = Object.fromEntries(
-      secondaryIndexes.map((qi) => [qi.name, toQueryIndexConfig(qi)])
+      secondaryIndexes.map((qi) => [
+        qi.name,
+        toQueryIndexConfig(
+          qi,
+          indexOptions.get(indexOptionsKey(bucketName, scopeName, col.name, qi.name))
+        ),
+      ])
     );
   }
 
@@ -131,7 +147,8 @@ async function buildCollectionEntry(
 }
 
 function toQueryIndexConfig(
-  qi: { indexKey: string[]; condition?: string }
+  qi: { indexKey: string[]; condition?: string },
+  withClause: QueryIndexWithClause | undefined
 ): CouchbaseClusterCollectionIndexConfig {
   const config: CouchbaseClusterCollectionIndexConfig = {
     keys: qi.indexKey,
@@ -141,7 +158,66 @@ function toQueryIndexConfig(
     config.where = qi.condition;
   }
 
+  if (withClause) {
+    config.with = withClause;
+
+    if (withClause.num_replica !== undefined) {
+      config.numReplicas = withClause.num_replica;
+    }
+  }
+
   return config;
+}
+
+type IndexOptionsMap = Map<string, QueryIndexWithClause>;
+
+type SystemIndexRow = {
+  name: string;
+  bucket_id?: string;
+  scope_id?: string;
+  keyspace_id: string;
+  with?: QueryIndexWithClause;
+};
+
+function indexOptionsKey(
+  bucket: string,
+  scope: string,
+  collection: string,
+  indexName: string
+) {
+  return `${bucket}/${scope}/${collection}/${indexName}`;
+}
+
+/**
+ * The `WITH` options are not exposed by the index manager, so `system:indexes` is queried directly.
+ */
+async function getIndexOptions(
+  cluster: AnyCluster,
+  bucketNames: string[]
+): Promise<IndexOptionsMap> {
+  if (bucketNames.length === 0) return new Map();
+
+  const { rows } = await cluster.query<SystemIndexRow>(
+    'SELECT i.name, i.bucket_id, i.scope_id, i.keyspace_id, i.`with` ' +
+      'FROM system:indexes AS i ' +
+      'WHERE i.bucket_id IN $buckets OR (i.bucket_id IS MISSING AND i.keyspace_id IN $buckets)',
+    { parameters: { buckets: bucketNames } }
+  );
+
+  const indexOptions: IndexOptionsMap = new Map();
+
+  for (const row of rows) {
+    if (!row.with) continue;
+
+    // Indexes of the default collection are reported without `bucket_id`/`scope_id`.
+    const bucket = row.bucket_id ?? row.keyspace_id;
+    const scope = row.scope_id ?? '_default';
+    const collection = row.bucket_id ? row.keyspace_id : '_default';
+
+    indexOptions.set(indexOptionsKey(bucket, scope, collection, row.name), row.with);
+  }
+
+  return indexOptions;
 }
 
 /**

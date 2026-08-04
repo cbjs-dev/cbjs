@@ -2,6 +2,7 @@ import { UpdateBucketSettings } from '@cbjsdev/cbjs';
 import { invariant } from '@cbjsdev/shared';
 
 import { areSameIndexKeys } from './areSameIndexKeys.js';
+import { areSameIndexOptions } from './areSameIndexOptions.js';
 import {
   CouchbaseClusterBucketConfig,
   CouchbaseClusterChange,
@@ -25,6 +26,7 @@ import {
   CouchbaseClusterChangeUpdateSearchIndex,
   CouchbaseClusterChangeUpdateUser,
   CouchbaseClusterChangeUpdateUserPassword,
+  CouchbaseClusterCollectionIndexConfig,
   CouchbaseClusterConfig,
 } from './types.js';
 
@@ -524,7 +526,8 @@ function getUpdatedIndexes(
 
       const indexHaveChanged =
         !areSameIndexKeys(requestedIndex.keys, currentIndex.keys) ||
-        requestedIndex.where !== currentIndex.where;
+        requestedIndex.where !== currentIndex.where ||
+        !areSameIndexOptions(requestedIndex.with, currentIndex.with);
 
       if (indexHaveChanged) {
         return {
@@ -537,7 +540,7 @@ function getUpdatedIndexes(
         } as const;
       }
 
-      if ((requestedIndex.numReplicas ?? 0) != (currentIndex.numReplicas ?? 0)) {
+      if (getNumReplicas(requestedIndex) !== getNumReplicas(currentIndex)) {
         return {
           type: 'updateIndex',
           name: b,
@@ -553,6 +556,10 @@ function getUpdatedIndexes(
   return changes as Array<
     CouchbaseClusterChangeRecreateIndex | CouchbaseClusterChangeUpdateIndex
   >;
+}
+
+function getNumReplicas(index: CouchbaseClusterCollectionIndexConfig) {
+  return index.numReplicas ?? index.with?.num_replica ?? 0;
 }
 
 function findUser(
