@@ -176,6 +176,33 @@ describe('getCouchbaseClusterChanges', () => {
     expect(changes).toEqual([{ type: 'dropScope', name: 'scope1', bucket: 'bucket1' }]);
   });
 
+  it('should never drop the system scopes', ({ expect }) => {
+    const currentConfig = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: {
+            _system: { collections: { _mobile: {} } },
+            _default: { collections: { _default: {} } },
+            scope1: { collections: {} },
+          },
+        },
+      },
+    };
+    const nextConfig = {
+      keyspaces: {
+        bucket1: {
+          ramQuotaMB: 100,
+          scopes: { scope1: { collections: {} } },
+        },
+      },
+    };
+
+    const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
+
+    expect(changes).toEqual([]);
+  });
+
   it('should identify obsolete and new collections and add them to changes', ({
     expect,
   }) => {

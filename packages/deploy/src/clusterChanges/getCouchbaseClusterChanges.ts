@@ -31,6 +31,12 @@ import {
 } from './types.js';
 
 /**
+ * Scopes required for Couchbase to operate. They are reported by the server, cannot be
+ * dropped, and are usually absent from a user config, so they are never considered obsolete.
+ */
+const systemScopes = ['_system', '_default'];
+
+/**
  * Return the keyspace changes (buckets, scopes, collections, indexes) required
  * to meet the nextConfig, given the currentConfig.
  */
@@ -211,7 +217,7 @@ function getObsoleteScopes(
   const requestedScopes = Object.keys(nextConfig[bucketName].scopes);
 
   return currentScopes
-    .filter((b) => !requestedScopes.includes(b))
+    .filter((b) => !requestedScopes.includes(b) && !systemScopes.includes(b))
     .map((b) => ({
       type: 'dropScope',
       name: b,
