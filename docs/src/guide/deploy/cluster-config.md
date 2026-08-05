@@ -9,9 +9,30 @@ To keep your cluster configuration in sync and share the changes with your team,
 
 ## Example
 
-```ts
-const changes = getCouchbaseClusterChanges(currentConfig, nextConfig);
-await applyCouchbaseClusterChanges(changes);
+```ts twoslash
+import { connect } from '@cbjsdev/cbjs';
+import { CouchbaseHttpApiConfig } from '@cbjsdev/http-client';
+import {
+  applyCouchbaseClusterChanges,
+  buildCouchbaseClusterConfig,
+  canonicalizeIndexConfigs,
+  CouchbaseClusterConfig,
+  getCouchbaseClusterChanges,
+} from '@cbjsdev/deploy';
+
+declare const nextConfig: CouchbaseClusterConfig;
+declare const apiConfig: CouchbaseHttpApiConfig;
+// ---cut-before---
+const cluster = await connect('couchbase://localhost', {
+  username: 'Administrator',
+  password: 'password',
+});
+
+const currentConfig = await buildCouchbaseClusterConfig(cluster);
+const canonicalConfig = await canonicalizeIndexConfigs(apiConfig, currentConfig, nextConfig);
+const changes = getCouchbaseClusterChanges(currentConfig, canonicalConfig);
+
+await applyCouchbaseClusterChanges(cluster, apiConfig, changes);
 ```
 
 ::: tip
@@ -110,13 +131,40 @@ Only the options you declare are compared to the cluster : the server reports it
 
 Changing an option requires the index to be recreated. Use `numReplicas` rather than `with.num_replica` : a change of the number of replicas is applied with `ALTER INDEX`, without recreating the index.
 
+### Expression keys and the `WHERE` clause
+
+Index keys and the `WHERE` predicate accept arbitrary N1QL expressions.  
+The server does not store the text you send : it parses it and re-prints it from its own AST.
+
+```sql
+-- declared
+CREATE INDEX `idx_active` ON `myBucket`.`scopeOne`.`collectionOne`(OBJECT_LENGTH(timeEntries) > 0)
+
+-- reported by the server
+CREATE INDEX `idx_active` ON `myBucket`.`scopeOne`.`collectionOne`((0 < object_length(`timeEntries`)))
+```
+
+A textual comparison with the live cluster would therefore report a change on every deployment, and the index would be needlessly dropped and recreated every time.
+
+This is what `canonicalizeIndexConfigs` prevents.  
+It asks the server to parse and re-print your declared definitions with `EXPLAIN CREATE INDEX` - a planning-only statement that creates nothing - and rewrites them into the exact form the cluster reports.  
+Definitions that already match the cluster are left untouched, so simple keys like `groupId` don't trigger any request.
+
+::: tip
+Because the server parses every definition, a typo in an index expression is rejected at this stage, before any change is applied to your cluster.
+:::
+
+When an index has really changed, the emitted `recreateIndex` change carries `changedProperties`, so you can review why the index will be recreated : `keys`, `where` or `with`.
+
 ## Behavior
 
 The function `getCouchbaseClusterChanges` will compare the previous configuration with the new one and determine the changes to apply.
 
 You need to provide a previous configuration in order to manage the deletion of former keyspaces/users/indexes. If no previous configuration is given, only updates and creation are performed.
 
-It's up to you to store your previous configuration. You can store the previous configuration in your database or on disk, for example.
+You can read the current configuration from the live cluster with `buildCouchbaseClusterConfig`, or store the previous configuration yourself - in your database or on disk, for example.
+
+When the current configuration comes from the live cluster, pass your target configuration through `canonicalizeIndexConfigs` before the comparison : the index definitions reported by the server never match your declared text - see [Expression keys](#expression-keys-and-the-where-clause).
 
 You can then pass the changes to `applyCouchbaseClusterChanges`.
 Each change will be applied and awaited. This means means that if you create an index, it will only return once the index is fully available and built.
