@@ -90,6 +90,24 @@ jobs:
       - name: Run all tests
         run: pnpm vitest --run --bail 5
 
+      # A vitest worker dying is reported as `[vitest-pool]: Worker forks emitted error`,
+      # without the exit code nor the signal. A segfault of the native addon and a kernel
+      # OOM kill both look the same from vitest, but not from the kernel ring buffer.
+      - name: Diagnose worker deaths
+        if: always()
+        run: |
+          echo "::group::kernel ring buffer"
+          sudo dmesg -T | tail -300 || true
+          echo "::endgroup::"
+          echo "::group::memory"
+          free -m || true
+          echo "::endgroup::"
+          echo "::group::core dumps"
+          cat /proc/sys/kernel/core_pattern || true
+          ls -la /var/lib/systemd/coredump 2>/dev/null || true
+          coredumpctl list --no-pager 2>/dev/null || true
+          echo "::endgroup::"
+
       - name: Save vitest cache
         if: always()
         uses: actions/cache/save@v5

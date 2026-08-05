@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { beforeAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach } from 'vitest';
 
 import { getApiConfig, getConnectionParams, hasOwn } from '@cbjsdev/shared';
-import { setTestLogger } from '@cbjsdev/vitest';
+import { cleanupCouchbaseAfterAll, setTestLogger } from '@cbjsdev/vitest';
 
 import { testLogger } from './setupLogger.js';
 
@@ -48,6 +48,10 @@ beforeEach(({ onTestFailed }) => {
 
     testLogger.error({ errors }, `Test failed: ${task.name}`);
   });
+});
+
+afterAll(async () => {
+  await cleanupCouchbaseAfterAll();
 });
 
 process.addListener('SIGABRT', (e) => {

@@ -35,6 +35,7 @@ import binding, { CppClusterCredentials, CppConnection } from './binding.js';
 import { errorFromCpp } from './bindingutilities.js';
 import { Bucket } from './bucket.js';
 import { BucketManager } from './bucketmanager.js';
+import { registerOpenCluster, unregisterOpenCluster } from './clusterRegistry.js';
 import { connectionProfiles } from './configProfile.js';
 import { ConnSpec } from './connspec.js';
 import { DiagnoticsExecutor, PingExecutor } from './diagnosticsexecutor.js';
@@ -786,6 +787,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
       const cluster = new Cluster<T>(connStr, options);
       await cluster._connect();
 
+      registerOpenCluster(cluster);
+
       if (callback) {
         callback(null, cluster);
       }
@@ -1149,6 +1152,8 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
    * @param callback A node-style callback to be invoked after execution.
    */
   async close(callback?: VoidNodeCallback): Promise<void> {
+    unregisterOpenCluster(this);
+
     if (this._transactions) {
       await this._transactions._close();
       this._transactions = undefined;
