@@ -29,8 +29,11 @@ export default defineProject({
     sequence: {
       setupFiles: 'list',
       hooks: 'stack',
+      // Integration specs are order-dependent: a first test deploys the keyspaces
+      // the following ones rely on. Vitest 4 shuffles tests within a file even
+      // under `describe(..., { sequential: true })`, which breaks them.
       shuffle: {
-        tests: true,
+        tests: false,
         files: false,
       },
     },
