@@ -37,9 +37,10 @@ jobs:
       - name: Publish packages
         run: NODE_AUTH_TOKEN="" pnpm lerna publish --no-private --force-publish --conventional-commits --no-changelog --yes
 
-      - run: |
+      - name: GitHub release notes
+        run: |
           export PREVIOUS_TAG=$(git tag --sort=-creatordate --merged origin/main | sed -n '2p')
           export LATEST_TAG=$(git tag --sort=-creatordate --merged origin/main | sed -n '1p')
-          npx changelogithub --from $PREVIOUS_TAG --to $LATEST_TAG
+          npx changelogithub@15 --from $PREVIOUS_TAG --to $LATEST_TAG
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
