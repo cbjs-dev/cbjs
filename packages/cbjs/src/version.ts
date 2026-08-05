@@ -1,1 +1,1 @@
-export const couchnodeVersion = '4.7.0';
+export const couchnodeVersion = '4.7.1';
