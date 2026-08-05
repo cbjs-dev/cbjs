@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { closeAllClusters } from '@cbjsdev/cbjs/internal';
-import { sleep } from '@cbjsdev/shared';
-
 import { serverTestContexts } from './context.js';
 import { flushLogger, getTestLogger } from './logger.js';
-
-/**
- * Time given to the native addon to settle once every connection has been closed,
- * before the worker process is allowed to exit.
- */
-const shutdownGracePeriod = 2_000;
 
 const testCleanupHooks: Array<{ description: string; action: () => Promise<void> }> = [];
 const contextCleanupHooks: Array<{ description: string; action: () => Promise<void> }> =
@@ -91,14 +82,7 @@ export async function cleanupCouchbaseAfterAll() {
     })
   );
 
-  // Connections left open by the tests would otherwise be torn down by the addon
-  // itself when the worker process exits, which is known to crash the process.
-  logger?.debug('closing the connections left open');
-  await closeAllClusters();
-
   logger?.debug('cleanup is done');
 
   await flushLogger();
-
-  await sleep(shutdownGracePeriod);
 }
