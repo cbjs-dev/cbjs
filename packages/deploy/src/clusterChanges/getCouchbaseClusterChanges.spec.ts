@@ -427,6 +427,7 @@ describe('getCouchbaseClusterChanges', () => {
         scope: 'scope1',
         collection: 'collection1',
         keys: ['title', 'group'],
+        changedProperties: ['keys'],
       },
       {
         type: 'updateIndex',
@@ -445,6 +446,7 @@ describe('getCouchbaseClusterChanges', () => {
         collection: 'collection1',
         keys: ['groupId'],
         where: 'groupId != "groupSystem"',
+        changedProperties: ['where'],
       },
     ]);
   });
@@ -532,6 +534,7 @@ describe('getCouchbaseClusterChanges', () => {
         collection: 'collection1',
         keys: ['`vector` VECTOR'],
         with: { dimension: 1536, similarity: 'dot' },
+        changedProperties: ['with'],
       },
       {
         type: 'recreateIndex',
@@ -541,6 +544,7 @@ describe('getCouchbaseClusterChanges', () => {
         collection: 'collection1',
         keys: ['title'],
         with: { defer_build: true },
+        changedProperties: ['with'],
       },
       {
         type: 'updateIndex',

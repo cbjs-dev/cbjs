@@ -1,6 +1,7 @@
 import { UpdateBucketSettings } from '@cbjsdev/cbjs';
 import { invariant } from '@cbjsdev/shared';
 
+import { normalizeWhereClause } from './areSameIndexDefinitions.js';
 import { areSameIndexKeys } from './areSameIndexKeys.js';
 import { areSameIndexOptions } from './areSameIndexOptions.js';
 import {
@@ -530,18 +531,32 @@ function getUpdatedIndexes(
       invariant(currentIndex, 'Current index definition not found.');
       invariant(requestedIndex, 'Requested index definition not found.');
 
-      const indexHaveChanged =
-        !areSameIndexKeys(requestedIndex.keys, currentIndex.keys) ||
-        requestedIndex.where !== currentIndex.where ||
-        !areSameIndexOptions(requestedIndex.with, currentIndex.with);
+      const changedProperties: CouchbaseClusterChangeRecreateIndex['changedProperties'] =
+        [];
 
-      if (indexHaveChanged) {
+      if (!areSameIndexKeys(requestedIndex.keys, currentIndex.keys)) {
+        changedProperties.push('keys');
+      }
+
+      if (
+        normalizeWhereClause(requestedIndex.where) !==
+        normalizeWhereClause(currentIndex.where)
+      ) {
+        changedProperties.push('where');
+      }
+
+      if (!areSameIndexOptions(requestedIndex.with, currentIndex.with)) {
+        changedProperties.push('with');
+      }
+
+      if (changedProperties.length > 0) {
         return {
           type: 'recreateIndex',
           name: b,
           bucket: bucketName,
           scope: scopeName,
           collection: collectionName,
+          changedProperties,
           ...requestedIndex,
         } as const;
       }

@@ -129,6 +129,11 @@ export type CouchbaseClusterChangeRecreateIndex = {
   where?: string;
   numReplicas?: number;
   with?: QueryIndexWithClause;
+  /**
+   * The properties whose declared value differs from the live index, for
+   * observability: a recreation drops the index, review it before applying.
+   */
+  changedProperties?: Array<'keys' | 'where' | 'with'>;
 };
 
 export type CouchbaseClusterChangeCreateUser = {

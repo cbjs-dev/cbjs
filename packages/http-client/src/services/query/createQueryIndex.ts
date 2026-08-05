@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Keyspace,
-  keyspacePath,
-  QueryIndexWithClause,
-  quoteIdentifier,
-} from '@cbjsdev/shared';
+import { Keyspace } from '@cbjsdev/shared';
 
 import { CouchbaseHttpApiConfig } from '../../types.js';
 import { ApiQueryResponseBody } from '../../types/Api/index.js';
 import { createHttpError } from '../../utils/createHttpError.js';
+import {
+  buildCreateQueryIndexStatement,
+  CreateQueryIndexStatementConfig,
+} from './buildCreateQueryIndexStatement.js';
 import { requestExecuteStatement } from './requests/requestExecuteStatement.js';
 
 /**
@@ -32,52 +31,14 @@ export async function createQueryIndex(
   params: CouchbaseHttpApiConfig,
   indexName: string,
   keyspace: Keyspace,
-  config: {
-    /**
-     * The document keys to index.
-     */
-    keys: string[];
-    /**
-     * Only index documents that match this where clause.
-     */
-    where?: string;
-    /**
-     * The number of replicas of this index that should be created.
-     */
-    numReplicas?: number;
-    /**
-     * Options of the `WITH` clause, such as the vector index options.
-     *
-     * `num_replica` is overridden by {@link numReplicas}, when defined.
-     */
-    with?: QueryIndexWithClause;
-  },
+  config: CreateQueryIndexStatementConfig,
   options?: CreateQueryIndexOptions
 ): Promise<CreateQueryIndexResponse['results']> {
-  const { keys, where, numReplicas, with: withClause } = config;
   const { deferred = false } = options ?? {};
 
-  let query = `CREATE INDEX ${quoteIdentifier(indexName)}
-     ON ${keyspacePath(keyspace)}
-       (${keys.join(',')})`;
-
-  if (where) {
-    query += ` WHERE ${where} `;
-  }
-
-  const withConfig: QueryIndexWithClause = { ...withClause };
-
-  if (numReplicas !== undefined) {
-    withConfig.num_replica = numReplicas;
-  }
-
-  if (deferred) {
-    withConfig.defer_build = deferred;
-  }
-
-  if (Object.keys(withConfig).length > 0) {
-    query += ` WITH ${JSON.stringify(withConfig)} `;
-  }
+  const query = buildCreateQueryIndexStatement(indexName, keyspace, config, {
+    deferred,
+  });
 
   const response = await requestExecuteStatement(params, query);
 
