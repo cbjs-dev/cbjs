@@ -19,6 +19,7 @@ import { getRandomId, OptionalProps } from '@cbjsdev/shared';
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
+import { retryWhileRebalancing } from './retryWhileRebalancing.js';
 
 export type IndexFixtureParams = CreateQueryIndexOptions & {
   /**
@@ -72,9 +73,9 @@ export class IndexFixture extends FixtureFunctionValue<
       } '${bucketName}'`
     );
 
-    await serverTestContext.c
-      .queryIndexes()
-      .createIndex(bucketName, this.params.name, fields, opts);
+    await retryWhileRebalancing(() =>
+      serverTestContext.c.queryIndexes().createIndex(bucketName, indexName, fields, opts)
+    );
 
     if (!opts.deferred && timeout > 0) {
       await serverTestContext.c
