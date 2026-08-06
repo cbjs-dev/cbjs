@@ -2,6 +2,7 @@ import {
   AnyCluster,
   BucketSettings,
   CollectionSpec,
+  FeatureNotAvailableError,
   ISearchIndex,
   ScopeSpec,
   SearchIndex,
@@ -32,6 +33,7 @@ export type BuildCouchbaseClusterConfigOptions = {
  *
  * @remarks
  * - Search indexes are keyed by their actual index name (the cluster has no concept of config aliases).
+ * - Scope search indexes are omitted on servers that don't support them (< 7.6).
  * - User passwords are never returned by the server; password-related diff changes will always
  *   be emitted when the target config specifies a password.
  * - Query index `numReplicas` and `with` options are read from `system:indexes`, since the
@@ -95,7 +97,7 @@ async function buildScopeEntry(
         buildCollectionEntry(cluster, bucketName, scope.name, col, indexOptions)
       )
     ),
-    cluster.bucket(bucketName).scope(scope.name).searchIndexes().getAllIndexes(),
+    getScopeSearchIndexes(cluster, bucketName, scope.name),
   ]);
 
   const config: CouchbaseClusterScopeConfig = {
@@ -109,6 +111,28 @@ async function buildScopeEntry(
   }
 
   return [scope.name, config];
+}
+
+/**
+ * Scope level search indexes only exist since server 7.6 - older servers answer the
+ * management endpoint with a 404, which the SDK reports as `FeatureNotAvailableError`.
+ * Such a cluster simply has no scope search index to report.
+ */
+async function getScopeSearchIndexes(
+  cluster: AnyCluster,
+  bucketName: string,
+  scopeName: string
+): Promise<SearchIndex[]> {
+  try {
+    return await cluster
+      .bucket(bucketName)
+      .scope(scopeName)
+      .searchIndexes()
+      .getAllIndexes();
+  } catch (err) {
+    if (err instanceof FeatureNotAvailableError) return [];
+    throw err;
+  }
 }
 
 async function buildCollectionEntry(
