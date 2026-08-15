@@ -56,7 +56,6 @@ describe('getIndexServiceStatus', { timeout: 40_000, retry: 2 }, async () => {
           scope: serverTestContext.scope.name,
           collection: serverTestContext.collection.name,
           // Only the index service reports those.
-          vectorPos: -1,
           defnId: expect.any(BigInt),
           progress: expect.any(Number),
         })

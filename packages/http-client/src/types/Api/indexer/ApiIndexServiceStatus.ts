@@ -66,8 +66,10 @@ export type ApiIndexServiceIndexStatus = {
   /**
    * Position of the vector expression within `secExprs`, `-1` when the index
    * indexes no vector.
+   *
+   * Absent on a server that knows no vector index, such as 7.6.
    */
-  vectorPos: number;
+  vectorPos?: number;
   with?: ApiIndexServiceIndexOptions;
   status: 'Ready' | 'Created' | 'Building' | 'Error' | (string & NonNullable<unknown>);
   /**
