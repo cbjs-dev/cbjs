@@ -18,7 +18,7 @@ import { CreatePrimaryQueryIndexOptions } from '@cbjsdev/cbjs';
 import { CouchbaseTestContext } from '../../../extendedTests/createCouchbaseTest.js';
 import { FixtureFunctionValue } from '../../FixtureFunctionValue.js';
 import { FixtureContext } from '../../types.js';
-import { retryWhileRebalancing } from './retryWhileRebalancing.js';
+import { retryWhileClusterCatchesUp } from './retryWhileClusterCatchesUp.js';
 
 export type PrimaryIndexFixtureParams = CreatePrimaryQueryIndexOptions & {
   bucketName: string;
@@ -61,7 +61,7 @@ export class PrimaryIndexFixture extends FixtureFunctionValue<
 
     const indexName = opts.name ?? '#primary';
 
-    await retryWhileRebalancing(() =>
+    await retryWhileClusterCatchesUp(() =>
       serverTestContext.c.queryIndexes().createPrimaryIndex(bucketName, {
         numReplicas: 0,
         ...opts,
