@@ -47,6 +47,13 @@ describe
           retryInterval: 2_000,
         }
       );
+
+      // The index only serves queries once it is online. A query that finds no index
+      // fails, and a transaction retries its attempt on such a failure until it expires,
+      // so an index left building turns into a transaction expiry, minutes later.
+      await serverTestContext.collection
+        .queryIndexes()
+        .watchIndexes([], 15_000, { watchPrimary: true });
     });
 
     test('should work with a simple transaction', async function ({
