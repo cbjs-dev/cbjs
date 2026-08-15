@@ -18,7 +18,7 @@ import fetch, { RequestInit, Response } from 'node-fetch';
 
 import { CapellaCaCertPem } from '../constants.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
-import { getPort, PortService } from './ports.js';
+import { getPort, PortTarget } from './ports.js';
 
 /**
  *
@@ -35,7 +35,7 @@ export async function apiPOST(
   { hostname, credentials, secure, timeout, certificate }: CouchbaseHttpApiConfig,
   pathname: string,
   body?: RequestInit['body'],
-  portService?: PortService,
+  portService?: PortTarget,
   query?: Record<string, string> | URLSearchParams,
   headers: Record<string, string> = {}
 ): Promise<Response> {

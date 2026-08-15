@@ -109,6 +109,65 @@ declare function getRebalanceProgress(
 ): Promise<ApiRebalanceProgress>;
 ```
 
+### getNodeServices
+
+Retrieves the ports published by each node, per service.  
+This is how you reach a service that doesn't run on the node you are connected to, or that doesn't listen on its standard port.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, ApiNodeServices } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getNodeServices(
+  apiConfig: Omit<CouchbaseHttpApiConfig, 'poolNodes'>, 
+  poolName?: string
+): Promise<ApiNodeServices>;
+```
+
+Use `extractNodeServiceAddresses` to turn that response into addresses. A node is reported through its `alternateAddresses.external` entry when it has one publishing that service, which on Capella is the only address resolvable from outside the deployment.
+
+```ts twoslash
+import { ApiNodeServices, NodeServiceAddress } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function extractNodeServiceAddresses(
+  nodeServices: ApiNodeServices, 
+  service: string, 
+  defaultHostname: string
+): NodeServiceAddress[];
+```
+
+### getIndexServiceAddresses
+
+Retrieves the address of the HTTP API of every node running the index service.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, NodeServiceAddress } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getIndexServiceAddresses(
+  apiConfig: Omit<CouchbaseHttpApiConfig, 'poolNodes'>, 
+  poolName?: string
+): Promise<NodeServiceAddress[]>;
+```
+
+### getIndexServiceStatus
+
+Retrieves the status of every index of the cluster, as reported by the index service itself.  
+Prefer [`getQueryIndexStatus`](#getqueryindexstatus) unless you need what only the index service reports : the number of centroids an IVF vector index has been trained with (`numCentroids`), the options it was created with (`with`) and whether it indexes a vector (`isVectorIndex`).
+
+The node running the index service is looked up for you, and its API is reached on its own port.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, ApiIndexServiceStatus } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getIndexServiceStatus(
+  apiConfig: Omit<CouchbaseHttpApiConfig, 'poolNodes'>, 
+  poolName?: string
+): Promise<ApiIndexServiceStatus>;
+```
+
+::: warning
+The index service API lives on its own port, `9102` / `19102`, and not on the management port. On Capella, nodes do publish it, but reaching it depends on your network : the port must be allowed by your allow list, VPC peering or private endpoint. When no node publishes that API on the network you reached the cluster from, the call throws.
+:::
+
 ## Analytics
 
 ### createAnalyticsLink
@@ -325,6 +384,20 @@ declare function getQueryIndexes(
   params: CouchbaseHttpApiConfig, 
   options?: Partial<Keyspace>
 ): Promise<HttpClientQueryIndex[]>;
+```
+
+### getQueryIndexStatus
+
+Return the status of the index, as reported by the cluster manager : its progress, the nodes it lives on, its partitions and its replicas.
+
+```ts twoslash
+import { CouchbaseHttpApiConfig, Keyspace, ApiQueryIndexStatus } from '@cbjsdev/http-client';
+// ---cut-before---
+declare function getQueryIndexStatus(
+  apiConfig: CouchbaseHttpApiConfig,
+  indexName: string,
+  keyspace: Keyspace
+): Promise<ApiQueryIndexStatus>;
 ```
 
 ### getQueryIndexStats

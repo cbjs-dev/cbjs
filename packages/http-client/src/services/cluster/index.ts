@@ -22,6 +22,9 @@ export * from './setIndexerSettings.js';
 export * from './serverFeature.js';
 export * from './getClusterRootCertificates.js';
 export * from './getRebalanceProgress.js';
+export * from './getNodeServices.js';
+export * from './getIndexServiceAddresses.js';
+export * from './getIndexServiceStatus.js';
 
 export type { InitClusterParams } from './requests/requestInitCluster.js';
 export type { CouchbaseIndexerSettings } from './requests/requestSetIndexerSettings.js';

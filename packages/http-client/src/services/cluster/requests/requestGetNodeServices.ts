@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'node-fetch';
 
-export { ApiQueryIndexStats } from './ApiQueryIndexStats.js';
-export {
-  ApiIndexServiceIndexOptions,
-  ApiIndexServiceIndexStatus,
-  ApiIndexServiceStatus,
-} from './ApiIndexServiceStatus.js';
+import { CouchbaseHttpApiConfig } from '../../../types.js';
+import { apiGET } from '../../../utils/apiGET.js';
+
+export async function requestGetNodeServices(
+  apiParams: Omit<CouchbaseHttpApiConfig, 'poolNodes'>,
+  poolName = 'default'
+) {
+  return await apiGET(apiParams, `/pools/${poolName}/nodeServices`);
+}

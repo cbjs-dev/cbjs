@@ -15,4 +15,5 @@
  */
 
 export * from './ApiNode.js';
+export * from './ApiNodeServices.js';
 export * from './ApiPool.js';

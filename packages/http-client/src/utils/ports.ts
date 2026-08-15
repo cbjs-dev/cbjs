@@ -36,7 +36,18 @@ const securePorts = {
 
 export type PortService = keyof typeof unsecurePorts;
 
-export function getPort(service: PortService, secure = false): number {
+/**
+ * Port to target : either a service using its standard port, or an explicit port
+ * number, required when reaching a node that publishes non-standard ports, such
+ * as a Capella node reached through its external alternate address.
+ */
+export type PortTarget = PortService | number;
+
+export function getPort(service: PortTarget, secure = false): number {
+  if (typeof service === 'number') {
+    return service;
+  }
+
   if (secure) {
     return securePorts[service];
   }

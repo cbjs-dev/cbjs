@@ -19,7 +19,7 @@ import fetch, { RequestInit } from 'node-fetch';
 import { CapellaCaCertPem } from '../constants.js';
 import { getHttpClientLogger } from '../logger.js';
 import { CouchbaseHttpApiConfig } from '../types.js';
-import { getPort, PortService } from './ports.js';
+import { getPort, PortTarget } from './ports.js';
 
 /**
  *
@@ -31,7 +31,7 @@ import { getPort, PortService } from './ports.js';
 export async function apiGET(
   { hostname, credentials, secure, timeout, certificate }: CouchbaseHttpApiConfig,
   pathname: string,
-  portService?: PortService,
+  portService?: PortTarget,
   query?: Record<string, string> | URLSearchParams
 ) {
   const base64Credentials = Buffer.from(

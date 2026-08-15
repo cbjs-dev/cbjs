@@ -22,5 +22,26 @@ export * from './types/HttpClient/index.js';
 
 export * from './logger.js';
 
+/**
+ * Low level request helpers, to reach an endpoint this package covers with no
+ * service of its own. They apply the same TLS trust as every service : without
+ * them, a request to Capella fails its certificate verification, which `fetch`
+ * reports as an opaque `TypeError: fetch failed`.
+ */
+export { apiDELETE } from './utils/apiDELETE.js';
+export { apiGET } from './utils/apiGET.js';
+export { apiPOST } from './utils/apiPOST.js';
+export { getPort, PortService, PortTarget } from './utils/ports.js';
+
+export {
+  extractNodeServiceAddresses,
+  NodeServiceAddress,
+} from './utils/extractNodeServiceAddresses.js';
+
+/**
+ * Root certificate of Capella, which is not part of the trust store of Node.
+ */
+export { CapellaCaCertPem } from './constants.js';
+
 export { CouchbaseHttpApiConfig } from './types.js';
 export { Keyspace } from '@cbjsdev/shared';
