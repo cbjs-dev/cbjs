@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, it, vi } from 'vitest';
 
 import { retryWhileClusterCatchesUp } from './retryWhileClusterCatchesUp.js';
 
@@ -31,7 +31,9 @@ function keyspaceNotFoundError() {
 }
 
 describe('retryWhileClusterCatchesUp', () => {
-  it('should retry while the query service ignores the fresh keyspace', async () => {
+  it('should retry while the query service ignores the fresh keyspace', async ({
+    expect,
+  }) => {
     const fn = vi
       .fn()
       .mockRejectedValueOnce(keyspaceNotFoundError())
@@ -41,7 +43,7 @@ describe('retryWhileClusterCatchesUp', () => {
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it('should retry while a rebalance is in progress', async () => {
+  it('should retry while a rebalance is in progress', async ({ expect }) => {
     const fn = vi
       .fn()
       .mockRejectedValueOnce(new Error('Rebalance in progress'))
@@ -51,7 +53,7 @@ describe('retryWhileClusterCatchesUp', () => {
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it('should throw any other error right away', async () => {
+  it('should throw any other error right away', async ({ expect }) => {
     const fn = vi.fn().mockRejectedValue(new Error('index already exists'));
 
     await expect(retryWhileClusterCatchesUp(fn)).rejects.toThrowError(
