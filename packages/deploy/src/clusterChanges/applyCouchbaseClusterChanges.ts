@@ -14,7 +14,7 @@ import {
   waitForUser,
   whoami,
 } from '@cbjsdev/http-client';
-import { waitFor } from '@cbjsdev/shared';
+import { isRebalanceInProgressError, waitFor } from '@cbjsdev/shared';
 
 import {
   CouchbaseClusterChange,
@@ -99,12 +99,25 @@ export async function applyCouchbaseClusterChanges(
   for (const change of changes) {
     const operation = operations[change.type];
 
-    // We retry the operation only in case of internal failure - often the server is getting
-    // overwhelmed in CI
-    await retry(() => operation(cluster, apiConfig, change as never, resolvedOptions), {
-      retries: 3,
-      delay: 5_000,
-    });
+    // Creating or dropping a bucket puts the cluster into a rebalance, during which the
+    // indexer rejects every index mutation. That can outlast the generic retry window by
+    // a lot, so it gets a budget of its own instead of eating the generic attempts.
+    await retry(
+      () =>
+        // We retry the operation only in case of internal failure - often the server is
+        // getting overwhelmed in CI
+        retry(() => operation(cluster, apiConfig, change as never, resolvedOptions), {
+          retries: 3,
+          delay: 5_000,
+          retryIf: (err) => !isRebalanceInProgressError(err),
+        }),
+      {
+        retries: 30,
+        delay: 5_000,
+        timeout: 180_000,
+        retryIf: isRebalanceInProgressError,
+      }
+    );
   }
 }
 

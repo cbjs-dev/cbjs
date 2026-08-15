@@ -18,3 +18,4 @@ export * from './identifier.js';
 export * from './getApiConfig.js';
 export * from './getConnectionParams.js';
 export * from './getRoleScope.js';
+export * from './isRebalanceInProgressError.js';
