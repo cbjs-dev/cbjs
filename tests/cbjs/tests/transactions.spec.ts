@@ -27,11 +27,12 @@ import {
   KeyValueErrorContext,
   ParsingFailureError,
   RawBinaryTranscoder,
+  TransactionExpiredError,
   TransactionFailedError,
   TransactionOperationFailedError,
 } from '@cbjsdev/cbjs';
 import { ServerFeatures } from '@cbjsdev/http-client';
-import { getConnectionParams, invariant, waitFor } from '@cbjsdev/shared';
+import { getConnectionParams, invariant, sleep, waitFor } from '@cbjsdev/shared';
 import { createCouchbaseTest } from '@cbjsdev/vitest';
 
 import { serverSupportsFeatures } from '../utils/serverFeature.js';
@@ -479,6 +480,40 @@ describe
           content: { foo: 'bar' },
         })
       );
+    });
+
+    test('should report the lambda error when the rollback fails as well', async function ({
+      serverTestContext,
+      expect,
+      useDocumentKey,
+    }) {
+      const testDocIns = useDocumentKey();
+
+      // A query switches the transaction to query mode, where the rollback is a
+      // `ROLLBACK` statement - one the query service refuses to run once the
+      // transaction has expired. The rollback failure must not hide the lambda error.
+      const error = await serverTestContext.c
+        .transactions()
+        .run(
+          async (attempt) => {
+            await attempt.query(
+              `SELECT RAW 1 FROM ${serverTestContext.getKeyspacePath()} LIMIT 1`
+            );
+
+            await attempt.insert(serverTestContext.co, testDocIns, { foo: 'baz' });
+
+            await sleep(2_000);
+
+            throw new Error('application failure');
+          },
+          { timeout: 1_000 }
+        )
+        .catch((err: unknown) => err);
+
+      expect(error).toBeInstanceOf(TransactionFailedError);
+      invariant(error instanceof TransactionFailedError);
+      expect(error.message).toEqual('application failure');
+      expect(error.rollbackError).toBeInstanceOf(TransactionExpiredError);
     });
 
     // This tests fails for a mysterious reason. The transaction commit never returns.

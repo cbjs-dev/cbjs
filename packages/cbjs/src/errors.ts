@@ -1133,6 +1133,12 @@ export class TransactionOperationFailedError extends CouchbaseError {
  */
 export class TransactionFailedError extends CouchbaseError {
   declare cause: Error;
+
+  /**
+   * The error raised by the rollback of the attempt, when the rollback failed as well.
+   */
+  rollbackError?: Error;
+
   constructor(reason?: string, cause?: Error, context?: ServiceErrorContext) {
     super(reason ?? `transaction failed`, cause, context);
   }
@@ -1145,6 +1151,12 @@ export class TransactionFailedError extends CouchbaseError {
  */
 export class TransactionExpiredError extends CouchbaseError {
   declare cause: Error;
+
+  /**
+   * The error raised by the rollback of the attempt, when the rollback failed as well.
+   */
+  rollbackError?: Error;
+
   constructor(reason: string, cause?: Error) {
     super(`transaction expired${appendReason(reason)}`, cause);
   }
@@ -1158,6 +1170,12 @@ export class TransactionExpiredError extends CouchbaseError {
  */
 export class TransactionCommitAmbiguousError extends CouchbaseError {
   declare cause: Error;
+
+  /**
+   * The error raised by the rollback of the attempt, when the rollback failed as well.
+   */
+  rollbackError?: Error;
+
   constructor(reason: string, cause?: Error) {
     super(`transaction commit ambiguous${appendReason(reason)}`, cause);
   }

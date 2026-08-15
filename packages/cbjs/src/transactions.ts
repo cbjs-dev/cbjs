@@ -1683,7 +1683,12 @@ export class Transactions<T extends CouchbaseClusterTypes> {
       try {
         await logicFn(txn);
       } catch (e) {
-        await txn._rollback();
+        // The rollback runs against a transaction that is already doomed and can fail on
+        // its own - it expires like any other stage. Throwing that failure would replace
+        // the error that doomed the attempt, which is the only one worth reporting, so it
+        // is attached to it instead.
+        const rollbackError = await rollbackQuietly(txn);
+
         if (e instanceof TransactionOperationFailedError) {
           const transformedError = new TransactionFailedError(
             e.message,
@@ -1691,18 +1696,18 @@ export class Transactions<T extends CouchbaseClusterTypes> {
             e.context
           );
           swapStack(transformedError, e);
-          throw transformedError;
+          throw withRollbackError(transformedError, rollbackError);
         } else if (
           e instanceof TransactionExpiredError ||
           e instanceof TransactionCommitAmbiguousError
         ) {
-          throw e;
+          throw withRollbackError(e, rollbackError);
         }
 
         invariant(e instanceof Error);
         const transformedError = new TransactionFailedError(e.message, e);
         swapStack(transformedError, e);
-        throw transformedError;
+        throw withRollbackError(transformedError, rollbackError);
       }
 
       try {
@@ -1718,6 +1723,34 @@ export class Transactions<T extends CouchbaseClusterTypes> {
       }
     }
   }
+}
+
+/**
+ * Roll the attempt back, returning the error instead of throwing it.
+ */
+async function rollbackQuietly<T extends CouchbaseClusterTypes>(
+  txn: TransactionAttemptContext<T>
+): Promise<Error | undefined> {
+  try {
+    await txn._rollback();
+    return undefined;
+  } catch (err) {
+    invariant(err instanceof Error);
+    return err;
+  }
+}
+
+function withRollbackError<
+  E extends
+    | TransactionFailedError
+    | TransactionExpiredError
+    | TransactionCommitAmbiguousError,
+>(error: E, rollbackError: Error | undefined): E {
+  if (rollbackError) {
+    error.rollbackError = rollbackError;
+  }
+
+  return error;
 }
 
 function swapStack(e1: Error, e2: Error) {
