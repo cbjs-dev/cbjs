@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IndexStorageMode } from '@cbjsdev/shared';
+
 /**
  * Options an index was created with, as reported by the index service.
  *
@@ -53,7 +55,12 @@ export type ApiIndexServiceIndexStatus = {
    * Present on partial indexes only.
    */
   where?: string;
-  indexType: 'plasma' | 'memory_optimized' | (string & NonNullable<unknown>);
+  /**
+   * Storage engine backing the index, such as `plasma`.
+   *
+   * The management API reports the very same value under the name `storageMode`.
+   */
+  indexType: IndexStorageMode;
   isPrimary?: boolean;
   isVectorIndex?: boolean;
   /**

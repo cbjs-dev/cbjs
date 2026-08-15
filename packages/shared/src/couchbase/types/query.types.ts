@@ -17,6 +17,24 @@
 export type QueryScanConsistencyName = 'not_bounded' | 'request_plus';
 
 /**
+ * Storage engine backing the global secondary indexes of the cluster.
+ *
+ * This is a cluster-wide setting - `storageMode` of `/settings/indexes` - that can only
+ * be changed while the cluster has no index node. Enterprise Edition offers `plasma` and
+ * `memory_optimized`, while Community Edition only has `forestdb`.
+ *
+ * Do not confuse it with the storage backend of a bucket, which is either `couchstore`
+ * or `magma` : the two settings are unrelated and share no value.
+ *
+ * Any string is accepted : the known values are only there to help you.
+ */
+export type IndexStorageMode =
+  | 'plasma'
+  | 'memory_optimized'
+  | 'forestdb'
+  | (string & NonNullable<unknown>);
+
+/**
  * Similarity - or distance - function used by a vector index.
  *
  * The server stores the value lowercased, whichever case you use.

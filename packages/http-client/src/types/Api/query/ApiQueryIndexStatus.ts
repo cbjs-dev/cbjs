@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StorageBackendName } from '@cbjsdev/shared';
+import { IndexStorageMode } from '@cbjsdev/shared';
 
 export type ApiQueryIndexStatus = {
-  storageMode: StorageBackendName;
+  /**
+   * Storage engine backing the index, such as `plasma`.
+   *
+   * The index service reports the very same value under the name `indexType`.
+   */
+  storageMode: IndexStorageMode;
   partitionMap: Record<string, number[]>;
   numPartition: number;
   partitioned: boolean;
