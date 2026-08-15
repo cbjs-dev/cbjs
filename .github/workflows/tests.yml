@@ -15,91 +15,28 @@ on:
   push:
     branches:
       - main
+    # Evaluated against the diff of the *whole push*, not just its head commit, so a
+    # push mixing `docs(…)` and code commits still runs. A push that touches nothing
+    # but these paths creates no run at all. `[skip ci]` in a commit message is
+    # honoured natively, on top of this.
+    paths-ignore:
+      - 'docs/**'
+      - 'assets/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'latest-upstream-commit'
   issue_comment:
     types: [created]
 
 jobs:
-  # Tests are skipped only when *every* commit since the last run that actually
-  # executed them is a docs commit. Looking at the head commit alone would skip a
-  # push whose last commit is `docs(…)` but which also carries code changes.
-  check:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-    outputs:
-      should-run: ${{ steps.check.outputs.should-run }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check commits since the last run
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ github.ref_name }}
-          HEAD_SHA: ${{ github.sha }}
-          BEFORE_SHA: ${{ github.event.before }}
-          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        run: |
-          set -euo pipefail
-
-          decide() {
-            echo "$2"
-            echo "should-run=$1" >> "$GITHUB_OUTPUT"
-            exit 0
-          }
-
-          if grep -qF 'skip ci' <<< "$HEAD_COMMIT_MESSAGE"; then
-            decide false "Head commit asks to skip CI."
-          fi
-
-          # Base = the commit tested by the most recent run of this workflow on this
-          # branch that actually ran. Runs that were skipped or cancelled have a
-          # conclusion of `skipped`/`cancelled`, the current run has none yet.
-          base="$(gh run list \
-            --workflow tests.yml \
-            --branch "$BRANCH" \
-            --limit 50 \
-            --json headSha,conclusion \
-            --jq 'map(select(.conclusion == "success" or .conclusion == "failure")) | .[0].headSha // empty')"
-
-          if [[ -z "$base" ]] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
-            # No known previous run, or its commit is gone (force push): fall back
-            # to the range of this push.
-            base="$BEFORE_SHA"
-          fi
-
-          if [[ -z "$base" ]] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
-            decide true "No usable base commit."
-          fi
-
-          subjects="$(git log --format=%s "${base}..${HEAD_SHA}")"
-
-          if [[ -z "$subjects" ]]; then
-            decide true "No new commit since ${base}."
-          fi
-
-          echo "Commits since ${base}:"
-          echo "$subjects"
-
-          while IFS= read -r subject; do
-            if [[ "$subject" != docs* ]]; then
-              decide true "Non-docs commit found: ${subject}"
-            fi
-          done <<< "$subjects"
-
-          decide false "Every commit since ${base} is a docs commit."
-
   test:
-    needs: [check]
     if: >
-      always() &&
-      ((github.event_name == 'push' && needs.check.outputs.should-run == 'true') ||
-      (github.event.issue.pull_request && startsWith(github.event.comment.body, '/test') && github.actor == 'JesusTheHun') ||
-      github.event_name == 'workflow_dispatch')
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/test') &&
+      github.actor == 'JesusTheHun')
     timeout-minutes: 30
     runs-on:
       labels: blacksmith-4vcpu-ubuntu-2404
@@ -135,7 +72,11 @@ jobs:
       CB_USER: Administrator
       CB_PASSWORD: password
     steps:
+      # `/test` on a pull request must check out the PR, not the default branch.
+      # An empty `ref` is checkout's own default, so push and dispatch are unchanged.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/merge', github.event.issue.number) || '' }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
