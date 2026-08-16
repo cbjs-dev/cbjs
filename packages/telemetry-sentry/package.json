@@ -1,6 +1,6 @@
 {
   "name": "@cbjsdev/telemetry-sentry",
-  "version": "1.31.0",
+  "version": "1.32.0",
   "description": "Report Cbjs observability (tracing) to Sentry.",
   "keywords": [
     "couchbase",
