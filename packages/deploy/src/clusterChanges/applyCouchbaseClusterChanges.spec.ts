@@ -1,6 +1,10 @@
 import { beforeEach, describe, it, vi } from 'vitest';
 
-import { CouchbaseHttpApiConfig, waitForCollection } from '@cbjsdev/http-client';
+import {
+  CouchbaseHttpApiConfig,
+  waitForBucket,
+  waitForCollection,
+} from '@cbjsdev/http-client';
 
 import { applyCouchbaseClusterChanges } from './applyCouchbaseClusterChanges.js';
 import { CouchbaseClusterChange } from './types.js';
@@ -27,7 +31,13 @@ const apiConfig: CouchbaseHttpApiConfig = {
   },
 };
 
-function createClusterMock(collections: { scope: string; name: string }[]) {
+function createClusterMock({
+  buckets = [],
+  collections = [],
+}: {
+  buckets?: string[];
+  collections?: { scope: string; name: string }[];
+} = {}) {
   const collectionManager = {
     getAllScopes: vi.fn().mockResolvedValue([
       {
@@ -39,11 +49,19 @@ function createClusterMock(collections: { scope: string; name: string }[]) {
     dropCollection: vi.fn().mockResolvedValue(undefined),
   };
 
+  const bucketManager = {
+    getAllBuckets: vi.fn().mockResolvedValue(buckets.map((name) => ({ name }))),
+    createBucket: vi.fn().mockResolvedValue(undefined),
+    dropBucket: vi.fn().mockResolvedValue(undefined),
+  };
+
   return {
     cluster: {
       bucket: vi.fn().mockReturnValue({ collections: () => collectionManager }),
+      buckets: () => bucketManager,
     },
     collectionManager,
+    bucketManager,
   };
 }
 
@@ -60,9 +78,9 @@ describe('applyCouchbaseClusterChanges', () => {
   it('should wait for the collection to be missing after dropping it', async ({
     expect,
   }) => {
-    const { cluster, collectionManager } = createClusterMock([
-      { scope: 'scope1', name: 'collection1' },
-    ]);
+    const { cluster, collectionManager } = createClusterMock({
+      collections: [{ scope: 'scope1', name: 'collection1' }],
+    });
 
     const changes: CouchbaseClusterChange[] = [
       {
@@ -92,7 +110,7 @@ describe('applyCouchbaseClusterChanges', () => {
   it('should wait for the collection to be visible after creating it', async ({
     expect,
   }) => {
-    const { cluster } = createClusterMock([]);
+    const { cluster } = createClusterMock();
 
     const changes: CouchbaseClusterChange[] = [
       {
@@ -110,6 +128,58 @@ describe('applyCouchbaseClusterChanges', () => {
       'bucket1',
       'scope1',
       'collection1',
+      expect.not.objectContaining({ expectMissing: true })
+    );
+  });
+
+  it('should wait for the bucket to be missing before recreating it', async ({
+    expect,
+  }) => {
+    const { cluster, bucketManager } = createClusterMock({ buckets: ['bucket1'] });
+
+    const changes: CouchbaseClusterChange[] = [
+      {
+        type: 'recreateBucket',
+        config: { name: 'bucket1', ramQuotaMB: 100 },
+      },
+    ];
+
+    await applyCouchbaseClusterChanges(cluster as never, apiConfig, changes);
+
+    expect(bucketManager.dropBucket).toHaveBeenCalledWith('bucket1', expect.anything());
+    expect(waitForBucket).toHaveBeenNthCalledWith(
+      1,
+      apiConfig,
+      'bucket1',
+      expect.objectContaining({ expectMissing: true })
+    );
+    expect(waitForBucket).toHaveBeenNthCalledWith(
+      2,
+      apiConfig,
+      'bucket1',
+      expect.not.objectContaining({ expectMissing: true })
+    );
+  });
+
+  it('should only wait for the bucket to be visible when recreating a missing bucket', async ({
+    expect,
+  }) => {
+    const { cluster, bucketManager } = createClusterMock();
+
+    const changes: CouchbaseClusterChange[] = [
+      {
+        type: 'recreateBucket',
+        config: { name: 'bucket1', ramQuotaMB: 100 },
+      },
+    ];
+
+    await applyCouchbaseClusterChanges(cluster as never, apiConfig, changes);
+
+    expect(bucketManager.dropBucket).not.toHaveBeenCalled();
+    expect(waitForBucket).toHaveBeenCalledTimes(1);
+    expect(waitForBucket).toHaveBeenCalledWith(
+      apiConfig,
+      'bucket1',
       expect.not.objectContaining({ expectMissing: true })
     );
   });

@@ -206,8 +206,11 @@ async function applyRecreateBucket(
     console.log(
       `${getTimePrefix()} Waiting for bucket "${change.config.name}" to be dropped`
     );
-    await waitForBucket(apiConfig, change.config.name, opts);
-    console.log(`${getTimePrefix()} Bucket "${change.config.name}" created`);
+    await waitForBucket(apiConfig, change.config.name, {
+      ...opts,
+      expectMissing: true,
+    });
+    console.log(`${getTimePrefix()} Bucket "${change.config.name}" dropped`);
   }
 
   console.log(`${getTimePrefix()} Requesting creation of bucket "${change.config.name}"`);
