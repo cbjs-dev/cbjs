@@ -326,7 +326,10 @@ async function applyDropCollection(
   console.log(
     `${getTimePrefix()} Waiting for collection "${change.bucket}.${change.scope}.${change.name}" to be dropped`
   );
-  await waitForCollection(apiConfig, change.bucket, change.scope, change.name, opts);
+  await waitForCollection(apiConfig, change.bucket, change.scope, change.name, {
+    ...opts,
+    expectMissing: true,
+  });
   console.log(
     `${getTimePrefix()} Collection "${change.bucket}.${change.scope}.${change.name}" dropped`
   );
