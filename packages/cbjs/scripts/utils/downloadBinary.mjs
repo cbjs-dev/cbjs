@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import https from 'node:https';
-import tar from 'tar';
+import { Parser } from 'tar';
 
 /**
  * Build the npm registry tarball URL for a given native package.
@@ -47,22 +47,22 @@ export async function downloadBinary(
           );
           return;
         }
-        
+
         let writeComplete;
 
-        const extractor = new tar.Parse({
-          onentry: (entry) => {
-            if (entry.path === binarySourcePath) {
-              const output = fs.createWriteStream(binaryDestinationPath);
-              writeComplete = new Promise((resolveWrite, rejectWrite) => {
-                output.on('finish', resolveWrite);
-                output.on('error', rejectWrite);
-              });
-              entry.pipe(output);
-            } else {
-              entry.resume();
-            }
-          },
+        const extractor = new Parser();
+
+        extractor.on('entry', (entry) => {
+          if (entry.path === binarySourcePath) {
+            const output = fs.createWriteStream(binaryDestinationPath);
+            writeComplete = new Promise((resolveWrite, rejectWrite) => {
+              output.on('finish', resolveWrite);
+              output.on('error', rejectWrite);
+            });
+            entry.pipe(output);
+          } else {
+            entry.resume();
+          }
         });
 
         extractor.on('error', reject);
