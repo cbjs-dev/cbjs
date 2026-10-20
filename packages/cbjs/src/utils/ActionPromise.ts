@@ -19,9 +19,7 @@ export abstract class ActionPromise<T> implements Promise<T> {
   then<TResult1 = T, TResult2 = never>(
     onFulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onRejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
+      ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): Promise<TResult1 | TResult2> {
     return this.execute().then(onFulfilled, onRejected);
   }

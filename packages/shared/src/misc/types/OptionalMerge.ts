@@ -28,5 +28,4 @@ export type OptionalMerge<
     M extends [infer Head, ...infer Rest extends ReadonlyArray<MergeableObject>] ?
       OptionalMerge<T & (Head | NonNullable<unknown>), Rest> :
     T
-  >
-;
+  >;

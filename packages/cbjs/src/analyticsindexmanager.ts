@@ -198,9 +198,7 @@ export interface ICouchbaseAnalyticsEncryptionSettings {
 /**
  * Includes information about an analytics remote links encryption.
  */
-export class CouchbaseAnalyticsEncryptionSettings
-  implements ICouchbaseAnalyticsEncryptionSettings
-{
+export class CouchbaseAnalyticsEncryptionSettings implements ICouchbaseAnalyticsEncryptionSettings {
   /**
    * Specifies what level of encryption should be used.
    */
@@ -241,8 +239,7 @@ export type AnalyticsLinkInput =
     LinkUnion extends infer Link extends ApiAnalyticsLink ?
       Omit<Link, 'type' | 'scope'> & { linkType: Link['type']; dataverse: string } :
       never :
-    never
-  ;
+    never;
 
 /**
  * Provides a base class for specifying options for an analytics link.

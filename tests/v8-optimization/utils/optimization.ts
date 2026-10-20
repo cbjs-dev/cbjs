@@ -23,8 +23,11 @@ export function getOptimizationFlags(
   fn: (...args: never[]) => unknown
 ): OptimizationFlag[] {
   // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  const getOptimizationStatus = new Function('fn', 'return %GetOptimizationStatus(fn);');
-  const status = getOptimizationStatus(fn) as number;
+  const getOptimizationStatus = new Function(
+    'fn',
+    'return %GetOptimizationStatus(fn);'
+  ) as (fn: unknown) => number;
+  const status = getOptimizationStatus(fn);
 
   return Object.entries(getFlagsMap())
     .filter(([, value]) => status & value)

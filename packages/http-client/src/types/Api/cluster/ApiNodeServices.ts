@@ -64,8 +64,7 @@ export type ApiNodeServicePorts = ApiKnownNodeServicePorts &
   Record<string, number | undefined>;
 
 export type ApiNodeServiceName =
-  | keyof ApiKnownNodeServicePorts
-  | (string & NonNullable<unknown>);
+  keyof ApiKnownNodeServicePorts | (string & NonNullable<unknown>);
 
 export type ApiNodeAlternateAddress = {
   hostname: string;

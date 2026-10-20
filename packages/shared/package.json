@@ -31,9 +31,9 @@
     "NOTICE"
   ],
   "devDependencies": {
-    "@ark/attest": "^0.25.0",
-    "typescript": "5.4.5",
-    "vitest": "4.1.12"
+    "@ark/attest": "^0.57.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
   },
   "publishConfig": {
     "access": "public",

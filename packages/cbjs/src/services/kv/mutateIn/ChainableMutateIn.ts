@@ -76,8 +76,7 @@ export class ChainableMutateIn<
     C,
     Key
   >,
-> implements Promise<MutateInResult<SpecResults>>
-{
+> implements Promise<MutateInResult<SpecResults>> {
   // Promise stuff
 
   [Symbol.toStringTag] = 'ChainableMutateIn';
@@ -88,9 +87,7 @@ export class ChainableMutateIn<
       | undefined
       | null,
     onRejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
+      ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): Promise<TResult1 | TResult2> {
     return this.execute().then(onFulfilled, onRejected);
   }

@@ -37,15 +37,15 @@
     "@cbjsdev/shared": "workspace:*",
     "json-bigint": "^1.0.0",
     "node-fetch": "^3.3.2",
-    "semver": "^7.6.0",
-    "ts-retry-promise": "^0.8.0"
+    "semver": "^7.8.5",
+    "ts-retry-promise": "^0.8.1"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.4",
-    "@types/semver": "^7.5.8",
-    "typescript": "5.4.5",
-    "vitest": "4.1.12",
-    "zod": "^3.22.4"
+    "@types/semver": "^7.8.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5",
+    "zod": "^4.6.7"
   },
   "publishConfig": {
     "access": "public",

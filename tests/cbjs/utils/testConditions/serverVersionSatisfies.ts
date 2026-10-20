@@ -33,9 +33,7 @@ export function serverVersionSatisfies(
 ): boolean;
 export function serverVersionSatisfies(
   ...args:
-    | [string]
-    | [string, ClusterReleaseFlavor]
-    | [string, string, ClusterReleaseFlavor]
+    [string] | [string, ClusterReleaseFlavor] | [string, string, ClusterReleaseFlavor]
 ): boolean {
   let expectedVersion, expectedBuild, expectedFlavor;
 

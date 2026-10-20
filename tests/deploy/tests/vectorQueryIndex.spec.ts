@@ -32,7 +32,7 @@ import { serverVersionSatisfies } from '../../cbjs/utils/testConditions/serverVe
  */
 describe.runIf(serverVersionSatisfies('>=8.0.0'))(
   'vector query index',
-  { sequential: true, timeout: 180_000 },
+  { concurrent: false, timeout: 180_000 },
   async () => {
     if (process.env.GITHUB_ACTIONS === 'true') {
       await sleep(15_000);

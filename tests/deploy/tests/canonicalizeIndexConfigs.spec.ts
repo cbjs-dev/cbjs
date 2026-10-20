@@ -25,36 +25,40 @@ import {
 } from '@cbjsdev/deploy';
 import { getApiConfig, getConnectionParams, getRandomId, sleep } from '@cbjsdev/shared';
 
-describe('canonicalizeIndexConfigs', { sequential: true, timeout: 180_000 }, async () => {
-  if (process.env.GITHUB_ACTIONS === 'true') {
-    await sleep(15_000);
-  }
+describe(
+  'canonicalizeIndexConfigs',
+  { concurrent: false, timeout: 180_000 },
+  async () => {
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      await sleep(15_000);
+    }
 
-  const bucketName = 'cbjs_' + getRandomId();
-  const scopeName = getRandomId();
-  const collectionName = getRandomId();
+    const bucketName = 'cbjs_' + getRandomId();
+    const scopeName = getRandomId();
+    const collectionName = getRandomId();
 
-  // Expressions the server re-prints from its AST: operands flipped, functions
-  // lowercased, paths quoted, precedence parenthesized, string literals requoted.
-  const clusterConfig: CouchbaseClusterConfig = {
-    users: [],
-    keyspaces: {
-      [bucketName]: {
-        ramQuotaMB: 100,
-        numReplicas: 0,
-        scopes: {
-          [scopeName]: {
-            collections: {
-              [collectionName]: {
-                indexes: {
-                  idx_expressions: {
-                    keys: [
-                      'type',
-                      'OBJECT_LENGTH(timeEntries) > 0',
-                      'body.email DESC',
-                      'DISTINCT ARRAY v.x FOR v IN arr END',
-                    ],
-                    where: "type = 'new' AND archived = false OR priority > 2",
+    // Expressions the server re-prints from its AST: operands flipped, functions
+    // lowercased, paths quoted, precedence parenthesized, string literals requoted.
+    const clusterConfig: CouchbaseClusterConfig = {
+      users: [],
+      keyspaces: {
+        [bucketName]: {
+          ramQuotaMB: 100,
+          numReplicas: 0,
+          scopes: {
+            [scopeName]: {
+              collections: {
+                [collectionName]: {
+                  indexes: {
+                    idx_expressions: {
+                      keys: [
+                        'type',
+                        'OBJECT_LENGTH(timeEntries) > 0',
+                        'body.email DESC',
+                        'DISTINCT ARRAY v.x FOR v IN arr END',
+                      ],
+                      where: "type = 'new' AND archived = false OR priority > 2",
+                    },
                   },
                 },
               },
@@ -62,123 +66,123 @@ describe('canonicalizeIndexConfigs', { sequential: true, timeout: 180_000 }, asy
           },
         },
       },
-    },
-  };
+    };
 
-  beforeAll(async () => {
-    const params = getConnectionParams();
-    const cluster = await connect(params.connectionString, params.credentials);
+    beforeAll(async () => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
 
-    const changes = getCouchbaseClusterChanges({}, clusterConfig);
-    await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
-      timeout: 45_000,
+      const changes = getCouchbaseClusterChanges({}, clusterConfig);
+      await applyCouchbaseClusterChanges(cluster, getApiConfig(false), changes, {
+        timeout: 45_000,
+      });
+
+      await cluster.closeGracefully();
     });
 
-    await cluster.closeGracefully();
-  });
-
-  afterAll(async () => {
-    const params = getConnectionParams();
-    const cluster = await connect(params.connectionString, params.credentials);
-    await cluster.buckets().dropBucket(bucketName);
-    await cluster.closeGracefully();
-    await sleep(10_000);
-  });
-
-  it('should report a phantom change without canonicalization', async ({ expect }) => {
-    const params = getConnectionParams();
-    const cluster = await connect(params.connectionString, params.credentials);
-
-    const currentConfig = await buildCouchbaseClusterConfig(cluster, {
-      buckets: [bucketName],
+    afterAll(async () => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
+      await cluster.buckets().dropBucket(bucketName);
+      await cluster.closeGracefully();
+      await sleep(10_000);
     });
 
-    const changes = getCouchbaseClusterChanges(currentConfig, clusterConfig);
+    it('should report a phantom change without canonicalization', async ({ expect }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
 
-    expect(changes).toContainEqual(
-      expect.objectContaining({ type: 'recreateIndex', name: 'idx_expressions' })
-    );
+      const currentConfig = await buildCouchbaseClusterConfig(cluster, {
+        buckets: [bucketName],
+      });
 
-    await cluster.closeGracefully();
-  });
+      const changes = getCouchbaseClusterChanges(currentConfig, clusterConfig);
 
-  it('should not report any change when the very same config is deployed again', async ({
-    expect,
-  }) => {
-    const params = getConnectionParams();
-    const cluster = await connect(params.connectionString, params.credentials);
+      expect(changes).toContainEqual(
+        expect.objectContaining({ type: 'recreateIndex', name: 'idx_expressions' })
+      );
 
-    const currentConfig = await buildCouchbaseClusterConfig(cluster, {
-      buckets: [bucketName],
+      await cluster.closeGracefully();
     });
 
-    const canonicalConfig = await canonicalizeIndexConfigs(
-      getApiConfig(false),
-      currentConfig,
-      clusterConfig
-    );
+    it('should not report any change when the very same config is deployed again', async ({
+      expect,
+    }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
 
-    const changes = getCouchbaseClusterChanges(currentConfig, canonicalConfig);
+      const currentConfig = await buildCouchbaseClusterConfig(cluster, {
+        buckets: [bucketName],
+      });
 
-    expect(changes.filter((c) => c.type.toLowerCase().includes('index'))).toEqual([]);
+      const canonicalConfig = await canonicalizeIndexConfigs(
+        getApiConfig(false),
+        currentConfig,
+        clusterConfig
+      );
 
-    await cluster.closeGracefully();
-  });
+      const changes = getCouchbaseClusterChanges(currentConfig, canonicalConfig);
 
-  it('should still report a change when the index definition really changed', async ({
-    expect,
-  }) => {
-    const params = getConnectionParams();
-    const cluster = await connect(params.connectionString, params.credentials);
+      expect(changes.filter((c) => c.type.toLowerCase().includes('index'))).toEqual([]);
 
-    const currentConfig = await buildCouchbaseClusterConfig(cluster, {
-      buckets: [bucketName],
+      await cluster.closeGracefully();
     });
 
-    const nextConfig = structuredClone(clusterConfig);
-    const nextIndexes =
-      nextConfig.keyspaces[bucketName].scopes[scopeName].collections[collectionName]
-        .indexes;
-    nextIndexes!.idx_expressions.where =
-      "type = 'archived' AND archived = false OR priority > 2";
+    it('should still report a change when the index definition really changed', async ({
+      expect,
+    }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
 
-    const canonicalConfig = await canonicalizeIndexConfigs(
-      getApiConfig(false),
-      currentConfig,
-      nextConfig
-    );
+      const currentConfig = await buildCouchbaseClusterConfig(cluster, {
+        buckets: [bucketName],
+      });
 
-    const changes = getCouchbaseClusterChanges(currentConfig, canonicalConfig);
+      const nextConfig = structuredClone(clusterConfig);
+      const nextIndexes =
+        nextConfig.keyspaces[bucketName].scopes[scopeName].collections[collectionName]
+          .indexes;
+      nextIndexes!.idx_expressions.where =
+        "type = 'archived' AND archived = false OR priority > 2";
 
-    expect(changes).toContainEqual(
-      expect.objectContaining({
-        type: 'recreateIndex',
-        name: 'idx_expressions',
-        changedProperties: ['where'],
-      })
-    );
+      const canonicalConfig = await canonicalizeIndexConfigs(
+        getApiConfig(false),
+        currentConfig,
+        nextConfig
+      );
 
-    await cluster.closeGracefully();
-  });
+      const changes = getCouchbaseClusterChanges(currentConfig, canonicalConfig);
 
-  it('should reject an invalid index definition at diff time', async ({ expect }) => {
-    const params = getConnectionParams();
-    const cluster = await connect(params.connectionString, params.credentials);
+      expect(changes).toContainEqual(
+        expect.objectContaining({
+          type: 'recreateIndex',
+          name: 'idx_expressions',
+          changedProperties: ['where'],
+        })
+      );
 
-    const currentConfig = await buildCouchbaseClusterConfig(cluster, {
-      buckets: [bucketName],
+      await cluster.closeGracefully();
     });
 
-    const nextConfig = structuredClone(clusterConfig);
-    const nextIndexes =
-      nextConfig.keyspaces[bucketName].scopes[scopeName].collections[collectionName]
-        .indexes;
-    nextIndexes!.idx_expressions.keys = ['OBJECT_LENGTH(timeEntries'];
+    it('should reject an invalid index definition at diff time', async ({ expect }) => {
+      const params = getConnectionParams();
+      const cluster = await connect(params.connectionString, params.credentials);
 
-    await expect(
-      canonicalizeIndexConfigs(getApiConfig(false), currentConfig, nextConfig)
-    ).rejects.toThrowError(`#idx_expressions`);
+      const currentConfig = await buildCouchbaseClusterConfig(cluster, {
+        buckets: [bucketName],
+      });
 
-    await cluster.closeGracefully();
-  });
-});
+      const nextConfig = structuredClone(clusterConfig);
+      const nextIndexes =
+        nextConfig.keyspaces[bucketName].scopes[scopeName].collections[collectionName]
+          .indexes;
+      nextIndexes!.idx_expressions.keys = ['OBJECT_LENGTH(timeEntries'];
+
+      await expect(
+        canonicalizeIndexConfigs(getApiConfig(false), currentConfig, nextConfig)
+      ).rejects.toThrowError(`#idx_expressions`);
+
+      await cluster.closeGracefully();
+    });
+  }
+);

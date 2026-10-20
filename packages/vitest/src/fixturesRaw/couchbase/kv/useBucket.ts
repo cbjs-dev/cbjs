@@ -50,7 +50,7 @@ export const useBucket = async (
       ...opts,
     };
 
-    logger?.debug(`Creating bucket '${bucketConfig.name}`, bucketConfig);
+    logger?.debug(bucketConfig, `Creating bucket '${bucketConfig.name}'`);
 
     await serverTestContext.c.buckets().createBucket(bucketConfig);
     await waitForBucket(apiConfig, bucketName);

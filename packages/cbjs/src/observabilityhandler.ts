@@ -58,8 +58,7 @@ import { getErrorMessage } from './utilities.js';
 class ObservableRequestHandlerTracerImpl {
   private readonly _tracer: RequestTracer;
   private readonly _getClusterLabelsFn:
-    | (() => Record<string, string | undefined>)
-    | undefined;
+    (() => Record<string, string | undefined>) | undefined;
   private readonly _recordRequestArguments: boolean;
   private readonly _recordSubDocSpecs: boolean;
   private _opType: OpType;
@@ -394,8 +393,7 @@ class ObservableRequestHandlerMeterImpl {
   private _serviceName: ServiceName;
   private readonly _meter: Meter;
   private readonly _getClusterLabelsFn:
-    | (() => Record<string, string | undefined>)
-    | undefined;
+    (() => Record<string, string | undefined>) | undefined;
   private readonly _ignoreTopLevelOp: boolean;
   private _startTime: HiResTime;
   private _attrs: Record<string, AttributeValue> = {};
@@ -514,15 +512,13 @@ class ObservableRequestHandlerMeterImpl {
  * @internal
  */
 type TracerImpl =
-  | ObservableRequestHandlerTracerImpl
-  | ObservableRequestHandlerNoOpTracerImpl;
+  ObservableRequestHandlerTracerImpl | ObservableRequestHandlerNoOpTracerImpl;
 
 /**
  * @internal
  */
 type MeterImpl =
-  | ObservableRequestHandlerMeterImpl
-  | ObservableRequestHandlerNoOpMeterImpl;
+  ObservableRequestHandlerMeterImpl | ObservableRequestHandlerNoOpMeterImpl;
 
 /**
  * @internal

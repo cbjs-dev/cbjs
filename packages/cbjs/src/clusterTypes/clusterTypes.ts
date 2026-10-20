@@ -48,15 +48,13 @@ export type { DocDef };
 export type CollectionDocDef<Instance> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
     KeyspaceDocDef<T, B, S, C> :
-  never
-;
+  never;
 
 // prettier-ignore
 export type CollectionDocDefMatchingKey<Instance, Key extends string> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
     DocDefMatchingKey<Key, T, B, S, C> :
-  never
-;
+  never;
 
 /**
  * Infer the keyspace from a Collection instance type.
@@ -73,8 +71,7 @@ export type CollectionKeyspace<Instance> =
         never :
       never :
     never :
-  never
-;
+  never;
 
 // prettier-ignore
 export type CollectionJsonDocDef<Instance> = JsonDocumentDef<CollectionDocDef<Instance>>;
@@ -86,15 +83,13 @@ export type CollectionJsonDocDef<Instance> = JsonDocumentDef<CollectionDocDef<In
 export type ExtractCollectionJsonDocDef<Instance, Key extends string> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
     JsonDocumentDef<DocDefMatchingKey<Key, T, B, S, C>> :
-  never
-;
+  never;
 
 // prettier-ignore
 export type ExtractCollectionJsonDocBody<Instance, Key extends string> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
     JsonDocumentDef<DocDefMatchingKey<Key, T, B, S, C>>['Body'] :
-  never
-;
+  never;
 
 export type ExtractCollectionJsonDocKey<Instance> = JsonDocumentDef<
   CollectionDocDef<Instance>
@@ -120,8 +115,7 @@ export type ClusterTypesWith<
 export type CollectionOptions<Instance> =
   Instance extends Collection<infer T, infer B, infer S, infer C> ?
     GetKeyspaceOptions<T, B, S, C> :
-  never
-;
+  never;
 
 export type AnyCluster = Cluster<any>;
 export type AnyBucket = Bucket<any, any>;
@@ -161,8 +155,7 @@ export type ClusterCollection<
         never :
       never :
     never :
-  never
-;
+  never;
 
 /**
  * Represent a union of {@link Scope} within a Bucket, and/or a subset of Scope.
@@ -183,8 +176,7 @@ export type ClusterScope<
         never :
       never :
     never :
-  never
-;
+  never;
 
 /**
  * Represent a union of {@link Bucket} within a cluster.
@@ -202,8 +194,7 @@ export type ClusterBucket<
         Bucket<T, KSB> :
       never :
     never :
-  never
-;
+  never;
 
 /**
  * Represent {@link Collection}s that may contain the given document definitions.
@@ -219,8 +210,7 @@ export type CollectionContainingDocDef<
         AllCollections :
       never :
     never :
-  never
-;
+  never;
 
 /**
  * Represent {@link Collection}s that may contain the given document bodies.

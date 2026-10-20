@@ -86,8 +86,7 @@ export class ChainableLookupIn<
   in out SpecResults extends ReadonlyArray<unknown>,
   out ThrowOnSpecError extends boolean,
   in out Def extends DocDef = CollectionDocDefMatchingKey<C, Key>,
-> implements Promise<LookupResult<Method, SpecResults, ThrowOnSpecError>>
-{
+> implements Promise<LookupResult<Method, SpecResults, ThrowOnSpecError>> {
   // Promise stuff
 
   [Symbol.toStringTag] = 'ChainableLookupIn';
@@ -100,9 +99,7 @@ export class ChainableLookupIn<
       | undefined
       | null,
     onRejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
+      ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): Promise<TResult1 | TResult2> {
     return this.execute().then(onFulfilled as never, onRejected);
   }

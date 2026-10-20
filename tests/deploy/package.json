@@ -14,14 +14,14 @@
     "@cbjsdev/deploy": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
-    "pino": "^8.16.2",
-    "pino-pretty": "^10.2.3",
-    "semver": "^7.5.4",
-    "vitest": "4.1.12"
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
+    "semver": "^7.8.5",
+    "vitest": "5.0.5"
   },
   "devDependencies": {
-    "@types/semver": "^7.5.8",
-    "typescript": "5.4.5",
-    "zod": "^3.22.4"
+    "@types/semver": "^7.8.0",
+    "typescript": "6.0.3",
+    "zod": "^4.6.7"
   }
 }

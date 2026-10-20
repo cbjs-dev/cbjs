@@ -17,7 +17,7 @@ import { describe, it } from 'vitest';
 
 import { CouchbaseCas } from '@cbjsdev/cbjs';
 
-import './expectCAS';
+import './expectCAS.js';
 
 describe('toBeZeroCas', () => {
   it('should succeed when given a zero cas', ({ expect }) => {

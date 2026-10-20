@@ -39,7 +39,7 @@ describe.runIf(
     ServerFeatures.ScopeSearch,
     ServerFeatures.ScopeSearchIndexManagement
   )
-)('applyCouchbaseClusterChanges', { sequential: true, timeout: 180_000 }, async () => {
+)('applyCouchbaseClusterChanges', { concurrent: false, timeout: 180_000 }, async () => {
   if (process.env.GITHUB_ACTIONS === 'true') {
     await sleep(15_000);
   }

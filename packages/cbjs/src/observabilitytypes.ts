@@ -373,8 +373,7 @@ export class ObservabilityInstruments {
   private readonly _tracer: RequestTracer;
   private readonly _meter: Meter;
   private readonly _getClusterLabelsFn:
-    | (() => Record<string, string | undefined>)
-    | undefined;
+    (() => Record<string, string | undefined>) | undefined;
 
   constructor(
     tracer: RequestTracer,

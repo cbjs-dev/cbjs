@@ -43,7 +43,7 @@ Dep direction: `shared` ← `http-client`/`cbjs` ← `deploy`/`vitest`/`tests`.
 
 ## Build / typecheck / test
 
-- **Node 22** (`.nvmrc` → `22.21.1`); vite 8 / vitest 4 require `^20.19 || >=22.12`.
+- **Node 22** (`.nvmrc` → `22.23.3`); lerna 10 requires `^22.22.2`, vitest 5 `^22.12`.
 - Per package: `npx tsc -p tsconfig.build.json` (emit) or `--noEmit` (typecheck).
   `tsconfig.build.json` excludes `*.spec.ts` / `*.spec-d.ts`. Root tsconfig is
   `strict` + `noEmitOnError`. **cbjs typecheck is large/slow — allow generous time.**
@@ -52,7 +52,7 @@ Dep direction: `shared` ← `http-client`/`cbjs` ← `deploy`/`vitest`/`tests`.
 - Unit tests: `packages/*/src/*.spec.ts`, vitest, `environment: node`, **no cluster** →
   `npx vitest run <file>`.
 - Type tests: `*.spec-d.ts` via `npx vitest --typecheck run` (`expectTypeOf`).
-  (vitest 4 doesn't forward `--typecheck` to project configs, so `vitest.shared.packages.ts`
+  (vitest 5 still doesn't forward `--typecheck` to project configs, so `vitest.shared.packages.ts`
   reads the flag off `process.argv` itself — keep that shim if you touch that config.)
 
 ## Upstream sync (core workflow)

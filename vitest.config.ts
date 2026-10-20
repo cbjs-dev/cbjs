@@ -10,10 +10,7 @@ export default defineConfig({
       setupFiles: 'list',
       hooks: 'stack',
     },
-    reporters: ['default', 'html'],
-    outputFile: {
-      html: './tests-report/index.html',
-    },
+    reporters: ['default', ['html', { outputDir: './tests-report' }]],
     coverage: {
       provider: 'v8',
       reportsDirectory: './tests-report/coverage',

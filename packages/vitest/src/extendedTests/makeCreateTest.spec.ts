@@ -47,7 +47,7 @@ describe('makeCreateTest', async () => {
     });
   });
 
-  describe.sequential('creator with fixtures', async () => {
+  describe('creator with fixtures', { concurrent: false }, async () => {
     const createTest = makeCreateTest(() =>
       Promise.resolve({
         fixtureContext: {},

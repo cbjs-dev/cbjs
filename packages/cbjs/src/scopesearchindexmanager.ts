@@ -84,8 +84,7 @@ export class ScopeSearchIndexManager<
   async getIndex(
     indexName: string,
     ...args:
-      | [GetSearchIndexOptions, NodeCallback<SearchIndex>?]
-      | [NodeCallback<SearchIndex>?]
+      [GetSearchIndexOptions, NodeCallback<SearchIndex>?] | [NodeCallback<SearchIndex>?]
   ): Promise<SearchIndex> {
     const [options = {}, callback] = resolveOptionsAndCallback(args);
 

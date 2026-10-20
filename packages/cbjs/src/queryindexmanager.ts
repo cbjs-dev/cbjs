@@ -674,8 +674,7 @@ export class CollectionQueryIndexManager<
     indexName: string,
     keys: string[],
     options?:
-      | Omit<CreateQueryIndexOptions, 'collectionName' | 'scopeName'>
-      | VoidNodeCallback,
+      Omit<CreateQueryIndexOptions, 'collectionName' | 'scopeName'> | VoidNodeCallback,
     callback?: VoidNodeCallback
   ): Promise<void> {
     if (options instanceof Function) {

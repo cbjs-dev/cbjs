@@ -15,7 +15,7 @@
  */
 import { describe, it } from 'vitest';
 
-import './expectMutationToken';
+import './expectMutationToken.js';
 
 describe('toBeMutationToken', () => {
   it('should succeed when given a mutation token', ({ expect }) => {

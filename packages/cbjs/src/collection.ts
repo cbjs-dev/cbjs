@@ -1127,8 +1127,7 @@ export class Collection<
   >(
     key: Key,
     callbackOrOptions?:
-      | GetAnyReplicaOptions<ThrowIfMissing>
-      | NodeCallback<GetReplicaResult<Def['Body']>>
+      GetAnyReplicaOptions<ThrowIfMissing> | NodeCallback<GetReplicaResult<Def['Body']>>
   ): Promise<CollectionGetAnyReplicaReturn<Def['Body'], ThrowIfMissing>>;
 
   async getAnyReplica<
@@ -1138,8 +1137,7 @@ export class Collection<
   >(
     key: Key,
     options?:
-      | GetAnyReplicaOptions<ThrowIfMissing>
-      | NodeCallback<GetReplicaResult<Def['Body']>>,
+      GetAnyReplicaOptions<ThrowIfMissing> | NodeCallback<GetReplicaResult<Def['Body']>>,
     callback?: NodeCallback<GetReplicaResult<Def['Body']>>
   ): Promise<CollectionGetAnyReplicaReturn<Def['Body'], ThrowIfMissing>> {
     if (options instanceof Function) {

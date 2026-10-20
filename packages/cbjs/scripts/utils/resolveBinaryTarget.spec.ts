@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access -- untyped .mjs imports */
 import { describe, it } from 'vitest';
 
 // @ts-expect-error js import

@@ -99,7 +99,6 @@ export type QueryIndexWithClause = {
   similarity?:
     | QueryIndexVectorSimilarity
     | Lowercase<QueryIndexVectorSimilarity>
-    // eslint-disable-next-line @typescript-eslint/ban-types
     | (string & {});
 
   /**

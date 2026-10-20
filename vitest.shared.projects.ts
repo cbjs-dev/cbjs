@@ -34,7 +34,6 @@ export default defineProject({
       // under `describe(..., { sequential: true })`, which breaks them.
       shuffle: {
         tests: false,
-        files: false,
       },
     },
     pool: 'forks',

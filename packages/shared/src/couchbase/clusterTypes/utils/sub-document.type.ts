@@ -31,8 +31,7 @@ export type SplitIntoSegments<T extends string> = T extends string
  */
 // prettier-ignore
 export type SplitSegmentIntoAccessors<T extends string> =
-  SplitSegmentIntoAccessorsTRE<T, [], `${string}`>
-;
+  SplitSegmentIntoAccessorsTRE<T, [], `${string}`>;
 
 // prettier-ignore
 export type SplitSegmentIntoAccessorsTRE<
@@ -48,8 +47,7 @@ export type SplitSegmentIntoAccessorsTRE<
         [...Acc, `[${Index}]`] :
       [Prop, ...Acc, `[${Index}]`] :
     never :
-  [T]
-;
+  [T];
 
 /**
  * Split each segment into its accessors and return a flatten tuple.
@@ -114,8 +112,7 @@ export type SubDocumentFromPathSegments<
       never :
       
     never :
-  never
-;
+  never;
 
 // prettier-ignore
 type ArrayElementAtIndex<T, K> = 
@@ -141,5 +138,4 @@ type ArrayElementAtIndex<T, K> =
  */
 // prettier-ignore
 export type SubDocument<T, P extends string> =
-  IsFuzzyDocument<T> extends true ? any : SubDocumentFromPathSegments<T, SplitIntoSegments<P>>
-;
+  IsFuzzyDocument<T> extends true ? any : SubDocumentFromPathSegments<T, SplitIntoSegments<P>>;

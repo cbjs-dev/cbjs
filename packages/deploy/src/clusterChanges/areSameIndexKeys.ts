@@ -26,7 +26,7 @@ function splitModifiers(key: string) {
   const modifiers: string[] = [];
   let expression = key.trim();
 
-  for (let match = trailingModifier.exec(expression); match; ) {
+  for (let match = trailingModifier.exec(expression); match;) {
     modifiers.push(match[1].toUpperCase().replace(/\s+/, ' '));
     expression = expression.slice(0, match.index).trim();
     match = trailingModifier.exec(expression);

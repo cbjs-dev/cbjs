@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import 'vitest';
 
-import './expectCAS';
+import './expectCAS.js';
 import type { ExpectCAS } from './expectCAS.js';
-import './expectMutationToken';
+import './expectMutationToken.js';
 import type { ExpectMutationToken } from './expectMutationToken.js';
 
 declare module 'vitest' {
-  interface Assertion<T = any> extends ExpectCAS<T>, ExpectMutationToken<T> {}
-  interface AsymmetricMatchersContaining<T = any>
-    extends ExpectCAS<T>,
-      ExpectMutationToken<T> {}
+  interface Matchers<R, T> extends ExpectCAS<R>, ExpectMutationToken<R> {}
 }

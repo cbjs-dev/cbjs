@@ -1742,9 +1742,7 @@ async function rollbackQuietly<T extends CouchbaseClusterTypes>(
 
 function withRollbackError<
   E extends
-    | TransactionFailedError
-    | TransactionExpiredError
-    | TransactionCommitAmbiguousError,
+    TransactionFailedError | TransactionExpiredError | TransactionCommitAmbiguousError,
 >(error: E, rollbackError: Error | undefined): E {
   if (rollbackError) {
     error.rollbackError = rollbackError;

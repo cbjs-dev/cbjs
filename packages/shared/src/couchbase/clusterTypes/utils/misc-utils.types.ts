@@ -42,7 +42,7 @@ export type RequiredKeys<T> = Extract<
  */
 export type OptionalKeys<T> =
   T extends unknown ?
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   {} extends Record<keyof T, unknown>
     ? keyof T
     : Exclude<

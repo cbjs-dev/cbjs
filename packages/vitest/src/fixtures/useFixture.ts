@@ -85,8 +85,7 @@ export function useFixture<
 
   return [
     suiteFixture as
-      | ((...args: Args) => CreateTestFixtureFunction<Args, UseValue, Context>)
-      | UseValue,
+      ((...args: Args) => CreateTestFixtureFunction<Args, UseValue, Context>) | UseValue,
     testFixture as TestFixtureFn<Args, UseValue>,
   ];
 }

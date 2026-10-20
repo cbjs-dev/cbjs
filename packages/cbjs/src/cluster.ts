@@ -1049,8 +1049,7 @@ export class Cluster<in out T extends CouchbaseClusterTypes = DefaultClusterType
     indexName: string,
     request: SearchRequest,
     ...args:
-      | [SearchQueryOptions, NodeCallback<SearchResult>?]
-      | [NodeCallback<SearchResult>?]
+      [SearchQueryOptions, NodeCallback<SearchResult>?] | [NodeCallback<SearchResult>?]
   ): StreamableRowPromise<SearchResult, SearchRow, SearchMetaData> {
     const [options = {}, callback] = resolveOptionsAndCallback(args);
 

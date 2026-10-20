@@ -659,8 +659,7 @@ async function applyUpsertSearchIndex(
   cluster: AnyCluster,
   apiConfig: CouchbaseHttpApiConfig,
   change:
-    | CouchbaseClusterChangeCreateSearchIndex
-    | CouchbaseClusterChangeUpdateSearchIndex,
+    CouchbaseClusterChangeCreateSearchIndex | CouchbaseClusterChangeUpdateSearchIndex,
   opts: ChangeOptions
 ) {
   const config = change.configFn({

@@ -36,7 +36,7 @@ import { serverSupportsFeatures } from '../utils/serverFeature.js';
 
 describe.runIf(serverSupportsFeatures(ServerFeatures.Search))(
   'search',
-  { sequential: true },
+  { concurrent: false },
   async () => {
     const serverTestContext = getDefaultServerTestContext();
 

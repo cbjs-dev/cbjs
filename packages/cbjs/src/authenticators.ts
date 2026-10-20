@@ -179,6 +179,4 @@ export class JwtAuthenticator implements IJwtAuthenticator {
  * @category Authentication
  */
 export type Authenticator =
-  | IPasswordAuthenticator
-  | ICertificateAuthenticator
-  | IJwtAuthenticator;
+  IPasswordAuthenticator | ICertificateAuthenticator | IJwtAuthenticator;

@@ -1,5 +1,4 @@
 /* eslint-disable */
-
 /*
  * Copyright (c) 2023-Present Jonathan MASSUCHETTI <jonathan.massuchetti@dappit.fr>.
  *
@@ -49,8 +48,7 @@ type FilterCCContains<T, Text extends string, Exclude extends string = 'ZOEUAZIO
 ;
 
 type TestResult<Actual, Expected> =
-  | Unexpected<Expected, Actual>
-  | Missing<Expected, Actual>;
+  Unexpected<Expected, Actual> | Missing<Expected, Actual>;
 
 // prettier-ignore
 type Unexpected<Expected, Actual> =

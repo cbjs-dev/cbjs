@@ -78,7 +78,7 @@ describe('IsDefaultClusterTypes', () => {
 
   it('should return true when an empty object is given', () => {
     expectTypeOf<IsDefaultClusterTypes<NonNullable<unknown>>>().toEqualTypeOf<true>();
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     expectTypeOf<IsDefaultClusterTypes<{}>>().toEqualTypeOf<true>();
   });
 
