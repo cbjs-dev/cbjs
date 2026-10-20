@@ -19,9 +19,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: 4.1.10
         version: 4.1.10(vitest@4.1.10)
-      '@vitest/runner':
-        specifier: 4.1.10
-        version: 4.1.10
       '@vitest/ui':
         specifier: 4.1.10
         version: 4.1.10(vitest@4.1.10)
@@ -240,9 +237,6 @@ importers:
       '@types/node':
         specifier: ^22.14.1
         version: 22.19.13
-      '@vitest/runner':
-        specifier: 4.1.10
-        version: 4.1.10
       typescript:
         specifier: 5.4.5
         version: 5.4.5

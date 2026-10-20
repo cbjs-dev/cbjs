@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Use } from '@vitest/runner';
 import { TestAPI, TestContext } from 'vitest';
 
 import { cbjsTest } from '../extendedTests/cbjsTest.js';
 import { useApiConfig, useDocumentKey, useLogger, useServerTestContext } from './couchbase/index.js';
+
+/**
+ * The `use` callback a fixture receives. Declared here because Vitest does not
+ * export it, and `@vitest/runner`, which does, is deprecated since Vitest 5.
+ */
+export type Use<T> = (value: T) => Promise<void>;
 
 /**
  * Represents the value of the fixture within the test.

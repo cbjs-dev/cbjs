@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@vitest/runner';
 import type { TestContext } from 'vitest';
 
 import type { CouchbaseApiConfig } from '@cbjsdev/shared';

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Use } from '@vitest/runner';
 import { TestContext } from 'vitest';
 
 import { Keyspace } from '@cbjsdev/cbjs';
 import { hasOwn } from '@cbjsdev/shared';
 
 import { DocumentKeyFixtureParams } from '../../../fixtures/couchbase/kv/index.js';
-import { CbjsTestContext } from '../../types.js';
+import { CbjsTestContext, Use } from '../../types.js';
 
 export const useDocumentKey = async (
   {

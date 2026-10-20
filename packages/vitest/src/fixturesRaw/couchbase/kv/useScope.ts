@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Use } from '@vitest/runner';
 import { retry } from 'ts-retry-promise';
 import { TestContext } from 'vitest';
 
 import { waitForScope } from '@cbjsdev/http-client';
 
 import { ScopeFixtureParams } from '../../../fixtures/couchbase/kv/index.js';
-import { CbjsTestContext } from '../../types.js';
+import { CbjsTestContext, Use } from '../../types.js';
 
 export const useScope = async (
   {
