@@ -391,40 +391,6 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
 
-  tests/typescript-performance:
-    dependencies:
-      '@ark/attest':
-        specifier: ^0.57.0
-        version: 0.57.0(typescript@6.0.3)
-      '@cbjsdev/cbjs':
-        specifier: workspace:*
-        version: link:../../packages/cbjs
-      '@cbjsdev/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@vvo/tzdb':
-        specifier: ^6.201.1
-        version: 6.201.1
-      arktype:
-        specifier: 2.2.8
-        version: 2.2.8
-      graph-data-structure:
-        specifier: ^4.5.0
-        version: 4.5.0
-      validator:
-        specifier: ^13.15.35
-        version: 13.15.35
-    devDependencies:
-      '@types/node':
-        specifier: ^22.20.5
-        version: 22.20.5
-      '@types/validator':
-        specifier: ^13.15.10
-        version: 13.15.10
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-
   tests/v8-optimization:
     dependencies:
       '@cbjsdev/cbjs':
@@ -1888,9 +1854,6 @@ packages:
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
-  '@types/validator@13.15.10':
-    resolution: {integrity: sha512-T8L6i7wCuyoK8A/ZeLYt1+q0ty3Zb9+qbSSvrIVitzT3YjZqkTZ40IbRsPanlB4h1QB3JVL1SYCdR6ngtFYcuA==}
-
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
 
@@ -2129,9 +2092,6 @@ packages:
 
   '@vueuse/shared@12.8.2':
     resolution: {integrity: sha512-dznP38YzxZoNloI0qpEfpkms8knDtaoQ6Y/sfS0L7Yki4zh40LFHEhur0odJC6xTHG5dxWVPiUWBXn+wCG2s5w==}
-
-  '@vvo/tzdb@6.201.1':
-    resolution: {integrity: sha512-ib7ymHHyiGD9N/WWGMX5951hmxaFnOP3W8l0ATUxaH0Y/NczPHWS4cQgJUd1S9zyjCq0od8WXxRHlnjlHNPdNg==}
 
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
@@ -2865,9 +2825,6 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
-  graph-data-structure@4.5.0:
-    resolution: {integrity: sha512-OCeIzpK9JnV5js4gtDJgwebRbcOsZpoN9CNIwEooHkV/FNol+OykWPOugSTXBH/QICEW2N6U+6L2d9DcK4YBcw==}
 
   handlebars@4.7.10:
     resolution: {integrity: sha512-P5VJMVM7qgBn6vjXMw8WG9uVI+ncf2pi72j4de4yz5ZULLj2RGqLYaKOYGsgyrViQ0tePOVlN1tDCCXXtFqXKg==}
@@ -4271,10 +4228,6 @@ packages:
   validate-npm-package-name@8.0.0:
     resolution: {integrity: sha512-SCv6OOV6Xj2/3cXy3dGmADluJTNcL3o7hZAglNPTe+WYuEuvxgJzxPrSDLZhF+CwyQOubqgecjMmTJGMVLWjYQ==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
-
-  validator@13.15.35:
-    resolution: {integrity: sha512-TQ5pAGhd5whStmqWvYF4OjQROlmv9SMFVt37qoCBdqRffuuklWYQlCNnEs2ZaIBD1kZRNnikiZOS1eqgkar0iw==}
-    engines: {node: '>= 0.10'}
 
   verkit@0.5.0:
     resolution: {integrity: sha512-u4J1hr6Y+C/hit34GwL3eIcUf3wngT8TlYUjK7tk0jxydKLAq3sYvifjdTDA6U3KCKRcQCQDGf/srjxfZF3l7g==}
@@ -5855,8 +5808,6 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
-  '@types/validator@13.15.10': {}
-
   '@types/web-bluetooth@0.0.21': {}
 
   '@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(eslint@10.13.0(jiti@1.21.0))(typescript@6.0.3))(eslint@10.13.0(jiti@1.21.0))(typescript@6.0.3)':
@@ -6159,8 +6110,6 @@ snapshots:
       vue: 3.5.44(typescript@6.0.3)
     transitivePeerDependencies:
       - typescript
-
-  '@vvo/tzdb@6.201.1': {}
 
   '@yarnpkg/lockfile@1.1.0': {}
 
@@ -6927,8 +6876,6 @@ snapshots:
     optional: true
 
   graceful-fs@4.2.11: {}
-
-  graph-data-structure@4.5.0: {}
 
   handlebars@4.7.10:
     dependencies:
@@ -8682,8 +8629,6 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   validate-npm-package-name@8.0.0: {}
-
-  validator@13.15.35: {}
 
   verkit@0.5.0: {}
 
