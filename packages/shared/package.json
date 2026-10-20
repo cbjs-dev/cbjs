@@ -33,7 +33,7 @@
   "devDependencies": {
     "@ark/attest": "^0.25.0",
     "typescript": "5.4.5",
-    "vitest": "4.1.10"
+    "vitest": "4.1.12"
   },
   "publishConfig": {
     "access": "public",

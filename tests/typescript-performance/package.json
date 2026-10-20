@@ -15,7 +15,7 @@
     "@vvo/tzdb": "^6.149.0",
     "arktype": "2.0.0-rc.23",
     "graph-data-structure": "^4.2.0",
-    "validator": "^13.12.0"
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",

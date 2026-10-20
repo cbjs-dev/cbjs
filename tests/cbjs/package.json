@@ -18,7 +18,7 @@
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
     "semver": "^7.5.4",
-    "vitest": "4.1.10"
+    "vitest": "4.1.12"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.4",

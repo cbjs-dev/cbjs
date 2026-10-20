@@ -65,7 +65,7 @@
   "devDependencies": {
     "@types/node": "^22.14.1",
     "typescript": "5.4.5",
-    "vitest": "4.1.10"
+    "vitest": "4.1.12"
   },
   "config": {
     "native": false

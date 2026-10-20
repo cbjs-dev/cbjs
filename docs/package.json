@@ -10,14 +10,14 @@
   },
   "devDependencies": {
     "@cbjsdev/cbjs": "workspace:*",
+    "@cbjsdev/deploy": "workspace:*",
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
-    "@cbjsdev/deploy": "workspace:*",
-    "@shikijs/vitepress-twoslash": "^1.2.4",
-    "@vitejs/plugin-vue": "latest",
+    "@shikijs/vitepress-twoslash": "^2.5.0",
+    "@vitejs/plugin-vue": "^6.0.10",
     "typescript": "5.4.5",
-    "vite": "^5.0.0",
-    "vitepress": "1.1.3",
-    "vue": "^3.4.26"
+    "vite": "^6.4.4",
+    "vitepress": "1.6.4",
+    "vue": "^3.5.44"
   }
 }

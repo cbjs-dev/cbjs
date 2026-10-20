@@ -13,11 +13,11 @@
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
     "@cbjsdev/vitest": "workspace:*",
-    "glob": "^10.3.10",
+    "glob": "^10.5.0",
     "pino": "^8.16.2",
     "pino-pretty": "^10.2.3",
-    "tsx": "^4.8.1",
-    "vitest": "4.1.10"
+    "tsx": "^4.23.15",
+    "vitest": "4.1.12"
   },
   "devDependencies": {
     "typescript": "5.4.5",

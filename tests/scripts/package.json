@@ -11,10 +11,10 @@
     "@cbjsdev/cbjs": "workspace:*",
     "@cbjsdev/http-client": "workspace:*",
     "@cbjsdev/shared": "workspace:*",
-    "tsx": "^4.8.1",
+    "tsx": "^4.23.15",
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "vitest": "4.1.10"
+    "vitest": "4.1.12"
   }
 }
