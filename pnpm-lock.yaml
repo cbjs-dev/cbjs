@@ -98,7 +98,7 @@ importers:
         version: 7.3.7(@types/node@22.20.5)(jiti@1.21.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.0)
       vitepress:
         specifier: 1.6.4
-        version: 1.6.4(@algolia/client-search@5.60.0)(@types/node@22.20.5)(axios@1.18.1)(jiti@1.21.0)(lightningcss@1.33.0)(postcss@8.5.31)(search-insights@2.13.0)(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.0)
+        version: 1.6.4(@algolia/client-search@5.60.0)(@types/node@22.20.5)(jiti@1.21.0)(lightningcss@1.33.0)(postcss@8.5.31)(search-insights@2.13.0)(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.0)
       vue:
         specifier: ^3.5.44
         version: 3.5.44(typescript@6.0.3)
@@ -2178,8 +2178,6 @@ packages:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
 
-  axios@1.18.1:
-    resolution: {integrity: sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -6092,13 +6090,12 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@vueuse/integrations@12.8.2(axios@1.18.1)(focus-trap@7.8.0)(typescript@6.0.3)':
+  '@vueuse/integrations@12.8.2(focus-trap@7.8.0)(typescript@6.0.3)':
     dependencies:
       '@vueuse/core': 12.8.2(typescript@6.0.3)
       '@vueuse/shared': 12.8.2(typescript@6.0.3)
       vue: 3.5.44(typescript@6.0.3)
     optionalDependencies:
-      axios: 1.18.1
       focus-trap: 7.8.0
     transitivePeerDependencies:
       - typescript
@@ -6199,16 +6196,6 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
-  axios@1.18.1:
-    dependencies:
-      follow-redirects: 1.16.1
-      form-data: 4.0.6
-      https-proxy-agent: 5.0.1
-      proxy-from-env: 2.1.0
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-    optional: true
 
   balanced-match@1.0.2: {}
 
@@ -8673,7 +8660,7 @@ snapshots:
       tsx: 4.23.15
       yaml: 2.9.0
 
-  vitepress@1.6.4(@algolia/client-search@5.60.0)(@types/node@22.20.5)(axios@1.18.1)(jiti@1.21.0)(lightningcss@1.33.0)(postcss@8.5.31)(search-insights@2.13.0)(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.0):
+  vitepress@1.6.4(@algolia/client-search@5.60.0)(@types/node@22.20.5)(jiti@1.21.0)(lightningcss@1.33.0)(postcss@8.5.31)(search-insights@2.13.0)(tsx@4.23.15)(typescript@6.0.3)(yaml@2.9.0):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.60.0)(search-insights@2.13.0)
@@ -8686,7 +8673,7 @@ snapshots:
       '@vue/devtools-api': 7.7.10
       '@vue/shared': 3.5.44
       '@vueuse/core': 12.8.2(typescript@6.0.3)
-      '@vueuse/integrations': 12.8.2(axios@1.18.1)(focus-trap@7.8.0)(typescript@6.0.3)
+      '@vueuse/integrations': 12.8.2(focus-trap@7.8.0)(typescript@6.0.3)
       focus-trap: 7.8.0
       mark.js: 8.11.1
       minisearch: 7.2.0
