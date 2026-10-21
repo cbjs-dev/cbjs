@@ -37,6 +37,9 @@ export default defineProject({
       },
     },
     pool: 'forks',
+    // Integration specs share one cluster: a file can't create its bucket while another
+    // one drops its own. Projects don't inherit the root `maxWorkers` since Vitest 5.
+    maxWorkers: 1,
     env: {
       CB_CONNECTION_STRING: process.env.CB_CONNECTION_STRING ?? 'couchbase://127.0.0.1',
       CB_USER: process.env.CB_USER ?? 'Administrator',
