@@ -38,6 +38,7 @@
   },
   "pnpm": {
     "overrides": {
+      "nx>undici": "^7.29.1",
       "vitepress>@vitejs/plugin-vue": "^6.0.10",
       "vitepress>vite": "^7.3.7"
     }
