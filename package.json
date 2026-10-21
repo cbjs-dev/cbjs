@@ -2,7 +2,7 @@
   "name": "@cbjsdev/monorepo",
   "version": "1.0.0",
   "type": "module",
-  "packageManager": "pnpm@9.0.6",
+  "packageManager": "pnpm@12.14.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -35,12 +35,5 @@
     "typescript-eslint": "^8.72.0",
     "vite": "^8.3.4",
     "vitest": "5.0.5"
-  },
-  "pnpm": {
-    "overrides": {
-      "nx>undici": "^7.29.1",
-      "vitepress>@vitejs/plugin-vue": "^6.0.10",
-      "vitepress>vite": "^7.3.7"
-    }
   }
 }

@@ -1,4 +1,19 @@
 packages:
-  - "docs"
-  - "packages/*"
-  - "tests/*"
+  - 'docs'
+  - 'packages/*'
+  - 'tests/*'
+
+# Keeps `pnpm-lock.yaml` a single YAML document. Otherwise pnpm 12 writes its own version in a
+# first document, GitHub's dependency graph reads only that one and Dependabot stops alerting:
+# https://github.com/dependabot/dependabot-core/issues/15904
+pmOnFail: ignore
+
+allowBuilds:
+  couchbase: true
+  esbuild: true
+  nx: true
+
+overrides:
+  nx>undici: ^7.29.1
+  vitepress>@vitejs/plugin-vue: ^6.0.10
+  vitepress>vite: ^7.3.7
